@@ -89,14 +89,14 @@ if ($action === 'resend_verification') {
     
     if (!$userCheck) {
         // Security: Vráť success aj keď user neexistuje
-        $rateLimiter->recordFailedAttempt('resend_verification', $clientIp);
+        $rateLimiter->recordFailedAttempt('resend_verification', $clientIp, $email);
         echo json_encode(['success' => true, 'message' => 'If email exists, verification link was sent']);
         exit;
     }
     
     if ($userCheck['is_email_verified']) {
         // ✅ Record failed attempt
-        $rateLimiter->recordFailedAttempt('resend_verification', $clientIp);
+        $rateLimiter->recordFailedAttempt('resend_verification', $clientIp, $email);
         echo json_encode(['success' => false, 'message' => 'Email is already verified']);
         exit;
     }
@@ -123,7 +123,7 @@ if ($action === 'resend_verification') {
     $emailService = new Email();
     $fullName = $userCheck['first_name'] . ' ' . $userCheck['last_name'];
     $emailService->sendVerification($email, $fullName, $newToken);
-    $rateLimiter->recordFailedAttempt('resend_verification', $clientIp);
+    $rateLimiter->recordFailedAttempt('resend_verification', $clientIp, $email);
     
     // ✅ Ulož timestamp do session (pre 60-sec timer)
     $_SESSION[$lastSentKey] = time();

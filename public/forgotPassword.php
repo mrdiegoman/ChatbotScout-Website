@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $userService->sendPasswordReset($email);
                 
                 // ✅ Reset rate limiter (úspešný request)
-                $rateLimiter->reset('password_reset', $clientIp);
+                $rateLimiter->reset('password_reset', $clientIp, $email);
                 
                 // Vždy zobraz success message (aj ak email neexistuje)
                 $success = "If the email address exists in our system, you will receive a password reset link shortly.";
@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } catch (Exception $e) {
                 $error = $e->getMessage();
                 // ✅ Record failed attempt
-                $rateLimiter->recordFailedAttempt('password_reset', $clientIp);
+                $rateLimiter->recordFailedAttempt('password_reset', $clientIp, $email);
                 
                 // ✅ PRG: Ulož do session a redirect
                 $_SESSION['forgot_errors'] = $error;

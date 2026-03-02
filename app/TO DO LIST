@@ -16,9 +16,6 @@ Google sign up
 
 Stripe -> nakup, visa, paypal, apple-pay (celkove zobrazenie tj. inputy)
 
-Problem s rate limitom email A ovplyvnuje email B ked su na rovnakej ip -> pridanie limitu podla ip a podla 
-emailu
-
 REDIS COMMANDY:
     redis-cli
     INFO keyspace
@@ -26,3 +23,6 @@ REDIS COMMANDY:
     KEYS *
     GET chatbothub:ratelimit:login:::1:count   (Zobrazi count attemptov)
     FLUSHALL
+
+Git Bash:
+cd C:/xampp/htdocs/MainWebsite

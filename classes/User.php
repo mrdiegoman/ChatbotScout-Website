@@ -176,7 +176,7 @@ class User
         $emailService->sendVerification($email, $fullName, $verificationToken);
         
         // ✅ Reset rate limiter (úspešná registrácia)
-        $rateLimiter->reset('registration', $clientIp);
+        // $rateLimiter->reset('registration', $clientIp, $email);
         
         // Zaloguj úspešnú registráciu
         error_log("✅ New user registered: $email");
@@ -210,8 +210,10 @@ class User
         
         $errors = [];
 
-        if (!$rateLimiter->check('login', $clientIp)) {
-            $remaining = $rateLimiter->getRemainingLockoutTime('login', $clientIp);
+        // 🆕 ZMENA: check() dostáva aj $email - kontroluje IP aj email blokáciu
+        if (!$rateLimiter->check('login', $clientIp, $email)) {
+            // 🆕 ZMENA: getRemainingLockoutTime() dostáva aj $email
+            $remaining = $rateLimiter->getRemainingLockoutTime('login', $clientIp, $email);
             if ($remaining >= 60) {
                 $minutes = ceil($remaining / 60);
                 throw new Exception("Too many login attempts. Please try again in {$minutes} minutes.");
@@ -220,14 +222,10 @@ class User
                 throw new Exception("Too many login attempts. Please try again in {$remaining} seconds.");
             }
         }
-        
-        
-        
 
         // Validácia emailu
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors['email'][] = "Please enter a valid email address.";
-            // throw new Exception("Please enter a valid email address.");
         }
 
         if (empty($password)) {
@@ -235,8 +233,8 @@ class User
         }
 
         if (!empty($errors)) {
-            // ✅ Record failed attempt (skutočný problém - validačné chyby)
-            $remaining = $rateLimiter->recordFailedAttempt('login', $clientIp);
+            // 🆕 ZMENA: recordFailedAttempt() dostáva aj $email
+            $remaining = $rateLimiter->recordFailedAttempt('login', $clientIp, $email);
             if ($remaining >= 60) {
                 $minutes = ceil($remaining / 60);
                 throw new Exception("Too many login attempts. Please try again in {$minutes} minutes.");
@@ -257,9 +255,8 @@ class User
         $user = $stmt->fetch();
 
         if (!$user) {
-            // ✅ Record failed attempt
-            
-            $remaining = $rateLimiter->recordFailedAttempt('login', $clientIp);
+            // 🆕 ZMENA: recordFailedAttempt() dostáva aj $email
+            $remaining = $rateLimiter->recordFailedAttempt('login', $clientIp, $email);
             if ($remaining >= 60) {
                 $minutes = ceil($remaining / 60);
                 throw new Exception("Too many login attempts. Please try again in {$minutes} minutes.");
@@ -272,8 +269,8 @@ class User
         
         // Overenie hesla
         if (!password_verify($password, $user['password_hash'])) {
-            // ✅ Record failed attempt
-            $remaining = $rateLimiter->recordFailedAttempt('login', $clientIp);
+            // 🆕 ZMENA: recordFailedAttempt() dostáva aj $email
+            $remaining = $rateLimiter->recordFailedAttempt('login', $clientIp, $email);
             if ($remaining >= 60) {
                 $minutes = ceil($remaining / 60);
                 throw new Exception("Too many login attempts. Please try again in {$minutes} minutes.");
@@ -283,17 +280,15 @@ class User
             }
             throw new Exception("Invalid email or password.");
         }
-        
+
         // Hard verification - user NEMÔŽE byť prihlásený bez verifikácie
         $rateLimiter = new RateLimiter();
         if (!$user['is_email_verified']) {
-            if ($rateLimiter->check('resend_verification', $clientIp)) {
+            if ($rateLimiter->check('resend_verification', $clientIp, $email)) {
                 if (!$this->checkEmailVerify($user['email_verification_expires_at'])){
-                    // Generate email verification token
                     $verificationToken = bin2hex(random_bytes(32));
                     $tokenExpires = date('Y-m-d H:i:s', time() + $this->appConfig['email_verification']['token_lifetime']);
 
-                    // Update user with new verification token
                     $updateStmt = $this->db->prepare("
                         UPDATE users 
                         SET email_verification_token = :token,
@@ -306,17 +301,15 @@ class User
                         'id' => $user['id']
                     ]);
 
-                    // Odoslanie verification emailu
                     $emailService = new Email();
                     $fullName = $user['first_name'] . ' ' . $user['last_name'];
                     $emailService->sendVerification($email, $fullName, $verificationToken);
                     
-                    $rateLimiter->recordFailedAttempt('resend_verification', $clientIp);
+                    $rateLimiter->recordFailedAttempt('resend_verification', $clientIp, $email);
                     header('Location: verificationSent.php?email=' . urlencode($email));
                 }
                 header('Location: verificationSent.php?email=' . urlencode($email));
                 exit;
-                // throw new Exception("Please verify your email before logging in. Check your inbox for verification link.");
             }
             else{
                 $remaining = $rateLimiter->getRemainingLockoutTime('resend_verification', $clientIp);
@@ -330,7 +323,6 @@ class User
             }
         }
         
-        
         // Kontrola statusu účtu
         if ($user['status'] === 'suspended') {
             throw new Exception("Your account has been suspended. Please contact support.");
@@ -341,7 +333,8 @@ class User
         }
         
         // ✅ Úspešný login - reset rate limiter
-        $rateLimiter->reset('login', $clientIp);
+        // 🆕 ZMENA: reset() dostáva aj $email - resetuje IP aj email limity
+        $rateLimiter->resetByEmail('login', $email);
         
         // Update last login
         $updateStmt = $this->db->prepare("UPDATE users SET last_login_at = NOW() WHERE id = :id");
