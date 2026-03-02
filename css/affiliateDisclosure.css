@@ -1,0 +1,57 @@
+:root {
+  --page-width: 800px;
+}
+
+.Affiliate-dis-page-wrapper {
+    max-width: var(--page-width);
+    margin: 60px auto auto auto;
+    width: 100%;
+    padding: 0 2rem;
+}
+
+.Affiliate-dis-page-main{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 4rem 0 4rem 0;
+    margin-bottom: 0;
+    
+}
+
+.Affiliate-dis-page-main-section-1{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+}
+
+.Affiliate-dis-page-main h1 {
+    font-family: outfit-semibold;
+}
+
+.Affiliate-dis-page-main span {
+    font-family: outfit-semibold;
+}
+
+.Affiliate-dis-page-main a {
+    color: var(--blue-color);
+}
+
+.Affiliate-dis-page-main a:hover {
+    text-decoration: underline;
+}
+
+.footer-main-wrapper {
+    max-width: var(--page-width);
+}
+
+.footer-main-bottom {
+    max-width: var(--page-width);
+}
+
+@media (max-width: 768px) {
+    .form-group {
+        flex: 1 1 100%;
+    }
+}

@@ -1,0 +1,52 @@
+:root {
+  --page-width: 800px;
+}
+
+.aboutUs-page-wrapper {
+    max-width: var(--page-width);
+    margin: 60px auto auto auto;
+    width: 100%;
+    padding: 0 2rem;
+}
+
+.aboutUs-page-main{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 4rem 0 4rem 0;
+    margin-bottom: 0;
+}
+
+.aboutUs-page-main-section-1{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+}
+
+.aboutUs-page-main h1 {
+    font-family: outfit-semibold;
+}
+
+.aboutUs-page-main a {
+    color: var(--blue-color);
+}
+
+.aboutUs-page-main a:hover {
+    text-decoration: underline;
+}
+
+.footer-main-wrapper {
+    max-width: var(--page-width);
+}
+
+.footer-main-bottom {
+    max-width: var(--page-width);
+}
+
+@media (max-width: 768px) {
+    .form-group {
+        flex: 1 1 100%;
+    }
+}

@@ -1,0 +1,438 @@
+/* General reset and body styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #f5f5f5;
+}
+
+/* Auth page wrapper - centers content */
+.auth-page-wrapper {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5rem 0;
+    margin-top: 60px;
+}
+
+/* Auth container - the white card */
+.auth-container {
+    background: white;
+    border-radius: 2rem;
+    box-shadow: 0 0.2rem 1rem rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    width: 100%;
+    max-width: 550px;
+}
+
+/* Logo and branding section */
+.auth-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 3rem;
+}
+
+.auth-header img {
+    width: 4rem;
+    height: 4rem;
+}
+
+.auth-header h1 {
+    font-family: 'RubikDistressed', cursive;
+    font-size: 2.3rem;
+    color: black;
+}
+
+/* Page title (Sign In / Create an account) */
+.auth-title {
+    text-align: center;
+    font-size: 1.75rem;
+    line-height: 1.5rem;
+    margin-bottom: 2.5rem;
+    font-family: outfit;
+}
+
+/* Google sign in/up button */
+.google-btn {
+    width: 100%;
+    padding: 1.2rem;
+    border: 0.1rem solid #dadce0;
+    border-radius: 0.6rem;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.2rem;
+    font-size: 1.6rem;
+    color: #3c4043;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    margin-bottom: 1rem;
+}
+
+.google-btn:hover {
+    background-color: #f8f9fa;
+    box-shadow: 0 0.1rem 0.3rem rgba(0, 0, 0, 0.1);
+}
+
+.google-icon {
+    min-width: 2rem;
+    max-width: 2rem;
+    min-height: 2rem;
+    max-height: 2rem;
+}
+
+/* Divider */
+.auth-divider-container{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.auth-divider {
+    text-align: center;
+    margin: 2.5rem 0;
+    position: relative;
+    color: #5f6368;
+    font-size: 1.4rem;
+    font-family: outfit, sans-serif;
+}
+
+.auth-divider-line {
+    content: '';
+    top: 50%;
+    width: 30%;
+    height: 0.1rem;
+    background-color: #dadce0;
+}
+
+.auth-divider::before {
+    left: 0;
+}
+
+.auth-divider::after {
+    right: 0;
+}
+
+/* Form styling */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.name-fields {
+    display: flex;
+    flex-direction: row;
+    gap: 2rem;
+    width: 100%;
+    flex-wrap: nowrap;
+}
+
+/* Form group */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    width: 100%;
+    height: fit-content;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-family: outfit-medium;
+    color: #333;
+}
+
+.form-group input {
+    padding: 1.2rem;
+    border: 0.1rem solid #dadce0;
+    border-radius: 0.6px;
+    font-size: 1.6rem;
+    transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--blue-color);
+}
+
+/* Password input wrapper with eye icon */
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding-right: 4.5rem;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 1.2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #5f6368;
+    transition: color 0.2s, background-color 0.2s;
+    border-radius: 0.4rem;
+}
+
+.toggle-password:hover {
+    background-color: #f1f3f4;
+}
+
+.toggle-password.active {
+    color: var(--blue-color);
+    background-color: #e8f0fe;
+}
+
+.toggle-password svg {
+    width: 2rem;
+    height: 2rem;
+}
+
+.password-hint {
+    color: #666;
+    font-size: 12px;
+}
+
+/* Custom Checkbox Styling */
+.checkbox-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    /* margin-top: 1rem; */
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-content: flex-start;
+}
+
+.checkbox-group input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    
+    width: 2rem;
+    height: 2rem;
+    min-width: 2rem;
+    border: 0.2rem solid #dadce0;
+    border-radius: 0.4rem;
+    background-color: #fff;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    margin-top: 0.2rem;
+}
+
+.checkbox-group input[type="checkbox"]:hover {
+    border-color: var(--blue-color);
+    background-color: #f8f9fa;
+}
+
+.checkbox-group input[type="checkbox"]:checked {
+    background-color: var(--blue-color);
+    border-color: var(--blue-color);
+}
+
+.checkbox-group input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: 0.2rem;
+    width: 0.6rem;
+    height: 1rem;
+    border: solid white;
+    border-width: 0 0.2rem 0.2rem 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-group label {
+    flex: 1;
+    font-size: 1.4rem;
+    color: #5f6368;
+    line-height: 1.5rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-group label a {
+    color: var(--blue-color);
+    text-decoration: none;
+    font-family: outfit-medium;
+}
+
+.checkbox-group label a:hover {
+    text-decoration: underline;
+}
+
+.checkbox-group input[type="checkbox"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.checkbox-group input[type="checkbox"]:disabled + label {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Forgot password link */
+.forgot-password {
+    text-align: right;
+    font-size: 1.4rem;
+}
+
+.forgot-password a {
+    color: var(--blue-color);
+    text-decoration: none;
+}
+
+.forgot-password a:hover {
+    text-decoration: underline;
+}
+
+/* Submit button */
+.submit-btn {
+    width: 65%;
+    padding: 1.2rem;
+    background-color: var(--blue-color);
+    color: white;
+    border: none;
+    border-radius: 1.5rem;
+    font-size: 1.6rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    margin-top: 1rem;
+    text-align: center;
+    align-self: center;
+}
+
+.submit-btn:hover {
+    background-color: rgb(26, 86, 219);
+    box-shadow: 0 0.2rem 0.5rem rgba(32, 101, 249, 0.3);
+}
+
+/* Footer text with link */
+.auth-footer {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 1.4rem;
+    color: #5f6368;
+}
+
+.auth-footer a {
+    color: var(--blue-color);
+    text-decoration: none;
+    font-family: outfit-medium;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+/* ============================================
+   SUCCESS/ERROR MESSAGES
+   ============================================ */
+
+/* Globálne messages (na vrchu) */
+.message {
+    padding: 1.2rem;
+    border-radius: 0.6rem;
+    margin-bottom: 2rem;
+    font-size: 1.4rem;
+}
+
+.message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 0.1rem solid #c3e6cb;
+}
+
+.message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 0.1rem solid #f5c6cb;
+}
+
+/* ✅ NOVÉ: Error message pod inputom */
+.error-message {
+    color: #dc2626;
+    font-size: 1.3rem;
+    /* margin-top: 0.5rem; */
+    display: block;
+    font-family: outfit;
+    line-height: 1.4;
+}
+
+/* ✅ NOVÉ: Input s errorom - červený border */
+input.error,
+select.error,
+textarea.error {
+    border-color: #dc2626 !important;
+    background-color: #fef2f2;
+}
+
+input.error:focus,
+select.error:focus,
+textarea.error:focus {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 0.3rem rgba(220, 38, 38, 0.1);
+}
+
+/* ============================================
+   END ERROR MESSAGES
+   ============================================ */
+
+.footer-main-content {
+    justify-content: center;
+}
+
+.footer-main-bottom {
+    justify-content: center;
+}
+
+@media (max-width: 764px) {
+    .footer-main-content {
+        justify-content: space-between;
+    }
+}
+
+/* Responsive design */
+@media (max-width: 550px) {
+    .name-fields {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-container {
+        padding: 3rem 2rem;
+    }
+    
+    .auth-header h1 {
+        font-size: 2.4rem;
+    }
+    
+    .auth-title {
+        font-size: 2rem;
+    }
+}

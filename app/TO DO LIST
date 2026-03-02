@@ -1,0 +1,28 @@
+PRidanie Adveritse
+
+Pridanie Submit Chatbot
+
+Pridanie home pages
+
+Nastavenie tabuliek v databaze
+
+Prepojenie chatbot page a db
+
+Pridanie rozsireneho zobrazenia implmentacii
+
+Captcha
+
+Google sign up
+
+Stripe -> nakup, visa, paypal, apple-pay (celkove zobrazenie tj. inputy)
+
+Problem s rate limitom email A ovplyvnuje email B ked su na rovnakej ip -> pridanie limitu podla ip a podla 
+emailu
+
+REDIS COMMANDY:
+    redis-cli
+    INFO keyspace
+    SELECT 1
+    KEYS *
+    GET chatbothub:ratelimit:login:::1:count   (Zobrazi count attemptov)
+    FLUSHALL
