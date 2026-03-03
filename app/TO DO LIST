@@ -16,6 +16,10 @@ Google sign up
 
 Stripe -> nakup, visa, paypal, apple-pay (celkove zobrazenie tj. inputy)
 
+Vo filters pridat clear button
+
+Na filters buttone zobrazit pocet vybranych filtrov
+
 REDIS COMMANDY:
     redis-cli
     INFO keyspace
@@ -26,3 +30,7 @@ REDIS COMMANDY:
 
 Git Bash:
 cd C:/xampp/htdocs/MainWebsite
+git status   (ukaze modifikovane subory)
+git add .     (prida vsetky subory zo subora)
+git commit -m ""     (ulozi zmeny lokalne na pc)
+git push   (posle zmeny na github repozitar)

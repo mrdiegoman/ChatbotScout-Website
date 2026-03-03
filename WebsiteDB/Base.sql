@@ -130,19 +130,19 @@ CREATE TABLE `visitors` (
 
 CREATE TABLE `chatbots` (
   `id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
-  `owner_user_id` CHAR(36) NOT NULL COMMENT 'Owner UUID, e.g., "550e8400-e29b-41d4-a716-446655440000", "7c9e6679-7425-40de-944b-e07fc1f90ae7"',
+  `owner_user_id` CHAR(36) NULL COMMENT 'Owner UUID, e.g., "550e8400-e29b-41d4-a716-446655440000", "7c9e6679-7425-40de-944b-e07fc1f90ae7"',
 
   -- Basic Info
   `name` VARCHAR(200) NOT NULL COMMENT 'Chatbot/company name, e.g., "Intercom", "Drift", "Tidio"',
-  `slug` VARCHAR(255) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "intercom", "drift-conversational-ai", "tidio-live-chat"',
+#   `slug` VARCHAR(255) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "intercom", "drift-conversational-ai", "tidio-live-chat"',
   `website_url` VARCHAR(500) NOT NULL COMMENT 'Official website, e.g., "https://www.intercom.com", "https://www.drift.com", "https://www.tidio.com"',
   `description` TEXT NULL COMMENT 'Full description, e.g., "Intercom is a complete customer service solution that provides seamless communication...", "AI-powered conversational platform for sales and marketing teams", "Live chat widget with chatbot automation for customer support"',
-  `tagline` VARCHAR(200) NULL COMMENT 'Short tagline, e.g., "The complete customer service solution", "Conversational AI for modern teams", "Chat with your customers in real-time"',
+#   `tagline` VARCHAR(200) NULL COMMENT 'Short tagline, e.g., "The complete customer service solution", "Conversational AI for modern teams", "Chat with your customers in real-time"',
 
   -- Media
   `logo_url` VARCHAR(500) NULL COMMENT 'Logo image, e.g., "https://cdn.chatbotdir.com/logos/intercom.png", "https://storage.googleapis.com/chatbots/drift-logo.svg", "https://assets.tidio.com/logo.png"',
-  `cover_image_url` VARCHAR(500) NULL COMMENT 'Cover/hero image, e.g., "https://cdn.chatbotdir.com/covers/intercom-dashboard.jpg", "https://images.drift.com/cover-hero.png", "https://tidio.com/images/dashboard-screenshot.jpg"',
-  `demo_url` VARCHAR(500) NULL COMMENT 'Demo link, e.g., "https://www.intercom.com/demo", "https://app.drift.com/try-demo", "https://www.tidio.com/panel/demo"',
+#   `cover_image_url` VARCHAR(500) NULL COMMENT 'Cover/hero image, e.g., "https://cdn.chatbotdir.com/covers/intercom-dashboard.jpg", "https://images.drift.com/cover-hero.png", "https://tidio.com/images/dashboard-screenshot.jpg"',
+#   `demo_url` VARCHAR(500) NULL COMMENT 'Demo link, e.g., "https://www.intercom.com/demo", "https://app.drift.com/try-demo", "https://www.tidio.com/panel/demo"',
 
   -- Affiliate Program
   `has_affiliate_program` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Has affiliate?, e.g., TRUE, FALSE',
@@ -176,9 +176,9 @@ CREATE TABLE `chatbots` (
   `conversion_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Affiliate conversions, e.g., 45, 123, 8',
 
   -- SEO
-  `meta_title` VARCHAR(255) NULL COMMENT 'SEO title, e.g., "Intercom - Best Customer Service Chatbot Platform", "Drift AI Chatbot for Sales Teams | ChatbotDirectory", "Tidio Live Chat Widget Review"',
-  `meta_description` VARCHAR(500) NULL COMMENT 'SEO description, e.g., "Discover why Intercom is the #1 customer service solution with AI-powered chat...", "Learn about Drift\'s conversational AI platform for sales and marketing automation", "Compare Tidio features, pricing, and integrations"',
-  `meta_keywords` VARCHAR(500) NULL COMMENT 'SEO keywords, e.g., "customer service chatbot, ai support, live chat", "conversational ai, sales automation, marketing chatbot", "live chat widget, customer support, chatbot integration"',
+#   `meta_title` VARCHAR(255) NULL COMMENT 'SEO title, e.g., "Intercom - Best Customer Service Chatbot Platform", "Drift AI Chatbot for Sales Teams | ChatbotDirectory", "Tidio Live Chat Widget Review"',
+#   `meta_description` VARCHAR(500) NULL COMMENT 'SEO description, e.g., "Discover why Intercom is the #1 customer service solution with AI-powered chat...", "Learn about Drift\'s conversational AI platform for sales and marketing automation", "Compare Tidio features, pricing, and integrations"',
+#   `meta_keywords` VARCHAR(500) NULL COMMENT 'SEO keywords, e.g., "customer service chatbot, ai support, live chat", "conversational ai, sales automation, marketing chatbot", "live chat widget, customer support, chatbot integration"',
 
   -- Timestamps
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Record created, e.g., "2025-01-15 10:00:00", "2024-12-01 08:30:00"',
@@ -189,13 +189,12 @@ CREATE TABLE `chatbots` (
   `deleted_at` TIMESTAMP NULL COMMENT 'Soft delete time, e.g., "2025-01-25 18:00:00", NULL',
 
   PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_slug` (`slug`),
   KEY `idx_owner` (`owner_user_id`),
   KEY `idx_listing_status` (`status`, `is_featured`, `rating_average`),
   KEY `idx_active_listings` (`status`, `deleted_at`, `created_at`),
   KEY `idx_affiliate_program` (`has_affiliate_program`, `status`),
   KEY `idx_pricing_filter` (`pricing_model`, `has_free_plan`),
-  FULLTEXT KEY `idx_search` (`name`, `description`, `tagline`),
+  FULLTEXT KEY `idx_search` (`name`, `description`),
 
   CONSTRAINT `fk_chatbots_owner` FOREIGN KEY (`owner_user_id`)
     REFERENCES `users` (`id`) ON DELETE RESTRICT,
@@ -210,6 +209,48 @@ CREATE TABLE `chatbots` (
   ),
   CONSTRAINT `chk_rating` CHECK (`rating_average` BETWEEN 0 AND 5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================
+-- TAGS MIGRATION
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS `tags` (
+  `id` CHAR(36) NOT NULL COMMENT 'Tag UUID',
+  `name` VARCHAR(100) NOT NULL UNIQUE COMMENT 'Tag name, e.g., "Popular", "Affiliate"',
+#   `slug` VARCHAR(150) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "popular", "affiliate"',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`)
+#   UNIQUE KEY `idx_slug` (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS `chatbot_tags` (
+  `id` CHAR(36) NOT NULL COMMENT 'Record UUID',
+  `chatbot_id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID',
+  `tag_id` CHAR(36) NOT NULL COMMENT 'Tag UUID',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_chatbot_tag` (`chatbot_id`, `tag_id`),
+  KEY `idx_tag` (`tag_id`),
+
+  CONSTRAINT `fk_chatbot_tags_chatbot` FOREIGN KEY (`chatbot_id`)
+    REFERENCES `chatbots` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_chatbot_tags_tag` FOREIGN KEY (`tag_id`)
+    REFERENCES `tags` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- SEED DATA - Default tags
+-- ============================================
+
+INSERT IGNORE INTO `tags` (`id`, `name`, `slug`) VALUES
+  (UUID(), 'Popular', 'popular'),
+  (UUID(), 'Affiliate', 'affiliate');
 
 -- ============================================
 -- COMMENTED OUT - CATEGORIES TABLE
@@ -281,19 +322,17 @@ CREATE TABLE `chatbot_cards` (
 
 -- ============================================
 
-CREATE TABLE `chatbot_social_links` (
+CREATE TABLE `Social_links` (
   `id` CHAR(36) NOT NULL COMMENT 'Link UUID, e.g., "c50e8400-e29b-41d4-a716-446655440007", "5e6f7g8h-9i0j-1k2l-3m4n-5o6p7q8r9s0t"',
-  `chatbot_id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
+#   `chatbot_id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
   `platform` ENUM('twitter', 'facebook', 'linkedin', 'instagram', 'youtube', 'github', 'discord', 'other') NOT NULL COMMENT 'Social platform, e.g., "twitter", "linkedin", "github"',
   `url` VARCHAR(500) NOT NULL COMMENT 'Social profile URL, e.g., "https://twitter.com/intercom", "https://www.linkedin.com/company/drift", "https://github.com/tidio"',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Added at, e.g., "2025-01-15 12:30:00", "2024-12-15 11:00:00"',
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 13:00:00", "2025-01-20 09:45:00"',
 
   PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_chatbot_platform` (`chatbot_id`, `platform`),
+  UNIQUE KEY `idx_chatbot_platform` (`platform`)
 
-  CONSTRAINT `fk_social_chatbot` FOREIGN KEY (`chatbot_id`)
-    REFERENCES `chatbots` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
@@ -303,22 +342,46 @@ CREATE TABLE `chatbot_social_links` (
 CREATE TABLE `features` (
   `id` CHAR(36) NOT NULL COMMENT 'Feature UUID, e.g., "d50e8400-e29b-41d4-a716-446655440008", "6f7g8h9i-0j1k-2l3m-4n5o-6p7q8r9s0t1u"',
   `name` VARCHAR(100) NOT NULL UNIQUE COMMENT 'Feature name, e.g., "Live Chat", "AI Responses", "Multi-language Support"',
-  `slug` VARCHAR(150) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "live-chat", "ai-responses", "multi-language-support"',
-  `description` TEXT NULL COMMENT 'Feature description, e.g., "Real-time chat with customers through widget", "Automated AI-powered response generation", "Support for 50+ languages with auto-translation"',
-  `category` ENUM('core_features', 'ai_capabilities', 'integrations', 'support', 'pricing', 'security', 'analytics', 'customization') NOT NULL COMMENT 'Feature category, e.g., "core_features", "ai_capabilities", "customization"',
-  `feature_type` ENUM('boolean', 'text', 'number', 'multi_select') NOT NULL DEFAULT 'boolean' COMMENT 'Value type, e.g., "boolean", "text", "number"',
-  `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
-  `is_filterable` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Show in filters?, e.g., TRUE, FALSE',
-  `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
-  `icon_name` VARCHAR(50) NULL COMMENT 'Icon identifier, e.g., "message-circle", "brain", "globe"',
+#   `slug` VARCHAR(150) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "live-chat", "ai-responses", "multi-language-support"',
+#   `description` TEXT NULL COMMENT 'Feature description, e.g., "Real-time chat with customers through widget", "Automated AI-powered response generation", "Support for 50+ languages with auto-translation"',
+#   `category` ENUM('core_features', 'ai_capabilities', 'integrations', 'support', 'pricing', 'security', 'analytics', 'customization') NOT NULL COMMENT 'Feature category, e.g., "core_features", "ai_capabilities", "customization"',
+#   `feature_type` ENUM('boolean', 'text', 'number', 'multi_select') NOT NULL DEFAULT 'boolean' COMMENT 'Value type, e.g., "boolean", "text", "number"',
+#   `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
+#   `is_filterable` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Show in filters?, e.g., TRUE, FALSE',
+#   `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
+#   `icon_name` VARCHAR(50) NULL COMMENT 'Icon identifier, e.g., "message-circle", "brain", "globe"',
 
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-10 08:00:00", "2024-11-20 10:30:00"',
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 14:00:00", "2025-01-25 11:15:00"',
 
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_slug` (`slug`),
-  KEY `idx_active_filterable` (`is_active`, `is_filterable`, `category`)
+  PRIMARY KEY (`id`)
+#   UNIQUE KEY `idx_slug` (`slug`),
+#   KEY `idx_active_filterable` (`is_active`, `is_filterable`, `category`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================
+-- SEED DATA - Default features
+-- ============================================
+Insert IGNORE into features (id, name, description)
+value (UUID(),'Mobile application',NULL),
+    (UUID(),'Desktop application',NULL),
+    (UUID(),'Website widget',NULL),
+    (UUID(),'Multilingual',NULL),
+    (UUID(),'Custom design',NULL),
+    (UUID(),'AI agent',NULL),
+    (UUID(),'Live agent support',NULL),
+    (UUID(),'Website application',NULL),
+    (UUID(),'Ticket management',NULL),
+    (UUID(),'Dashboard',NULL),
+    (UUID(),'Interaction stats',NULL),
+    (UUID(),'Performance overview',NULL),
+    (UUID(),'File uploads',NULL),
+    (UUID(),'Quick replies',NULL),
+    (UUID(),'User feedback',NULL),
+    (UUID(),'Location tracking',NULL),
+    (UUID(),'Automation workflows',NULL),
+    (UUID(),'Session logs',NULL);
 
 -- ============================================
 
