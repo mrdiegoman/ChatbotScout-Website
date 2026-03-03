@@ -3,6 +3,11 @@ require '../inc/bootstrap.php';
 require '../inc/header.php';
 ?>
 
+<!-- PHP premenné pre JS -->
+<script>
+    const CHATBOT_USER_LOGGED_IN = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
+</script>
+
 <div class="chatbot-page-wrapper">
     <main class="chatbot-page-main">
         <aside class="chatbot-page-main-banner">
@@ -158,45 +163,36 @@ require '../inc/header.php';
             <!-- CHATBOT ITEMS CONTAINER -->
             <div class="chatbot-page-main-content-chatbots">
 
-                <!-- Loading state -->
                 <div class="chatbot-showcase-loading" id="chatbotsLoading">
                     <div class="chatbot-showcase-loading-spinner"></div>
                 </div>
 
-                <!-- GRID VIEW -->
                 <div class="chatbot-page-main-content-chatbots-grid-view active" id="gridView">
                     <!-- Dynamically filled by chatbotShowcase.js -->
                 </div>
 
-                <!-- LIST VIEW -->
                 <div class="chatbot-page-main-content-chatbots-list-view" id="listView">
                     <!-- Dynamically filled by chatbotShowcase.js -->
                 </div>
 
-                <!-- Empty state -->
                 <div class="chatbot-showcase-empty" id="chatbotsEmpty" style="display:none;">
                     <p>No chatbots found.</p>
                 </div>
 
             </div>
 
-            <!-- SHOW MORE BUTTON (mobile only) -->
+            <!-- SHOW MORE (mobile only) -->
             <div class="chatbot-showcase-show-more-wrapper" id="showMoreWrapper" style="display:none;">
-                <button class="chatbot-showcase-show-more-btn" id="showMoreBtn">
-                    Show More
-                </button>
+                <button class="chatbot-showcase-show-more-btn" id="showMoreBtn">Show More</button>
             </div>
 
-            <!-- BOTTOM BAR: pagination (desktop) + move up -->
+            <!-- BOTTOM BAR: pagination + move up -->
             <div class="chatbot-showcase-bottom-bar" id="bottomBar" style="display:none;">
-                <nav class="chatbot-showcase-pagination" id="paginationContainer" aria-label="Chatbot pages">
-                    <!-- Dynamically filled by chatbotShowcase.js -->
-                </nav>
+                <nav class="chatbot-showcase-pagination" id="paginationContainer" aria-label="Chatbot pages"></nav>
                 <button class="chatbot-showcase-move-up-btn" id="moveUpBtn" aria-label="Move to top">
                     Move Up
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                        stroke-linejoin="round">
+                        fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M18 15l-6-6-6 6"/>
                     </svg>
                 </button>
@@ -206,9 +202,7 @@ require '../inc/header.php';
     </main>
 </div>
 
-<?php
-require '../inc/footer.php';
-?>
+<?php require '../inc/footer.php'; ?>
 
 <!-- FILTERS MODAL -->
 <div class="chatbot-filters-modal-overlay" id="filtersModalOverlay">
@@ -226,9 +220,7 @@ require '../inc/footer.php';
         </div>
         <div class="chatbot-filters-modal-body">
             <div class="chatbot-filters-modal-body-row-group">
-                <span class="chatbot-filters-modal-body-row-group-label">
-                    <p>Rating</p>
-                </span>
+                <span class="chatbot-filters-modal-body-row-group-label"><p>Rating</p></span>
                 <div class="chatbot-filters-modal-body-row-group-values">
                     <input type="number" min="0" max="5" step="0.1" id="ratingInputStart" placeholder="0.0">
                     <p>to</p>
@@ -236,9 +228,7 @@ require '../inc/footer.php';
                 </div>
             </div>
             <div class="chatbot-filters-modal-body-row-group">
-                <span class="chatbot-filters-modal-body-row-group-label">
-                    <p>Number of votes</p>
-                </span>
+                <span class="chatbot-filters-modal-body-row-group-label"><p>Number of votes</p></span>
                 <div class="chatbot-filters-modal-body-row-group-values">
                     <input type="number" min="0" max="1000000" step="1" id="votesInputStart" placeholder="0">
                     <p>to</p>
@@ -299,10 +289,52 @@ require '../inc/footer.php';
     </div>
 </div>
 
+<!-- RATING MODAL -->
+<div class="chatbot-rating-modal-overlay" id="ratingModalOverlay">
+    <div class="chatbot-rating-modal-content">
+        <div class="chatbot-rating-modal-header">
+            <h2 id="ratingModalTitle">Rate this chatbot</h2>
+            <button class="chatbot-rating-modal-close-btn" id="ratingModalCloseBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="#232127" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="m15 9-6 6" />
+                    <path d="m9 9 6 6" />
+                </svg>
+            </button>
+        </div>
+        <div class="chatbot-rating-modal-body">
+            <div class="chatbot-rating-modal-stars-wrapper">
+                <div class="chatbot-rating-modal-stars" id="ratingStarsPicker">
+                    <span class="chatbot-rating-modal-star" data-value="1">★</span>
+                    <span class="chatbot-rating-modal-star" data-value="2">★</span>
+                    <span class="chatbot-rating-modal-star" data-value="3">★</span>
+                    <span class="chatbot-rating-modal-star" data-value="4">★</span>
+                    <span class="chatbot-rating-modal-star" data-value="5">★</span>
+                </div>
+                <p class="chatbot-rating-modal-stars-label" id="ratingStarsLabel">Select a rating</p>
+            </div>
+            <div class="chatbot-rating-modal-field">
+                <label for="ratingTitleInput">Title <span class="chatbot-rating-modal-optional">(optional)</span></label>
+                <input type="text" id="ratingTitleInput" maxlength="200" placeholder="Short summary of your experience">
+            </div>
+            <div class="chatbot-rating-modal-field">
+                <label for="ratingTextInput">Your review <span class="chatbot-rating-modal-required">*</span></label>
+                <textarea id="ratingTextInput" maxlength="5000" rows="4" placeholder="Share your experience with this chatbot..."></textarea>
+            </div>
+            <p class="chatbot-rating-modal-error" id="ratingModalError"></p>
+            <p class="chatbot-rating-modal-success" id="ratingModalSuccess"></p>
+        </div>
+        <div class="chatbot-rating-modal-footer">
+            <button class="chatbot-rating-modal-cancel-btn" id="ratingModalCancelBtn">Cancel</button>
+            <button class="chatbot-rating-modal-submit-btn" id="ratingModalSubmitBtn">Submit Review</button>
+        </div>
+    </div>
+</div>
+
 <script src="../js/featuresSwiping.js" defer></script>
 <script src="../js/layoutSwapping.js" defer></script>
 <script src="../js/clearButton.js" defer></script>
-<script src="../js/sortSelect.js" defer></script>
 <script src="../js/favouritesButtonAdding.js" defer></script>
 <script src="../js/filterFeaturesAdding.js" defer></script>
 <script src="../js/chatbotFilters.js" defer></script>

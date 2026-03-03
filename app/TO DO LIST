@@ -20,6 +20,8 @@ Vo filters pridat clear button
 
 Na filters buttone zobrazit pocet vybranych filtrov
 
+V chatbot v db pridat click count, view count, favorites adding
+
 REDIS COMMANDY:
     redis-cli
     INFO keyspace

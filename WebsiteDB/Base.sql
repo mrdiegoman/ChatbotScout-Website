@@ -248,9 +248,9 @@ CREATE TABLE IF NOT EXISTS `chatbot_tags` (
 -- SEED DATA - Default tags
 -- ============================================
 
-INSERT IGNORE INTO `tags` (`id`, `name`, `slug`) VALUES
-  (UUID(), 'Popular', 'popular'),
-  (UUID(), 'Affiliate', 'affiliate');
+INSERT IGNORE INTO `tags` (`id`, `name`) VALUES
+  (UUID(), 'Popular'),
+  (UUID(), 'Affiliate');
 
 -- ============================================
 -- COMMENTED OUT - CATEGORIES TABLE
@@ -468,16 +468,16 @@ CREATE TABLE `reviews` (
   `rating` TINYINT NOT NULL COMMENT 'Star rating (1-5), e.g., 5, 4, 3',
   `title` VARCHAR(200) NULL COMMENT 'Review title, e.g., "Great customer support tool!", "Not worth the price", "Perfect for small businesses"',
   `review_text` TEXT NULL COMMENT 'Review content, e.g., "We\'ve been using Intercom for 6 months and it has transformed our customer support...", "The AI features are impressive but the learning curve is steep", "Easy to set up and integrate with our website"',
-  `pros` TEXT NULL COMMENT 'Positive points, e.g., "Easy to use, Great AI responses, Excellent mobile app", "Fast setup, Good integrations", "Affordable pricing, Helpful support team"',
-  `cons` TEXT NULL COMMENT 'Negative points, e.g., "Expensive for small teams, Limited customization", "Complex pricing structure", "Occasional bugs in mobile app"',
+#   `pros` TEXT NULL COMMENT 'Positive points, e.g., "Easy to use, Great AI responses, Excellent mobile app", "Fast setup, Good integrations", "Affordable pricing, Helpful support team"',
+#   `cons` TEXT NULL COMMENT 'Negative points, e.g., "Expensive for small teams, Limited customization", "Complex pricing structure", "Occasional bugs in mobile app"',
 
   -- Verification
-  `is_verified_purchase` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Verified buyer?, e.g., TRUE, FALSE',
-  `purchase_verification_token` VARCHAR(255) NULL COMMENT 'Verification token, e.g., "verify_purchase_abc123def456", "token_verified_2025_xyz789"',
+#   `is_verified_purchase` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Verified buyer?, e.g., TRUE, FALSE',
+#   `purchase_verification_token` VARCHAR(255) NULL COMMENT 'Verification token, e.g., "verify_purchase_abc123def456", "token_verified_2025_xyz789"',
 
   -- Engagement
-  `helpful_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Helpful votes, e.g., 45, 123, 7',
-  `not_helpful_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Not helpful votes, e.g., 3, 12, 1',
+#   `helpful_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Helpful votes, e.g., 45, 123, 7',
+#   `not_helpful_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Not helpful votes, e.g., 3, 12, 1',
 
   -- Moderation
   `status` ENUM('pending', 'approved', 'rejected', 'flagged', 'removed') NOT NULL DEFAULT 'pending' COMMENT 'Review status, e.g., "approved", "pending", "rejected"',

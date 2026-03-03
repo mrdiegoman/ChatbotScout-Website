@@ -1,14 +1,5 @@
 /**
  * chatbotShowcase.js
- *
- * Handles:
- *  - AJAX loading of chatbots from api/getChatbots.php
- *  - Grid / List view toggle
- *  - Sort (Popularity, Price, Alphabetical, Rating, Number of ratings)
- *  - Desktop pagination (numbered pages)
- *  - Mobile Show More button (append items)
- *  - Move Up button (scroll to top)
- *  - Click tracking via api/trackClick.php
  */
 
 (function () {
@@ -19,13 +10,14 @@
     // ============================================
 
     const state = {
-        currentView:  'grid',   // 'grid' | 'list'
-        currentSort:  'popularity',
-        currentPage:  1,
-        totalPages:   1,
-        totalItems:   0,
-        isLoading:    false,
-        isMobile:     window.innerWidth <= 768,
+        currentView:      'grid',
+        currentSort:      'popularity',
+        currentPage:      1,
+        totalPages:       1,
+        totalItems:       0,
+        isLoading:        false,
+        ratingChatbotId:  null,   // ID chatbota pre rating modal
+        ratingValue:      0,      // Vybraný počet hviezd v modali
     };
 
     // ============================================
@@ -34,7 +26,7 @@
 
     const gridView          = document.getElementById('gridView');
     const listView          = document.getElementById('listView');
-    const loading           = document.getElementById('chatbotsLoading');
+    const loadingEl         = document.getElementById('chatbotsLoading');
     const emptyState        = document.getElementById('chatbotsEmpty');
     const showMoreWrapper   = document.getElementById('showMoreWrapper');
     const showMoreBtn       = document.getElementById('showMoreBtn');
@@ -43,10 +35,24 @@
     const moveUpBtn         = document.getElementById('moveUpBtn');
     const listBtn           = document.getElementById('listBtn');
     const gridBtn           = document.getElementById('gridBtn');
-    const sortOptions       = document.querySelectorAll('.chatbot-page-main-content-topbar-group-sort-select-option');
-    const sortSelected      = document.getElementById('sortSelected');
     const sortSelectDiv     = document.getElementById('sortSelectDiv');
+    const sortSelected      = document.getElementById('sortSelected');
     const sortArrow         = document.getElementById('sortArrow');
+
+    // Rating modal
+    const ratingOverlay     = document.getElementById('ratingModalOverlay');
+    const ratingModalTitle  = document.getElementById('ratingModalTitle');
+    const ratingStarsPicker = document.getElementById('ratingStarsPicker');
+    const ratingStarsLabel  = document.getElementById('ratingStarsLabel');
+    const ratingTitleInput  = document.getElementById('ratingTitleInput');
+    const ratingTextInput   = document.getElementById('ratingTextInput');
+    const ratingModalError  = document.getElementById('ratingModalError');
+    const ratingModalSuccess= document.getElementById('ratingModalSuccess');
+    const ratingSubmitBtn   = document.getElementById('ratingModalSubmitBtn');
+    const ratingCancelBtn   = document.getElementById('ratingModalCancelBtn');
+    const ratingCloseBtn    = document.getElementById('ratingModalCloseBtn');
+
+    const starLabels = ['', 'Poor', 'Fair', 'Good', 'Very good', 'Excellent'];
 
     // ============================================
     // HELPERS
@@ -58,50 +64,55 @@
 
     function setLoading(on) {
         state.isLoading = on;
-        loading.style.display = on ? 'flex' : 'none';
+        loadingEl.style.display = on ? 'flex' : 'none';
     }
 
     function currentContainer() {
         return state.currentView === 'grid' ? gridView : listView;
     }
 
+    function escapeHtml(str) {
+        return String(str ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    // ============================================
+    // STARS BUILDER
+    // ============================================
+
     /**
-     * Build rating stars HTML.
-     * Uses existing CSS data-rating approach from the project.
+     * Vybuduje HTML pre hviezdy.
+     * Ak je rating NULL alebo 0, zobrazí prázdne hviezdy (data-rating="0").
+     * Hviezdy sú klikateľné pre rating modal.
      */
-    function buildStars(rating) {
-        const rounded = Math.round(rating * 2) / 2; // round to nearest 0.5
+    function buildStars(rating, chatbotId) {
+        // NULL alebo 0 = žiadne hodnotenie, hviezdy zostanú prázdne/šedé
+        const value = (rating !== null && rating > 0) ? Math.round(rating * 2) / 2 : 0;
         return `
-            <div class="chatbot-page-main-content-chatbots-item-top-base-2-rating" data-rating="${rounded}">
+            <div class="chatbot-page-main-content-chatbots-item-top-base-2-rating chatbot-rating-trigger"
+                 data-rating="${value}"
+                 data-chatbot-id="${escapeHtml(chatbotId)}"
+                 title="Click to rate">
                 <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
             </div>`;
     }
 
-    /**
-     * Build pricing label text.
-     * Server already computes this, just pass through.
-     */
     function pricingLabel(chatbot) {
         return chatbot.pricing || 'Contact';
     }
 
-    /**
-     * Build tags HTML from array of {name, slug}.
-     */
     function buildTags(tags) {
         if (!tags || tags.length === 0) return '';
-        return tags.map(t => `<span><p>✦ ${t.name} ✦</p></span>`).join('');
+        return tags.map(t => `<span><p>✦ ${escapeHtml(t.name)} ✦</p></span>`).join('');
     }
 
-    /**
-     * Build key features cards HTML.
-     * Groups features into cards of 4 items each.
-     */
     function buildFeatureCards(features) {
         if (!features || features.length === 0) {
             return '<div class="chatbot-page-main-content-chatbots-list-view-item-card"><ul><li>No features listed</li></ul></div>';
         }
-
         const chunkSize = 4;
         let html = '';
         for (let i = 0; i < features.length; i += chunkSize) {
@@ -113,19 +124,11 @@
         return html;
     }
 
-    function escapeHtml(str) {
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
-    }
-
     function logoHtml(chatbot) {
-        if (chatbot.logo_url) {
-            return `<img src="../${escapeHtml(chatbot.logo_url)}" alt="${escapeHtml(chatbot.name)} logo" loading="lazy">`;
-        }
-        return `<img src="../img/chatbothub_logo.png" alt="${escapeHtml(chatbot.name)} logo">`;
+        const src = chatbot.logo_url
+            ? escapeHtml(chatbot.logo_url)
+            : '../img/chatbothub_logo.png';
+        return `<img src="../${src}" alt="${escapeHtml(chatbot.name)} logo" loading="lazy">`;
     }
 
     // ============================================
@@ -133,21 +136,19 @@
     // ============================================
 
     function buildListItem(chatbot) {
-        const stars    = buildStars(chatbot.rating_average);
-        const tags     = buildTags(chatbot.tags);
-        const cards    = buildFeatureCards(chatbot.features);
-        const pricing  = escapeHtml(pricingLabel(chatbot));
-        const link     = escapeHtml(chatbot.link);
-        const name     = escapeHtml(chatbot.name);
-        const desc     = escapeHtml(chatbot.description || '');
-        const rating   = chatbot.rating_average.toFixed(1);
-        const rCount   = chatbot.rating_count.toLocaleString();
+        const stars   = buildStars(chatbot.rating_average, chatbot.id);
+        const tags    = buildTags(chatbot.tags);
+        const cards   = buildFeatureCards(chatbot.features);
+        const pricing = escapeHtml(pricingLabel(chatbot));
+        const link    = escapeHtml(chatbot.link);
+        const name    = escapeHtml(chatbot.name);
+        const desc    = escapeHtml(chatbot.description || '');
+        const rating  = chatbot.rating_average ? Number(chatbot.rating_average).toFixed(1) : '—';
+        const rCount  = chatbot.rating_count ? Number(chatbot.rating_count).toLocaleString() : '0';
 
         return `
 <div class="chatbot-page-main-content-chatbots-list-view-item-containter">
-    <div class="chatbot-page-main-content-chatbots-list-view-item-tags">
-        ${tags}
-    </div>
+    <div class="chatbot-page-main-content-chatbots-list-view-item-tags">${tags}</div>
     <div class="chatbot-page-main-content-chatbots-list-view-item">
         <div class="chatbot-page-main-content-chatbots-list-view-item-features-container-left">
             <div class="chatbot-page-main-content-chatbots-list-view-item-top">
@@ -166,9 +167,8 @@
                     <div class="chatbot-page-main-content-chatbots-list-view-item-top-favourites-container">
                         <p>${chatbot.favorite_count}</p>
                         <button class="chatbot-page-main-content-chatbots-list-view-item-top-favourites-container-btn" aria-label="Add to favourites">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round"
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                                 class="chatbot-page-main-content-chatbots-list-view-item-top-favourites-container-btn-plus">
                                 <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" />
                             </svg>
@@ -197,52 +197,47 @@
                 </div>
                 <div class="chatbot-page-main-content-chatbots-list-view-item-scroll-wrapper">
                     <div class="chatbot-page-main-content-chatbots-list-view-item-scroll-container">
-                        <div class="chatbot-page-main-content-chatbots-list-view-item-cards-wrapper">
-                            ${cards}
-                        </div>
+                        <div class="chatbot-page-main-content-chatbots-list-view-item-cards-wrapper">${cards}</div>
                     </div>
                     <div class="chatbot-page-main-content-chatbots-list-view-item-scrollbar">
                         <div class="chatbot-page-main-content-chatbots-list-view-item-scrollbar-thumb"></div>
                     </div>
                 </div>
             </div>
-        
-            <div class="chatbot-page-main-content-chatbots-list-view-item-btns-container">
-                <div class="chatbot-page-main-content-chatbots-list-view-item-btns-container-sipka">
-                    <span class="chatbot-page-main-content-chatbots-list-view-item-btns-container-sipka-text">${pricing}</span>
-                </div>
-                <a href="${link}" target="_blank" rel="noopener noreferrer"
-                class="chatbot-page-main-content-chatbots-list-view-item-btns-container-go-to-website"
-                data-chatbot-id="${escapeHtml(chatbot.id)}">
-                    <p>Go to Website</p>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M15 3h6v6"/><path d="M10 14 21 3"/>
-                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                    </svg>
-                </a>
+        </div>
+        <div class="chatbot-page-main-content-chatbots-list-view-item-btns-container">
+            <div class="chatbot-page-main-content-chatbots-list-view-item-btns-container-sipka">
+                <span class="chatbot-page-main-content-chatbots-list-view-item-btns-container-sipka-text">${pricing}</span>
             </div>
+            <a href="${link}" target="_blank" rel="noopener noreferrer"
+               class="chatbot-page-main-content-chatbots-list-view-item-btns-container-go-to-website"
+               data-chatbot-id="${escapeHtml(chatbot.id)}">
+                <p>Go to Website</p>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 3h6v6"/><path d="M10 14 21 3"/>
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                </svg>
+            </a>
         </div>
     </div>
 </div>`;
     }
 
     function buildGridItem(chatbot) {
-        const stars   = buildStars(chatbot.rating_average);
+        const stars   = buildStars(chatbot.rating_average, chatbot.id);
         const tags    = buildTags(chatbot.tags);
         const cards   = buildFeatureCards(chatbot.features);
         const pricing = escapeHtml(pricingLabel(chatbot));
         const link    = escapeHtml(chatbot.link);
         const name    = escapeHtml(chatbot.name);
         const desc    = escapeHtml(chatbot.description || '');
-        const rating  = chatbot.rating_average.toFixed(1);
-        const rCount  = chatbot.rating_count.toLocaleString();
+        const rating  = chatbot.rating_average ? Number(chatbot.rating_average).toFixed(1) : '—';
+        const rCount  = chatbot.rating_count ? Number(chatbot.rating_count).toLocaleString() : '0';
 
         return `
 <div class="chatbot-page-main-content-chatbots-grid-view-item">
-    <div class="chatbot-page-main-content-chatbots-grid-view-item-tags">
-        ${tags}
-    </div>
+    <div class="chatbot-page-main-content-chatbots-grid-view-item-tags">${tags}</div>
     <div class="chatbot-page-main-content-chatbots-grid-view-item-top">
         <div class="chatbot-page-main-content-chatbots-grid-view-item-top-img-wrapper">
             ${logoHtml(chatbot)}
@@ -259,13 +254,32 @@
             <div class="chatbot-page-main-content-chatbots-grid-view-item-top-favourites-container">
                 <p>${chatbot.favorite_count}</p>
                 <button class="chatbot-page-main-content-chatbots-grid-view-item-top-favourites-container-btn" aria-label="Add to favourites">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round"
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                         class="chatbot-page-main-content-chatbots-grid-view-item-top-favourites-container-btn-plus">
                         <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" />
                     </svg>
                 </button>
+            </div>
+        </div>
+    </div>
+    <div class="chatbot-page-main-content-chatbots-grid-view-item-features-container">
+        <div class="chatbot-page-main-content-chatbots-grid-view-item-features-container-1">
+            <p class="chatbot-page-main-content-chatbots-grid-view-item-description-container-subtitle">Key Features</p>
+            <button class="chatbot-page-main-content-chatbots-grid-view-item-features-container-1-imp-btn">
+                <p>Platforms</p>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/>
+                </svg>
+            </button>
+        </div>
+        <div class="chatbot-page-main-content-chatbots-grid-view-item-scroll-wrapper">
+            <div class="chatbot-page-main-content-chatbots-grid-view-item-scroll-container">
+                <div class="chatbot-page-main-content-chatbots-grid-view-item-cards-wrapper">${cards}</div>
+            </div>
+            <div class="chatbot-page-main-content-chatbots-grid-view-item-scrollbar">
+                <div class="chatbot-page-main-content-chatbots-grid-view-item-scrollbar-thumb"></div>
             </div>
         </div>
     </div>
@@ -306,16 +320,12 @@
 
     function renderChatbots(chatbots, append) {
         const container = currentContainer();
-
-        if (!append) {
-            container.innerHTML = '';
-        }
+        if (!append) container.innerHTML = '';
 
         if (chatbots.length === 0 && !append) {
             emptyState.style.display = 'block';
             return;
         }
-
         emptyState.style.display = 'none';
 
         const html = chatbots.map(c =>
@@ -324,10 +334,7 @@
 
         container.insertAdjacentHTML('beforeend', html);
 
-        // Re-init scrollbars (from featuresSwiping.js)
-        if (typeof initializeScrollbars === 'function') {
-            initializeScrollbars();
-        }
+        if (typeof initializeScrollbars === 'function') initializeScrollbars();
     }
 
     // ============================================
@@ -341,11 +348,20 @@
             bottomBar.style.display = 'none';
             return;
         }
-
         bottomBar.style.display = 'flex';
 
-        // Build page numbers with ellipsis
         const pages = getPageRange(currentPage, totalPages);
+
+        // Prev arrow
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'chatbot-showcase-pagination-arrow';
+        prevBtn.innerHTML = '&lsaquo;';
+        prevBtn.setAttribute('aria-label', 'Previous page');
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.addEventListener('click', () => {
+            if (state.currentPage > 1) { state.currentPage--; loadChatbots(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        });
+        paginationEl.appendChild(prevBtn);
 
         pages.forEach(p => {
             if (p === '...') {
@@ -355,81 +371,39 @@
                 paginationEl.appendChild(span);
                 return;
             }
-
             const btn = document.createElement('button');
             btn.className = 'chatbot-showcase-pagination-btn' + (p === currentPage ? ' active' : '');
             btn.textContent = p;
             btn.setAttribute('aria-label', `Page ${p}`);
             if (p === currentPage) btn.setAttribute('aria-current', 'page');
-
             btn.addEventListener('click', () => {
-                if (p !== state.currentPage) {
-                    state.currentPage = p;
-                    loadChatbots(false);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
+                if (p !== state.currentPage) { state.currentPage = p; loadChatbots(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }
             });
-
             paginationEl.appendChild(btn);
         });
 
-        // Prev / Next arrows
-        const prevBtn = document.createElement('button');
-        prevBtn.className = 'chatbot-showcase-pagination-arrow';
-        prevBtn.innerHTML = '&lsaquo;';
-        prevBtn.setAttribute('aria-label', 'Previous page');
-        prevBtn.disabled = currentPage === 1;
-        prevBtn.addEventListener('click', () => {
-            if (state.currentPage > 1) {
-                state.currentPage--;
-                loadChatbots(false);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        });
-
+        // Next arrow
         const nextBtn = document.createElement('button');
         nextBtn.className = 'chatbot-showcase-pagination-arrow';
         nextBtn.innerHTML = '&rsaquo;';
         nextBtn.setAttribute('aria-label', 'Next page');
         nextBtn.disabled = currentPage === totalPages;
         nextBtn.addEventListener('click', () => {
-            if (state.currentPage < state.totalPages) {
-                state.currentPage++;
-                loadChatbots(false);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
+            if (state.currentPage < state.totalPages) { state.currentPage++; loadChatbots(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }
         });
-
-        paginationEl.insertBefore(prevBtn, paginationEl.firstChild);
         paginationEl.appendChild(nextBtn);
     }
 
     function getPageRange(current, total) {
-        if (total <= 7) {
-            return Array.from({ length: total }, (_, i) => i + 1);
-        }
-
-        const pages = [];
-
-        if (current <= 4) {
-            pages.push(1, 2, 3, 4, 5, '...', total);
-        } else if (current >= total - 3) {
-            pages.push(1, '...', total - 4, total - 3, total - 2, total - 1, total);
-        } else {
-            pages.push(1, '...', current - 1, current, current + 1, '...', total);
-        }
-
-        return pages;
+        if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+        if (current <= 4) return [1, 2, 3, 4, 5, '...', total];
+        if (current >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+        return [1, '...', current - 1, current, current + 1, '...', total];
     }
-
-    // ============================================
-    // SHOW MORE (mobile)
-    // ============================================
 
     function updateShowMore() {
         if (isMobileView()) {
-            const hasMore = state.currentPage < state.totalPages;
-            showMoreWrapper.style.display = hasMore ? 'flex' : 'none';
+            showMoreWrapper.style.display = state.currentPage < state.totalPages ? 'flex' : 'none';
         } else {
             showMoreWrapper.style.display = 'none';
         }
@@ -441,7 +415,6 @@
 
     function loadChatbots(append) {
         if (state.isLoading) return;
-
         setLoading(true);
 
         const params = new URLSearchParams({
@@ -454,29 +427,26 @@
             .then(res => res.json())
             .then(data => {
                 if (!data.success) throw new Error('API error');
-
                 state.totalPages = data.totalPages;
                 state.totalItems = data.total;
 
                 renderChatbots(data.chatbots, append);
 
-                // Desktop: pagination
                 if (!isMobileView()) {
                     renderPagination(data.totalPages, data.currentPage);
                 } else {
-                    bottomBar.style.display = data.totalPages > 1 ? 'flex' : 'none';
                     paginationEl.innerHTML = '';
+                    if (data.totalPages > 1) {
+                        bottomBar.style.display = 'flex';
+                    }
                 }
-
                 updateShowMore();
             })
             .catch(err => {
                 console.error('Failed to load chatbots:', err);
                 emptyState.style.display = 'block';
             })
-            .finally(() => {
-                setLoading(false);
-            });
+            .finally(() => setLoading(false));
     }
 
     // ============================================
@@ -486,11 +456,12 @@
     document.addEventListener('click', (e) => {
         const link = e.target.closest('[data-chatbot-id]');
         if (!link) return;
+        // Ignoruj rating trigger klik (ten má vlastný handler)
+        if (link.classList.contains('chatbot-rating-trigger')) return;
 
         const chatbotId = link.dataset.chatbotId;
         if (!chatbotId) return;
 
-        // Fire and forget
         fetch('../api/trackClick.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -499,20 +470,157 @@
     });
 
     // ============================================
+    // RATING MODAL
+    // ============================================
+
+    function openRatingModal(chatbotId, chatbotName) {
+        state.ratingChatbotId = chatbotId;
+        state.ratingValue = 0;
+
+        ratingModalTitle.textContent = `Rate: ${chatbotName}`;
+        ratingTitleInput.value = '';
+        ratingTextInput.value = '';
+        ratingModalError.textContent = '';
+        ratingModalSuccess.textContent = '';
+        ratingSubmitBtn.disabled = false;
+        ratingSubmitBtn.textContent = 'Submit Review';
+
+        // Reset hviezdy
+        updatePickerStars(0);
+
+        ratingOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeRatingModal() {
+        ratingOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+        state.ratingChatbotId = null;
+        state.ratingValue = 0;
+    }
+
+    function updatePickerStars(value) {
+        state.ratingValue = value;
+        ratingStarsPicker.querySelectorAll('.chatbot-rating-modal-star').forEach(star => {
+            const v = parseInt(star.dataset.value);
+            star.classList.toggle('active', v <= value);
+        });
+        ratingStarsLabel.textContent = value > 0 ? starLabels[value] : 'Select a rating';
+    }
+
+    // Hover efekt na hviezdy
+    ratingStarsPicker.addEventListener('mouseover', (e) => {
+        const star = e.target.closest('.chatbot-rating-modal-star');
+        if (!star) return;
+        const hoverVal = parseInt(star.dataset.value);
+        ratingStarsPicker.querySelectorAll('.chatbot-rating-modal-star').forEach(s => {
+            s.classList.toggle('hover', parseInt(s.dataset.value) <= hoverVal);
+        });
+    });
+
+    ratingStarsPicker.addEventListener('mouseleave', () => {
+        ratingStarsPicker.querySelectorAll('.chatbot-rating-modal-star').forEach(s => s.classList.remove('hover'));
+    });
+
+    ratingStarsPicker.addEventListener('click', (e) => {
+        const star = e.target.closest('.chatbot-rating-modal-star');
+        if (!star) return;
+        updatePickerStars(parseInt(star.dataset.value));
+    });
+
+    // Klik na hviezdy v kartičke → otvor modal
+    document.addEventListener('click', (e) => {
+        const trigger = e.target.closest('.chatbot-rating-trigger');
+        if (!trigger) return;
+
+        const chatbotId = trigger.dataset.chatbotId;
+        // Nájdi meno chatbota – hľadáme najbližší nadradený kontajner
+        const container = trigger.closest(
+            '.chatbot-page-main-content-chatbots-grid-view-item, .chatbot-page-main-content-chatbots-list-view-item-containter'
+        );
+        const nameEl = container
+            ? container.querySelector('.chatbot-page-main-content-chatbots-grid-view-item-top-base-1 > p, .chatbot-page-main-content-chatbots-list-view-item-top-base-1 > p')
+            : null;
+        const chatbotName = nameEl ? nameEl.textContent.trim() : 'this chatbot';
+
+        openRatingModal(chatbotId, chatbotName);
+    });
+
+    // Zatváranie modalu
+    ratingCloseBtn.addEventListener('click', closeRatingModal);
+    ratingCancelBtn.addEventListener('click', closeRatingModal);
+    ratingOverlay.addEventListener('click', (e) => {
+        if (e.target === ratingOverlay) closeRatingModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && ratingOverlay.classList.contains('active')) closeRatingModal();
+    });
+
+    // Submit review
+    ratingSubmitBtn.addEventListener('click', () => {
+        ratingModalError.textContent = '';
+        ratingModalSuccess.textContent = '';
+
+        // Musí byť prihlásený
+        if (!CHATBOT_USER_LOGGED_IN) {
+            ratingModalError.textContent = 'You must be logged in to submit a review.';
+            return;
+        }
+
+        if (state.ratingValue === 0) {
+            ratingModalError.textContent = 'Please select a star rating.';
+            return;
+        }
+
+        if (!ratingTextInput.value.trim()) {
+            ratingModalError.textContent = 'Please write your review.';
+            return;
+        }
+
+        ratingSubmitBtn.disabled = true;
+        ratingSubmitBtn.textContent = 'Submitting...';
+
+        fetch('../api/submitReview.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chatbot_id:  state.ratingChatbotId,
+                rating:      state.ratingValue,
+                title:       ratingTitleInput.value.trim(),
+                review_text: ratingTextInput.value.trim(),
+            }),
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                ratingModalSuccess.textContent = data.message;
+                ratingSubmitBtn.textContent = 'Submitted!';
+                // Zatvor modal po 2 sekundách
+                setTimeout(closeRatingModal, 2000);
+            } else {
+                ratingModalError.textContent = data.message || 'Something went wrong.';
+                ratingSubmitBtn.disabled = false;
+                ratingSubmitBtn.textContent = 'Submit Review';
+            }
+        })
+        .catch(() => {
+            ratingModalError.textContent = 'Server error. Please try again.';
+            ratingSubmitBtn.disabled = false;
+            ratingSubmitBtn.textContent = 'Submit Review';
+        });
+    });
+
+    // ============================================
     // VIEW TOGGLE
     // ============================================
 
     function switchView(view) {
         if (view === state.currentView) return;
+        state.currentView = view;
+        state.currentPage = 1;
 
-        state.currentView  = view;
-        state.currentPage  = 1;
-
-        // Toggle active classes on buttons
         listBtn.classList.toggle('active', view === 'list');
         gridBtn.classList.toggle('active', view === 'grid');
-
-        // Toggle active classes on containers
         gridView.classList.toggle('active', view === 'grid');
         listView.classList.toggle('active', view === 'list');
 
@@ -523,47 +631,54 @@
     gridBtn.addEventListener('click', () => switchView('grid'));
 
     // ============================================
-    // SORT
+    // SORT - chatbotShowcase.js spravuje sort sám,
+    // sortSelect.js je odstránený z chatbotShowcase.php
     // ============================================
 
-    sortOptions.forEach(option => {
-        option.addEventListener('click', () => {
+    const sortOptionEls = document.querySelectorAll('#sortOptions .chatbot-page-main-content-topbar-group-sort-select-option');
+
+    sortOptionEls.forEach(option => {
+        option.addEventListener('click', (e) => {
+            e.stopPropagation();
             const value = option.dataset.value;
-            if (value === state.currentSort) return;
 
-            state.currentSort = value;
-            state.currentPage = 1;
-
-            // Update UI
-            sortOptions.forEach(o => o.classList.remove('selected'));
+            sortOptionEls.forEach(o => o.classList.remove('selected'));
             option.classList.add('selected');
-            sortSelected.textContent = option.textContent;
-
-            // Close dropdown
+            sortSelected.textContent = option.textContent.trim();
             sortSelectDiv.classList.remove('active');
 
-            loadChatbots(false);
+            if (value !== state.currentSort) {
+                state.currentSort = value;
+                state.currentPage = 1;
+                loadChatbots(false);
+            }
         });
     });
 
-    // Sort dropdown open/close
-    sortSelectDiv.addEventListener('click', () => {
-        sortSelectDiv.classList.toggle('active');
+    // Otvoriť/zatvoriť dropdown
+    sortSelectDiv.addEventListener('click', (e) => {
+        if (!e.target.closest('.chatbot-page-main-content-topbar-group-sort-select-option')) {
+            sortSelectDiv.classList.toggle('active');
+        }
     });
 
+    // Zatvoriť pri kliknutí mimo
     document.addEventListener('click', (e) => {
         if (!sortSelectDiv.contains(e.target)) {
             sortSelectDiv.classList.remove('active');
         }
     });
 
-    // Sort arrow direction toggle
-    let sortAscending = false;
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') sortSelectDiv.classList.remove('active');
+    });
+
+    // Sort arrow
     if (sortArrow) {
+        let sortAscending = false;
         sortArrow.addEventListener('click', () => {
             sortAscending = !sortAscending;
             sortArrow.style.transform = sortAscending ? 'scaleY(-1)' : 'scaleY(1)';
-            // Future: pass direction to API
         });
     }
 
@@ -574,7 +689,7 @@
     showMoreBtn.addEventListener('click', () => {
         if (state.currentPage < state.totalPages) {
             state.currentPage++;
-            loadChatbots(true); // append = true
+            loadChatbots(true);
         }
     });
 
@@ -587,26 +702,18 @@
     });
 
     // ============================================
-    // RESPONSIVE: switch mode on resize
+    // RESPONSIVE RESIZE
     // ============================================
 
     let resizeTimer;
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
-            const wasMobile = state.isMobile;
-            state.isMobile = isMobileView();
-
-            if (wasMobile !== state.isMobile) {
-                // Switching between desktop and mobile
-                state.currentPage = 1;
-                updateShowMore();
-
-                if (!isMobileView()) {
-                    renderPagination(state.totalPages, state.currentPage);
-                } else {
-                    paginationEl.innerHTML = '';
-                }
+            updateShowMore();
+            if (!isMobileView()) {
+                renderPagination(state.totalPages, state.currentPage);
+            } else {
+                paginationEl.innerHTML = '';
             }
         }, 200);
     });
@@ -615,10 +722,8 @@
     // INIT
     // ============================================
 
-    // Set initial view: grid is default, list active if viewport < 768 would still be grid
     gridView.classList.add('active');
     listView.classList.remove('active');
-
     loadChatbots(false);
 
 })();
