@@ -168,7 +168,7 @@ CREATE TABLE `chatbots` (
   `rejection_reason` TEXT NULL COMMENT 'Rejection reason, e.g., "Incomplete information provided", "Duplicate listing", "Website not accessible"',
 
   -- Denormalized Stats (updated via triggers/scheduled jobs)
-  `view_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Total views, e.g., 1523, 45892, 234',
+#   `view_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Total views, e.g., 1523, 45892, 234',
   `click_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Total clicks, e.g., 456, 12345, 89',
   `favorite_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Total favorites, e.g., 78, 1234, 12',
   `rating_average` DECIMAL(3,2) NOT NULL DEFAULT 0.00 COMMENT 'Average rating, e.g., 4.50, 3.80, 4.95',
