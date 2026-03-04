@@ -258,11 +258,9 @@ require '../inc/header.php';
                     </div>
                 </span>
                 <div class="chatbot-filters-modal-body-features-container">
-                    <span class="chatbot-filters-modal-body-features-single"> Mobile application (40)</span>
-                    <span class="chatbot-filters-modal-body-features-single"> Mobile application (40)</span>
-                    <span class="chatbot-filters-modal-body-features-single"> Mobile application (40)</span>
-                    <span class="chatbot-filters-modal-body-features-single"> Mobile application (40)</span>
-                    <span class="chatbot-filters-modal-body-features-single"> Mobile application (40)</span>
+                    <div class="chatbot-filters-modal-body-features-container" id="basicFeaturesContainer">
+                        <!-- Dynamicky plnené cez filterFeaturesAdding.js -->
+                    </div>
                     <span class="chatbot-filters-modal-body-features-ending"> +8</span>
                 </div>
                 <span class="chatbot-advanced-filters-modal-body-row-group-label" id="advancedFeaturesToggleLabel">
@@ -272,13 +270,9 @@ require '../inc/header.php';
                     </svg>
                 </span>
                 <div class="chatbot-advanced-filters-modal-body-features-container" id="advancedFeaturesContainer">
-                    <span class="chatbot-filters-modal-body-features-single"> Mobile application (40)</span>
-                    <span class="chatbot-filters-modal-body-features-single"> Mobile application (40)</span>
-                    <span class="chatbot-filters-modal-body-features-single"> Mobile application (40)</span>
-                    <span class="chatbot-filters-modal-body-features-single"> Mobile application (40)</span>
-                    <span class="chatbot-filters-modal-body-features-single"> Mobile application (40)</span>
-                    <span class="chatbot-filters-modal-body-features-single"> Mobile application (40)</span>
-                    <span class="chatbot-filters-modal-body-features-single"> Mobile application (40)</span>
+                    <div class="chatbot-advanced-filters-modal-body-features-container" id="advancedFeaturesContainer">
+                        <!-- Dynamicky plnené cez filterFeaturesAdding.js -->
+                    </div>
                     <span class="chatbot-filters-modal-body-features-ending"> +8</span>
                 </div>
             </div>

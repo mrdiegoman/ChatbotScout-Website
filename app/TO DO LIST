@@ -14,7 +14,9 @@ Google sign up
 
 Stripe -> nakup, visa, paypal, apple-pay (celkove zobrazenie tj. inputy)
 
-js error o nieco nizsie
+vypocitanie zostavajucich chatbotov pre kazdu feature vo filtri
+
+admin panel kde budu aktiven reviews ktore bude moct dat 'approved', 'rejected', 'flagged', 'removed' 
 
 REDIS COMMANDY:
     redis-cli

@@ -608,7 +608,7 @@ const notificationStyles = document.createElement('style');
 notificationStyles.textContent = `
     .notification {
         position: fixed;
-        top: 20px;
+        top: 70px;
         right: 20px;
         padding: 16px 24px;
         background: white;

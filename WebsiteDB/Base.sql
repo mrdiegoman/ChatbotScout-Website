@@ -342,6 +342,7 @@ CREATE TABLE `Social_links` (
 CREATE TABLE `features` (
   `id` CHAR(36) NOT NULL COMMENT 'Feature UUID, e.g., "d50e8400-e29b-41d4-a716-446655440008", "6f7g8h9i-0j1k-2l3m-4n5o-6p7q8r9s0t1u"',
   `name` VARCHAR(100) NOT NULL UNIQUE COMMENT 'Feature name, e.g., "Live Chat", "AI Responses", "Multi-language Support"',
+  `advanced` BOOLEAN NOT NULL DEFAULT FALSE,
 #   `slug` VARCHAR(150) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "live-chat", "ai-responses", "multi-language-support"',
 #   `description` TEXT NULL COMMENT 'Feature description, e.g., "Real-time chat with customers through widget", "Automated AI-powered response generation", "Support for 50+ languages with auto-translation"',
 #   `category` ENUM('core_features', 'ai_capabilities', 'integrations', 'support', 'pricing', 'security', 'analytics', 'customization') NOT NULL COMMENT 'Feature category, e.g., "core_features", "ai_capabilities", "customization"',
