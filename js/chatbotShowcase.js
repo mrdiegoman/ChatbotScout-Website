@@ -430,13 +430,18 @@
     // ============================================
 
     document.addEventListener('click', (e) => {
+        // console.log('e.target:', e.target);
+        // console.log('e.target class:', e.target.className);
+        
         const link = e.target.closest('.chatbot-page-main-content-chatbots-grid-view-item-btns-container-go-to-website, .chatbot-page-main-content-chatbots-list-view-item-btns-container-go-to-website');
+        console.log('link:', link);
         if (!link) return;
 
         const chatbotId = link.dataset.chatbotId;
+        // console.log('chatbotId:', chatbotId);
         if (!chatbotId) return;
 
-        fetch('../api/trackClick.php', {
+        fetch('../api/recordVisit.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chatbot_id: chatbotId }),

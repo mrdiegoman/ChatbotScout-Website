@@ -588,6 +588,7 @@
 .favourites-page-main-content-chatbots-item-top-base-2-rating[data-rating="1.5"] { --rating: 1.5; }
 .favourites-page-main-content-chatbots-item-top-base-2-rating[data-rating="1"] { --rating: 1; }
 .favourites-page-main-content-chatbots-item-top-base-2-rating[data-rating="0.5"] { --rating: 0.5; }
+.favourites-page-main-content-chatbots-item-top-base-2-rating[data-rating="0"] { --rating: 0; }
 
 .favourites-page-main-content-chatbots-grid-view-item-top-base-2 p,
 .favourites-page-main-content-chatbots-list-view-item-top-base-2 p {

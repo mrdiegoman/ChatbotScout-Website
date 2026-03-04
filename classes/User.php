@@ -333,7 +333,6 @@ class User
         }
         
         // ✅ Úspešný login - reset rate limiter
-        // 🆕 ZMENA: reset() dostáva aj $email - resetuje IP aj email limity
         $rateLimiter->resetByEmail('login', $email);
         
         // Update last login

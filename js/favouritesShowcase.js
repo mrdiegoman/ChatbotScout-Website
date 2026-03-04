@@ -6,6 +6,7 @@
  * - Sort + pagination
  * - × tlačidlo na odstránenie z obľúbených (volá toggleFavorite.php)
  * - Filter badge počítadlo
+ * - Rating modal (rovnaký ako chatbotShowcase)
  */
 
 (function () {
@@ -16,12 +17,16 @@
     // ============================================
 
     const state = {
-        currentView: 'grid',
-        currentSort: 'date-added',
-        currentPage: 1,
-        totalPages:  1,
-        isLoading:   false,
+        currentView:     'grid',
+        currentSort:     'date-added',
+        currentPage:     1,
+        totalPages:      1,
+        isLoading:       false,
+        ratingChatbotId: null,
+        ratingValue:     0,
     };
+
+    const LOGIN_URL = '../public/login.php?redirect=favouritesShowcase.php';
 
     // ============================================
     // DOM REFERENCES
@@ -47,6 +52,21 @@
     const filtersCloseBtn = document.getElementById('filtersCloseBtn');
     const filtersClearBtn = document.getElementById('filtersClearBtn');
 
+    // Rating modal
+    const ratingOverlay      = document.getElementById('ratingModalOverlay');
+    const ratingModalTitle   = document.getElementById('ratingModalTitle');
+    const ratingStarsPicker  = document.getElementById('ratingStarsPicker');
+    const ratingStarsLabel   = document.getElementById('ratingStarsLabel');
+    const ratingTitleInput   = document.getElementById('ratingTitleInput');
+    const ratingTextInput    = document.getElementById('ratingTextInput');
+    const ratingModalError   = document.getElementById('ratingModalError');
+    const ratingModalSuccess = document.getElementById('ratingModalSuccess');
+    const ratingSubmitBtn    = document.getElementById('ratingModalSubmitBtn');
+    const ratingCancelBtn    = document.getElementById('ratingModalCancelBtn');
+    const ratingCloseBtn     = document.getElementById('ratingModalCloseBtn');
+
+    const starLabels = ['', 'Poor', 'Fair', 'Good', 'Very good', 'Excellent'];
+
     // Filter inputs
     const filterNumberInputs = document.querySelectorAll(
         '#ratingInputStart, #ratingInputEnd, #votesInputStart, #votesInputEnd, #priceInputStart, #priceInputEnd'
@@ -71,12 +91,14 @@
         return state.currentView === 'grid' ? gridView : listView;
     }
 
-    function buildStars(rating) {
+    function buildStars(rating, chatbotId) {
         const value = (rating !== null && Number(rating) > 0)
             ? Math.round(Number(rating) * 2) / 2 : 0;
         return `
-            <div class="favourites-page-main-content-chatbots-item-top-base-2-rating"
-                 data-rating="${value}">
+            <div class="favourites-page-main-content-chatbots-item-top-base-2-rating favourites-rating-trigger"
+                 data-rating="${value}"
+                 data-chatbot-id="${escapeHtml(chatbotId)}"
+                 title="Click to rate">
                 <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
             </div>`;
     }
@@ -120,7 +142,7 @@
     }
 
     function buildGridItem(chatbot) {
-        const stars   = buildStars(chatbot.rating_average);
+        const stars   = buildStars(chatbot.rating_average, chatbot.id);
         const tags    = buildTags(chatbot.tags);
         const cards   = buildFeatureCards(chatbot.features);
         const pricing = escapeHtml(chatbot.pricing);
@@ -172,7 +194,7 @@
     }
 
     function buildListItem(chatbot) {
-        const stars   = buildStars(chatbot.rating_average);
+        const stars   = buildStars(chatbot.rating_average, chatbot.id);
         const tags    = buildTags(chatbot.tags);
         const cards   = buildFeatureCards(chatbot.features);
         const pricing = escapeHtml(chatbot.pricing);
@@ -208,16 +230,7 @@
             </div>
             <div class="favourites-page-main-content-chatbots-list-view-item-description-container">
                 <div class="favourites-page-main-content-chatbots-grid-view-item-description-container-header">
-                    <p class="favourites-page-main-content-chatbots-grid-view-item-description-container-subtitle">
-                        Description</p>
-                    <button class="favourites-page-main-content-chatbots-grid-view-item-features-container-1-imp-btn">
-                        <p>Platforms</p>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
-                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
-                            stroke-linejoin="round">
-                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/>
-                        </svg>
-                    </button>
+                    <p class="favourites-page-main-content-chatbots-grid-view-item-description-container-subtitle">Description</p>
                 </div>
                 <p class="favourites-page-main-content-chatbots-list-view-item-description-container-text">${desc}</p>
             </div>
@@ -225,11 +238,20 @@
         <div class="favourites-page-main-content-chatbots-list-view-item-features-container-right">
             <div class="favourites-page-main-content-chatbots-list-view-item-features-container">
                 <div class="favourites-page-main-content-chatbots-list-view-item-features-container-1">
-                    <p class="favourites-page-main-content-chatbots-list-view-item-description-container-subtitle">Key Features</p>
+                    <p class="favourites-page-main-content-chatbots-list-view-item-description-container-subtitle">Features</p>
+                    <button class="favourites-page-main-content-chatbots-list-view-item-features-container-1-imp-btn">
+                        <p>Platforms</p>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/>
+                        </svg>
+                    </button>
                 </div>
                 <div class="favourites-page-main-content-chatbots-list-view-item-scroll-wrapper">
                     <div class="favourites-page-main-content-chatbots-list-view-item-scroll-container">
-                        <div class="favourites-page-main-content-chatbots-list-view-item-cards-wrapper">${cards}</div>
+                        <div class="favourites-page-main-content-chatbots-list-view-item-cards-wrapper">
+                            ${cards}
+                        </div>
                     </div>
                     <div class="favourites-page-main-content-chatbots-list-view-item-scrollbar">
                         <div class="favourites-page-main-content-chatbots-list-view-item-scrollbar-thumb"></div>
@@ -272,7 +294,8 @@
         emptyState.style.display = 'none';
 
         const html = chatbots.map(c =>
-            state.currentView === 'grid' ? buildGridItem(c) : buildListItem(c)
+            state.currentView === 'grid' ?
+            buildGridItem(c) : buildListItem(c)
         ).join('');
 
         container.insertAdjacentHTML('beforeend', html);
@@ -293,7 +316,6 @@
 
         btn.disabled = true;
 
-        // Nájdi kartu a animuj jej odstránenie
         const card = btn.closest(
             '.favourites-page-main-content-chatbots-grid-view-item, .favourites-page-main-content-chatbots-list-view-item-containter'
         );
@@ -306,14 +328,12 @@
         .then(res => res.json())
         .then(data => {
             if (data.success && !data.is_favourite) {
-                // Animuj a odstráň kartu z DOM
                 if (card) {
                     card.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
                     card.style.opacity = '0';
                     card.style.transform = 'scale(0.96)';
                     setTimeout(() => {
                         card.remove();
-                        // Ak sú prázdne, zobraz empty state
                         const container = currentContainer();
                         if (container.children.length === 0) {
                             emptyState.style.display = 'block';
@@ -340,11 +360,137 @@
         if (!link) return;
         const chatbotId = link.dataset.chatbotId;
         if (!chatbotId) return;
-        fetch('../api/trackClick.php', {
+        fetch('../api/recordVisit.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chatbot_id: chatbotId }),
         }).catch(() => {});
+    });
+
+    // ============================================
+    // RATING MODAL
+    // ============================================
+
+    document.addEventListener('click', (e) => {
+        const trigger = e.target.closest('.favourites-rating-trigger');
+        if (!trigger) return;
+
+        const chatbotId = trigger.dataset.chatbotId;
+        const container = trigger.closest(
+            '.favourites-page-main-content-chatbots-grid-view-item, .favourites-page-main-content-chatbots-list-view-item-containter'
+        );
+        const nameEl = container
+            ? container.querySelector(
+                '.favourites-page-main-content-chatbots-grid-view-item-top-base-1 > p, ' +
+                '.favourites-page-main-content-chatbots-list-view-item-top-base-1 > p'
+              )
+            : null;
+        const chatbotName = nameEl ? nameEl.textContent.trim() : 'this chatbot';
+
+        openRatingModal(chatbotId, chatbotName);
+    });
+
+    function openRatingModal(chatbotId, chatbotName) {
+        state.ratingChatbotId = chatbotId;
+        state.ratingValue = 0;
+
+        ratingModalTitle.textContent = `Rate: ${chatbotName}`;
+        ratingTitleInput.value = '';
+        ratingTextInput.value = '';
+        ratingModalError.textContent = '';
+        ratingModalSuccess.textContent = '';
+        ratingSubmitBtn.disabled = false;
+        ratingSubmitBtn.textContent = 'Submit Review';
+
+        updatePickerStars(0);
+
+        ratingOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeRatingModal() {
+        ratingOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+        state.ratingChatbotId = null;
+        state.ratingValue = 0;
+    }
+
+    function updatePickerStars(value) {
+        state.ratingValue = value;
+        ratingStarsPicker.querySelectorAll('.chatbot-rating-modal-star').forEach(star => {
+            star.classList.toggle('active', parseInt(star.dataset.value) <= value);
+        });
+        ratingStarsLabel.textContent = value > 0 ? starLabels[value] : 'Select a rating';
+    }
+
+    ratingStarsPicker.addEventListener('mouseover', (e) => {
+        const star = e.target.closest('.chatbot-rating-modal-star');
+        if (!star) return;
+        const hoverVal = parseInt(star.dataset.value);
+        ratingStarsPicker.querySelectorAll('.chatbot-rating-modal-star').forEach(s => {
+            s.classList.toggle('hover', parseInt(s.dataset.value) <= hoverVal);
+        });
+    });
+
+    ratingStarsPicker.addEventListener('mouseleave', () => {
+        ratingStarsPicker.querySelectorAll('.chatbot-rating-modal-star').forEach(s => s.classList.remove('hover'));
+    });
+
+    ratingStarsPicker.addEventListener('click', (e) => {
+        const star = e.target.closest('.chatbot-rating-modal-star');
+        if (star) updatePickerStars(parseInt(star.dataset.value));
+    });
+
+    ratingCloseBtn.addEventListener('click', closeRatingModal);
+    ratingCancelBtn.addEventListener('click', closeRatingModal);
+    ratingOverlay.addEventListener('click', (e) => { if (e.target === ratingOverlay) closeRatingModal(); });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && ratingOverlay.classList.contains('active')) closeRatingModal();
+    });
+
+    ratingSubmitBtn.addEventListener('click', () => {
+        ratingModalError.textContent = '';
+        ratingModalSuccess.textContent = '';
+
+        if (state.ratingValue === 0) {
+            ratingModalError.textContent = 'Please select a star rating.';
+            return;
+        }
+        if (!ratingTextInput.value.trim()) {
+            ratingModalError.textContent = 'Please write your review.';
+            return;
+        }
+
+        ratingSubmitBtn.disabled = true;
+        ratingSubmitBtn.textContent = 'Submitting...';
+
+        fetch('../api/submitReview.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chatbot_id:  state.ratingChatbotId,
+                rating:      state.ratingValue,
+                title:       ratingTitleInput.value.trim(),
+                review_text: ratingTextInput.value.trim(),
+            }),
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                ratingModalSuccess.textContent = data.message;
+                ratingSubmitBtn.textContent = 'Submitted!';
+                setTimeout(closeRatingModal, 2000);
+            } else {
+                ratingModalError.textContent = data.message || 'Something went wrong.';
+                ratingSubmitBtn.disabled = false;
+                ratingSubmitBtn.textContent = 'Submit Review';
+            }
+        })
+        .catch(() => {
+            ratingModalError.textContent = 'Server error. Please try again.';
+            ratingSubmitBtn.disabled = false;
+            ratingSubmitBtn.textContent = 'Submit Review';
+        });
     });
 
     // ============================================
@@ -421,6 +567,7 @@
             const btn = document.createElement('button');
             btn.className = 'favourites-showcase-pagination-btn' + (p === currentPage ? ' active' : '');
             btn.textContent = p;
+            if (p === currentPage) btn.setAttribute('aria-current', 'page');
             btn.addEventListener('click', () => { if (p !== state.currentPage) goToPage(p); });
             paginationEl.appendChild(btn);
         });
@@ -494,81 +641,88 @@
     // FILTERS MODAL
     // ============================================
 
-    filtersBtn.addEventListener('click', () => {
-        filtersOverlay.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-    });
-
-    function closeFiltersModal() {
-        filtersOverlay.style.display = 'none';
-        document.body.style.overflow = '';
+    if (filtersBtn && filtersOverlay) {
+        filtersBtn.addEventListener('click', () => {
+            filtersOverlay.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        });
     }
 
-    filtersCloseBtn.addEventListener('click', closeFiltersModal);
-    filtersOverlay.addEventListener('click', (e) => { if (e.target === filtersOverlay) closeFiltersModal(); });
+    if (filtersCloseBtn) {
+        filtersCloseBtn.addEventListener('click', () => {
+            filtersOverlay.style.display = 'none';
+            document.body.style.overflow = '';
+        });
+    }
 
-    // Filter badge počítadlo
-    function countActiveFilters() {
+    if (filtersOverlay) {
+        filtersOverlay.addEventListener('click', (e) => {
+            if (e.target === filtersOverlay) {
+                filtersOverlay.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        });
+    }
+
+    if (filtersClearBtn) {
+        filtersClearBtn.addEventListener('click', () => {
+            filterNumberInputs.forEach(input => { input.value = ''; });
+            document.querySelectorAll('.favourites-filters-modal-body-features-single.active')
+                .forEach(el => el.classList.remove('active'));
+            updateFilterCount();
+        });
+    }
+
+    filterNumberInputs.forEach(input => {
+        input.addEventListener('input', updateFilterCount);
+    });
+
+    function updateFilterCount() {
         let count = 0;
-        const rS = document.getElementById('ratingInputStart');
-        const rE = document.getElementById('ratingInputEnd');
-        if ((rS && rS.value.trim()) || (rE && rE.value.trim())) count++;
+        filterNumberInputs.forEach(input => { if (input.value !== '') count++; });
+        const activeFeatures = document.querySelectorAll('.favourites-filters-modal-body-features-single.active').length;
+        count += activeFeatures;
 
-        const vS = document.getElementById('votesInputStart');
-        const vE = document.getElementById('votesInputEnd');
-        if ((vS && vS.value.trim()) || (vE && vE.value.trim())) count++;
-
-        const pS = document.getElementById('priceInputStart');
-        const pE = document.getElementById('priceInputEnd');
-        if ((pS && pS.value.trim()) || (pE && pE.value.trim())) count++;
-
-        count += document.querySelectorAll('.favourites-filters-modal-body-features-single.active').length;
-        return count;
-    }
-
-    function updateFilterBadge() {
-        const count = countActiveFilters();
-        filtersCount.style.display = count === 0 ? 'none' : 'flex';
-        filtersCountNum.textContent = count;
-    }
-
-    filterNumberInputs.forEach(input => input.addEventListener('input', updateFilterBadge));
-    filtersOverlay.addEventListener('click', (e) => {
-        if (e.target.classList.contains('favourites-filters-modal-body-features-single')) {
-            setTimeout(updateFilterBadge, 0);
+        if (filtersCount && filtersCountNum) {
+            if (count > 0) {
+                filtersCount.style.display = 'flex';
+                filtersCountNum.textContent = count;
+            } else {
+                filtersCount.style.display = 'none';
+            }
         }
-    });
-
-    filtersClearBtn.addEventListener('click', () => {
-        filterNumberInputs.forEach(input => { input.value = ''; });
-        document.querySelectorAll('.favourites-filters-modal-body-features-single.active')
-            .forEach(span => span.classList.remove('active'));
-        updateFilterBadge();
-    });
+    }
 
     // ============================================
-    // MOVE UP
+    // MOVE UP BUTTON
     // ============================================
 
-    moveUpBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    if (moveUpBtn) {
+        window.addEventListener('scroll', () => {
+            moveUpBtn.style.display = window.scrollY > 300 ? 'flex' : 'none';
+        });
+        moveUpBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
 
     // ============================================
     // INIT
     // ============================================
 
-    const savedView = (() => {
-        try { return localStorage.getItem('favourites_showcase_view'); } catch (_) { return null; }
-    })();
-
-    if (savedView === 'list') {
-        state.currentView = 'list';
-        listBtn.classList.add('active');
-        gridBtn.classList.remove('active');
-        gridView.classList.remove('active');
-        listView.classList.add('active');
-    } else {
+    try {
+        const savedView = localStorage.getItem('favourites_showcase_view');
+        if (savedView === 'list' || savedView === 'grid') {
+            state.currentView = savedView;
+            listBtn.classList.toggle('active', savedView === 'list');
+            gridBtn.classList.toggle('active', savedView === 'grid');
+            gridView.classList.toggle('active', savedView === 'grid');
+            listView.classList.toggle('active', savedView === 'list');
+        } else {
+            gridView.classList.add('active');
+        }
+    } catch (_) {
         gridView.classList.add('active');
-        listView.classList.remove('active');
     }
 
     loadFavourites();

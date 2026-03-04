@@ -34,7 +34,7 @@ require '../inc/header.php';
 
                     <!-- Desktop search bar -->
                     <label class="chatbot-page-main-content-topbar-search chatbot-page-main-content-topbar-search-desktop">
-                        <input type="text" placeholder="Search" class="chatbot-page-main-content-topbar-search-input">
+                        <input type="text" placeholder="Search" id="desktopSearchInput" class="chatbot-page-main-content-topbar-search-input">
                         <button class="chatbot-page-main-content-topbar-search-input-clear-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 class="chatbot-page-main-content-topbar-search-input-clear-icon" fill="none"

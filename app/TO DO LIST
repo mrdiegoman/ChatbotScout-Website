@@ -6,8 +6,6 @@ Pridanie home pages
 
 Nastavenie tabuliek v databaze
 
-Prepojenie chatbot page a db
-
 Pridanie rozsireneho zobrazenia implmentacii
 
 Captcha
@@ -16,17 +14,9 @@ Google sign up
 
 Stripe -> nakup, visa, paypal, apple-pay (celkove zobrazenie tj. inputy)
 
-Vo filters pridat clear button
+V chatbot v db pridat click count
 
-Na filters buttone zobrazit pocet vybranych filtrov
-
-V chatbot v db pridat click count, view count, favorites adding
-
-pozriet tie trigers v db
-
-porefreshi sa prepne na grid aj ked bol list layout a ostatne zapnuty 
-list layout len nie je aktivovany
-
+resetuje sa prihlasenie ak vypne browser aj ked bol user prihlaseny
 
 
 
