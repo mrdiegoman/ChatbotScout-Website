@@ -152,7 +152,6 @@ CREATE TABLE `chatbots` (
   `affiliate_cookie_duration` INT NULL COMMENT 'Cookie days, e.g., 30, 60, 90',
 
   -- Pricing Info
-  `has_free_plan` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Free plan available?, e.g., TRUE, FALSE',
   `has_free_trial` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Free trial available?, e.g., TRUE, FALSE',
   `free_trial_days` INT NULL COMMENT 'Trial length, e.g., 14, 30, 7',
   `starting_price` DECIMAL(10,2) NULL COMMENT 'Starting price, e.g., 39.00, 99.00, 19.99',
@@ -193,7 +192,7 @@ CREATE TABLE `chatbots` (
   KEY `idx_listing_status` (`status`, `is_featured`, `rating_average`),
   KEY `idx_active_listings` (`status`, `deleted_at`, `created_at`),
   KEY `idx_affiliate_program` (`has_affiliate_program`, `status`),
-  KEY `idx_pricing_filter` (`pricing_model`, `has_free_plan`),
+  KEY `idx_pricing_filter` (`pricing_model`),
   FULLTEXT KEY `idx_search` (`name`, `description`),
 
   CONSTRAINT `fk_chatbots_owner` FOREIGN KEY (`owner_user_id`)

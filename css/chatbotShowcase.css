@@ -858,10 +858,26 @@
     z-index: 2;
     color: var(--black-color-light);
     font-family: outfit-semiBold;
-    font-size: 1.6rem;
+    font-size: 1.85rem;
     white-space: nowrap;
-    padding: 1.25rem 2.2rem 1.25rem 1.5rem;
-    display: inline-block;
+    padding: 1rem 2.2rem 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+}
+
+.sipka-line {
+    white-space: nowrap;
+}
+
+/* Horizontálny deliteľ medzi pricing modelom a cenou */
+.sipka-divider {
+    width: calc(100%);     /* nedotýka sa strán */
+    height: 0.2rem;
+    background-color: var(--black-color-light);
+    margin: 0.4rem 0;
+    align-self: flex-start;
 }
 
 .chatbot-page-main-content-chatbots-grid-view-item-btns-container-go-to-website,

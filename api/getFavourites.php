@@ -119,7 +119,7 @@ $stmt = $db->prepare("
     SELECT
         c.id, c.name, c.description, c.logo_url, c.website_url,
         c.has_affiliate_program, c.affiliate_link,
-        c.has_free_plan, c.has_free_trial, c.pricing_model,
+        c.has_free_trial, c.pricing_model,
         c.starting_price, c.pricing_currency,
         c.rating_average, c.rating_count,
         c.click_count, c.favorite_count,

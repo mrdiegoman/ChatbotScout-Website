@@ -81,6 +81,23 @@
             .replace(/"/g, '&quot;');
     }
 
+    function renderPricing(pricingStr) {
+        if (!pricingStr) return '';
+        const parts = pricingStr.split(' | ');
+        
+        // Ak je celkový string kratší ako 12 znakov → jedna linka (napr. "FREE" alebo "$50+")
+        // Ak je dlhší → rozdeľ na riadky s dividerom
+        if (parts.length === 1 || pricingStr.length < 12) {
+            return pricingStr;
+        }
+        
+        return parts.map((part, i) => {
+            const line = `<span class="sipka-line">${escapeHtml(part)}</span>`;
+            const divider = (i < parts.length - 1) ? '<span class="sipka-divider"></span>' : '';
+            return line + divider;
+        }).join('');
+    }
+
     function currentContainer() {
         return state.currentView === 'grid' ? gridView : listView;
     }
@@ -140,7 +157,7 @@
         const stars   = buildStars(chatbot.rating_average, chatbot.id);
         const tags    = buildTags(chatbot.tags);
         const cards   = buildFeatureCards(chatbot.features);
-        const pricing = escapeHtml(pricingLabel(chatbot));
+        const pricing = renderPricing(pricingLabel(chatbot))
         const link    = escapeHtml(chatbot.link);
         const name    = escapeHtml(chatbot.name);
         const desc    = escapeHtml(chatbot.description || '');
@@ -213,7 +230,7 @@
         const stars    = buildStars(chatbot.rating_average, chatbot.id);
         const tags     = buildTags(chatbot.tags);
         const cards    = buildFeatureCards(chatbot.features);
-        const pricing  = escapeHtml(pricingLabel(chatbot));
+        const pricing  = renderPricing(pricingLabel(chatbot))
         const link     = escapeHtml(chatbot.link);
         const name     = escapeHtml(chatbot.name);
         const desc     = escapeHtml(chatbot.description || '');
