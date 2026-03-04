@@ -213,8 +213,52 @@ require '../inc/header.php';
     </div>
 </div>
 
+<!-- RATING MODAL -->
+<div class="chatbot-rating-modal-overlay" id="ratingModalOverlay">
+    <div class="chatbot-rating-modal-content">
+        <div class="chatbot-rating-modal-header">
+            <h2 id="ratingModalTitle">Rate this chatbot</h2>
+            <button class="chatbot-rating-modal-close-btn" id="ratingModalCloseBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="#232127" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="m15 9-6 6" />
+                    <path d="m9 9 6 6" />
+                </svg>
+            </button>
+        </div>
+        <div class="chatbot-rating-modal-body">
+            <div class="chatbot-rating-modal-stars-wrapper">
+                <div class="chatbot-rating-modal-stars" id="ratingStarsPicker">
+                    <span class="chatbot-rating-modal-star" data-value="1">★</span>
+                    <span class="chatbot-rating-modal-star" data-value="2">★</span>
+                    <span class="chatbot-rating-modal-star" data-value="3">★</span>
+                    <span class="chatbot-rating-modal-star" data-value="4">★</span>
+                    <span class="chatbot-rating-modal-star" data-value="5">★</span>
+                </div>
+                <p class="chatbot-rating-modal-stars-label" id="ratingStarsLabel">Select a rating</p>
+            </div>
+            <div class="chatbot-rating-modal-field">
+                <label for="ratingTitleInput">Title <span class="chatbot-rating-modal-optional">(optional)</span></label>
+                <input type="text" id="ratingTitleInput" maxlength="200" placeholder="Short summary of your experience">
+            </div>
+            <div class="chatbot-rating-modal-field">
+                <label for="ratingTextInput">Your review <span class="chatbot-rating-modal-required">*</span></label>
+                <textarea id="ratingTextInput" maxlength="5000" rows="4" placeholder="Share your experience with this chatbot..."></textarea>
+            </div>
+            <p class="chatbot-rating-modal-error" id="ratingModalError"></p>
+            <p class="chatbot-rating-modal-success" id="ratingModalSuccess"></p>
+        </div>
+        <div class="chatbot-rating-modal-footer">
+            <button class="chatbot-rating-modal-cancel-btn" id="ratingModalCancelBtn">Cancel</button>
+            <button class="chatbot-rating-modal-submit-btn" id="ratingModalSubmitBtn">Submit Review</button>
+        </div>
+    </div>
+</div>
+
 <script src="../js/featuresSwiping.js" defer></script>
 <script src="../js/layoutSwapping.js" defer></script>
 <script src="../js/filterFeaturesAdding.js" defer></script>
 <script src="../js/showAdvancedFeatures.js" defer></script>
 <script src="../js/favouritesShowcase.js" defer></script>
+

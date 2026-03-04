@@ -563,6 +563,7 @@
 .chatbot-page-main-content-chatbots-item-top-base-2-rating[data-rating="1.5"] { --rating: 1.5; }
 .chatbot-page-main-content-chatbots-item-top-base-2-rating[data-rating="1"] { --rating: 1; }
 .chatbot-page-main-content-chatbots-item-top-base-2-rating[data-rating="0.5"] { --rating: 0.5; }
+.chatbot-page-main-content-chatbots-item-top-base-2-rating[data-rating="0"] { --rating: 0; }
 
 .chatbot-page-main-content-chatbots-grid-view-item-top-base-2 p,
 .chatbot-page-main-content-chatbots-list-view-item-top-base-2 p {
@@ -1571,6 +1572,10 @@
     background: var(--white-color-dark);
     color: var(--black-color-light);
     transition: border-color 0.15s ease;
+}
+
+.chatbot-rating-modal-field textarea {
+    min-height: 10rem;
 }
 
 .chatbot-rating-modal-field input:focus,
