@@ -398,7 +398,9 @@
         ratingTitleInput.value = '';
         ratingTextInput.value = '';
         ratingModalError.textContent = '';
+        ratingModalError.style.display = 'none';
         ratingModalSuccess.textContent = '';
+        ratingModalSuccess.style.display = 'none';
         ratingSubmitBtn.disabled = false;
         ratingSubmitBtn.textContent = 'Submit Review';
 
@@ -482,10 +484,12 @@
         .then(data => {
             if (data.success) {
                 ratingModalSuccess.textContent = data.message;
+                ratingModalError.style.display = 'block';
                 ratingSubmitBtn.textContent = 'Submitted!';
                 setTimeout(closeRatingModal, 2000);
             } else {
                 ratingModalError.textContent = data.message || 'Something went wrong.';
+                ratingModalError.style.display = 'block';
                 ratingSubmitBtn.disabled = false;
                 ratingSubmitBtn.textContent = 'Submit Review';
             }
