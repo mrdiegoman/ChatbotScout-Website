@@ -164,7 +164,7 @@
             </div>
             <div class="chatbot-page-main-content-chatbots-grid-view-item-top-favourites-container">
                 <p class="chatbot-fav-count">${favCount}</p>
-                <button class="chatbot-page-main-content-chatbots-grid-view-item-top-favourites-container-btn chatbot-fav-btn"
+                <button class="chatbot-page-main-content-chatbots-grid-view-item-top-favourites-container-btn chatbot-fav-btn${chatbot.is_favourited ? ' active' : ''}"
                         data-chatbot-id="${escapeHtml(chatbot.id)}"
                         aria-label="Add to favourites">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -239,7 +239,7 @@
                     </div>
                     <div class="chatbot-page-main-content-chatbots-list-view-item-top-favourites-container">
                         <p class="chatbot-fav-count">${favCount}</p>
-                        <button class="chatbot-page-main-content-chatbots-list-view-item-top-favourites-container-btn chatbot-fav-btn"
+                        <button class="chatbot-page-main-content-chatbots-list-view-item-top-favourites-container-btn chatbot-fav-btn${chatbot.is_favourited ? ' active' : ''}"
                                 data-chatbot-id="${escapeHtml(chatbot.id)}"
                                 aria-label="Add to favourites">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -278,7 +278,7 @@
                         <div class="chatbot-page-main-content-chatbots-list-view-item-scrollbar-thumb"></div>
                     </div>
                 </div>
-            </div>        
+            </div>
             <div class="chatbot-page-main-content-chatbots-list-view-item-btns-container">
                 <div class="chatbot-page-main-content-chatbots-list-view-item-btns-container-sipka">
                     <span class="chatbot-page-main-content-chatbots-list-view-item-btns-container-sipka-text">${pricing}</span>
@@ -294,7 +294,7 @@
                     </svg>
                 </a>
             </div>
-        </div>
+        </div>    
     </div>
 </div>`;
     }
@@ -656,6 +656,9 @@
         gridView.classList.toggle('active', view === 'grid');
         listView.classList.toggle('active', view === 'list');
 
+        // Uloz preferovany layout
+        try { localStorage.setItem('chatbot_showcase_view', view); } catch (_) {}
+
         loadChatbots(false);
     }
 
@@ -744,12 +747,21 @@
         }, 200);
     });
 
-    // ============================================
     // INIT
-    // ============================================
-
-    gridView.classList.add('active');
-    listView.classList.remove('active');
+    // Nacitaj ulozeny layout (ak existuje)
+    const savedView = (() => {
+        try { return localStorage.getItem('chatbot_showcase_view'); } catch (_) { return null; }
+    })();
+    if (savedView === 'list') {
+        state.currentView = 'list';
+        listBtn.classList.add('active');
+        gridBtn.classList.remove('active');
+        gridView.classList.remove('active');
+        listView.classList.add('active');
+    } else {
+        gridView.classList.add('active');
+        listView.classList.remove('active');
+    }
     loadChatbots(false);
 
 })();

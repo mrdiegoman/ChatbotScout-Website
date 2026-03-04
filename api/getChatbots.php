@@ -1,7 +1,7 @@
 <?php
 /**
  * AJAX Endpoint - Get Chatbots
- * 
+ *
  * Returns paginated, sorted chatbot listings in JSON format.
  * Used by chatbotShowcase.php for dynamic loading.
  */
@@ -25,11 +25,9 @@ $view   = in_array($_GET['view'] ?? 'grid', ['grid', 'list']) ? $_GET['view'] : 
 $sort   = $_GET['sort'] ?? 'popularity';
 $page   = max(1, (int)($_GET['page'] ?? 1));
 
-// Limits per view type
 $limit  = ($view === 'list') ? 12 : 20;
 $offset = ($page - 1) * $limit;
 
-// Allowed sort options
 $allowedSorts = ['popularity', 'price', 'alphabetical', 'rating', 'number-of-ratings'];
 if (!in_array($sort, $allowedSorts)) {
     $sort = 'popularity';
@@ -40,15 +38,13 @@ if (!in_array($sort, $allowedSorts)) {
 // ============================================
 
 $orderBy = match($sort) {
-    'popularity'       => 'c.click_count DESC, c.rating_average DESC',
-    'price'            => 'c.starting_price ASC NULLS LAST, c.has_free_plan DESC',
-    'alphabetical'     => 'c.name ASC',
-    'rating'           => 'c.rating_average DESC, c.rating_count DESC',
-    'number-of-ratings'=> 'c.rating_count DESC, c.rating_average DESC',
-    default            => 'c.click_count DESC',
+    'popularity'        => 'c.click_count DESC, c.rating_average DESC',
+    'alphabetical'      => 'c.name ASC',
+    'rating'            => 'c.rating_average DESC, c.rating_count DESC',
+    'number-of-ratings' => 'c.rating_count DESC, c.rating_average DESC',
+    default             => 'c.click_count DESC',
 };
 
-// MySQL doesn't support NULLS LAST directly, use ISNULL workaround for price
 if ($sort === 'price') {
     $orderBy = 'ISNULL(c.starting_price) ASC, c.starting_price ASC';
 }
@@ -70,31 +66,66 @@ $totalPages = (int)ceil($total / $limit);
 
 // ============================================
 // MAIN QUERY
+// Ak je user prihlásený, LEFT JOIN na favorites
+// aby sme vedeli ktoré chatboty má v obľúbených
 // ============================================
 
-$stmt = $db->prepare("
-    SELECT
-        c.id,
-        c.name,
-        c.description,
-        c.logo_url,
-        c.website_url,
-        c.has_affiliate_program,
-        c.affiliate_link,
-        c.has_free_plan,
-        c.has_free_trial,
-        c.starting_price,
-        c.pricing_currency,
-        c.rating_average,
-        c.rating_count,
-        c.click_count,
-        c.favorite_count
-    FROM `chatbots` c
-    WHERE c.status = 'active'
-      AND c.deleted_at IS NULL
-    ORDER BY {$orderBy}
-    LIMIT :limit OFFSET :offset
-");
+$currentUserId = ($isLoggedIn && !empty($user['id'])) ? $user['id'] : null;
+
+if ($currentUserId) {
+    $stmt = $db->prepare("
+        SELECT
+            c.id,
+            c.name,
+            c.description,
+            c.logo_url,
+            c.website_url,
+            c.has_affiliate_program,
+            c.affiliate_link,
+            c.has_free_plan,
+            c.has_free_trial,
+            c.starting_price,
+            c.pricing_currency,
+            c.rating_average,
+            c.rating_count,
+            c.click_count,
+            c.favorite_count,
+            CASE WHEN f.id IS NOT NULL THEN 1 ELSE 0 END AS is_favourited
+        FROM `chatbots` c
+        LEFT JOIN `favorites` f
+            ON f.chatbot_id = c.id AND f.user_id = :user_id
+        WHERE c.status = 'active'
+          AND c.deleted_at IS NULL
+        ORDER BY {$orderBy}
+        LIMIT :limit OFFSET :offset
+    ");
+    $stmt->bindValue(':user_id', $currentUserId, PDO::PARAM_STR);
+} else {
+    $stmt = $db->prepare("
+        SELECT
+            c.id,
+            c.name,
+            c.description,
+            c.logo_url,
+            c.website_url,
+            c.has_affiliate_program,
+            c.affiliate_link,
+            c.has_free_plan,
+            c.has_free_trial,
+            c.starting_price,
+            c.pricing_currency,
+            c.rating_average,
+            c.rating_count,
+            c.click_count,
+            c.favorite_count,
+            0 AS is_favourited
+        FROM `chatbots` c
+        WHERE c.status = 'active'
+          AND c.deleted_at IS NULL
+        ORDER BY {$orderBy}
+        LIMIT :limit OFFSET :offset
+    ");
+}
 
 $stmt->bindValue(':limit',  $limit,  PDO::PARAM_INT);
 $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
@@ -117,8 +148,8 @@ if (empty($chatbots)) {
 // FETCH FEATURES FOR EACH CHATBOT
 // ============================================
 
-$chatbotIds    = array_column($chatbots, 'id');
-$placeholders  = implode(',', array_fill(0, count($chatbotIds), '?'));
+$chatbotIds   = array_column($chatbots, 'id');
+$placeholders = implode(',', array_fill(0, count($chatbotIds), '?'));
 
 $featStmt = $db->prepare("
     SELECT
@@ -129,12 +160,11 @@ $featStmt = $db->prepare("
     FROM `chatbot_features` cf
     JOIN `features` f ON cf.feature_id = f.id
     WHERE cf.chatbot_id IN ({$placeholders})
-      AND (cf.boolean_value = 1 OR cf.text_value IS NOT NULL) 
+      AND (cf.boolean_value = 1 OR cf.text_value IS NOT NULL)
 ");
 $featStmt->execute($chatbotIds);
 $allFeatures = $featStmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Group features by chatbot_id
 $featureMap = [];
 foreach ($allFeatures as $feat) {
     $featureMap[$feat['chatbot_id']][] = $feat['feature_name'];
@@ -156,12 +186,9 @@ $tagStmt = $db->prepare("
 $tagStmt->execute($chatbotIds);
 $allTags = $tagStmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Group tags by chatbot_id
 $tagMap = [];
 foreach ($allTags as $tag) {
-    $tagMap[$tag['chatbot_id']][] = [
-        'name' => $tag['tag_name'],
-    ];
+    $tagMap[$tag['chatbot_id']][] = ['name' => $tag['tag_name']];
 }
 
 // ============================================
@@ -194,7 +221,6 @@ $result = [];
 foreach ($chatbots as $chatbot) {
     $id = $chatbot['id'];
 
-    // Choose link: affiliate if available, else website
     $link = ($chatbot['has_affiliate_program'] && !empty($chatbot['affiliate_link']))
         ? $chatbot['affiliate_link']
         : $chatbot['website_url'];
@@ -209,6 +235,7 @@ foreach ($chatbots as $chatbot) {
         'rating_average' => (float)$chatbot['rating_average'],
         'rating_count'   => (int)$chatbot['rating_count'],
         'favorite_count' => (int)$chatbot['favorite_count'],
+        'is_favourited'  => (bool)$chatbot['is_favourited'],
         'pricing'        => buildPricingDisplay($chatbot),
         'features'       => $featureMap[$id] ?? [],
         'tags'           => $tagMap[$id] ?? [],

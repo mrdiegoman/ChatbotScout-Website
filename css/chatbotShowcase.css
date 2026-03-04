@@ -1665,7 +1665,7 @@
 
 
 /* Extra malé mobily (portrait) */
-@media (max-width: 400px) {
+@media (max-width: 450px) {
     /* napr. iPhone SE, malé Android telefóny */
     .chatbot-page-main-content-chatbots-grid-view.active {
         /* grid-template-columns: repeat(auto-fill, minmax(36rem, 1fr));*/

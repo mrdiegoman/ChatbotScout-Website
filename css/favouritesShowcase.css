@@ -599,7 +599,7 @@
 .favourites-page-main-content-chatbots-list-view-item-description-container {
     display: flex;
     flex-direction: column;
-    width: fit-content;
+    width: 100%;
     padding: 1rem var(--grid-item-padding);
 }
 
@@ -847,15 +847,16 @@
     border: 0.2rem solid var(--blue-color-2);
     border-radius: 1rem;
     gap: 1rem;
+    background-color: var(--blue-color-2);
     transition: background-color 0.2s ease;
 }
 
 .favourites-page-main-content-chatbots-grid-view-item-btns-container-go-to-website:hover,
 .favourites-page-main-content-chatbots-list-view-item-btns-container-go-to-website:hover {
-    background-color: var(--blue-color-2);
+    background-color: var(--blue-color-2-hover-dark);
 }
 
-.favourites-page-main-content-chatbots-grid-view-item-btns-container-go-to-website:hover p,
+/* .favourites-page-main-content-chatbots-grid-view-item-btns-container-go-to-website:hover p,
 .favourites-page-main-content-chatbots-list-view-item-btns-container-go-to-website:hover p{
     color: var(--white-color-dark);
 }
@@ -863,18 +864,18 @@
 .favourites-page-main-content-chatbots-grid-view-item-btns-container-go-to-website:hover svg,
 .favourites-page-main-content-chatbots-list-view-item-btns-container-go-to-website:hover svg{
     stroke: var(--white-color-dark);
-}
+} */
 
 .favourites-page-main-content-chatbots-grid-view-item-btns-container-go-to-website p,
 .favourites-page-main-content-chatbots-list-view-item-btns-container-go-to-website p{
-    color: var(--blue-color-2);;
+    color: var(--white-color-dark);;
     font-size: 1.85rem;
     font-family: outfit-semiBold;
 }
 
 .favourites-page-main-content-chatbots-grid-view-item-btns-container-go-to-website svg,
 .favourites-page-main-content-chatbots-list-view-item-btns-container-go-to-website svg{
-    color: var(--blue-color-2);
+    color: var(--white-color-dark);
     font-size: 1.75rem;
     font-family: outfit-semiBold;
 }
@@ -920,7 +921,7 @@
     width: 100%;
     /* background-clip: padding-box; */
     display: flex;
-    gap: 1rem;
+    gap: 2rem;
     flex-direction: row;
     flex-wrap: nowrap;
     /* box-sizing: border-box; */
@@ -937,7 +938,7 @@
 .favourites-page-main-content-chatbots-list-view-item-features-container-left{
     display: flex;
     flex-direction: column;
-    width: 40%;
+    width: 30%;
     min-width: 30rem;
 }
 
@@ -1226,6 +1227,221 @@
     background-color: var(--blue-color-2-hover);
 }
 
+/* ============================================
+   favouritesShowcase - Additional Styles
+   Pridaj na koniec css/favouritesShowcase.css
+   ============================================ */
+
+/* ---- Remove button (grid view) ---- */
+.favourites-page-main-content-chatbots-grid-view-item {
+    position: relative;
+}
+
+.favourites-page-main-content-chatbots-grid-view-item-top-remove-btn {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    font-size: 2.5rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--black-color-light);
+    width: 3.5rem;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    opacity: 0.45;
+    transition: opacity 0.15s ease, background-color 0.15s ease;
+    z-index: 2;
+}
+
+.favourites-page-main-content-chatbots-grid-view-item-top-remove-btn:hover {
+    opacity: 1;
+    background-color: var(--grey-hover-color);
+}
+
+/* ---- Remove button (list view) — CSS už existuje, len doplnok ---- */
+.favourites-page-main-content-chatbots-list-view-item-remove-btn {
+    opacity: 0.45;
+    transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.favourites-page-main-content-chatbots-list-view-item-remove-btn:hover {
+    opacity: 1;
+    background-color: var(--grey-hover-color);
+}
+
+/* ---- Loading spinner ---- */
+.favourites-showcase-loading {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 4rem 0;
+    width: 100%;
+}
+
+.favourites-showcase-loading-spinner {
+    width: 4rem;
+    height: 4rem;
+    border: 0.35rem solid var(--grey-color-mid);
+    border-top-color: var(--blue-color-2);
+    border-radius: 50%;
+    animation: fav-spin 0.75s linear infinite;
+}
+
+@keyframes fav-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ---- Empty state ---- */
+.favourites-showcase-empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--grey-color-mid);
+    font-size: 1.8rem;
+    width: 100%;
+}
+
+.favourites-showcase-empty a {
+    color: var(--blue-color-2);
+    text-decoration: underline;
+}
+
+/* ---- Bottom bar ---- */
+.favourites-showcase-bottom-bar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 2rem 2rem 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+/* ---- Pagination ---- */
+.favourites-showcase-pagination {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.favourites-showcase-pagination-btn {
+    min-width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 0.75rem;
+    border: 0.15rem solid var(--grey-color-mid);
+    background: var(--white-color-dark);
+    font-size: 1.5rem;
+    font-family: outfit-medium;
+    color: var(--black-color-light);
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    padding: 0 0.75rem;
+}
+
+.favourites-showcase-pagination-btn:hover {
+    background-color: var(--grey-hover-color);
+    border-color: var(--black-color-light);
+}
+
+.favourites-showcase-pagination-btn.active {
+    background-color: var(--blue-color-2);
+    border-color: var(--blue-color-2);
+    color: var(--white-color-dark);
+}
+
+.favourites-showcase-pagination-arrow {
+    min-width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 0.75rem;
+    border: 0.15rem solid var(--grey-color-mid);
+    background: var(--white-color-dark);
+    font-size: 2rem;
+    color: var(--black-color-light);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    padding: 0 0.75rem;
+}
+
+.favourites-showcase-pagination-arrow:hover:not(:disabled) {
+    background-color: var(--grey-hover-color);
+    border-color: var(--black-color-light);
+}
+
+.favourites-showcase-pagination-arrow:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.favourites-showcase-pagination-ellipsis {
+    font-size: 1.5rem;
+    color: var(--grey-color-mid);
+    padding: 0 0.25rem;
+    user-select: none;
+}
+
+/* ---- Move Up button ---- */
+.favourites-showcase-move-up-btn {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.6rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    font-family: outfit-semiBold;
+    color: var(--black-color-light);
+    white-space: nowrap;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    transition: background-color 0.15s ease;
+}
+
+.favourites-showcase-move-up-btn:hover {
+    background-color: var(--grey-hover-color);
+}
+
+/* ---- Filters footer — flex override ---- */
+.favourites-filters-modal-footer {
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 0;
+    border-top: 1px solid #ddd;
+    gap: 1rem;
+}
+
+.favourites-filters-modal-clear-btn {
+    background: transparent;
+    border: 0.15rem solid var(--grey-color-mid);
+    border-radius: 0.4rem;
+    padding: 0.8rem 1.6rem;
+    font-size: 1.5rem;
+    letter-spacing: 0.05rem;
+    cursor: pointer;
+    color: var(--black-color-light);
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.favourites-filters-modal-clear-btn:hover {
+    background-color: var(--grey-hover-color);
+    border-color: var(--black-color-light);
+}
+
+
+/* ============================================== */
+/* ============================================  */
+
 /* Fade in animation */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-10px); }
@@ -1234,7 +1450,7 @@
 
 
 /* Extra malé mobily (portrait) */
-@media (max-width: 400px) {
+@media (max-width: 450px) {
     /* napr. iPhone SE, malé Android telefóny */
     .favourites-page-main-content-chatbots-grid-view.active {
         /* grid-template-columns: repeat(auto-fill, minmax(36rem, 1fr));*/
