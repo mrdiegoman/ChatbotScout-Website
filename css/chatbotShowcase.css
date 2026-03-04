@@ -1584,12 +1584,14 @@
 }
 
 .chatbot-rating-modal-error {
+    display: none;
     font-size: 1.4rem;
     color: #e55;
     min-height: 1.8rem;
 }
 
 .chatbot-rating-modal-success {
+    display: none;
     font-size: 1.4rem;
     color: var(--green-color);
     min-height: 1.8rem;

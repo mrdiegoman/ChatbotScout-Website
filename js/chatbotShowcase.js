@@ -434,7 +434,6 @@
         // console.log('e.target class:', e.target.className);
         
         const link = e.target.closest('.chatbot-page-main-content-chatbots-grid-view-item-btns-container-go-to-website, .chatbot-page-main-content-chatbots-list-view-item-btns-container-go-to-website');
-        console.log('link:', link);
         if (!link) return;
 
         const chatbotId = link.dataset.chatbotId;
@@ -604,14 +603,18 @@
 
     ratingSubmitBtn.addEventListener('click', () => {
         ratingModalError.textContent = '';
+        ratingModalError.style.display = 'none';
         ratingModalSuccess.textContent = '';
+        ratingModalSuccess.style.display = 'none';
 
         if (state.ratingValue === 0) {
             ratingModalError.textContent = 'Please select a star rating.';
+            ratingModalError.style.display = 'block';
             return;
         }
         if (!ratingTextInput.value.trim()) {
             ratingModalError.textContent = 'Please write your review.';
+            ratingModalError.style.display = 'block';
             return;
         }
 

@@ -450,14 +450,18 @@
 
     ratingSubmitBtn.addEventListener('click', () => {
         ratingModalError.textContent = '';
+        ratingModalError.style.display = 'none';
         ratingModalSuccess.textContent = '';
+        ratingModalSuccess.style.display = 'none';
 
         if (state.ratingValue === 0) {
             ratingModalError.textContent = 'Please select a star rating.';
+            ratingModalError.style.display = 'block';
             return;
         }
         if (!ratingTextInput.value.trim()) {
             ratingModalError.textContent = 'Please write your review.';
+            ratingModalError.style.display = 'block';
             return;
         }
 
