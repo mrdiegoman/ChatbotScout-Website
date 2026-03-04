@@ -260,8 +260,8 @@
             </div>
         
             <div class="favourites-page-main-content-chatbots-list-view-item-btns-container">
-                <div class="favourites-page-main-content-chatbots-list-view-item-btns-container-sipka">
-                    <span class="favourites-page-main-content-chatbots-list-view-item-btns-container-sipka-text">${pricing}</span>
+                <div class="favourites-page-main-content-chatbots-grid-view-item-btns-container-sipka">
+                    <span class="favourites-page-main-content-chatbots-grid-view-item-btns-container-sipka-text">${pricing}</span>
                 </div>
                 <a href="${link}" target="_blank" rel="noopener noreferrer"
                 class="favourites-page-main-content-chatbots-list-view-item-btns-container-go-to-website"
@@ -543,6 +543,18 @@ function openRatingModal(chatbotId, chatbotName) {
             sort: state.currentSort,
             page: state.currentPage,
         });
+ 
+        // Pridaj aktívne filtre z modalu
+        if (typeof window.getActiveFilterParams === 'function') {
+            const filterParams = window.getActiveFilterParams();
+            Object.entries(filterParams).forEach(([key, value]) => {
+                if (Array.isArray(value)) {
+                    value.forEach(v => params.append(key, v));
+                } else {
+                    params.set(key, value);
+                }
+            });
+        }
 
         fetch(`../api/getFavourites.php?${params}`)
             .then(res => res.json())
@@ -559,6 +571,11 @@ function openRatingModal(chatbotId, chatbotName) {
             })
             .finally(() => setLoading(false));
     }
+
+    window.applyFilters = function () {
+        state.currentPage = 1;
+        loadFavourites();
+    };
 
     // ============================================
     // PAGINATION
@@ -706,29 +723,41 @@ function openRatingModal(chatbotId, chatbotName) {
             filterNumberInputs.forEach(input => { input.value = ''; });
             document.querySelectorAll('.favourites-filters-modal-body-features-single.active')
                 .forEach(el => el.classList.remove('active'));
-            updateFilterCount();
+            if (typeof window.updateFilterBadge === 'function')
+                window.updateFilterBadge();
+            if (typeof window.triggerFeatureCountsRefresh === 'function')
+                window.triggerFeatureCountsRefresh();
         });
     }
 
-    filterNumberInputs.forEach(input => {
-        input.addEventListener('input', updateFilterCount);
-    });
-
-    function updateFilterCount() {
-        let count = 0;
-        filterNumberInputs.forEach(input => { if (input.value !== '') count++; });
-        const activeFeatures = document.querySelectorAll('.favourites-filters-modal-body-features-single.active').length;
-        count += activeFeatures;
-
-        if (filtersCount && filtersCountNum) {
-            if (count > 0) {
-                filtersCount.style.display = 'flex';
-                filtersCountNum.textContent = count;
-            } else {
-                filtersCount.style.display = 'none';
-            }
-        }
+    const applyFavFiltersBtn = document.querySelector('.favourites-filters-modal-apply-btn');
+    if (applyFavFiltersBtn) {
+        applyFavFiltersBtn.addEventListener('click', () => {
+            filtersOverlay.style.display = 'none';
+            document.body.style.overflow = '';
+            window.applyFilters();
+        });
     }
+
+    // filterNumberInputs.forEach(input => {
+    //     input.addEventListener('input', updateFilterCount);
+    // });
+
+    // function updateFilterCount() {
+    //     let count = 0;
+    //     filterNumberInputs.forEach(input => { if (input.value !== '') count++; });
+    //     const activeFeatures = document.querySelectorAll('.favourites-filters-modal-body-features-single.active').length;
+    //     count += activeFeatures;
+
+    //     if (filtersCount && filtersCountNum) {
+    //         if (count > 0) {
+    //             filtersCount.style.display = 'flex';
+    //             filtersCountNum.textContent = count;
+    //         } else {
+    //             filtersCount.style.display = 'none';
+    //         }
+    //     }
+    // }
 
     // ============================================
     // MOVE UP BUTTON

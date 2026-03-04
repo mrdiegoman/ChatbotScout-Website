@@ -156,7 +156,7 @@ CREATE TABLE `chatbots` (
   `has_free_trial` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Free trial available?, e.g., TRUE, FALSE',
   `free_trial_days` INT NULL COMMENT 'Trial length, e.g., 14, 30, 7',
   `starting_price` DECIMAL(10,2) NULL COMMENT 'Starting price, e.g., 39.00, 99.00, 19.99',
-  `pricing_model` ENUM('free', 'freemium', 'subscription', 'one_time', 'usage_based', 'custom') NULL COMMENT 'Pricing model, e.g., "freemium", "subscription", "usage_based"',
+  `pricing_model` ENUM('free', 'freemium', 'subscription', 'one_time', 'usage_based', 'custom') NOT NULL COMMENT 'Pricing model, e.g., "freemium", "subscription", "usage_based"',
   `pricing_currency` CHAR(3) NOT NULL DEFAULT 'USD' COMMENT 'Currency code, e.g., "USD", "EUR", "GBP"',
   `pricing_url` VARCHAR(500) NULL COMMENT 'Pricing page, e.g., "https://www.intercom.com/pricing", "https://drift.com/plans", "https://tidio.com/pricing"',
 
@@ -364,25 +364,25 @@ CREATE TABLE `features` (
 -- ============================================
 -- SEED DATA - Default features
 -- ============================================
-Insert IGNORE into features (id, name, description)
-value (UUID(),'Mobile application',NULL),
-    (UUID(),'Desktop application',NULL),
-    (UUID(),'Website widget',NULL),
-    (UUID(),'Multilingual',NULL),
-    (UUID(),'Custom design',NULL),
-    (UUID(),'AI agent',NULL),
-    (UUID(),'Live agent support',NULL),
-    (UUID(),'Website application',NULL),
-    (UUID(),'Ticket management',NULL),
-    (UUID(),'Dashboard',NULL),
-    (UUID(),'Interaction stats',NULL),
-    (UUID(),'Performance overview',NULL),
-    (UUID(),'File uploads',NULL),
-    (UUID(),'Quick replies',NULL),
-    (UUID(),'User feedback',NULL),
-    (UUID(),'Location tracking',NULL),
-    (UUID(),'Automation workflows',NULL),
-    (UUID(),'Session logs',NULL);
+Insert IGNORE into features (id, name, description,advanced)
+value (UUID(),'Mobile application',NULL,FALSE),
+    (UUID(),'Desktop application',NULL,FALSE),
+    (UUID(),'Website widget',NULL,FALSE),
+    (UUID(),'Multilingual',NULL,FALSE),
+    (UUID(),'Custom design',NULL,FALSE),
+    (UUID(),'AI agent',NULL,FALSE),
+    (UUID(),'Live agent support',NULL,FALSE),
+    (UUID(),'Website application',NULL,FALSE),
+    (UUID(),'Ticket management',NULL,FALSE),
+    (UUID(),'Dashboard',NULL,FALSE),
+    (UUID(),'Interaction stats',NULL,FALSE),
+    (UUID(),'Performance overview',NULL,FALSE),
+    (UUID(),'File uploads',NULL,FALSE),
+    (UUID(),'Quick replies',NULL,FALSE),
+    (UUID(),'User feedback',NULL, TRUE),
+    (UUID(),'Location tracking',NULL, TRUE),
+    (UUID(),'Automation workflows',NULL, TRUE),
+    (UUID(),'Session logs',NULL, TRUE);
 
 -- ============================================
 

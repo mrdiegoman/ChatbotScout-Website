@@ -1,22 +1,18 @@
 /**
  * chatbotFilters.js
  * - Otváranie/zatváranie filter modalu
+ * - Apply Filters — zavolá window.applyFilters() vystavené z chatbotShowcase.js / favouritesShowcase.js
  * - Clear all filtre
- * - Live počítadlo aktívnych filtrov na Filters buttone
+ *
+ * Badge + feature counts spravuje filterFeaturesAdding.js
  */
 
 const filtersBtnBtn   = document.getElementById('filtersBtn');
 const overlay         = document.getElementById('filtersModalOverlay');
 const closeFiltersBtn = document.getElementById('filtersCloseBtn');
 const clearFiltersBtn = document.getElementById('filtersClearBtn');
-
-// Badge elementy
-const filtersCountBadge = document.getElementById('filtersCount');
-const filtersCountNum   = document.getElementById('filtersCountNum');
-
-// Všetky number inputy v modali
-const filterNumberInputs = document.querySelectorAll(
-    '#ratingInputStart, #ratingInputEnd, #votesInputStart, #votesInputEnd, #priceInputStart, #priceInputEnd'
+const applyFiltersBtn = document.querySelector(
+    '.chatbot-filters-modal-apply-btn, .favourites-filters-modal-apply-btn'
 );
 
 // ============================================
@@ -35,91 +31,68 @@ function closeModal() {
 
 filtersBtnBtn.addEventListener('click', openModal);
 closeFiltersBtn.addEventListener('click', closeModal);
-
-overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) closeModal();
-});
+overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
 
 // ============================================
-// POČÍTANIE AKTÍVNYCH FILTROV
+// COLLECT ACTIVE FILTERS → params objekt
+// Vystavené ako window.getActiveFilterParams()
+// Volané z chatbotShowcase.js + favouritesShowcase.js
 // ============================================
 
-/**
- * Počítame:
- *  - Rating skupina (ratingInputStart ALEBO ratingInputEnd vyplnený) = 1
- *  - Votes skupina (votesInputStart ALEBO votesInputEnd vyplnený) = 1
- *  - Price skupina (priceInputStart ALEBO priceInputEnd vyplnený) = 1
- *  - Každý .active feature span = 1
- */
-function countActiveFilters() {
-    let count = 0;
+window.getActiveFilterParams = function () {
+    const val = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
 
-    // Rating pair
-    const rS = document.getElementById('ratingInputStart');
-    const rE = document.getElementById('ratingInputEnd');
-    if ((rS && rS.value.trim() !== '') || (rE && rE.value.trim() !== '')) count++;
+    const params = {};
 
-    // Votes pair
-    const vS = document.getElementById('votesInputStart');
-    const vE = document.getElementById('votesInputEnd');
-    if ((vS && vS.value.trim() !== '') || (vE && vE.value.trim() !== '')) count++;
+    if (val('ratingInputStart')) params.ratingStart = val('ratingInputStart');
+    if (val('ratingInputEnd'))   params.ratingEnd   = val('ratingInputEnd');
+    if (val('votesInputStart'))  params.votesStart  = val('votesInputStart');
+    if (val('votesInputEnd'))    params.votesEnd    = val('votesInputEnd');
+    if (val('priceInputStart'))  params.priceStart  = val('priceInputStart');
+    if (val('priceInputEnd'))    params.priceEnd    = val('priceInputEnd');
 
-    // Price pair
-    const pS = document.getElementById('priceInputStart');
-    const pE = document.getElementById('priceInputEnd');
-    if ((pS && pS.value.trim() !== '') || (pE && pE.value.trim() !== '')) count++;
+    // Zachytí oba typy spanoch (chatbotShowcase aj favouritesShowcase)
+    const activeFeatures = document.querySelectorAll(
+        '.chatbot-filters-modal-body-features-single.active, ' +
+        '.favourites-filters-modal-body-features-single.active'
+    );
+    activeFeatures.forEach(span => {
+        if (span.dataset.featureId) {
+            if (!params['features[]']) params['features[]'] = [];
+            params['features[]'].push(span.dataset.featureId);
+        }
+    });
 
-    // Aktívne features
-    const activeFeatures = document.querySelectorAll('.chatbot-filters-modal-body-features-single.active');
-    count += activeFeatures.length;
+    return params;
+};
 
-    return count;
+// ============================================
+// APPLY FILTERS
+// ============================================
+
+if (applyFiltersBtn) {
+    applyFiltersBtn.addEventListener('click', () => {
+        closeModal();
+        if (typeof window.applyFilters === 'function') window.applyFilters();
+    });
 }
-
-function updateFilterBadge() {
-    const count = countActiveFilters();
-
-    if (count === 0) {
-        filtersCountBadge.style.display = 'none';
-    } else {
-        filtersCountBadge.style.display = 'flex';
-        filtersCountNum.textContent = count;
-    }
-}
-
-// Live update pri písaní do inputov
-filterNumberInputs.forEach(input => {
-    input.addEventListener('input', updateFilterBadge);
-});
-
-// Live update pri kliknutí na feature (event delegation – features môžu byť pridané dynamicky)
-overlay.addEventListener('click', (e) => {
-    if (e.target.classList.contains('chatbot-filters-modal-body-features-single')) {
-        // Počkaj tick aby toggle v filterFeaturesAdding.js prebehol skôr
-        setTimeout(updateFilterBadge, 0);
-    }
-});
 
 // ============================================
 // CLEAR ALL FILTERS
 // ============================================
 
 function clearAllFilters() {
-    // Vyprázdni všetky number inputy
-    filterNumberInputs.forEach(input => {
-        input.value = '';
-    });
+    ['ratingInputStart', 'ratingInputEnd', 'votesInputStart', 'votesInputEnd', 'priceInputStart', 'priceInputEnd']
+        .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
 
-    // Odznač všetky aktívne features
-    document.querySelectorAll('.chatbot-filters-modal-body-features-single.active').forEach(span => {
-        span.classList.remove('active');
-    });
+    document.querySelectorAll(
+        '.chatbot-filters-modal-body-features-single.active, ' +
+        '.favourites-filters-modal-body-features-single.active'
+    ).forEach(span => span.classList.remove('active'));
 
-    // Aktualizuj badge
-    updateFilterBadge();
+    if (typeof window.updateFilterBadge === 'function')           window.updateFilterBadge();
+    if (typeof window.triggerFeatureCountsRefresh === 'function') window.triggerFeatureCountsRefresh();
+    if (typeof window.applyFilters === 'function')                window.applyFilters();
 }
 
-clearFiltersBtn.addEventListener('click', clearAllFilters);
-
-// Inicializácia pri načítaní stránky
-updateFilterBadge();
+if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearAllFilters);

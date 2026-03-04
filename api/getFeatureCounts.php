@@ -1,0 +1,119 @@
+<?php
+/**
+ * AJAX Endpoint - Get Feature Counts
+ *
+ * Pre každú feature vráti počet chatbotov ktoré by zostali
+ * ak by user vybral danú feature spolu s aktuálne aktívnymi filtrami.
+ *
+ * POST JSON: {
+ *   ratingStart, ratingEnd,
+ *   votesStart, votesEnd,
+ *   priceStart, priceEnd,
+ *   activeFeatureIds: []
+ * }
+ * Response: { success, counts: { "feature-uuid": 12, ... } }
+ */
+
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+
+require '../inc/bootstrap.php';
+
+header('Content-Type: application/json');
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+    exit;
+}
+
+$data = json_decode(file_get_contents('php://input'), true);
+
+// ============================================
+// PARSE INPUTS
+// ============================================
+
+$ratingStart = (isset($data['ratingStart']) && $data['ratingStart'] !== '') ? (float)$data['ratingStart'] : null;
+$ratingEnd   = (isset($data['ratingEnd'])   && $data['ratingEnd']   !== '') ? (float)$data['ratingEnd']   : null;
+$votesStart  = (isset($data['votesStart'])  && $data['votesStart']  !== '') ? (int)$data['votesStart']    : null;
+$votesEnd    = (isset($data['votesEnd'])    && $data['votesEnd']    !== '') ? (int)$data['votesEnd']      : null;
+$priceStart  = (isset($data['priceStart'])  && $data['priceStart']  !== '') ? (float)$data['priceStart']  : null;
+$priceEnd    = (isset($data['priceEnd'])    && $data['priceEnd']    !== '') ? (float)$data['priceEnd']    : null;
+
+// Sanitize activeFeatureIds — must be non-empty strings (UUIDs)
+$activeIds   = array_values(array_filter(
+    (array)($data['activeFeatureIds'] ?? []),
+    fn($id) => is_string($id) && $id !== ''
+));
+$activeCount = count($activeIds);
+
+try {
+    $db = Database::getInstance()->getConnection();
+
+    // ============================================
+    // BUILD BASE WHERE for inner subquery
+    // ============================================
+
+    $where  = ["c.status = 'active'", "c.deleted_at IS NULL"];
+    $params = [];
+
+    if ($ratingStart !== null) { $where[] = 'c.rating_average >= :ratingStart'; $params[':ratingStart'] = $ratingStart; }
+    if ($ratingEnd   !== null) { $where[] = 'c.rating_average <= :ratingEnd';   $params[':ratingEnd']   = $ratingEnd;   }
+    if ($votesStart  !== null) { $where[] = 'c.rating_count >= :votesStart';    $params[':votesStart']  = $votesStart;  }
+    if ($votesEnd    !== null) { $where[] = 'c.rating_count <= :votesEnd';      $params[':votesEnd']    = $votesEnd;    }
+    if ($priceStart  !== null) { $where[] = 'c.starting_price >= :priceStart';  $params[':priceStart']  = $priceStart;  }
+    if ($priceEnd    !== null) { $where[] = 'c.starting_price <= :priceEnd';    $params[':priceEnd']    = $priceEnd;    }
+
+    // Active features: chatbot musí mať VŠETKY vybrané features (relational division)
+    if ($activeCount > 0) {
+        $afPlaceholders = implode(',', array_map(fn($i) => ":af{$i}", range(0, $activeCount - 1)));
+        $where[] = "(
+            SELECT COUNT(DISTINCT cf2.feature_id)
+            FROM chatbot_features cf2
+            WHERE cf2.chatbot_id = c.id
+              AND cf2.feature_id IN ({$afPlaceholders})
+              AND (cf2.boolean_value = 1 OR cf2.text_value IS NOT NULL)
+        ) = {$activeCount}";
+        foreach ($activeIds as $i => $id) {
+            $params[":af{$i}"] = $id;
+        }
+    }
+
+    $whereStr = implode(' AND ', $where);
+
+    // ============================================
+    // MAIN QUERY
+    // Pre každú feature: koľko chatbotov z filtrovanej množiny ju má
+    // ============================================
+
+    $sql = "
+        SELECT
+            f.id,
+            COUNT(DISTINCT cf.chatbot_id) AS chatbot_count
+        FROM features f
+        JOIN chatbot_features cf
+            ON cf.feature_id = f.id
+           AND (cf.boolean_value = 1 OR cf.text_value IS NOT NULL)
+        WHERE cf.chatbot_id IN (
+            SELECT c.id FROM chatbots c WHERE {$whereStr}
+        )
+        GROUP BY f.id
+    ";
+
+    $stmt = $db->prepare($sql);
+    foreach ($params as $key => $val) {
+        $stmt->bindValue($key, $val);
+    }
+    $stmt->execute();
+
+    $counts = [];
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $counts[$row['id']] = (int)$row['chatbot_count'];
+    }
+
+    echo json_encode(['success' => true, 'counts' => $counts]);
+
+} catch (Exception $e) {
+    error_log('getFeatureCounts error: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Server error.']);
+}

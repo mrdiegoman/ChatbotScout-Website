@@ -103,7 +103,9 @@
             </div>`;
     }
 
-    function pricingLabel(chatbot) { return chatbot.pricing || 'Contact'; }
+    function pricingLabel(chatbot) { 
+        console.log('chatbot.pricing: ' + chatbot.pricing);
+        return chatbot.pricing || 'Contact'; }
 
     function buildTags(tags) {
         if (!tags || tags.length === 0) return '';
@@ -280,8 +282,8 @@
                 </div>
             </div>
             <div class="chatbot-page-main-content-chatbots-list-view-item-btns-container">
-                <div class="chatbot-page-main-content-chatbots-list-view-item-btns-container-sipka">
-                    <span class="chatbot-page-main-content-chatbots-list-view-item-btns-container-sipka-text">${pricing}</span>
+                <div class="chatbot-page-main-content-chatbots-grid-view-item-btns-container-sipka">
+                    <span class="chatbot-page-main-content-chatbots-grid-view-item-btns-container-sipka-text">${pricing}</span>
                 </div>
                 <a href="${link}" target="_blank" rel="noopener noreferrer"
                 class="chatbot-page-main-content-chatbots-list-view-item-btns-container-go-to-website"
@@ -394,12 +396,24 @@
     function loadChatbots(append) {
         if (state.isLoading) return;
         setLoading(true);
-
+ 
         const params = new URLSearchParams({
             view: state.currentView,
             sort: state.currentSort,
             page: state.currentPage,
         });
+ 
+        // Pridaj aktívne filtre z modalu
+        if (typeof window.getActiveFilterParams === 'function') {
+            const filterParams = window.getActiveFilterParams();
+            Object.entries(filterParams).forEach(([key, value]) => {
+                if (Array.isArray(value)) {
+                    value.forEach(v => params.append(key, v));
+                } else {
+                    params.set(key, value);
+                }
+            });
+        }
 
         fetch(`../api/getChatbots.php?${params}`)
             .then(res => res.json())
@@ -424,6 +438,12 @@
             })
             .finally(() => setLoading(false));
     }
+
+    // Vystavené pre chatbotFilters.js (Apply + Clear button)
+    window.applyFilters = function () {
+        state.currentPage = 1;
+        loadChatbots(false);
+    };
 
     // ============================================
     // CLICK TRACKING (Go to Website)
