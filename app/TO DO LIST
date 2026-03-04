@@ -14,11 +14,7 @@ Google sign up
 
 Stripe -> nakup, visa, paypal, apple-pay (celkove zobrazenie tj. inputy)
 
-V chatbot v db pridat click count
-
-resetuje sa prihlasenie ak vypne browser aj ked bol user prihlaseny
-
-
+js error o nieco nizsie
 
 REDIS COMMANDY:
     redis-cli

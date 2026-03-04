@@ -390,25 +390,54 @@
         openRatingModal(chatbotId, chatbotName);
     });
 
-    function openRatingModal(chatbotId, chatbotName) {
-        state.ratingChatbotId = chatbotId;
-        state.ratingValue = 0;
+    // ============================================
+// PATCH — openRatingModal (rovnaká zmena pre oba súbory)
+// chatbotShowcase.js  &  favouritesShowcase.js
+// ============================================
+//
+// Nahraď pôvodnú funkciu openRatingModal touto:
 
-        ratingModalTitle.textContent = `Rate: ${chatbotName}`;
-        ratingTitleInput.value = '';
-        ratingTextInput.value = '';
-        ratingModalError.textContent = '';
-        ratingModalError.style.display = 'none';
-        ratingModalSuccess.textContent = '';
-        ratingModalSuccess.style.display = 'none';
-        ratingSubmitBtn.disabled = false;
-        ratingSubmitBtn.textContent = 'Submit Review';
+function openRatingModal(chatbotId, chatbotName) {
+    state.ratingChatbotId = chatbotId;
+    state.ratingValue = 0;
 
-        updatePickerStars(0);
+    ratingModalTitle.textContent = `Rate: ${chatbotName}`;
+    ratingTitleInput.value = '';
+    ratingTextInput.value = '';
+    ratingModalError.textContent = '';
+    ratingModalError.style.display = 'none';
+    ratingModalSuccess.textContent = '';
+    ratingModalSuccess.style.display = 'none';
 
-        ratingOverlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
+    // Zablokuj submit kým sa neoverí či user už dal review
+    ratingSubmitBtn.disabled = true;
+    ratingSubmitBtn.textContent = 'Checking...';
+
+    updatePickerStars(0);
+
+    ratingOverlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    // Skontroluj či user už dal review pre tento chatbot
+    fetch(`../api/checkReview.php?chatbot_id=${encodeURIComponent(chatbotId)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.has_reviewed) {
+                ratingModalError.textContent = 'You have already submitted a review for this chatbot.';
+                ratingModalError.style.display = 'block';
+                ratingSubmitBtn.disabled = true;
+                ratingSubmitBtn.textContent = 'Already Reviewed';
+            } else {
+                ratingSubmitBtn.disabled = false;
+                ratingSubmitBtn.textContent = 'Submit Review';
+            }
+        })
+        .catch(() => {
+            // Pri chybe siete odblokuj — submit server-side validácia to aj tak chytí
+            ratingSubmitBtn.disabled = false;
+            ratingSubmitBtn.textContent = 'Submit Review';
+        });
+}
 
     function closeRatingModal() {
         ratingOverlay.classList.remove('active');

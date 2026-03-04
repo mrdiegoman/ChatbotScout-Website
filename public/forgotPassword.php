@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $userService->sendPasswordReset($email);
                 
                 // ✅ Reset rate limiter (úspešný request)
-                $rateLimiter->reset('password_reset', $clientIp, $email);
+                // $rateLimiter->reset('password_reset', $clientIp, $email);
                 
                 // Vždy zobraz success message (aj ak email neexistuje)
                 $success = "If the email address exists in our system, you will receive a password reset link shortly.";

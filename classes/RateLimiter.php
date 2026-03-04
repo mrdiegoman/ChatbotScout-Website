@@ -320,7 +320,6 @@ class RateLimiter
     {
         try {
             $config = $this->config['rate_limit'][$action];
-            error_log("email: $email");
             $countKey = $this->getRedisEmailKey($action, $email, 'count');
             $lockKey  = $this->getRedisEmailKey($action, $email, 'locked');
 

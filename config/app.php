@@ -34,7 +34,7 @@ return [
     'rate_limit' => [
         'login' => [
             // IP-based limit (pôvodné nastavenia - nezmenené)
-            'max_attempts' => 5,
+            'max_attempts' => 50,
             'window'       => 15 * 60, // 15 minút
             'lockout'      => 30 * 60, // 30 minút lockout
 
@@ -44,20 +44,28 @@ return [
             'email_lockout'      => 60 * 60, // 1 hodina lockout
         ],
         'registration' => [
-            'max_attempts' => 5,
+            'max_attempts' => 50,
             'window'       => 60 * 60,
             'lockout'      => 30 * 60,
             // Registrácia nepotrebuje email limit (email ešte neexistuje v systéme)
         ],
         'password_reset' => [
-            'max_attempts' => 5,
-            'window'       => 60 * 60,
+            'max_attempts' => 50,
+            'window'       => 15 * 60,
             'lockout'      => 30 * 60,
+
+            'email_max_attempts' => 10,
+            'email_window'       => 15 * 60, // 15 minút
+            'email_lockout'      => 60 * 60, // 1 hodina lockout
         ],
         'resend_verification' => [
-            'max_attempts' => 5,
+            'max_attempts' => 50,
             'window'       => 60 * 60,
             'lockout'      => 30 * 60,
+
+            'email_max_attempts' => 10,
+            'email_window'       => 15 * 60, // 15 minút
+            'email_lockout'      => 60 * 60, // 1 hodina lockout
         ],
     ],
     
