@@ -68,8 +68,8 @@ require '../inc/header.php';
                                     d="M96 128C83.1 128 71.4 135.8 66.4 147.8C61.4 159.8 64.2 173.5 73.4 182.6L256 365.3L256 480C256 488.5 259.4 496.6 265.4 502.6L329.4 566.6C338.6 575.8 352.3 578.5 364.3 573.5C376.3 568.5 384 556.9 384 544L384 365.3L566.6 182.7C575.8 173.5 578.5 159.8 573.5 147.8C568.5 135.8 556.9 128 544 128L96 128z" />
                             </svg>
                             <p>Filters</p>
-                            <div class="chatbot-page-main-content-topbar-group-filters-button-count">
-                                <p>2</p>
+                            <div class="chatbot-page-main-content-topbar-group-filters-button-count" id="filtersCount" style="display:none;">
+                                <p id="filtersCountNum">0</p>
                             </div>
                         </button>
 
@@ -138,7 +138,7 @@ require '../inc/header.php';
                 </div>
             </div>
 
-            <!-- Mobile search bar (zobrazí sa pod topbarom) -->
+            <!-- Mobile search bar -->
             <div class="chatbot-page-main-content-mobile-search-bar" id="mobileSearchBar">
                 <label class="chatbot-page-main-content-topbar-search">
                     <input type="text" placeholder="Search" class="chatbot-page-main-content-topbar-search-input" id="mobileSearchInput">
@@ -283,7 +283,9 @@ require '../inc/header.php';
                 </div>
             </div>
         </div>
+        <!-- FILTER FOOTER: Clear + Apply -->
         <div class="chatbot-filters-modal-footer">
+            <button class="chatbot-filters-modal-clear-btn" id="filtersClearBtn">Clear all</button>
             <button class="chatbot-filters-modal-apply-btn">Apply Filters</button>
         </div>
     </div>
@@ -335,7 +337,6 @@ require '../inc/header.php';
 <script src="../js/featuresSwiping.js" defer></script>
 <script src="../js/layoutSwapping.js" defer></script>
 <script src="../js/clearButton.js" defer></script>
-<script src="../js/favouritesButtonAdding.js" defer></script>
 <script src="../js/filterFeaturesAdding.js" defer></script>
 <script src="../js/chatbotFilters.js" defer></script>
 <script src="../js/showAdvancedFeatures.js" defer></script>

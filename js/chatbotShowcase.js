@@ -1,5 +1,11 @@
 /**
  * chatbotShowcase.js
+ *
+ * Opravy v tejto verzii:
+ *  - Favorites: event delegation (nie querySelectorAll pri načítaní) → CSS toggle funguje
+ *  - Favorites: DB sync cez toggleFavorite.php + živé počítadlo na karte
+ *  - Favorites: neprihlásený user → redirect na login
+ *  - Rating: neprihlásený user → redirect na login (nie chyba v modali)
  */
 
 (function () {
@@ -10,47 +16,49 @@
     // ============================================
 
     const state = {
-        currentView:      'grid',
-        currentSort:      'popularity',
-        currentPage:      1,
-        totalPages:       1,
-        totalItems:       0,
-        isLoading:        false,
-        ratingChatbotId:  null,   // ID chatbota pre rating modal
-        ratingValue:      0,      // Vybraný počet hviezd v modali
+        currentView:     'grid',
+        currentSort:     'popularity',
+        currentPage:     1,
+        totalPages:      1,
+        totalItems:      0,
+        isLoading:       false,
+        ratingChatbotId: null,
+        ratingValue:     0,
     };
+
+    const LOGIN_URL = '../public/login.php?redirect=chatbotShowcase.php';
 
     // ============================================
     // DOM REFERENCES
     // ============================================
 
-    const gridView          = document.getElementById('gridView');
-    const listView          = document.getElementById('listView');
-    const loadingEl         = document.getElementById('chatbotsLoading');
-    const emptyState        = document.getElementById('chatbotsEmpty');
-    const showMoreWrapper   = document.getElementById('showMoreWrapper');
-    const showMoreBtn       = document.getElementById('showMoreBtn');
-    const bottomBar         = document.getElementById('bottomBar');
-    const paginationEl      = document.getElementById('paginationContainer');
-    const moveUpBtn         = document.getElementById('moveUpBtn');
-    const listBtn           = document.getElementById('listBtn');
-    const gridBtn           = document.getElementById('gridBtn');
-    const sortSelectDiv     = document.getElementById('sortSelectDiv');
-    const sortSelected      = document.getElementById('sortSelected');
-    const sortArrow         = document.getElementById('sortArrow');
+    const gridView        = document.getElementById('gridView');
+    const listView        = document.getElementById('listView');
+    const loadingEl       = document.getElementById('chatbotsLoading');
+    const emptyState      = document.getElementById('chatbotsEmpty');
+    const showMoreWrapper = document.getElementById('showMoreWrapper');
+    const showMoreBtn     = document.getElementById('showMoreBtn');
+    const bottomBar       = document.getElementById('bottomBar');
+    const paginationEl    = document.getElementById('paginationContainer');
+    const moveUpBtn       = document.getElementById('moveUpBtn');
+    const listBtn         = document.getElementById('listBtn');
+    const gridBtn         = document.getElementById('gridBtn');
+    const sortSelectDiv   = document.getElementById('sortSelectDiv');
+    const sortSelected    = document.getElementById('sortSelected');
+    const sortArrow       = document.getElementById('sortArrow');
 
     // Rating modal
-    const ratingOverlay     = document.getElementById('ratingModalOverlay');
-    const ratingModalTitle  = document.getElementById('ratingModalTitle');
-    const ratingStarsPicker = document.getElementById('ratingStarsPicker');
-    const ratingStarsLabel  = document.getElementById('ratingStarsLabel');
-    const ratingTitleInput  = document.getElementById('ratingTitleInput');
-    const ratingTextInput   = document.getElementById('ratingTextInput');
-    const ratingModalError  = document.getElementById('ratingModalError');
-    const ratingModalSuccess= document.getElementById('ratingModalSuccess');
-    const ratingSubmitBtn   = document.getElementById('ratingModalSubmitBtn');
-    const ratingCancelBtn   = document.getElementById('ratingModalCancelBtn');
-    const ratingCloseBtn    = document.getElementById('ratingModalCloseBtn');
+    const ratingOverlay      = document.getElementById('ratingModalOverlay');
+    const ratingModalTitle   = document.getElementById('ratingModalTitle');
+    const ratingStarsPicker  = document.getElementById('ratingStarsPicker');
+    const ratingStarsLabel   = document.getElementById('ratingStarsLabel');
+    const ratingTitleInput   = document.getElementById('ratingTitleInput');
+    const ratingTextInput    = document.getElementById('ratingTextInput');
+    const ratingModalError   = document.getElementById('ratingModalError');
+    const ratingModalSuccess = document.getElementById('ratingModalSuccess');
+    const ratingSubmitBtn    = document.getElementById('ratingModalSubmitBtn');
+    const ratingCancelBtn    = document.getElementById('ratingModalCancelBtn');
+    const ratingCloseBtn     = document.getElementById('ratingModalCloseBtn');
 
     const starLabels = ['', 'Poor', 'Fair', 'Good', 'Very good', 'Excellent'];
 
@@ -58,17 +66,11 @@
     // HELPERS
     // ============================================
 
-    function isMobileView() {
-        return window.innerWidth <= 768;
-    }
+    function isMobileView() { return window.innerWidth <= 768; }
 
     function setLoading(on) {
         state.isLoading = on;
         loadingEl.style.display = on ? 'flex' : 'none';
-    }
-
-    function currentContainer() {
-        return state.currentView === 'grid' ? gridView : listView;
     }
 
     function escapeHtml(str) {
@@ -79,18 +81,19 @@
             .replace(/"/g, '&quot;');
     }
 
+    function currentContainer() {
+        return state.currentView === 'grid' ? gridView : listView;
+    }
+
     // ============================================
-    // STARS BUILDER
+    // STARS BUILDER (display - nie picker)
+    // NULL alebo 0 → data-rating="0" → všetky hviezdy šedé
     // ============================================
 
-    /**
-     * Vybuduje HTML pre hviezdy.
-     * Ak je rating NULL alebo 0, zobrazí prázdne hviezdy (data-rating="0").
-     * Hviezdy sú klikateľné pre rating modal.
-     */
     function buildStars(rating, chatbotId) {
-        // NULL alebo 0 = žiadne hodnotenie, hviezdy zostanú prázdne/šedé
-        const value = (rating !== null && rating > 0) ? Math.round(rating * 2) / 2 : 0;
+        const value = (rating !== null && Number(rating) > 0)
+            ? Math.round(Number(rating) * 2) / 2
+            : 0;
         return `
             <div class="chatbot-page-main-content-chatbots-item-top-base-2-rating chatbot-rating-trigger"
                  data-rating="${value}"
@@ -100,9 +103,7 @@
             </div>`;
     }
 
-    function pricingLabel(chatbot) {
-        return chatbot.pricing || 'Contact';
-    }
+    function pricingLabel(chatbot) { return chatbot.pricing || 'Contact'; }
 
     function buildTags(tags) {
         if (!tags || tags.length === 0) return '';
@@ -116,26 +117,24 @@
         const chunkSize = 4;
         let html = '';
         for (let i = 0; i < features.length; i += chunkSize) {
-            const chunk = features.slice(i, i + chunkSize);
             html += `<div class="chatbot-page-main-content-chatbots-list-view-item-card"><ul>`;
-            chunk.forEach(f => { html += `<li>${escapeHtml(f)}</li>`; });
+            features.slice(i, i + chunkSize).forEach(f => { html += `<li>${escapeHtml(f)}</li>`; });
             html += `</ul></div>`;
         }
         return html;
     }
 
     function logoHtml(chatbot) {
-        const src = chatbot.logo_url
-            ? escapeHtml(chatbot.logo_url)
-            : '../img/chatbothub_logo.png';
+        const src = chatbot.logo_url ? escapeHtml(chatbot.logo_url) : '../img/chatbothub_logo.png';
         return `<img src="../${src}" alt="${escapeHtml(chatbot.name)} logo" loading="lazy">`;
     }
 
     // ============================================
     // HTML BUILDERS
+    // Favorites button má data-chatbot-id pre event delegation
     // ============================================
 
-    function buildListItem(chatbot) {
+    function buildGridItem(chatbot) {
         const stars   = buildStars(chatbot.rating_average, chatbot.id);
         const tags    = buildTags(chatbot.tags);
         const cards   = buildFeatureCards(chatbot.features);
@@ -145,6 +144,80 @@
         const desc    = escapeHtml(chatbot.description || '');
         const rating  = chatbot.rating_average ? Number(chatbot.rating_average).toFixed(1) : '—';
         const rCount  = chatbot.rating_count ? Number(chatbot.rating_count).toLocaleString() : '0';
+        const favCount = chatbot.favorite_count ?? 0;
+
+        return `
+<div class="chatbot-page-main-content-chatbots-grid-view-item">
+    <div class="chatbot-page-main-content-chatbots-grid-view-item-tags">${tags}</div>
+    <div class="chatbot-page-main-content-chatbots-grid-view-item-top">
+        <div class="chatbot-page-main-content-chatbots-grid-view-item-top-img-wrapper">
+            ${logoHtml(chatbot)}
+        </div>
+        <div class="chatbot-page-main-content-chatbots-grid-view-item-top-base">
+            <div class="chatbot-page-main-content-chatbots-grid-view-item-top-base-1">
+                <p>${name}</p>
+                <div class="chatbot-page-main-content-chatbots-grid-view-item-top-base-2">
+                    ${stars}
+                    <p>${rating}</p>
+                    <p>(${rCount})</p>
+                </div>
+            </div>
+            <div class="chatbot-page-main-content-chatbots-grid-view-item-top-favourites-container">
+                <p class="chatbot-fav-count">${favCount}</p>
+                <button class="chatbot-page-main-content-chatbots-grid-view-item-top-favourites-container-btn chatbot-fav-btn"
+                        data-chatbot-id="${escapeHtml(chatbot.id)}"
+                        aria-label="Add to favourites">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="chatbot-page-main-content-chatbots-grid-view-item-top-favourites-container-btn-plus">
+                        <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="chatbot-page-main-content-chatbots-grid-view-item-description-container">
+        <div class="chatbot-page-main-content-chatbots-grid-view-item-description-container-header">
+            <p class="chatbot-page-main-content-chatbots-grid-view-item-description-container-subtitle">Description</p>
+            <button class="chatbot-page-main-content-chatbots-grid-view-item-features-container-1-imp-btn">
+                <p>Platforms</p>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/>
+                </svg>
+            </button>
+        </div>
+        <p class="chatbot-page-main-content-chatbots-grid-view-item-description-container-text">${desc}</p>
+    </div>
+    <div class="chatbot-page-main-content-chatbots-grid-view-item-btns-container">
+        <div class="chatbot-page-main-content-chatbots-grid-view-item-btns-container-sipka">
+            <span class="chatbot-page-main-content-chatbots-grid-view-item-btns-container-sipka-text">${pricing}</span>
+        </div>
+        <a href="${link}" target="_blank" rel="noopener noreferrer"
+           class="chatbot-page-main-content-chatbots-grid-view-item-btns-container-go-to-website"
+           data-chatbot-id="${escapeHtml(chatbot.id)}">
+            <p>Go to Website</p>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3h6v6"/><path d="M10 14 21 3"/>
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            </svg>
+        </a>
+    </div>
+</div>`;
+    }
+
+    function buildListItem(chatbot) {
+        const stars    = buildStars(chatbot.rating_average, chatbot.id);
+        const tags     = buildTags(chatbot.tags);
+        const cards    = buildFeatureCards(chatbot.features);
+        const pricing  = escapeHtml(pricingLabel(chatbot));
+        const link     = escapeHtml(chatbot.link);
+        const name     = escapeHtml(chatbot.name);
+        const desc     = escapeHtml(chatbot.description || '');
+        const rating   = chatbot.rating_average ? Number(chatbot.rating_average).toFixed(1) : '—';
+        const rCount   = chatbot.rating_count ? Number(chatbot.rating_count).toLocaleString() : '0';
+        const favCount = chatbot.favorite_count ?? 0;
 
         return `
 <div class="chatbot-page-main-content-chatbots-list-view-item-containter">
@@ -165,8 +238,10 @@
                         </div>
                     </div>
                     <div class="chatbot-page-main-content-chatbots-list-view-item-top-favourites-container">
-                        <p>${chatbot.favorite_count}</p>
-                        <button class="chatbot-page-main-content-chatbots-list-view-item-top-favourites-container-btn" aria-label="Add to favourites">
+                        <p class="chatbot-fav-count">${favCount}</p>
+                        <button class="chatbot-page-main-content-chatbots-list-view-item-top-favourites-container-btn chatbot-fav-btn"
+                                data-chatbot-id="${escapeHtml(chatbot.id)}"
+                                aria-label="Add to favourites">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                                 class="chatbot-page-main-content-chatbots-list-view-item-top-favourites-container-btn-plus">
@@ -203,113 +278,23 @@
                         <div class="chatbot-page-main-content-chatbots-list-view-item-scrollbar-thumb"></div>
                     </div>
                 </div>
-            </div>
-        </div>
-        <div class="chatbot-page-main-content-chatbots-list-view-item-btns-container">
-            <div class="chatbot-page-main-content-chatbots-list-view-item-btns-container-sipka">
-                <span class="chatbot-page-main-content-chatbots-list-view-item-btns-container-sipka-text">${pricing}</span>
-            </div>
-            <a href="${link}" target="_blank" rel="noopener noreferrer"
-               class="chatbot-page-main-content-chatbots-list-view-item-btns-container-go-to-website"
-               data-chatbot-id="${escapeHtml(chatbot.id)}">
-                <p>Go to Website</p>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M15 3h6v6"/><path d="M10 14 21 3"/>
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                </svg>
-            </a>
-        </div>
-    </div>
-</div>`;
-    }
-
-    function buildGridItem(chatbot) {
-        const stars   = buildStars(chatbot.rating_average, chatbot.id);
-        const tags    = buildTags(chatbot.tags);
-        const cards   = buildFeatureCards(chatbot.features);
-        const pricing = escapeHtml(pricingLabel(chatbot));
-        const link    = escapeHtml(chatbot.link);
-        const name    = escapeHtml(chatbot.name);
-        const desc    = escapeHtml(chatbot.description || '');
-        const rating  = chatbot.rating_average ? Number(chatbot.rating_average).toFixed(1) : '—';
-        const rCount  = chatbot.rating_count ? Number(chatbot.rating_count).toLocaleString() : '0';
-
-        return `
-<div class="chatbot-page-main-content-chatbots-grid-view-item">
-    <div class="chatbot-page-main-content-chatbots-grid-view-item-tags">${tags}</div>
-    <div class="chatbot-page-main-content-chatbots-grid-view-item-top">
-        <div class="chatbot-page-main-content-chatbots-grid-view-item-top-img-wrapper">
-            ${logoHtml(chatbot)}
-        </div>
-        <div class="chatbot-page-main-content-chatbots-grid-view-item-top-base">
-            <div class="chatbot-page-main-content-chatbots-grid-view-item-top-base-1">
-                <p>${name}</p>
-                <div class="chatbot-page-main-content-chatbots-grid-view-item-top-base-2">
-                    ${stars}
-                    <p>${rating}</p>
-                    <p>(${rCount})</p>
+            </div>        
+            <div class="chatbot-page-main-content-chatbots-list-view-item-btns-container">
+                <div class="chatbot-page-main-content-chatbots-list-view-item-btns-container-sipka">
+                    <span class="chatbot-page-main-content-chatbots-list-view-item-btns-container-sipka-text">${pricing}</span>
                 </div>
-            </div>
-            <div class="chatbot-page-main-content-chatbots-grid-view-item-top-favourites-container">
-                <p>${chatbot.favorite_count}</p>
-                <button class="chatbot-page-main-content-chatbots-grid-view-item-top-favourites-container-btn" aria-label="Add to favourites">
+                <a href="${link}" target="_blank" rel="noopener noreferrer"
+                class="chatbot-page-main-content-chatbots-list-view-item-btns-container-go-to-website"
+                data-chatbot-id="${escapeHtml(chatbot.id)}">
+                    <p>Go to Website</p>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="chatbot-page-main-content-chatbots-grid-view-item-top-favourites-container-btn-plus">
-                        <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" />
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 3h6v6"/><path d="M10 14 21 3"/>
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
                     </svg>
-                </button>
+                </a>
             </div>
         </div>
-    </div>
-    <div class="chatbot-page-main-content-chatbots-grid-view-item-features-container">
-        <div class="chatbot-page-main-content-chatbots-grid-view-item-features-container-1">
-            <p class="chatbot-page-main-content-chatbots-grid-view-item-description-container-subtitle">Key Features</p>
-            <button class="chatbot-page-main-content-chatbots-grid-view-item-features-container-1-imp-btn">
-                <p>Platforms</p>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/>
-                </svg>
-            </button>
-        </div>
-        <div class="chatbot-page-main-content-chatbots-grid-view-item-scroll-wrapper">
-            <div class="chatbot-page-main-content-chatbots-grid-view-item-scroll-container">
-                <div class="chatbot-page-main-content-chatbots-grid-view-item-cards-wrapper">${cards}</div>
-            </div>
-            <div class="chatbot-page-main-content-chatbots-grid-view-item-scrollbar">
-                <div class="chatbot-page-main-content-chatbots-grid-view-item-scrollbar-thumb"></div>
-            </div>
-        </div>
-    </div>
-    <div class="chatbot-page-main-content-chatbots-grid-view-item-description-container">
-        <div class="chatbot-page-main-content-chatbots-grid-view-item-description-container-header">
-            <p class="chatbot-page-main-content-chatbots-grid-view-item-description-container-subtitle">Description</p>
-            <button class="chatbot-page-main-content-chatbots-grid-view-item-features-container-1-imp-btn">
-                <p>Platforms</p>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/>
-                </svg>
-            </button>
-        </div>
-        <p class="chatbot-page-main-content-chatbots-grid-view-item-description-container-text">${desc}</p>
-    </div>
-    <div class="chatbot-page-main-content-chatbots-grid-view-item-btns-container">
-        <div class="chatbot-page-main-content-chatbots-grid-view-item-btns-container-sipka">
-            <span class="chatbot-page-main-content-chatbots-grid-view-item-btns-container-sipka-text">${pricing}</span>
-        </div>
-        <a href="${link}" target="_blank" rel="noopener noreferrer"
-           class="chatbot-page-main-content-chatbots-grid-view-item-btns-container-go-to-website"
-           data-chatbot-id="${escapeHtml(chatbot.id)}">
-            <p>Go to Website</p>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M15 3h6v6"/><path d="M10 14 21 3"/>
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-            </svg>
-        </a>
     </div>
 </div>`;
     }
@@ -341,6 +326,13 @@
     // PAGINATION
     // ============================================
 
+    function getPageRange(current, total) {
+        if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+        if (current <= 4) return [1, 2, 3, 4, 5, '...', total];
+        if (current >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+        return [1, '...', current - 1, current, current + 1, '...', total];
+    }
+
     function renderPagination(totalPages, currentPage) {
         paginationEl.innerHTML = '';
 
@@ -350,20 +342,20 @@
         }
         bottomBar.style.display = 'flex';
 
-        const pages = getPageRange(currentPage, totalPages);
+        const goToPage = (p) => {
+            state.currentPage = p;
+            loadChatbots(false);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
 
-        // Prev arrow
         const prevBtn = document.createElement('button');
         prevBtn.className = 'chatbot-showcase-pagination-arrow';
         prevBtn.innerHTML = '&lsaquo;';
-        prevBtn.setAttribute('aria-label', 'Previous page');
         prevBtn.disabled = currentPage === 1;
-        prevBtn.addEventListener('click', () => {
-            if (state.currentPage > 1) { state.currentPage--; loadChatbots(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-        });
+        prevBtn.addEventListener('click', () => { if (state.currentPage > 1) goToPage(state.currentPage - 1); });
         paginationEl.appendChild(prevBtn);
 
-        pages.forEach(p => {
+        getPageRange(currentPage, totalPages).forEach(p => {
             if (p === '...') {
                 const span = document.createElement('span');
                 span.className = 'chatbot-showcase-pagination-ellipsis';
@@ -374,31 +366,17 @@
             const btn = document.createElement('button');
             btn.className = 'chatbot-showcase-pagination-btn' + (p === currentPage ? ' active' : '');
             btn.textContent = p;
-            btn.setAttribute('aria-label', `Page ${p}`);
             if (p === currentPage) btn.setAttribute('aria-current', 'page');
-            btn.addEventListener('click', () => {
-                if (p !== state.currentPage) { state.currentPage = p; loadChatbots(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-            });
+            btn.addEventListener('click', () => { if (p !== state.currentPage) goToPage(p); });
             paginationEl.appendChild(btn);
         });
 
-        // Next arrow
         const nextBtn = document.createElement('button');
         nextBtn.className = 'chatbot-showcase-pagination-arrow';
         nextBtn.innerHTML = '&rsaquo;';
-        nextBtn.setAttribute('aria-label', 'Next page');
         nextBtn.disabled = currentPage === totalPages;
-        nextBtn.addEventListener('click', () => {
-            if (state.currentPage < state.totalPages) { state.currentPage++; loadChatbots(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-        });
+        nextBtn.addEventListener('click', () => { if (state.currentPage < state.totalPages) goToPage(state.currentPage + 1); });
         paginationEl.appendChild(nextBtn);
-    }
-
-    function getPageRange(current, total) {
-        if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
-        if (current <= 4) return [1, 2, 3, 4, 5, '...', total];
-        if (current >= total - 3) return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
-        return [1, '...', current - 1, current, current + 1, '...', total];
     }
 
     function updateShowMore() {
@@ -436,9 +414,7 @@
                     renderPagination(data.totalPages, data.currentPage);
                 } else {
                     paginationEl.innerHTML = '';
-                    if (data.totalPages > 1) {
-                        bottomBar.style.display = 'flex';
-                    }
+                    bottomBar.style.display = data.totalPages > 1 ? 'flex' : 'none';
                 }
                 updateShowMore();
             })
@@ -450,14 +426,12 @@
     }
 
     // ============================================
-    // CLICK TRACKING
+    // CLICK TRACKING (Go to Website)
     // ============================================
 
     document.addEventListener('click', (e) => {
-        const link = e.target.closest('[data-chatbot-id]');
+        const link = e.target.closest('.chatbot-page-main-content-chatbots-grid-view-item-btns-container-go-to-website, .chatbot-page-main-content-chatbots-list-view-item-btns-container-go-to-website');
         if (!link) return;
-        // Ignoruj rating trigger klik (ten má vlastný handler)
-        if (link.classList.contains('chatbot-rating-trigger')) return;
 
         const chatbotId = link.dataset.chatbotId;
         if (!chatbotId) return;
@@ -470,8 +444,100 @@
     });
 
     // ============================================
+    // FAVORITES — event delegation
+    // Buttons sú vytvárané dynamicky, preto querySelectorAll nestačí.
+    // ============================================
+
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.chatbot-fav-btn');
+        if (!btn) return;
+
+        // Neprihlásený → redirect
+        if (!CHATBOT_USER_LOGGED_IN) {
+            window.location.href = LOGIN_URL;
+            return;
+        }
+
+        const chatbotId = btn.dataset.chatbotId;
+        if (!chatbotId) return;
+
+        // Optimistický UI update (okamžitá odozva)
+        btn.disabled = true;
+        const wasActive = btn.classList.contains('active');
+        btn.classList.toggle('active');
+
+        // Aktualizuj počítadlo optimisticky
+        const countEl = btn.closest(
+            '.chatbot-page-main-content-chatbots-grid-view-item-top-favourites-container, .chatbot-page-main-content-chatbots-list-view-item-top-favourites-container'
+        )?.querySelector('.chatbot-fav-count');
+
+        if (countEl) {
+            const current = parseInt(countEl.textContent) || 0;
+            countEl.textContent = wasActive ? Math.max(0, current - 1) : current + 1;
+        }
+
+        // Sync s DB
+        fetch('../api/toggleFavorite.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chatbot_id: chatbotId }),
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                // Revert optimistický update
+                btn.classList.toggle('active');
+                if (countEl) {
+                    const current = parseInt(countEl.textContent) || 0;
+                    countEl.textContent = wasActive ? current + 1 : Math.max(0, current - 1);
+                }
+            } else {
+                // Nastav presný počet z DB
+                if (countEl) countEl.textContent = data.new_count;
+                // Nastav správny active stav
+                btn.classList.toggle('active', data.is_favourite);
+            }
+        })
+        .catch(() => {
+            // Revert pri chybe siete
+            btn.classList.toggle('active');
+            if (countEl) {
+                const current = parseInt(countEl.textContent) || 0;
+                countEl.textContent = wasActive ? current + 1 : Math.max(0, current - 1);
+            }
+        })
+        .finally(() => { btn.disabled = false; });
+    });
+
+    // ============================================
     // RATING MODAL
     // ============================================
+
+    // Klik na hviezdy v karte → redirect ak neprihlásený, inak otvor modal
+    document.addEventListener('click', (e) => {
+        const trigger = e.target.closest('.chatbot-rating-trigger');
+        if (!trigger) return;
+
+        // Neprihlásený → redirect (nie chyba v modali)
+        if (!CHATBOT_USER_LOGGED_IN) {
+            window.location.href = LOGIN_URL;
+            return;
+        }
+
+        const chatbotId = trigger.dataset.chatbotId;
+        const container = trigger.closest(
+            '.chatbot-page-main-content-chatbots-grid-view-item, .chatbot-page-main-content-chatbots-list-view-item-containter'
+        );
+        const nameEl = container
+            ? container.querySelector(
+                '.chatbot-page-main-content-chatbots-grid-view-item-top-base-1 > p, ' +
+                '.chatbot-page-main-content-chatbots-list-view-item-top-base-1 > p'
+              )
+            : null;
+        const chatbotName = nameEl ? nameEl.textContent.trim() : 'this chatbot';
+
+        openRatingModal(chatbotId, chatbotName);
+    });
 
     function openRatingModal(chatbotId, chatbotName) {
         state.ratingChatbotId = chatbotId;
@@ -485,7 +551,6 @@
         ratingSubmitBtn.disabled = false;
         ratingSubmitBtn.textContent = 'Submit Review';
 
-        // Reset hviezdy
         updatePickerStars(0);
 
         ratingOverlay.classList.add('active');
@@ -502,13 +567,11 @@
     function updatePickerStars(value) {
         state.ratingValue = value;
         ratingStarsPicker.querySelectorAll('.chatbot-rating-modal-star').forEach(star => {
-            const v = parseInt(star.dataset.value);
-            star.classList.toggle('active', v <= value);
+            star.classList.toggle('active', parseInt(star.dataset.value) <= value);
         });
         ratingStarsLabel.textContent = value > 0 ? starLabels[value] : 'Select a rating';
     }
 
-    // Hover efekt na hviezdy
     ratingStarsPicker.addEventListener('mouseover', (e) => {
         const star = e.target.closest('.chatbot-rating-modal-star');
         if (!star) return;
@@ -524,54 +587,24 @@
 
     ratingStarsPicker.addEventListener('click', (e) => {
         const star = e.target.closest('.chatbot-rating-modal-star');
-        if (!star) return;
-        updatePickerStars(parseInt(star.dataset.value));
+        if (star) updatePickerStars(parseInt(star.dataset.value));
     });
 
-    // Klik na hviezdy v kartičke → otvor modal
-    document.addEventListener('click', (e) => {
-        const trigger = e.target.closest('.chatbot-rating-trigger');
-        if (!trigger) return;
-
-        const chatbotId = trigger.dataset.chatbotId;
-        // Nájdi meno chatbota – hľadáme najbližší nadradený kontajner
-        const container = trigger.closest(
-            '.chatbot-page-main-content-chatbots-grid-view-item, .chatbot-page-main-content-chatbots-list-view-item-containter'
-        );
-        const nameEl = container
-            ? container.querySelector('.chatbot-page-main-content-chatbots-grid-view-item-top-base-1 > p, .chatbot-page-main-content-chatbots-list-view-item-top-base-1 > p')
-            : null;
-        const chatbotName = nameEl ? nameEl.textContent.trim() : 'this chatbot';
-
-        openRatingModal(chatbotId, chatbotName);
-    });
-
-    // Zatváranie modalu
     ratingCloseBtn.addEventListener('click', closeRatingModal);
     ratingCancelBtn.addEventListener('click', closeRatingModal);
-    ratingOverlay.addEventListener('click', (e) => {
-        if (e.target === ratingOverlay) closeRatingModal();
-    });
+    ratingOverlay.addEventListener('click', (e) => { if (e.target === ratingOverlay) closeRatingModal(); });
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && ratingOverlay.classList.contains('active')) closeRatingModal();
     });
 
-    // Submit review
     ratingSubmitBtn.addEventListener('click', () => {
         ratingModalError.textContent = '';
         ratingModalSuccess.textContent = '';
-
-        // Musí byť prihlásený
-        if (!CHATBOT_USER_LOGGED_IN) {
-            ratingModalError.textContent = 'You must be logged in to submit a review.';
-            return;
-        }
 
         if (state.ratingValue === 0) {
             ratingModalError.textContent = 'Please select a star rating.';
             return;
         }
-
         if (!ratingTextInput.value.trim()) {
             ratingModalError.textContent = 'Please write your review.';
             return;
@@ -595,7 +628,6 @@
             if (data.success) {
                 ratingModalSuccess.textContent = data.message;
                 ratingSubmitBtn.textContent = 'Submitted!';
-                // Zatvor modal po 2 sekundách
                 setTimeout(closeRatingModal, 2000);
             } else {
                 ratingModalError.textContent = data.message || 'Something went wrong.';
@@ -631,8 +663,7 @@
     gridBtn.addEventListener('click', () => switchView('grid'));
 
     // ============================================
-    // SORT - chatbotShowcase.js spravuje sort sám,
-    // sortSelect.js je odstránený z chatbotShowcase.php
+    // SORT — chatbotShowcase.js spravuje sort sám (sortSelect.js NIE je na tejto stránke)
     // ============================================
 
     const sortOptionEls = document.querySelectorAll('#sortOptions .chatbot-page-main-content-topbar-group-sort-select-option');
@@ -655,25 +686,22 @@
         });
     });
 
-    // Otvoriť/zatvoriť dropdown
     sortSelectDiv.addEventListener('click', (e) => {
         if (!e.target.closest('.chatbot-page-main-content-topbar-group-sort-select-option')) {
             sortSelectDiv.classList.toggle('active');
         }
     });
 
-    // Zatvoriť pri kliknutí mimo
     document.addEventListener('click', (e) => {
-        if (!sortSelectDiv.contains(e.target)) {
+        if (sortSelectDiv && !sortSelectDiv.contains(e.target)) {
             sortSelectDiv.classList.remove('active');
         }
     });
 
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') sortSelectDiv.classList.remove('active');
+        if (e.key === 'Escape') sortSelectDiv && sortSelectDiv.classList.remove('active');
     });
 
-    // Sort arrow
     if (sortArrow) {
         let sortAscending = false;
         sortArrow.addEventListener('click', () => {
@@ -697,9 +725,7 @@
     // MOVE UP
     // ============================================
 
-    moveUpBtn.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+    moveUpBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
     // ============================================
     // RESPONSIVE RESIZE
