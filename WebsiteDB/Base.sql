@@ -131,12 +131,13 @@ CREATE TABLE `visitors` (
 CREATE TABLE `chatbots` (
   `id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
   `owner_user_id` CHAR(36) NULL COMMENT 'Owner UUID, e.g., "550e8400-e29b-41d4-a716-446655440000", "7c9e6679-7425-40de-944b-e07fc1f90ae7"',
+  `verified_reviewer` BOOLEAN NULL default FALSE,
 
   -- Basic Info
   `name` VARCHAR(200) NOT NULL COMMENT 'Chatbot/company name, e.g., "Intercom", "Drift", "Tidio"',
 #   `slug` VARCHAR(255) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "intercom", "drift-conversational-ai", "tidio-live-chat"',
   `website_url` VARCHAR(500) NOT NULL COMMENT 'Official website, e.g., "https://www.intercom.com", "https://www.drift.com", "https://www.tidio.com"',
-  `description` TEXT NULL COMMENT 'Full description, e.g., "Intercom is a complete customer service solution that provides seamless communication...", "AI-powered conversational platform for sales and marketing teams", "Live chat widget with chatbot automation for customer support"',
+  `description` VARCHAR(150) NULL COMMENT 'Full description, e.g., "Intercom is a complete customer service solution that provides seamless communication...", "AI-powered conversational platform for sales and marketing teams", "Live chat widget with chatbot automation for customer support"',
 #   `tagline` VARCHAR(200) NULL COMMENT 'Short tagline, e.g., "The complete customer service solution", "Conversational AI for modern teams", "Chat with your customers in real-time"',
 
   -- Media
@@ -154,8 +155,8 @@ CREATE TABLE `chatbots` (
   -- Pricing Info
   `has_free_trial` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Free trial available?, e.g., TRUE, FALSE',
   `free_trial_days` INT NULL COMMENT 'Trial length, e.g., 14, 30, 7',
-  `starting_price` DECIMAL(10,2) NULL COMMENT 'Starting price, e.g., 39.00, 99.00, 19.99',
-  `pricing_model` ENUM('free', 'freemium', 'subscription', 'one_time', 'usage_based', 'custom') NOT NULL COMMENT 'Pricing model, e.g., "freemium", "subscription", "usage_based"',
+  `starting_price` DECIMAL(10,2) NOT NULL COMMENT 'Starting price, e.g., 39.00, 99.00, 19.99',
+  `pricing_model` ENUM('free', 'freemium', 'recurring', 'one-time', 'usage-based', 'custom') NOT NULL COMMENT 'Pricing model, e.g., "freemium", "subscription", "usage_based"',
   `pricing_currency` CHAR(3) NOT NULL DEFAULT 'USD' COMMENT 'Currency code, e.g., "USD", "EUR", "GBP"',
   `pricing_url` VARCHAR(500) NULL COMMENT 'Pricing page, e.g., "https://www.intercom.com/pricing", "https://drift.com/plans", "https://tidio.com/pricing"',
 

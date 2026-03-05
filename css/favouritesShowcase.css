@@ -1,3 +1,7 @@
+body {
+    background-color: var(--blue-light);
+}
+
 .favourites-page-wrapper {
     max-width: 1200px;
     margin: 60px auto auto auto;
@@ -602,6 +606,13 @@
     flex-direction: column;
     width: 100%;
     padding: 1rem var(--grid-item-padding);
+    /* justify-content: center;
+    flex-grow : 1; */
+}
+
+.favourites-page-main-content-chatbots-grid-view-item-description-container {
+    /* justify-content: center; */
+    flex-grow : 1;
 }
 
 .favourites-page-main-content-chatbots-grid-view-item-description-container-subtitle,

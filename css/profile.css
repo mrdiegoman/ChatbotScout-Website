@@ -82,6 +82,8 @@
     white-space: nowrap;
     position: relative;
     bottom: -2px;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
 }
 
 .tab-btn:hover {
@@ -91,7 +93,8 @@
 
 .tab-btn.active {
     color: var(--profile-accent);
-    border-bottom-color: var(--profile-accent);
+    border-bottom: 5px solid var(--profile-accent);
+    background-color: white;
 }
 
 /* ============================================

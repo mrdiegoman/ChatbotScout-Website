@@ -14,7 +14,8 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    padding: 4rem 0 4rem 0;
+    padding: 4rem 2rem;
+    background-color: var(--white-color-dark);
     margin-bottom: 0;
     
 }

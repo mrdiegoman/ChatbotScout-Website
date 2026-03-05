@@ -121,7 +121,7 @@
     }
 
     function pricingLabel(chatbot) { 
-        console.log('chatbot.pricing: ' + chatbot.pricing);
+        // console.log('chatbot.pricing: ' + chatbot.pricing);
         return chatbot.pricing || 'Contact'; }
 
     function buildTags(tags) {
