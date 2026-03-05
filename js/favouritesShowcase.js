@@ -51,6 +51,7 @@
     const filtersOverlay  = document.getElementById('filtersModalOverlay');
     const filtersCloseBtn = document.getElementById('filtersCloseBtn');
     const filtersClearBtn = document.getElementById('filtersClearBtn');
+    const filterResultsCount = document.getElementById('filterResultsCount');
 
     // Rating modal
     const ratingOverlay      = document.getElementById('ratingModalOverlay');
@@ -550,6 +551,29 @@ function openRatingModal(chatbotId, chatbotName) {
     // FETCH
     // ============================================
 
+    window.getActiveFilterParams = function () {
+        const val = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+
+        const params = {};
+
+        if (val('ratingInputStart')) params.ratingStart = val('ratingInputStart');
+        if (val('ratingInputEnd'))   params.ratingEnd   = val('ratingInputEnd');
+        if (val('votesInputStart'))  params.votesStart  = val('votesInputStart');
+        if (val('votesInputEnd'))    params.votesEnd    = val('votesInputEnd');
+        if (val('priceInputStart'))  params.priceStart  = val('priceInputStart');
+        if (val('priceInputEnd'))    params.priceEnd    = val('priceInputEnd');
+
+        document.querySelectorAll('.favourites-filters-modal-body-features-single.active')
+            .forEach(span => {
+                if (span.dataset.featureId) {
+                    if (!params['features[]']) params['features[]'] = [];
+                    params['features[]'].push(span.dataset.featureId);
+                }
+            });
+
+        return params;
+    };
+
     function loadFavourites() {
         if (state.isLoading) return;
         setLoading(true);
@@ -559,8 +583,7 @@ function openRatingModal(chatbotId, chatbotName) {
             sort: state.currentSort,
             page: state.currentPage,
         });
- 
-        // Pridaj aktívne filtre z modalu
+
         if (typeof window.getActiveFilterParams === 'function') {
             const filterParams = window.getActiveFilterParams();
             Object.entries(filterParams).forEach(([key, value]) => {
@@ -577,6 +600,12 @@ function openRatingModal(chatbotId, chatbotName) {
             .then(data => {
                 if (!data.success) throw new Error('API error');
                 state.totalPages = data.totalPages;
+
+                // Sync count po Apply / sort / page zmene
+                if (filterResultsCount) {
+                    const t = data.total;
+                    filterResultsCount.textContent = `Found ${t} chatbot${t !== 1 ? 's' : ''}`;
+                }
 
                 renderChatbots(data.chatbots);
                 renderPagination(data.totalPages, data.currentPage);

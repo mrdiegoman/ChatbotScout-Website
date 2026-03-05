@@ -252,6 +252,8 @@ body {
     user-select: none;
 }
 
+
+
 .favourites-page-main-content-topbar-group-sort{
     width: fit-content;
     height: fit-content;
@@ -1253,6 +1255,13 @@ body {
 
 .favourites-filters-modal-apply-btn:hover {
     background-color: var(--blue-color-2-hover);
+}
+
+.favourites-filters-modal-results-count {
+    font-size: 1.4rem;
+    font-family: outfit-medium;
+    color: var(--black-color-light);
+    white-space: nowrap;
 }
 
 /* ---- Rating trigger cursor ---- */

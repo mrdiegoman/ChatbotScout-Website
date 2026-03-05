@@ -46,6 +46,7 @@
     const sortSelectDiv   = document.getElementById('sortSelectDiv');
     const sortSelected    = document.getElementById('sortSelected');
     const sortArrow       = document.getElementById('sortArrow');
+    const filterResultsCount = document.getElementById('filterResultsCount');
 
     // Rating modal
     const ratingOverlay      = document.getElementById('ratingModalOverlay');
@@ -438,6 +439,12 @@
                 if (!data.success) throw new Error('API error');
                 state.totalPages = data.totalPages;
                 state.totalItems = data.total;
+
+                // Sync count po Apply / sort / page zmene
+                if (filterResultsCount) {
+                    const t = data.total;
+                    filterResultsCount.textContent = `Found ${t} chatbot${t !== 1 ? 's' : ''}`;
+                }
 
                 renderChatbots(data.chatbots, append);
 

@@ -228,7 +228,7 @@ require '../inc/header.php';
                 </div>
             </div>
             <div class="chatbot-filters-modal-body-row-group">
-                <span class="chatbot-filters-modal-body-row-group-label"><p>Number of votes</p></span>
+                <span class="chatbot-filters-modal-body-row-group-label"><p>Number of ratings</p></span>
                 <div class="chatbot-filters-modal-body-row-group-values">
                     <input type="number" min="0" max="1000000" step="1" id="votesInputStart" placeholder="0">
                     <p>to</p>
@@ -280,6 +280,7 @@ require '../inc/header.php';
         <!-- FILTER FOOTER: Clear + Apply -->
         <div class="chatbot-filters-modal-footer">
             <button class="chatbot-filters-modal-clear-btn" id="filtersClearBtn">Clear all</button>
+            <span class="filters-modal-results-count" id="filterResultsCount"></span>
             <button class="chatbot-filters-modal-apply-btn">Apply Filters</button>
         </div>
     </div>

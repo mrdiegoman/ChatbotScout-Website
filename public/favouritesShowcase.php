@@ -173,7 +173,7 @@ require '../inc/header.php';
                 </div>
             </div>
             <div class="favourites-filters-modal-body-row-group">
-                <span class="favourites-filters-modal-body-row-group-label"><p>Number of votes</p></span>
+                <span class="favourites-filters-modal-body-row-group-label"><p>Number of ratings</p></span>
                 <div class="favourites-filters-modal-body-row-group-values">
                     <input type="number" min="0" max="1000000" step="1" id="votesInputStart" placeholder="0">
                     <p>to</p>
@@ -214,6 +214,7 @@ require '../inc/header.php';
         </div>
         <div class="favourites-filters-modal-footer">
             <button class="favourites-filters-modal-clear-btn" id="filtersClearBtn">Clear all</button>
+            <span class="favourites-filters-modal-results-count" id="filterResultsCount"></span>
             <button class="favourites-filters-modal-apply-btn">Apply Filters</button>
         </div>
     </div>

@@ -6,6 +6,7 @@
  *  - Spravuje badge počítadlo aktívnych filtrov na Filters buttone
  *  - Fetchne počty chatbotov per feature (getFeatureCounts.php) a zobrazí ich
  *  - Prepočítava počty pri každej zmene filtra (input, klik na feature)
+ *  - Na favouritesShowcase: live aktualizuje počet výsledkov vedľa Clear all
  *
  * Funguje na chatbotShowcase aj favouritesShowcase.
  * Vystavuje window.updateFilterBadge() a window.triggerFeatureCountsRefresh()
@@ -31,11 +32,13 @@
     if (!basicContainer) return; // filter popup nie je na tejto stránke
 
     // ============================================
-    // DOM — badge elementy + number inputy
+    // DOM — badge elementy + number inputy + results count
     // ============================================
 
-    const filtersCountBadge = document.getElementById('filtersCount');
-    const filtersCountNum   = document.getElementById('filtersCountNum');
+    const filtersCountBadge  = document.getElementById('filtersCount');
+    const filtersCountNum    = document.getElementById('filtersCountNum');
+    // Live results count (iba na favouritesShowcase)
+    const filterResultsCount = document.getElementById('filterResultsCount');
 
     const NUMBER_INPUT_IDS = [
         'ratingInputStart', 'ratingInputEnd',
@@ -56,14 +59,12 @@
     function updateBadge() {
         let count = 0;
 
-        // Každý pár (from–to) sa počíta ako 1 aktívny filter
         numberInputPairs.forEach(([a, b]) => {
             const elA = document.getElementById(a);
             const elB = document.getElementById(b);
             if ((elA && elA.value.trim() !== '') || (elB && elB.value.trim() !== '')) count++;
         });
 
-        // Každá aktívna feature = 1
         count += document.querySelectorAll(`.${spanClass}.active`).length;
 
         if (filtersCountBadge) filtersCountBadge.style.display = count > 0 ? 'flex' : 'none';
@@ -86,11 +87,12 @@
             activeFeatureIds: [...document.querySelectorAll(`.${spanClass}.active`)]
                 .map(s => s.dataset.featureId)
                 .filter(Boolean),
+            isFavourites: isFavourites,
         };
     }
 
     // ============================================
-    // FETCH FEATURE COUNTS + UPDATE SPANS
+    // FETCH FEATURE COUNTS + UPDATE SPANS + LIVE RESULTS COUNT
     // ============================================
 
     let debounceTimer = null;
@@ -104,14 +106,21 @@
         .then(res => res.json())
         .then(data => {
             if (!data.success) return;
-            const counts = data.counts;
 
+            // Aktualizuj počty pri feature tagoch
+            const counts = data.counts;
             document.querySelectorAll(`.${spanClass}`).forEach(span => {
                 const fid   = span.dataset.featureId;
                 const name  = span.dataset.featureName;
                 const count = counts[fid] ?? 0;
                 span.textContent = `${name} (${count})`;
             });
+
+            // Live aktualizácia počtu výsledkov vedľa Clear all (iba na favouritesShowcase)
+            if (filterResultsCount && data.total !== undefined) {
+                const t = data.total;
+                filterResultsCount.textContent = `Found ${t} chatbot${t !== 1 ? 's' : ''}`;
+            }
         })
         .catch(() => {}); // counts sú non-critical, ticho ignorujeme
     }
@@ -130,7 +139,7 @@
         span.className            = spanClass;
         span.dataset.featureId   = feature.id;
         span.dataset.featureName = feature.name;
-        span.textContent          = feature.name; // (počet) sa doplní po fetchAndUpdateCounts
+        span.textContent          = feature.name;
 
         span.addEventListener('click', function () {
             this.classList.toggle('active');
@@ -165,7 +174,6 @@
             }
         }
 
-        // Po vykreslení hneď fetchni počty
         fetchAndUpdateCounts();
     }
 
@@ -195,15 +203,13 @@
         })
         .catch(err => console.error('getFeatures fetch failed:', err));
 
-    // Inicializácia badge pri načítaní stránky
     updateBadge();
 
     // ============================================
-    // EXPOSE GLOBALLY — pre chatbotFilters.js + favouritesShowcase.js
-    // Volané napr. po "Clear all"
+    // EXPOSE GLOBALLY
     // ============================================
 
-    window.updateFilterBadge          = updateBadge;
+    window.updateFilterBadge           = updateBadge;
     window.triggerFeatureCountsRefresh = scheduleFetch;
 
 })();

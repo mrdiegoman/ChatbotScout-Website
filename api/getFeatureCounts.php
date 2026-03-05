@@ -9,9 +9,10 @@
  *   ratingStart, ratingEnd,
  *   votesStart, votesEnd,
  *   priceStart, priceEnd,
- *   activeFeatureIds: []
+ *   activeFeatureIds: [],
+ *   isFavourites: bool   ← ak true, počíta iba z favoritov usera
  * }
- * Response: { success, counts: { "feature-uuid": 12, ... } }
+ * Response: { success, counts: { "feature-uuid": 12, ... }, total: 5 }
  */
 
 error_reporting(E_ALL);
@@ -47,6 +48,9 @@ $activeIds   = array_values(array_filter(
 ));
 $activeCount = count($activeIds);
 
+// isFavourites — restrict counts to current user's favourites only
+$isFavourites = !empty($data['isFavourites']) && $isLoggedIn && !empty($user['id']);
+
 try {
     $db = Database::getInstance()->getConnection();
 
@@ -57,6 +61,10 @@ try {
     $where  = ["c.status = 'active'", "c.deleted_at IS NULL"];
     $params = [];
 
+    if ($isFavourites) {
+        $params[':fav_user_id'] = $user['id'];
+    }
+
     if ($ratingStart !== null) { $where[] = 'c.rating_average >= :ratingStart'; $params[':ratingStart'] = $ratingStart; }
     if ($ratingEnd   !== null) { $where[] = 'c.rating_average <= :ratingEnd';   $params[':ratingEnd']   = $ratingEnd;   }
     if ($votesStart  !== null) { $where[] = 'c.rating_count >= :votesStart';    $params[':votesStart']  = $votesStart;  }
@@ -64,7 +72,6 @@ try {
     if ($priceStart  !== null) { $where[] = 'c.starting_price >= :priceStart';  $params[':priceStart']  = $priceStart;  }
     if ($priceEnd    !== null) { $where[] = 'c.starting_price <= :priceEnd';    $params[':priceEnd']    = $priceEnd;    }
 
-    // Active features: chatbot musí mať VŠETKY vybrané features (relational division)
     if ($activeCount > 0) {
         $afPlaceholders = implode(',', array_map(fn($i) => ":af{$i}", range(0, $activeCount - 1)));
         $where[] = "(
@@ -82,8 +89,30 @@ try {
     $whereStr = implode(' AND ', $where);
 
     // ============================================
-    // MAIN QUERY
-    // Pre každú feature: koľko chatbotov z filtrovanej množiny ju má
+    // INNER FROM — favourites alebo všetky chatboty
+    // ============================================
+
+    if ($isFavourites) {
+        $innerFrom = "chatbots c
+            JOIN favorites fav_inner ON fav_inner.chatbot_id = c.id
+                AND fav_inner.user_id = :fav_user_id";
+    } else {
+        $innerFrom = "chatbots c";
+    }
+
+    // ============================================
+    // TOTAL COUNT — pre live zobrazenie počtu výsledkov
+    // ============================================
+
+    $totalStmt = $db->prepare("SELECT COUNT(*) FROM {$innerFrom} WHERE {$whereStr}");
+    foreach ($params as $key => $val) {
+        $totalStmt->bindValue($key, $val);
+    }
+    $totalStmt->execute();
+    $total = (int)$totalStmt->fetchColumn();
+
+    // ============================================
+    // MAIN QUERY — počty per feature
     // ============================================
 
     $sql = "
@@ -95,7 +124,7 @@ try {
             ON cf.feature_id = f.id
            AND (cf.boolean_value = 1 OR cf.text_value IS NOT NULL)
         WHERE cf.chatbot_id IN (
-            SELECT c.id FROM chatbots c WHERE {$whereStr}
+            SELECT c.id FROM {$innerFrom} WHERE {$whereStr}
         )
         GROUP BY f.id
     ";
@@ -111,7 +140,7 @@ try {
         $counts[$row['id']] = (int)$row['chatbot_count'];
     }
 
-    echo json_encode(['success' => true, 'counts' => $counts]);
+    echo json_encode(['success' => true, 'counts' => $counts, 'total' => $total]);
 
 } catch (Exception $e) {
     error_log('getFeatureCounts error: ' . $e->getMessage());
