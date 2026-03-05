@@ -43,12 +43,14 @@
     const NUMBER_INPUT_IDS = [
         'ratingInputStart', 'ratingInputEnd',
         'votesInputStart',  'votesInputEnd',
+        'favoritesInputStart', 'favoritesInputEnd',
         'priceInputStart',  'priceInputEnd',
     ];
 
     const numberInputPairs = [
         ['ratingInputStart', 'ratingInputEnd'],
         ['votesInputStart',  'votesInputEnd'],
+        ['favoritesInputStart', 'favoritesInputEnd'],
         ['priceInputStart',  'priceInputEnd'],
     ];
 
@@ -82,6 +84,8 @@
             ratingEnd:        val('ratingInputEnd'),
             votesStart:       val('votesInputStart'),
             votesEnd:         val('votesInputEnd'),
+            favoritesStart:   val('favoritesInputStart'),
+            favoritesEnd:     val('favoritesInputEnd'),
             priceStart:       val('priceInputStart'),
             priceEnd:         val('priceInputEnd'),
             activeFeatureIds: [...document.querySelectorAll(`.${spanClass}.active`)]

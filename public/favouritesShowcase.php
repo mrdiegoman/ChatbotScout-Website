@@ -181,6 +181,14 @@ require '../inc/header.php';
                 </div>
             </div>
             <div class="favourites-filters-modal-body-row-group">
+                <span class="favourites-filters-modal-body-row-group-label"><p>Number of favorites</p></span>
+                <div class="favourites-filters-modal-body-row-group-values">
+                    <input type="number" min="0" max="1000000" step="1" id="favoritesInputStart" placeholder="0">
+                    <p>to</p>
+                    <input type="number" min="0" max="1000000" step="1" id="favoritesInputEnd" placeholder="max">
+                </div>
+            </div>
+            <div class="favourites-filters-modal-body-row-group">
                 <span class="favourites-filters-modal-body-row-group-label">
                     <p>Price in</p>
                     <p class="favourites-filters-modal-body-row-group-label-currency">$</p>

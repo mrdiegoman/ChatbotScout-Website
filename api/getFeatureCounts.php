@@ -38,6 +38,8 @@ $ratingStart = (isset($data['ratingStart']) && $data['ratingStart'] !== '') ? (f
 $ratingEnd   = (isset($data['ratingEnd'])   && $data['ratingEnd']   !== '') ? (float)$data['ratingEnd']   : null;
 $votesStart  = (isset($data['votesStart'])  && $data['votesStart']  !== '') ? (int)$data['votesStart']    : null;
 $votesEnd    = (isset($data['votesEnd'])    && $data['votesEnd']    !== '') ? (int)$data['votesEnd']      : null;
+$favoritesStart = (isset($data['favoritesStart']) && $data['favoritesStart'] !== '') ? (int)$data['favoritesStart'] : null;
+$favoritesEnd   = (isset($data['favoritesEnd'])   && $data['favoritesEnd']   !== '') ? (int)$data['favoritesEnd']   : null;
 $priceStart  = (isset($data['priceStart'])  && $data['priceStart']  !== '') ? (float)$data['priceStart']  : null;
 $priceEnd    = (isset($data['priceEnd'])    && $data['priceEnd']    !== '') ? (float)$data['priceEnd']    : null;
 
@@ -69,6 +71,8 @@ try {
     if ($ratingEnd   !== null) { $where[] = 'c.rating_average <= :ratingEnd';   $params[':ratingEnd']   = $ratingEnd;   }
     if ($votesStart  !== null) { $where[] = 'c.rating_count >= :votesStart';    $params[':votesStart']  = $votesStart;  }
     if ($votesEnd    !== null) { $where[] = 'c.rating_count <= :votesEnd';      $params[':votesEnd']    = $votesEnd;    }
+    if ($favoritesStart !== null) { $where[] = 'c.favorite_count >= :favoritesStart'; $params[':favoritesStart'] = $favoritesStart; }
+    if ($favoritesEnd   !== null) { $where[] = 'c.favorite_count <= :favoritesEnd';   $params[':favoritesEnd']   = $favoritesEnd;   }
     if ($priceStart  !== null) { $where[] = 'c.starting_price >= :priceStart';  $params[':priceStart']  = $priceStart;  }
     if ($priceEnd    !== null) { $where[] = 'c.starting_price <= :priceEnd';    $params[':priceEnd']    = $priceEnd;    }
 

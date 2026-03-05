@@ -236,6 +236,14 @@ require '../inc/header.php';
                 </div>
             </div>
             <div class="chatbot-filters-modal-body-row-group">
+                <span class="chatbot-filters-modal-body-row-group-label"><p>Number of favorites</p></span>
+                <div class="chatbot-filters-modal-body-row-group-values">
+                    <input type="number" min="0" max="1000000" step="1" id="favoritesInputStart" placeholder="0">
+                    <p>to</p>
+                    <input type="number" min="0" max="1000000" step="1" id="favoritesInputEnd" placeholder="max">
+                </div>
+            </div>
+            <div class="chatbot-filters-modal-body-row-group">
                 <span class="chatbot-filters-modal-body-row-group-label">
                     <p>Price in</p>
                     <p class="chatbot-filters-modal-body-row-group-label-currency">$</p>

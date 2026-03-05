@@ -48,6 +48,8 @@ window.getActiveFilterParams = function () {
     if (val('ratingInputEnd'))   params.ratingEnd   = val('ratingInputEnd');
     if (val('votesInputStart'))  params.votesStart  = val('votesInputStart');
     if (val('votesInputEnd'))    params.votesEnd    = val('votesInputEnd');
+    if (val('favoritesInputStart')) params.favoritesStart = val('favoritesInputStart');
+    if (val('favoritesInputEnd'))   params.favoritesEnd   = val('favoritesInputEnd');
     if (val('priceInputStart'))  params.priceStart  = val('priceInputStart');
     if (val('priceInputEnd'))    params.priceEnd    = val('priceInputEnd');
 
@@ -82,7 +84,7 @@ if (applyFiltersBtn) {
 // ============================================
 
 function clearAllFilters() {
-    ['ratingInputStart', 'ratingInputEnd', 'votesInputStart', 'votesInputEnd', 'priceInputStart', 'priceInputEnd']
+    ['ratingInputStart', 'ratingInputEnd', 'votesInputStart', 'votesInputEnd', 'favoritesInputStart', 'favoritesInputEnd', 'priceInputStart', 'priceInputEnd']
         .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
 
     document.querySelectorAll(
