@@ -83,16 +83,16 @@ class Session
     public function validate(string $sessionToken): ?array
     {
         $stmt = $this->db->prepare("
-            SELECT 
+            SELECT
                 s.id as session_id,
                 s.user_id,
                 s.expires_at,
                 u.email,
-                u.username,
                 u.first_name,
                 u.last_name,
                 u.profile_picture_url,
                 u.is_email_verified,
+                u.is_admin,
                 u.status
             FROM user_sessions s
             JOIN users u ON s.user_id = u.id
@@ -143,14 +143,14 @@ class Session
         // error_log("Session ID: " . $data['session_id']);
 
         return [
-            'id' => $data['user_id'],
-            'email' => $data['email'],
-            'username' => $data['username'],
-            'first_name' => $data['first_name'],
-            'last_name' => $data['last_name'],
+            'id'                  => $data['user_id'],
+            'email'               => $data['email'],
+            'first_name'          => $data['first_name'],
+            'last_name'           => $data['last_name'],
             'profile_picture_url' => $data['profile_picture_url'],
-            'is_email_verified' => (bool)$data['is_email_verified'],
-            'status' => $data['status'],
+            'is_email_verified'   => (bool)$data['is_email_verified'],
+            'is_admin'            => (bool)$data['is_admin'],
+            'status'              => $data['status'],
         ];
     }
     

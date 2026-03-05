@@ -205,6 +205,15 @@ class User
     public function login(string $email, string $password): array
     {
         // ✅ Rate limiting check
+        $stmt = $this->db->prepare("
+            SELECT id, email, password_hash, is_email_verified, email_verification_expires_at, status, first_name, last_name, profile_picture_url, is_admin
+            FROM users
+            WHERE email = :email
+        ");
+
+        $stmt->execute(['email' => $email]);
+        $user = $stmt->fetch();
+
         $rateLimiter = new RateLimiter();
         $clientIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
         
@@ -341,7 +350,7 @@ class User
         
         // Vráť user data (bez password_hash)
         unset($user['password_hash']);
-        
+        $user['is_admin'] = (bool)($user['is_admin'] ?? false);
         return $user;
     }
     

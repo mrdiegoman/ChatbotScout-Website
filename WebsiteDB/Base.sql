@@ -19,7 +19,7 @@ CREATE TABLE `users` (
   `username` VARCHAR(50) NULL UNIQUE COMMENT 'Unique username, e.g., "johndoe123", "maria_k", "tech_guru_2025"',
   `first_name` VARCHAR(100) NULL COMMENT 'First name, e.g., "John", "Mária", "Peter"',
   `last_name` VARCHAR(100) NULL COMMENT 'Last name, e.g., "Doe", "Kováčová", "Novák"',
-
+  `is_admin` BOOLEAN NOT NULL DEFAULT FALSE,
 #   -- Affiliate Program
 #   `is_affiliate` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Is user an affiliate?, e.g., TRUE, FALSE',
 #   `affiliate_code` VARCHAR(20) NULL UNIQUE COMMENT 'User own affiliate code, e.g., "JOHN2025", "MARIA-REF", "TECH50"',
@@ -946,48 +946,47 @@ CREATE TABLE `payments` (
 -- ============================================
 
 CREATE TABLE `contact_messages` (
-  `id` CHAR(36) NOT NULL COMMENT 'Message UUID, e.g., "f50e8400-e29b-41d4-a716-446655440026", "4x5y6z7a-8b9c-0d1e-2f3g-4h5i6j7k8l9m"',
-  `name` VARCHAR(200) NOT NULL COMMENT 'Sender name, e.g., "John Doe", "Mária Kováčová", "Tech Support Team"',
-  `email` VARCHAR(255) NOT NULL COMMENT 'Sender email, e.g., "john.doe@gmail.com", "maria@company.sk", "support@business.com"',
-  `subject` VARCHAR(300) NULL COMMENT 'Message subject, e.g., "Question about pricing", "Report spam listing", "Partnership inquiry"',
-  `message` TEXT NOT NULL COMMENT 'Message content, e.g., "I would like to know more about your premium plans...", "There is a spam chatbot listed on your site...", "We are interested in becoming an affiliate partner..."',
+  `id` CHAR(36) NOT NULL COMMENT 'Message UUID, e.g., "f50e8400-e29b-41d4-a716-446655440026"',
+  `first_name` VARCHAR(50) NOT NULL,
+  `last_name` VARCHAR(50) NOT NULL,
+  `email` VARCHAR(255) NOT NULL COMMENT 'Sender email, e.g., "john.doe@gmail.com"',
+  `subject` VARCHAR(300) NULL COMMENT 'Message subject, e.g., "Question about pricing"',
+  `message` TEXT NOT NULL COMMENT 'Message content, e.g., "I would like to know more about your premium plans..."',
 
   -- Classification
-  `message_type` ENUM('general', 'support', 'business_inquiry', 'report_abuse', 'partnership', 'feedback', 'bug_report') NOT NULL DEFAULT 'general' COMMENT 'Message type, e.g., "general", "business_inquiry", "report_abuse"',
-  `priority` ENUM('low', 'normal', 'high', 'urgent') NOT NULL DEFAULT 'normal' COMMENT 'Priority level, e.g., "normal", "high", "urgent"',
+--   `message_type` ENUM('general', 'support', 'business_inquiry', 'report_abuse', 'partnership', 'feedback', 'bug_report') NOT NULL DEFAULT 'general',
+--   `priority` ENUM('low', 'normal', 'high', 'urgent') NOT NULL DEFAULT 'normal',
 
   -- Relations
-  `user_id` CHAR(36) NULL COMMENT 'User UUID (if logged in), e.g., "550e8400-e29b-41d4-a716-446655440000", NULL',
-  `chatbot_id` CHAR(36) NULL COMMENT 'Chatbot UUID (if reporting), e.g., "850e8400-e29b-41d4-a716-446655440003", NULL',
+  `user_id` CHAR(36) NULL COMMENT 'User UUID (if logged in), NULL if guest',
+--   `chatbot_id` CHAR(36) NULL COMMENT 'Chatbot UUID (if reporting)',
 
   -- Status & Assignment
-  `status` ENUM('new', 'open', 'in_progress', 'replied', 'resolved', 'closed', 'spam') NOT NULL DEFAULT 'new' COMMENT 'Message status, e.g., "new", "in_progress", "resolved"',
-  `assigned_to_user_id` CHAR(36) NULL COMMENT 'Assigned admin UUID, e.g., "550e8400-e29b-41d4-a716-446655440000", NULL',
+  `status` ENUM('new', 'resolved', 'replied', 'spam') NOT NULL DEFAULT 'new',
+  `assigned_to_admin_id` CHAR(36) NULL COMMENT 'Assigned admin UUID, NULL if unassigned',
 
   -- Response
-  `response` TEXT NULL COMMENT 'Admin response, e.g., "Thank you for reaching out. We have reviewed your inquiry...", "The issue has been resolved...", "We will contact you within 24 hours..."',
-  `internal_notes` TEXT NULL COMMENT 'Internal notes, e.g., "Customer interested in enterprise plan", "Spam report verified - listing removed", "Follow up needed by Friday"',
+  `response` TEXT NULL COMMENT 'Admin response',
+  `internal_notes` TEXT NULL COMMENT 'Internal notes',
 
   -- Tracking
-  `ip_address` VARCHAR(45) NULL COMMENT 'Sender IP, e.g., "88.212.34.56", "195.113.20.150", "192.168.1.100"',
+  `ip_address` VARCHAR(45) NULL COMMENT 'Sender IP',
 
   -- Timestamps
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Received at, e.g., "2025-01-15 16:00:00", "2025-01-28 10:30:00"',
-  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update, e.g., "2025-01-29 17:00:00", "2025-01-29 11:45:00"',
-  `first_responded_at` TIMESTAMP NULL COMMENT 'First response at, e.g., "2025-01-16 09:00:00", NULL',
-  `resolved_at` TIMESTAMP NULL COMMENT 'Resolved at, e.g., "2025-01-18 14:00:00", NULL',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `first_responded_at` TIMESTAMP NULL,
+  `resolved_at` TIMESTAMP NULL,
 
   PRIMARY KEY (`id`),
-  KEY `idx_status_priority` (`status`, `priority`, `created_at`),
+  KEY `idx_status` (`status`, `created_at`),
   KEY `idx_user` (`user_id`),
-  KEY `idx_assigned` (`assigned_to_user_id`, `status`),
+  KEY `idx_assigned` (`assigned_to_admin_id`, `status`),
   KEY `idx_email` (`email`),
 
   CONSTRAINT `fk_contact_user` FOREIGN KEY (`user_id`)
     REFERENCES `users` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `fk_contact_chatbot` FOREIGN KEY (`chatbot_id`)
-    REFERENCES `chatbots` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `fk_contact_assigned` FOREIGN KEY (`assigned_to_user_id`)
+  CONSTRAINT `fk_contact_assigned` FOREIGN KEY (`assigned_to_admin_id`)
     REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

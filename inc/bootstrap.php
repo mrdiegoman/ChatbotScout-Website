@@ -1,7 +1,7 @@
 <?php
 /**
  * Bootstrap
- * 
+ *
  * Načíta sa pri každej requeste - inicializuje session, triedy, visitor tracking
  */
 
@@ -24,23 +24,24 @@ $appConfig = require __DIR__ . '/../config/app.php';
 // ============================================
 
 $isLoggedIn = false;
-$user = null;
-$userRole = null;
+$user       = null;
+$userRole   = null;
 
 // Kontrola session tokenu z cookie
 if (isset($_COOKIE[$appConfig['session']['cookie_name']])) {
     $sessionToken = $_COOKIE[$appConfig['session']['cookie_name']];
-    
+
     $sessionManager = new Session();
     $userData = $sessionManager->validate($sessionToken);
-    
+
     if ($userData) {
-        // Session je platná - nastav globálne premenné
         $isLoggedIn = true;
-        $user = $userData;
-        $userRole = 'user'; // Môžeš neskôr pridať pole 'role' do users tabuľky
-        
-        // Ulož do PHP session pre spätnú kompatibilitu s existujúcim kódom
+        $user       = $userData;
+
+        // ✅ Derive role from is_admin flag (set by Session::validate)
+        $userRole = !empty($userData['is_admin']) ? 'admin' : 'user';
+
+        // Ulož do PHP session pre spätnú kompatibilitu
         $_SESSION['user'] = $userData;
 
     } else {
@@ -55,19 +56,16 @@ if (isset($_COOKIE[$appConfig['session']['cookie_name']])) {
 // ============================================
 
 if (!$isLoggedIn) {
-    // Tracking iba pre neprihlásených
     $visitor = new Visitor();
-    
-    // Získaj UTM parametre z URL
+
     $utmParams = [
-        'utm_source' => $_GET['utm_source'] ?? null,
-        'utm_medium' => $_GET['utm_medium'] ?? null,
+        'utm_source'   => $_GET['utm_source']   ?? null,
+        'utm_medium'   => $_GET['utm_medium']   ?? null,
         'utm_campaign' => $_GET['utm_campaign'] ?? null,
-        'utm_term' => $_GET['utm_term'] ?? null,
-        'utm_content' => $_GET['utm_content'] ?? null,
+        'utm_term'     => $_GET['utm_term']     ?? null,
+        'utm_content'  => $_GET['utm_content']  ?? null,
     ];
-    
-    // Vytvor alebo aktualizuj visitor záznam (BEZ affiliate kódu)
+
     $visitorId = $visitor->getOrCreate($utmParams);
 }
 

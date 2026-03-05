@@ -1,0 +1,393 @@
+/* ============================================
+   ADMIN PAGE — Contact Messages
+   ============================================ */
+
+.admin-wrapper {
+    max-width: 900px;
+    margin: 60px auto;
+    padding: 0 2rem 4rem;
+}
+
+/* Header */
+.admin-header {
+    margin-bottom: 2.4rem;
+}
+
+.admin-header h1 {
+    font-size: 2.8rem;
+    font-family: outfit-semibold, sans-serif;
+    color: var(--dark-blue-color, #1a1a2e);
+    margin-bottom: 0.4rem;
+}
+
+.admin-header p {
+    color: #6b7280;
+    font-size: 1.4rem;
+}
+
+/* ============================================
+   STATUS FILTER TABS
+   ============================================ */
+
+.admin-tabs {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 2.4rem;
+    flex-wrap: wrap;
+}
+
+.admin-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 1.4rem;
+    border-radius: 2rem;
+    font-size: 1.35rem;
+    font-weight: 500;
+    color: #6b7280;
+    background: #f3f4f6;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1.5px solid transparent;
+}
+
+.admin-tab:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.admin-tab.active {
+    background: #1a1a2e;
+    color: #fff;
+    border-color: #1a1a2e;
+}
+
+.admin-tab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.5rem;
+    border-radius: 1rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    background: rgba(255,255,255,0.2);
+}
+
+.admin-tab:not(.active) .admin-tab-badge {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.admin-tab-badge.badge-new {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.admin-tab.active .admin-tab-badge {
+    background: rgba(255,255,255,0.25);
+    color: #fff;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+
+.admin-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 6rem 2rem;
+    color: #9ca3af;
+    font-size: 1.5rem;
+}
+
+.admin-empty svg {
+    width: 4.8rem;
+    height: 4.8rem;
+    stroke: #d1d5db;
+}
+
+/* ============================================
+   MESSAGE CARDS
+   ============================================ */
+
+.admin-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+}
+
+.admin-message-card {
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 1.2rem;
+    padding: 2rem 2.4rem;
+    transition: box-shadow 0.2s ease;
+}
+
+.admin-message-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+}
+
+/* Card header */
+.admin-message-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.admin-message-card-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.admin-message-sender {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.admin-message-email {
+    font-size: 1.3rem;
+    color: #6b7280;
+}
+
+.admin-message-card-header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.4rem;
+}
+
+.admin-message-date {
+    font-size: 1.2rem;
+    color: #9ca3af;
+}
+
+/* Subject */
+.admin-message-subject {
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 1rem;
+    padding: 0.5rem 1rem;
+    background: #f9fafb;
+    border-radius: 0.6rem;
+    display: inline-block;
+}
+
+/* Message body */
+.admin-message-body {
+    font-size: 1.45rem;
+    color: #374151;
+    line-height: 1.65;
+    margin-bottom: 1.6rem;
+    padding-bottom: 1.6rem;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+/* Existing response */
+.admin-existing-response {
+    background: #f0fdf4;
+    border-left: 3px solid #4CAF50;
+    border-radius: 0 0.6rem 0.6rem 0;
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 1.6rem;
+    font-size: 1.35rem;
+    color: #374151;
+}
+
+.admin-existing-response strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #2E7D32;
+    font-size: 1.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* ============================================
+   STATUS BADGE
+   ============================================ */
+
+.admin-status-badge {
+    display: inline-block;
+    padding: 0.35rem 1rem;
+    border-radius: 2rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.status-new      { background: #fef3c7; color: #92400e; }
+.status-replied  { background: #dbeafe; color: #1e40af; }
+.status-resolved { background: #d1fae5; color: #065f46; }
+.status-spam     { background: #fee2e2; color: #991b1b; }
+
+/* ============================================
+   ACTIONS BAR
+   ============================================ */
+
+.admin-message-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 0;
+}
+
+.admin-status-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.admin-status-btn {
+    padding: 0.5rem 1.2rem;
+    border-radius: 2rem;
+    font-size: 1.25rem;
+    font-weight: 500;
+    border: 1.5px solid #e5e7eb;
+    background: #f9fafb;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.admin-status-btn:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.admin-status-btn.active {
+    border-color: #1a1a2e;
+    background: #1a1a2e;
+    color: #fff;
+}
+
+.admin-toggle-actions {
+    display: flex;
+    gap: 0.6rem;
+}
+
+.admin-toggle-btn {
+    padding: 0.5rem 1.2rem;
+    border-radius: 0.6rem;
+    font-size: 1.3rem;
+    border: 1.5px solid #e5e7eb;
+    background: #fff;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.admin-toggle-btn:hover,
+.admin-toggle-btn.active {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+/* ============================================
+   REPLY / NOTES SECTIONS
+   ============================================ */
+
+.admin-reply-section,
+.admin-notes-section {
+    margin-top: 1.4rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid #f3f4f6;
+}
+
+.admin-reply-section label,
+.admin-notes-section label {
+    display: block;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.7rem;
+}
+
+.admin-textarea {
+    width: 100%;
+    min-height: 10rem;
+    max-height: 22rem;
+    padding: 1rem 1.2rem;
+    font-size: 1.4rem;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 0.8rem;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+    font-family: inherit;
+    color: #374151;
+}
+
+.admin-textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+}
+
+.admin-save-btn {
+    margin-top: 0.8rem;
+    padding: 0.8rem 2rem;
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    border-radius: 0.6rem;
+    font-size: 1.35rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.admin-save-btn:hover {
+    background: #2563eb;
+}
+
+.admin-save-btn:disabled {
+    background: #93c5fd;
+    cursor: not-allowed;
+}
+
+/* ============================================
+   META INFO
+   ============================================ */
+
+.admin-message-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    margin-top: 1.2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f3f4f6;
+    font-size: 1.2rem;
+    color: #9ca3af;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 600px) {
+    .admin-message-card-header {
+        flex-direction: column;
+    }
+
+    .admin-message-card-header-right {
+        align-items: flex-start;
+    }
+
+    .admin-message-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
