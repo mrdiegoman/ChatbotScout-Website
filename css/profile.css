@@ -93,7 +93,7 @@
 
 .tab-btn.active {
     color: var(--profile-accent);
-    border-bottom: 5px solid var(--profile-accent);
+    border: 5px solid var(--profile-accent);
     background-color: white;
 }
 
@@ -242,6 +242,16 @@
 }
 
 .info-field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--profile-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.info-field-static-label {
     display: block;
     font-size: 13px;
     font-weight: 600;

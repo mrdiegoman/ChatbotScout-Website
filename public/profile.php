@@ -135,7 +135,7 @@ require '../inc/header.php';
                         
                         <!-- Name (inline edit) -->
                         <div class="info-field" id="name-field">
-                            <label>Name</label>
+                            <p class="info-field-static-label">Name</p>
                             <div class="field-display">
                                 <span id="name-display">
                                     <?php echo htmlspecialchars(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')); ?>
@@ -169,9 +169,9 @@ require '../inc/header.php';
 
                         <!-- Email (read-only) -->
                         <div class="info-field">
-                            <label>Email</label>
+                            <p class="info-field-static-label">Email</p>
                             <div class="field-display">
-                                <span><?php echo htmlspecialchars($user['email']); ?></span>
+                                <span id="email-display"><?php echo htmlspecialchars($user['email']); ?></span>
                                 <?php if ($user['is_email_verified']): ?>
                                     <span class="verified-badge">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -194,7 +194,7 @@ require '../inc/header.php';
                                 
                                 <!-- Current Password -->
                                 <div class="form-group">
-                                    <label>Current Password</label>
+                                    <p class="info-field-static-label">Current Password</p>
                                     <div class="password-wrapper">
                                         <input type="password" 
                                             id="current-password" 
@@ -213,7 +213,7 @@ require '../inc/header.php';
                                 
                                 <!-- New Password -->
                                 <div class="form-group">
-                                    <label>New Password</label>
+                                    <p class="info-field-static-label">New Password</p>
                                     <div class="password-wrapper">
                                         <input type="password" 
                                             id="new-password" 
@@ -232,7 +232,7 @@ require '../inc/header.php';
                                 
                                 <!-- Confirm Password -->
                                 <div class="form-group">
-                                    <label>Confirm New Password</label>
+                                    <p class="info-field-static-label">Confirm New Password</p>
                                     <div class="password-wrapper">
                                         <input type="password" 
                                             id="confirm-password" 
@@ -301,7 +301,7 @@ require '../inc/header.php';
                     <!-- Filters -->
                     <div class="billing-filters">
                         <div class="filter-group">
-                            <label>Date</label>
+                            <p class="info-field-static-label">Date</p>
                             <select id="date-filter">
                                 <option value="all">All</option>
                                 <option value="this-month">This Month</option>
@@ -310,7 +310,7 @@ require '../inc/header.php';
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label>Status</label>
+                            <p class="info-field-static-label">Status</p>
                             <select id="status-filter">
                                 <option value="all">All</option>
                                 <option value="succeeded">Paid</option>
@@ -320,7 +320,7 @@ require '../inc/header.php';
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label>Method</label>
+                            <p class="info-field-static-label">Method</p>
                             <select id="method-filter">
                                 <option value="all">All</option>
                                 <option value="stripe">Card</option>
@@ -502,7 +502,7 @@ require '../inc/header.php';
             </div>
 
             <div class="form-group">
-                <label>Optional: Why are you cancelling?</label>
+                <p class="info-field-static-label">Optional: Why are you cancelling?</p>
                 <select id="cancel-reason">
                     <option value="">Select a reason...</option>
                     <option value="too-expensive">Too expensive</option>
@@ -535,7 +535,7 @@ require '../inc/header.php';
             <p>If you want to recover your account later, please contact support instead.</p>
             
             <div class="form-group">
-                <label>Type "DELETE" to confirm:</label>
+                <p class="info-field-static-label">Type "DELETE" to confirm:</p>
                 <input type="text" id="delete-confirmation-input" placeholder="DELETE">
             </div>
 

@@ -356,11 +356,10 @@ a, button {
 .footer-main-content {
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     column-gap: 15rem;
     row-gap: 2rem;
     padding: 0 2rem 1rem 2rem;
-    flex-wrap: nowrap;
 }
 
 .footer-main-content-first {
@@ -483,6 +482,7 @@ a, button {
     padding: 1rem 2rem;
     width:100%;
     max-width: 1200px;
+    /* justify-content: center; */
 }
 
 .footer-main-bottom a{
@@ -752,9 +752,9 @@ a, button {
 
 @media (max-width: 764px) {
     .footer-main-content {
-        justify-content: space-between;
         column-gap: 0;
         row-gap: 0;
+        justify-content: space-between;
     }
 }
 
