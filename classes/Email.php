@@ -19,42 +19,30 @@ class Email
         $this->config = require __DIR__ . '/../config/mailtrap.php';
     }
 
-    /**
-     * Odoslanie verification emailu
-     */
+    // ============================================
+    // PUBLIC SEND METHODS
+    // ============================================
+
     public function sendVerification(string $toEmail, string $toName, string $verificationToken): bool
     {
         $verificationLink = $this->config['base_url'] . '/verifyEmail.php?token=' . $verificationToken;
-
-        $subject  = 'Verify your ChatbotHub account';
-        $htmlBody = $this->getVerificationTemplate($toName, $verificationLink);
-        $textBody = "Hi $toName,\n\nPlease verify your email by clicking this link:\n$verificationLink\n\nThis link will expire in 24 hours.";
+        $subject          = 'Verify your ChatbotHub account';
+        $htmlBody         = $this->getVerificationTemplate($toName, $verificationLink);
+        $textBody         = "Hi $toName,\n\nPlease verify your email by clicking this link:\n$verificationLink\n\nThis link will expire in 24 hours.";
 
         return $this->send($toEmail, $toName, $subject, $htmlBody, $textBody);
     }
 
-    /**
-     * Odoslanie password reset emailu
-     */
     public function sendPasswordReset(string $toEmail, string $toName, string $resetToken): bool
     {
         $resetLink = $this->config['base_url'] . '/resetPassword.php?token=' . $resetToken;
-
-        $subject  = 'Reset your ChatbotHub password';
-        $htmlBody = $this->getPasswordResetTemplate($toName, $resetLink);
-        $textBody = "Hi $toName,\n\nYou requested a password reset. Click this link to reset your password:\n$resetLink\n\nThis link will expire in 1 hour.\n\nIf you didn't request this, please ignore this email.";
+        $subject   = 'Reset your ChatbotHub password';
+        $htmlBody  = $this->getPasswordResetTemplate($toName, $resetLink);
+        $textBody  = "Hi $toName,\n\nYou requested a password reset. Click this link to reset your password:\n$resetLink\n\nThis link will expire in 1 hour.\n\nIf you didn't request this, please ignore this email.";
 
         return $this->send($toEmail, $toName, $subject, $htmlBody, $textBody);
     }
 
-    /**
-     * Odoslanie potvrdenia kontaktného formulára užívateľovi
-     *
-     * @param string $toEmail
-     * @param string $toName
-     * @param string $subject  Human-readable subject label
-     * @return bool
-     */
     public function sendContactConfirmation(string $toEmail, string $toName, string $subject): bool
     {
         $emailSubject = 'We received your message – ChatbotHub';
@@ -65,8 +53,31 @@ class Email
     }
 
     /**
-     * Hlavná send funkcia cez SMTP
+     * Admin reply to a contact message
+     *
+     * @param string $toEmail      Recipient email
+     * @param string $toName       Recipient full name
+     * @param string $originalSubject  Original message subject
+     * @param string $replyText    Admin reply content
+     * @return bool
      */
+    public function sendAdminReply(
+        string $toEmail,
+        string $toName,
+        string $originalSubject,
+        string $replyText
+    ): bool {
+        $emailSubject = 'Re: ' . $originalSubject . ' – ChatbotHub';
+        $htmlBody     = $this->getAdminReplyTemplate($toName, $originalSubject, $replyText);
+        $textBody     = "Hi $toName,\n\nThank you for contacting us. Here is our response to your inquiry regarding \"$originalSubject\":\n\n$replyText\n\nBest regards,\nThe ChatbotHub Team";
+
+        return $this->send($toEmail, $toName, $emailSubject, $htmlBody, $textBody);
+    }
+
+    // ============================================
+    // PRIVATE SEND
+    // ============================================
+
     private function send(
         string $toEmail,
         string $toName,
@@ -111,14 +122,13 @@ class Email
         return <<<HTML
         <!DOCTYPE html>
         <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .button { display: inline-block; padding: 12px 30px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-                .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
-            </style>
+        <head><meta charset="UTF-8">
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .button { display: inline-block; padding: 12px 30px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
+        </style>
         </head>
         <body>
             <div class="container">
@@ -144,14 +154,13 @@ class Email
         return <<<HTML
         <!DOCTYPE html>
         <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .button { display: inline-block; padding: 12px 30px; background-color: #2196F3; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-                .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
-            </style>
+        <head><meta charset="UTF-8">
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .button { display: inline-block; padding: 12px 30px; background-color: #2196F3; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
+        </style>
         </head>
         <body>
             <div class="container">
@@ -177,14 +186,13 @@ class Email
         return <<<HTML
         <!DOCTYPE html>
         <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .badge { display: inline-block; padding: 6px 14px; background-color: #f0f4ff; color: #3b82f6; border-radius: 20px; font-size: 13px; font-weight: 600; margin: 8px 0 16px; }
-                .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
-            </style>
+        <head><meta charset="UTF-8">
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .badge { display: inline-block; padding: 6px 14px; background-color: #f0f4ff; color: #3b82f6; border-radius: 20px; font-size: 13px; font-weight: 600; margin: 8px 0 16px; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
+        </style>
         </head>
         <body>
             <div class="container">
@@ -196,6 +204,40 @@ class Email
                 <p>If your matter is urgent, please note that we prioritize all incoming messages and will do our best to respond as quickly as possible.</p>
                 <div class="footer">
                     <p>Please do not reply to this email — it was sent automatically.</p>
+                    <p>&copy; 2025 ChatbotHub. All rights reserved.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        HTML;
+    }
+
+    private function getAdminReplyTemplate(string $name, string $originalSubject, string $replyText): string
+    {
+        $replyHtml = nl2br(htmlspecialchars($replyText));
+
+        return <<<HTML
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="UTF-8">
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .subject-badge { display: inline-block; padding: 6px 14px; background-color: #f0f4ff; color: #3b82f6; border-radius: 20px; font-size: 13px; font-weight: 600; margin: 4px 0 20px; }
+            .reply-box { background-color: #f9fafb; border-left: 4px solid #3b82f6; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; color: #374151; font-size: 15px; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
+        </style>
+        </head>
+        <body>
+            <div class="container">
+                <h2>We replied to your inquiry ✉️</h2>
+                <p>Hi <strong>$name</strong>,</p>
+                <p>Thank you for contacting us. Here is our response regarding:</p>
+                <span class="subject-badge">$originalSubject</span>
+                <div class="reply-box">$replyHtml</div>
+                <p>If you have any further questions, feel free to contact us again via our <a href="{$this->config['base_url']}/contact.php">contact form</a>.</p>
+                <div class="footer">
+                    <p>Please do not reply to this email — use our contact form for further inquiries.</p>
                     <p>&copy; 2025 ChatbotHub. All rights reserved.</p>
                 </div>
             </div>

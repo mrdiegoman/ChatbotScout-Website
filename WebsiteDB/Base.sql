@@ -508,22 +508,22 @@ CREATE TABLE `reviews` (
 
 -- ============================================
 
-CREATE TABLE `review_helpfulness` (
-  `id` CHAR(36) NOT NULL COMMENT 'Vote UUID, e.g., "250e8400-e29b-41d4-a716-446655440013", "1k2l3m4n-5o6p-7q8r-9s0t-1u2v3w4x5y6z"',
-  `review_id` CHAR(36) NOT NULL COMMENT 'Review UUID, e.g., "150e8400-e29b-41d4-a716-446655440012", "0j1k2l3m-4n5o-6p7q-8r9s-0t1u2v3w4x5y"',
-  `user_id` CHAR(36) NOT NULL COMMENT 'Voter UUID, e.g., "550e8400-e29b-41d4-a716-446655440000", "7c9e6679-7425-40de-944b-e07fc1f90ae7"',
-  `is_helpful` BOOLEAN NOT NULL COMMENT 'Vote value, e.g., TRUE (helpful), FALSE (not helpful)',
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Voted at, e.g., "2025-01-16 12:00:00", "2025-01-22 15:30:00"',
-
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_review_user` (`review_id`, `user_id`),
-  KEY `idx_user` (`user_id`),
-
-  CONSTRAINT `fk_helpfulness_review` FOREIGN KEY (`review_id`)
-    REFERENCES `reviews` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_helpfulness_user` FOREIGN KEY (`user_id`)
-    REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+# CREATE TABLE `review_helpfulness` (
+#   `id` CHAR(36) NOT NULL COMMENT 'Vote UUID, e.g., "250e8400-e29b-41d4-a716-446655440013", "1k2l3m4n-5o6p-7q8r-9s0t-1u2v3w4x5y6z"',
+#   `review_id` CHAR(36) NOT NULL COMMENT 'Review UUID, e.g., "150e8400-e29b-41d4-a716-446655440012", "0j1k2l3m-4n5o-6p7q-8r9s-0t1u2v3w4x5y"',
+#   `user_id` CHAR(36) NOT NULL COMMENT 'Voter UUID, e.g., "550e8400-e29b-41d4-a716-446655440000", "7c9e6679-7425-40de-944b-e07fc1f90ae7"',
+#   `is_helpful` BOOLEAN NOT NULL COMMENT 'Vote value, e.g., TRUE (helpful), FALSE (not helpful)',
+#   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Voted at, e.g., "2025-01-16 12:00:00", "2025-01-22 15:30:00"',
+#
+#   PRIMARY KEY (`id`),
+#   UNIQUE KEY `idx_review_user` (`review_id`, `user_id`),
+#   KEY `idx_user` (`user_id`),
+#
+#   CONSTRAINT `fk_helpfulness_review` FOREIGN KEY (`review_id`)
+#     REFERENCES `reviews` (`id`) ON DELETE CASCADE,
+#   CONSTRAINT `fk_helpfulness_user` FOREIGN KEY (`user_id`)
+#     REFERENCES `users` (`id`) ON DELETE CASCADE
+# ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
 -- FAVORITES
@@ -963,6 +963,7 @@ CREATE TABLE `contact_messages` (
 
   -- Status & Assignment
   `status` ENUM('new', 'resolved', 'replied', 'spam') NOT NULL DEFAULT 'new',
+  `helpful` BOOLEAN NOT NULL DEFAULT FALSE,
   `assigned_to_admin_id` CHAR(36) NULL COMMENT 'Assigned admin UUID, NULL if unassigned',
 
   -- Response
@@ -1127,10 +1128,10 @@ INSERT INTO `listing_plans` (`id`, `name`, `slug`, `description`, `max_screensho
 (UUID(), 'Premium Listing', 'premium-listing', 'Stand out with premium features and visibility', 10, TRUE, TRUE, TRUE, TRUE, FALSE, TRUE);
 
 -- Insert promotion slots
-INSERT INTO `promotion_slots` (`id`, `name`, `identifier`, `slot_type`, `page_location`, `position`, `max_concurrent`, `dimensions`) VALUES
-(UUID(), 'Homepage Hero', 'homepage_hero', 'homepage_hero', 'homepage', 1, 1, '1200x400'),
-(UUID(), 'Category Top Banner', 'category_top', 'category_featured', 'category', 1, 2, '728x90'),
-(UUID(), 'Sidebar Featured', 'sidebar_featured', 'sidebar', 'all', 1, 3, '300x250');
+# INSERT INTO `promotion_slots` (`id`, `name`, `identifier`, `slot_type`, `page_location`, `position`, `max_concurrent`, `dimensions`) VALUES
+# (UUID(), 'Homepage Hero', 'homepage_hero', 'homepage_hero', 'homepage', 1, 1, '1200x400'),
+# (UUID(), 'Category Top Banner', 'category_top', 'category_featured', 'category', 1, 2, '728x90'),
+# (UUID(), 'Sidebar Featured', 'sidebar_featured', 'sidebar', 'all', 1, 3, '300x250');
 
 -- Insert default categories
 # INSERT INTO `categories` (`id`, `name`, `slug`, `description`, `display_order`) VALUES
@@ -1348,19 +1349,19 @@ END//
 -- ============================================
 
 -- Mark affiliate click as converted
-CREATE TRIGGER `trg_affiliate_commission_insert` AFTER INSERT ON `affiliate_commissions`
-FOR EACH ROW
-BEGIN
-  -- If commission has a related click, mark it as converted
-  IF NEW.affiliate_click_id IS NOT NULL THEN
-    UPDATE `affiliate_clicks`
-    SET `converted` = TRUE,
-        `conversion_date` = NEW.commission_date,
-        `estimated_commission` = NEW.commission_amount
-    WHERE `id` = NEW.affiliate_click_id
-      AND `converted` = FALSE;
-  END IF;
-END//
+# CREATE TRIGGER `trg_affiliate_commission_insert` AFTER INSERT ON `affiliate_commissions`
+# FOR EACH ROW
+# BEGIN
+#   -- If commission has a related click, mark it as converted
+#   IF NEW.affiliate_click_id IS NOT NULL THEN
+#     UPDATE `affiliate_clicks`
+#     SET `converted` = TRUE,
+#         `conversion_date` = NEW.commission_date,
+#         `estimated_commission` = NEW.commission_amount
+#     WHERE `id` = NEW.affiliate_click_id
+#       AND `converted` = FALSE;
+#   END IF;
+# END//
 
 DELIMITER ;
 
@@ -1379,34 +1380,32 @@ SELECT
   SUM(
     CASE s.subscription_type
       WHEN 'listing' THEN lpp.price
-      WHEN 'promotion' THEN psp.price
     END
   ) as total_revenue
 FROM `subscriptions` s
 LEFT JOIN `listing_plan_prices` lpp ON s.listing_price_id = lpp.id
-LEFT JOIN `promotion_slot_prices` psp ON s.promotion_slot_price_id = psp.id
 GROUP BY DATE(s.start_date), s.subscription_type, s.status;
 
 -- View for admin dashboard - affiliate performance
-CREATE OR REPLACE VIEW `v_affiliate_performance` AS
-SELECT
-  c.id as chatbot_id,
-  c.name as chatbot_name,
-  COUNT(DISTINCT ac.id) as total_clicks,
-  COUNT(DISTINCT CASE WHEN ac.converted = TRUE THEN ac.id END) as conversions,
-  COALESCE(
-    COUNT(DISTINCT CASE WHEN ac.converted = TRUE THEN ac.id END) /
-    NULLIF(COUNT(DISTINCT ac.id), 0) * 100,
-    0
-  ) as conversion_rate,
-  COUNT(DISTINCT acom.id) as total_commissions,
-  COALESCE(SUM(acom.commission_amount), 0) as total_commission_amount,
-  COALESCE(SUM(CASE WHEN acom.status = 'paid' THEN acom.commission_amount ELSE 0 END), 0) as paid_commission_amount
-FROM `chatbots` c
-LEFT JOIN `affiliate_clicks` ac ON c.id = ac.chatbot_id
-LEFT JOIN `affiliate_commissions` acom ON c.id = acom.chatbot_id
-WHERE c.has_affiliate_program = TRUE
-GROUP BY c.id, c.name;
+# CREATE OR REPLACE VIEW `v_affiliate_performance` AS
+# SELECT
+#   c.id as chatbot_id,
+#   c.name as chatbot_name,
+#   COUNT(DISTINCT ac.id) as total_clicks,
+#   COUNT(DISTINCT CASE WHEN ac.converted = TRUE THEN ac.id END) as conversions,
+#   COALESCE(
+#     COUNT(DISTINCT CASE WHEN ac.converted = TRUE THEN ac.id END) /
+#     NULLIF(COUNT(DISTINCT ac.id), 0) * 100,
+#     0
+#   ) as conversion_rate,
+#   COUNT(DISTINCT acom.id) as total_commissions,
+#   COALESCE(SUM(acom.commission_amount), 0) as total_commission_amount,
+#   COALESCE(SUM(CASE WHEN acom.status = 'paid' THEN acom.commission_amount ELSE 0 END), 0) as paid_commission_amount
+# FROM `chatbots` c
+# LEFT JOIN `affiliate_clicks` ac ON c.id = ac.chatbot_id
+# LEFT JOIN `affiliate_commissions` acom ON c.id = acom.chatbot_id
+# WHERE c.has_affiliate_program = TRUE
+# GROUP BY c.id, c.name;
 
 -- View for active promotions (for displaying on site)
 CREATE OR REPLACE VIEW `v_active_promotions` AS
@@ -1415,16 +1414,11 @@ SELECT
   c.name as chatbot_name,
   c.logo_url as chatbot_logo,
   c.affiliate_link as chatbot_link,
-  ps.name as slot_name,
-  ps.slot_type,
-  ps.page_location,
-  ps.position
 FROM `promotions` p
 JOIN `chatbots` c ON p.chatbot_id = c.id
-JOIN `promotion_slots` ps ON p.promotion_slot_id = ps.id
 WHERE p.status = 'active'
   AND NOW() BETWEEN p.start_date AND p.end_date
-ORDER BY ps.position, p.display_order;
+ORDER BY p.display_order;
 
 -- ============================================
 -- INDEXES FOR PERFORMANCE
@@ -1437,16 +1431,16 @@ CREATE INDEX `idx_subscriptions_active_chatbot`
   ON `subscriptions` (`chatbot_id`, `status`, `end_date`);
 
 -- Find active promotions by slot
-CREATE INDEX `idx_promotions_active_slot`
-  ON `promotions` (`promotion_slot_id`, `status`, `display_order`);
+# CREATE INDEX `idx_promotions_active_slot`
+#   ON `promotions` (`promotion_slot_id`, `status`, `display_order`);
 
 -- Find recent payments by user
 CREATE INDEX `idx_payments_recent_user`
   ON `payments` (`user_id`, `created_at`, `status`);
 
 -- Find affiliate clicks for conversion tracking
-CREATE INDEX `idx_affiliate_clicks_tracking`
-  ON `affiliate_clicks` (`cookie_id`, `converted`, `clicked_at`);
+# CREATE INDEX `idx_affiliate_clicks_tracking`
+#   ON `affiliate_clicks` (`cookie_id`, `converted`, `clicked_at`);
 
 SET FOREIGN_KEY_CHECKS = 1;
 

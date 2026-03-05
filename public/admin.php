@@ -11,7 +11,9 @@ $db = Database::getInstance()->getConnection();
 // ============================================
 
 $allowedStatuses = ['all', 'new', 'replied', 'resolved', 'spam'];
-$filterStatus    = $_GET['status'] ?? 'all';
+$filterStatus    = $_GET['status']  ?? 'all';
+$filterHelpful   = isset($_GET['helpful']); // ?helpful flag
+
 if (!in_array($filterStatus, $allowedStatuses, true)) {
     $filterStatus = 'all';
 }
@@ -20,12 +22,24 @@ if (!in_array($filterStatus, $allowedStatuses, true)) {
 // FETCH MESSAGES
 // ============================================
 
-$whereClause = $filterStatus !== 'all' ? 'WHERE status = :status' : '';
+$whereParts = [];
+$params     = [];
+
+if ($filterStatus !== 'all') {
+    $whereParts[] = 'status = :status';
+    $params['status'] = $filterStatus;
+}
+
+if ($filterHelpful) {
+    $whereParts[] = 'helpful = 1';
+}
+
+$whereClause = !empty($whereParts) ? 'WHERE ' . implode(' AND ', $whereParts) : '';
 
 $stmt = $db->prepare("
     SELECT
         id, first_name, last_name, email, subject, message,
-        status, response, internal_notes, ip_address,
+        status, helpful, response, internal_notes, ip_address,
         created_at, first_responded_at, resolved_at
     FROM contact_messages
     $whereClause
@@ -34,23 +48,14 @@ $stmt = $db->prepare("
         created_at DESC
 ");
 
-if ($filterStatus !== 'all') {
-    $stmt->execute(['status' => $filterStatus]);
-} else {
-    $stmt->execute();
-}
-
+$stmt->execute($params);
 $messages = $stmt->fetchAll();
 
 // ============================================
 // COUNTS PER STATUS
 // ============================================
 
-$countStmt = $db->query("
-    SELECT status, COUNT(*) as cnt
-    FROM contact_messages
-    GROUP BY status
-");
+$countStmt = $db->query("SELECT status, COUNT(*) as cnt FROM contact_messages GROUP BY status");
 $rawCounts = $countStmt->fetchAll();
 
 $counts = ['all' => 0, 'new' => 0, 'replied' => 0, 'resolved' => 0, 'spam' => 0];
@@ -58,6 +63,9 @@ foreach ($rawCounts as $row) {
     $counts[$row['status']] = (int)$row['cnt'];
     $counts['all'] += (int)$row['cnt'];
 }
+
+// Helpful count
+$helpfulCount = (int)$db->query("SELECT COUNT(*) FROM contact_messages WHERE helpful = 1")->fetchColumn();
 
 require '../inc/header.php';
 ?>
@@ -74,14 +82,19 @@ require '../inc/header.php';
     <!-- Status filter tabs -->
     <div class="admin-tabs">
         <?php foreach (['all' => 'All', 'new' => 'New', 'replied' => 'Replied', 'resolved' => 'Resolved', 'spam' => 'Spam'] as $key => $label): ?>
-            <a href="?status=<?= $key ?>"
-               class="admin-tab <?= $filterStatus === $key ? 'active' : '' ?>">
+            <a href="?status=<?= $key ?>" class="admin-tab <?= $filterStatus === $key && !$filterHelpful ? 'active' : '' ?>">
                 <?= $label ?>
                 <span class="admin-tab-badge <?= $key === 'new' ? 'badge-new' : '' ?>">
                     <?= $counts[$key] ?>
                 </span>
             </a>
         <?php endforeach; ?>
+        <a href="?helpful" class="admin-tab admin-tab-helpful <?= $filterHelpful ? 'active' : '' ?>">
+            ⭐ Helpful
+            <span class="admin-tab-badge badge-helpful">
+                <?= $helpfulCount ?>
+            </span>
+        </a>
     </div>
 
     <!-- Messages list -->
@@ -95,14 +108,20 @@ require '../inc/header.php';
             </div>
         <?php else: ?>
             <?php foreach ($messages as $msg): ?>
-                <div class="admin-message-card" data-id="<?= htmlspecialchars($msg['id']) ?>">
+                <?php $msgId = htmlspecialchars($msg['id']); ?>
+                <div class="admin-message-card <?= $msg['helpful'] ? 'is-helpful' : '' ?>" data-id="<?= $msgId ?>">
 
                     <!-- Card header -->
                     <div class="admin-message-card-header">
                         <div class="admin-message-card-header-left">
-                            <span class="admin-message-sender">
-                                <?= htmlspecialchars($msg['first_name'] . ' ' . $msg['last_name']) ?>
-                            </span>
+                            <div class="admin-message-sender-row">
+                                <span class="admin-message-sender">
+                                    <?= htmlspecialchars($msg['first_name'] . ' ' . $msg['last_name']) ?>
+                                </span>
+                                <?php if ($msg['helpful']): ?>
+                                    <span class="admin-helpful-badge">⭐ Helpful</span>
+                                <?php endif; ?>
+                            </div>
                             <span class="admin-message-email">
                                 <?= htmlspecialchars($msg['email']) ?>
                             </span>
@@ -129,7 +148,7 @@ require '../inc/header.php';
                         <?= nl2br(htmlspecialchars($msg['message'])) ?>
                     </div>
 
-                    <!-- Existing response (if any) -->
+                    <!-- Existing response -->
                     <?php if ($msg['response']): ?>
                         <div class="admin-existing-response">
                             <strong>Your response:</strong>
@@ -137,7 +156,7 @@ require '../inc/header.php';
                         </div>
                     <?php endif; ?>
 
-                    <!-- Actions -->
+                    <!-- Actions bar -->
                     <div class="admin-message-actions">
 
                         <!-- Status buttons -->
@@ -146,41 +165,49 @@ require '../inc/header.php';
                                 <button
                                     class="admin-status-btn <?= $msg['status'] === $s ? 'active' : '' ?>"
                                     data-status="<?= $s ?>"
-                                    onclick="updateStatus('<?= htmlspecialchars($msg['id']) ?>', '<?= $s ?>', this)">
+                                    onclick="updateStatus('<?= $msgId ?>', '<?= $s ?>', this)">
                                     <?= $label ?>
                                 </button>
                             <?php endforeach; ?>
                         </div>
 
-                        <!-- Toggle reply / notes -->
+                        <!-- Toggle buttons -->
                         <div class="admin-toggle-actions">
-                            <button class="admin-toggle-btn" onclick="toggleSection(this, 'reply-<?= htmlspecialchars($msg['id']) ?>')">
+                            <button
+                                class="admin-helpful-btn <?= $msg['helpful'] ? 'active' : '' ?>"
+                                onclick="toggleHelpful('<?= $msgId ?>', this)"
+                                title="Mark as helpful">
+                                ⭐ Helpful
+                            </button>
+                            <button class="admin-toggle-btn" onclick="toggleSection(this, 'reply-<?= $msgId ?>')">
                                 ✏️ Reply
                             </button>
-                            <button class="admin-toggle-btn" onclick="toggleSection(this, 'notes-<?= htmlspecialchars($msg['id']) ?>')">
+                            <button class="admin-toggle-btn" onclick="toggleSection(this, 'notes-<?= $msgId ?>')">
                                 📝 Notes
                             </button>
                         </div>
                     </div>
 
                     <!-- Reply section -->
-                    <div class="admin-reply-section" id="reply-<?= htmlspecialchars($msg['id']) ?>" style="display:none;">
-                        <label>Reply to <?= htmlspecialchars($msg['first_name']) ?>:</label>
+                    <div class="admin-reply-section" id="reply-<?= $msgId ?>" style="display:none;">
+                        <label>Reply to <?= htmlspecialchars($msg['first_name']) ?>
+                            <span class="admin-reply-hint">(email will be sent to <?= htmlspecialchars($msg['email']) ?>)</span>
+                        </label>
                         <textarea
                             class="admin-textarea"
                             placeholder="Write your reply here..."><?= htmlspecialchars($msg['response'] ?? '') ?></textarea>
-                        <button class="admin-save-btn" onclick="saveReply('<?= htmlspecialchars($msg['id']) ?>', this)">
-                            Save Reply
+                        <button class="admin-save-btn" onclick="sendReply('<?= $msgId ?>', this)">
+                            📨 Send Reply
                         </button>
                     </div>
 
-                    <!-- Internal notes section -->
-                    <div class="admin-notes-section" id="notes-<?= htmlspecialchars($msg['id']) ?>" style="display:none;">
-                        <label>Internal Notes (not visible to user):</label>
+                    <!-- Notes section -->
+                    <div class="admin-notes-section" id="notes-<?= $msgId ?>" style="display:none;">
+                        <label>Internal Notes <span class="admin-reply-hint">(not visible to user)</span></label>
                         <textarea
                             class="admin-textarea"
                             placeholder="Add internal notes here..."><?= htmlspecialchars($msg['internal_notes'] ?? '') ?></textarea>
-                        <button class="admin-save-btn" onclick="saveNotes('<?= htmlspecialchars($msg['id']) ?>', this)">
+                        <button class="admin-save-btn" onclick="saveNotes('<?= $msgId ?>', this)">
                             Save Notes
                         </button>
                     </div>

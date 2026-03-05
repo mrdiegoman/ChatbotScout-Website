@@ -71,15 +71,13 @@ async function updateStatus(id, status, clickedBtn) {
         const result = await response.json();
 
         if (result.success) {
-            // Update active button in this card
             const card = clickedBtn.closest('.admin-message-card');
             card.querySelectorAll('.admin-status-btn').forEach(b => b.classList.remove('active'));
             clickedBtn.classList.add('active');
 
-            // Update status badge
             const badge = card.querySelector('.admin-status-badge');
             if (badge) {
-                badge.className = `admin-status-badge status-${status}`;
+                badge.className  = `admin-status-badge status-${status}`;
                 badge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
             }
 
@@ -94,39 +92,40 @@ async function updateStatus(id, status, clickedBtn) {
 }
 
 // ============================================
-// SAVE REPLY
+// SEND REPLY (with email)
 // ============================================
 
-async function saveReply(id, btn) {
+async function sendReply(id, btn) {
     const section  = document.getElementById(`reply-${id}`);
     const textarea = section.querySelector('textarea');
     const response = textarea.value.trim();
 
+    // Empty guard — do not send
     if (!response) {
-        showNotification('Reply cannot be empty.', 'error');
+        showNotification('Reply is empty — nothing was sent.', 'error');
         return;
     }
 
     btn.disabled    = true;
-    btn.textContent = 'Saving...';
+    btn.textContent = 'Sending...';
 
     try {
         const res = await fetch('../app/adminContactActions.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'reply', id, response })
+            body: JSON.stringify({ action: 'send_reply', id, response })
         });
 
         const result = await res.json();
 
         if (result.success) {
-            showNotification('Reply saved successfully!', 'success');
+            showNotification('Reply sent successfully!', 'success');
 
             // Update status badge to "replied"
             const card  = btn.closest('.admin-message-card');
             const badge = card.querySelector('.admin-status-badge');
             if (badge) {
-                badge.className  = 'admin-status-badge status-replied';
+                badge.className   = 'admin-status-badge status-replied';
                 badge.textContent = 'Replied';
             }
 
@@ -145,14 +144,14 @@ async function saveReply(id, btn) {
             responseBlock.innerHTML = `<strong>Your response:</strong><p>${response.replace(/\n/g, '<br>')}</p>`;
 
         } else {
-            showNotification(result.message || 'Failed to save reply', 'error');
+            showNotification(result.message || 'Failed to send reply', 'error');
         }
     } catch (err) {
         showNotification('Something went wrong. Please try again.', 'error');
         console.error(err);
     } finally {
         btn.disabled    = false;
-        btn.textContent = 'Save Reply';
+        btn.textContent = '📨 Send Reply';
     }
 }
 
@@ -188,5 +187,61 @@ async function saveNotes(id, btn) {
     } finally {
         btn.disabled    = false;
         btn.textContent = 'Save Notes';
+    }
+}
+
+// ============================================
+// TOGGLE HELPFUL
+// ============================================
+
+async function toggleHelpful(id, btn) {
+    btn.disabled = true;
+
+    try {
+        const res = await fetch('../app/adminContactActions.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'toggle_helpful', id })
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+            const card     = btn.closest('.admin-message-card');
+            const isHelpful = result.helpful;
+
+            // Toggle button style
+            btn.classList.toggle('active', isHelpful);
+
+            // Toggle card highlight
+            card.classList.toggle('is-helpful', isHelpful);
+
+            // Toggle badge in header
+            const senderRow = card.querySelector('.admin-message-sender-row');
+            let badge = senderRow.querySelector('.admin-helpful-badge');
+
+            if (isHelpful) {
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className   = 'admin-helpful-badge';
+                    badge.textContent = '⭐ Helpful';
+                    senderRow.appendChild(badge);
+                }
+            } else {
+                if (badge) badge.remove();
+            }
+
+            showNotification(
+                isHelpful ? 'Marked as helpful ⭐' : 'Helpful mark removed',
+                'success'
+            );
+        } else {
+            showNotification(result.message || 'Failed to update', 'error');
+        }
+    } catch (err) {
+        showNotification('Something went wrong. Please try again.', 'error');
+        console.error(err);
+    } finally {
+        btn.disabled = false;
     }
 }

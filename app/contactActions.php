@@ -12,9 +12,14 @@
 
 require '../inc/bootstrap.php';
 
-$contactUrl = $appConfig['base_url'] . '/contact.php';
 
+$contactUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
+    . '://' . $_SERVER['HTTP_HOST']
+    . '/mainwebsite/public/contact.php';
+// $contactUrl = $appConfig['base_url'] . '/contact.php';
+// error_log('base url: ' . $appConfig['base_url']);
 
+error_log($appConfig['base_url']);
 // Only POST allowed
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: ' . $contactUrl);
@@ -57,14 +62,14 @@ if (!$rateLimiter->check('contact_form', $ipAddress)) {
 
 $errors = [];
 
-if (empty($firstName) || strlen($firstName) < 2) {
-    $errors[] = 'First name must be at least 2 characters.';
+if (empty($firstName) || strlen($firstName) < 1) {
+    $errors[] = 'First name is required.';
 } elseif (strlen($firstName) > 50) {
     $errors[] = 'First name cannot exceed 50 characters.';
 }
 
-if (empty($lastName) || strlen($lastName) < 2) {
-    $errors[] = 'Last name must be at least 2 characters.';
+if (empty($lastName) || strlen($lastName) < 1) {
+    $errors[] = 'Last name is required.';
 } elseif (strlen($lastName) > 50) {
     $errors[] = 'Last name cannot exceed 50 characters.';
 }

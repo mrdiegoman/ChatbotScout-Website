@@ -5,7 +5,7 @@
 .admin-wrapper {
     max-width: 900px;
     margin: 60px auto;
-    padding: 0 2rem 4rem;
+    padding: 2rem 2rem 4rem;
 }
 
 /* Header */
@@ -390,4 +390,87 @@
         flex-direction: column;
         align-items: flex-start;
     }
+}
+
+/* ============================================
+   HELPFUL
+   ============================================ */
+
+.admin-message-card.is-helpful {
+    border-color: #fbbf24;
+    background: #fffdf0;
+}
+
+.admin-message-sender-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.admin-helpful-badge {
+    display: inline-block;
+    padding: 0.2rem 0.8rem;
+    background: #fef3c7;
+    color: #92400e;
+    border-radius: 2rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.admin-helpful-btn {
+    padding: 0.5rem 1.2rem;
+    border-radius: 2rem;
+    font-size: 1.25rem;
+    font-weight: 500;
+    border: 1.5px solid #e5e7eb;
+    background: #f9fafb;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.admin-helpful-btn:hover {
+    background: #fef3c7;
+    border-color: #fbbf24;
+    color: #92400e;
+}
+
+.admin-helpful-btn.active {
+    background: #fef3c7;
+    border-color: #fbbf24;
+    color: #92400e;
+}
+
+.admin-reply-hint {
+    font-size: 1.15rem;
+    font-weight: 400;
+    color: #9ca3af;
+    margin-left: 0.4rem;
+}
+
+.admin-tab-helpful {
+    border: 1.5px solid #fbbf24;
+    color: #92400e;
+    background: #fffbeb;
+}
+
+.admin-tab-helpful:hover {
+    background: #fef3c7;
+}
+
+.admin-tab-helpful.active {
+    background: #f59e0b;
+    border-color: #f59e0b;
+    color: #fff;
+}
+
+.badge-helpful {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.admin-tab-helpful.active .badge-helpful {
+    background: rgba(255,255,255,0.3);
+    color: #fff;
 }

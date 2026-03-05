@@ -116,10 +116,6 @@ $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User'
                         </a>
                     </div>
                 </div>
-
-                <?php if ($userRole === 'admin'): ?>
-                    <a href="admin.php" class="header-main-right-admin">⚙️ Admin</a>
-                <?php endif; ?>
             <?php endif; ?>
         </div>
 

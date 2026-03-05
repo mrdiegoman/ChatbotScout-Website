@@ -14,10 +14,6 @@ Google sign up
 
 Stripe -> nakup, visa, paypal, apple-pay (celkove zobrazenie tj. inputy)
 
-zobrazenie kolko filtrov je zapnutych na filter button
-
-vypocitanie zostavajucich chatbotov pre kazdu feature vo filtri, apply filters sfunkcnit
-
 admin panel kde budu aktiven reviews ktore bude moct dat 'approved', 'rejected', 'flagged', 'removed'
 
 trigger ak user ma viac ako 5 reviews approved tak mu prida verified reviewer na true 
