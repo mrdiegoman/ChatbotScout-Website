@@ -14,9 +14,11 @@ Google sign up
 
 Stripe -> nakup, visa, paypal, apple-pay (celkove zobrazenie tj. inputy)
 
-admin panel kde budu aktiven reviews ktore bude moct dat 'approved', 'rejected', 'flagged', 'removed'
+pridat v chatbots grid max limit chatbotov na stranke
 
 trigger ak user ma viac ako 5 reviews approved tak mu prida verified reviewer na true 
+
+refresh button v admin paneli pre messages a reviews
 
 REDIS COMMANDY:
     redis-cli

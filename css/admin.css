@@ -1,5 +1,5 @@
 /* ============================================
-   ADMIN PAGE — Contact Messages
+   ADMIN PAGE
    ============================================ */
 
 .admin-wrapper {
@@ -8,7 +8,6 @@
     padding: 2rem 2rem 4rem;
 }
 
-/* Header */
 .admin-header {
     margin-bottom: 2.4rem;
 }
@@ -26,7 +25,76 @@
 }
 
 /* ============================================
-   STATUS FILTER TABS
+   MAIN TABS (Messages / Reviews) — like profile
+   ============================================ */
+
+.admin-main-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 2.8rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.admin-main-tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    background: none;
+    border: none;
+    padding: 1.1rem 2rem;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #6b7280;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    position: relative;
+    bottom: -2px;
+    transition: all 0.2s ease;
+    border-radius: 0.8rem 0.8rem 0 0;
+}
+
+.admin-main-tab-btn:hover {
+    color: #374151;
+    background: rgba(0,0,0,0.02);
+}
+
+.admin-main-tab-btn.active {
+    color: #3b82f6;
+    border-bottom-color: #3b82f6;
+    background: white;
+}
+
+.admin-main-tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.5rem;
+    background: #fee2e2;
+    color: #991b1b;
+    border-radius: 1rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+/* Tab panes */
+.admin-tab-pane {
+    display: none;
+}
+
+.admin-tab-pane.active {
+    display: block;
+    animation: adminFadeIn 0.2s ease;
+}
+
+@keyframes adminFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================
+   STATUS FILTER TABS (sub-tabs inside pane)
    ============================================ */
 
 .admin-tabs {
@@ -51,10 +119,7 @@
     border: 1.5px solid transparent;
 }
 
-.admin-tab:hover {
-    background: #e5e7eb;
-    color: #374151;
-}
+.admin-tab:hover { background: #e5e7eb; color: #374151; }
 
 .admin-tab.active {
     background: #1a1a2e;
@@ -72,23 +137,31 @@
     border-radius: 1rem;
     font-size: 1.1rem;
     font-weight: 700;
-    background: rgba(255,255,255,0.2);
-}
-
-.admin-tab:not(.active) .admin-tab-badge {
     background: #e5e7eb;
     color: #374151;
-}
-
-.admin-tab-badge.badge-new {
-    background: #fef3c7;
-    color: #92400e;
 }
 
 .admin-tab.active .admin-tab-badge {
     background: rgba(255,255,255,0.25);
     color: #fff;
 }
+
+.badge-new     { background: #fef3c7; color: #92400e; }
+.badge-helpful { background: #fef3c7; color: #92400e; }
+
+.admin-tab.active .badge-new,
+.admin-tab.active .badge-helpful {
+    background: rgba(255,255,255,0.3);
+    color: #fff;
+}
+
+.admin-tab-helpful {
+    border-color: #fbbf24;
+    color: #92400e;
+    background: #fffbeb;
+}
+.admin-tab-helpful:hover  { background: #fef3c7; }
+.admin-tab-helpful.active { background: #f59e0b; border-color: #f59e0b; color: #fff; }
 
 /* ============================================
    EMPTY STATE
@@ -104,21 +177,13 @@
     font-size: 1.5rem;
 }
 
-.admin-empty svg {
-    width: 4.8rem;
-    height: 4.8rem;
-    stroke: #d1d5db;
-}
+.admin-empty svg { width: 4.8rem; height: 4.8rem; stroke: #d1d5db; }
 
 /* ============================================
-   MESSAGE CARDS
+   MESSAGE / REVIEW CARDS
    ============================================ */
 
-.admin-messages {
-    display: flex;
-    flex-direction: column;
-    gap: 1.6rem;
-}
+.admin-messages { display: flex; flex-direction: column; gap: 1.6rem; }
 
 .admin-message-card {
     background: #fff;
@@ -128,8 +193,11 @@
     transition: box-shadow 0.2s ease;
 }
 
-.admin-message-card:hover {
-    box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+.admin-message-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
+
+.admin-message-card.is-helpful {
+    border-color: #fbbf24;
+    background: #fffdf0;
 }
 
 /* Card header */
@@ -142,36 +210,21 @@
     margin-bottom: 1.2rem;
 }
 
-.admin-message-card-header-left {
+.admin-message-card-header-left  { display: flex; flex-direction: column; gap: 0.3rem; }
+.admin-message-card-header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; }
+
+.admin-message-sender-row {
     display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
 }
 
-.admin-message-sender {
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: #111827;
-}
+.admin-message-sender { font-size: 1.6rem; font-weight: 700; color: #111827; }
+.admin-message-email  { font-size: 1.3rem; color: #6b7280; }
+.admin-message-date   { font-size: 1.2rem; color: #9ca3af; }
 
-.admin-message-email {
-    font-size: 1.3rem;
-    color: #6b7280;
-}
-
-.admin-message-card-header-right {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.4rem;
-}
-
-.admin-message-date {
-    font-size: 1.2rem;
-    color: #9ca3af;
-}
-
-/* Subject */
+/* Subject / chatbot label */
 .admin-message-subject {
     font-size: 1.35rem;
     font-weight: 600;
@@ -193,7 +246,7 @@
     border-bottom: 1px solid #f3f4f6;
 }
 
-/* Existing response */
+/* Existing response / moderation notes */
 .admin-existing-response {
     background: #f0fdf4;
     border-left: 3px solid #4CAF50;
@@ -214,7 +267,7 @@
 }
 
 /* ============================================
-   STATUS BADGE
+   STATUS BADGES
    ============================================ */
 
 .admin-status-badge {
@@ -226,10 +279,18 @@
     text-transform: capitalize;
 }
 
+/* Message statuses */
 .status-new      { background: #fef3c7; color: #92400e; }
 .status-replied  { background: #dbeafe; color: #1e40af; }
 .status-resolved { background: #d1fae5; color: #065f46; }
 .status-spam     { background: #fee2e2; color: #991b1b; }
+
+/* Review statuses */
+.review-status-pending  { background: #fef3c7; color: #92400e; }
+.review-status-approved { background: #d1fae5; color: #065f46; }
+.review-status-rejected { background: #fee2e2; color: #991b1b; }
+.review-status-flagged  { background: #ffedd5; color: #9a3412; }
+.review-status-removed  { background: #f3f4f6; color: #6b7280; }
 
 /* ============================================
    ACTIONS BAR
@@ -244,11 +305,8 @@
     margin-bottom: 0;
 }
 
-.admin-status-actions {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
+.admin-status-actions  { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.admin-toggle-actions  { display: flex; gap: 0.6rem; }
 
 .admin-status-btn {
     padding: 0.5rem 1.2rem;
@@ -262,21 +320,8 @@
     transition: all 0.2s ease;
 }
 
-.admin-status-btn:hover {
-    background: #e5e7eb;
-    color: #374151;
-}
-
-.admin-status-btn.active {
-    border-color: #1a1a2e;
-    background: #1a1a2e;
-    color: #fff;
-}
-
-.admin-toggle-actions {
-    display: flex;
-    gap: 0.6rem;
-}
+.admin-status-btn:hover { background: #e5e7eb; color: #374151; }
+.admin-status-btn.active { border-color: #1a1a2e; background: #1a1a2e; color: #fff; }
 
 .admin-toggle-btn {
     padding: 0.5rem 1.2rem;
@@ -290,10 +335,7 @@
 }
 
 .admin-toggle-btn:hover,
-.admin-toggle-btn.active {
-    background: #f3f4f6;
-    border-color: #d1d5db;
-}
+.admin-toggle-btn.active { background: #f3f4f6; border-color: #d1d5db; }
 
 /* ============================================
    REPLY / NOTES SECTIONS
@@ -313,6 +355,13 @@
     font-weight: 600;
     color: #374151;
     margin-bottom: 0.7rem;
+}
+
+.admin-reply-hint {
+    font-size: 1.15rem;
+    font-weight: 400;
+    color: #9ca3af;
+    margin-left: 0.4rem;
 }
 
 .admin-textarea {
@@ -349,64 +398,12 @@
     transition: background 0.2s ease;
 }
 
-.admin-save-btn:hover {
-    background: #2563eb;
-}
-
-.admin-save-btn:disabled {
-    background: #93c5fd;
-    cursor: not-allowed;
-}
-
-/* ============================================
-   META INFO
-   ============================================ */
-
-.admin-message-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.2rem;
-    margin-top: 1.2rem;
-    padding-top: 1rem;
-    border-top: 1px solid #f3f4f6;
-    font-size: 1.2rem;
-    color: #9ca3af;
-}
-
-/* ============================================
-   RESPONSIVE
-   ============================================ */
-
-@media (max-width: 600px) {
-    .admin-message-card-header {
-        flex-direction: column;
-    }
-
-    .admin-message-card-header-right {
-        align-items: flex-start;
-    }
-
-    .admin-message-actions {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-}
+.admin-save-btn:hover    { background: #2563eb; }
+.admin-save-btn:disabled { background: #93c5fd; cursor: not-allowed; }
 
 /* ============================================
    HELPFUL
    ============================================ */
-
-.admin-message-card.is-helpful {
-    border-color: #fbbf24;
-    background: #fffdf0;
-}
-
-.admin-message-sender-row {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    flex-wrap: wrap;
-}
 
 .admin-helpful-badge {
     display: inline-block;
@@ -430,47 +427,64 @@
     transition: all 0.2s ease;
 }
 
-.admin-helpful-btn:hover {
-    background: #fef3c7;
-    border-color: #fbbf24;
-    color: #92400e;
-}
-
+.admin-helpful-btn:hover,
 .admin-helpful-btn.active {
     background: #fef3c7;
     border-color: #fbbf24;
     color: #92400e;
 }
 
-.admin-reply-hint {
-    font-size: 1.15rem;
-    font-weight: 400;
-    color: #9ca3af;
+/* ============================================
+   REVIEWS — extra elements
+   ============================================ */
+
+.admin-review-stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: 1.6rem;
+}
+
+.star-filled { color: #f59e0b; }
+.star-empty  { color: #d1d5db; }
+
+.admin-review-rating-num {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #6b7280;
     margin-left: 0.4rem;
 }
 
-.admin-tab-helpful {
-    border: 1.5px solid #fbbf24;
-    color: #92400e;
-    background: #fffbeb;
+.admin-review-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f2937;
+    font-style: italic;
+    margin-bottom: 0.8rem;
 }
 
-.admin-tab-helpful:hover {
-    background: #fef3c7;
+/* ============================================
+   META INFO
+   ============================================ */
+
+.admin-message-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    margin-top: 1.2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f3f4f6;
+    font-size: 1.2rem;
+    color: #9ca3af;
 }
 
-.admin-tab-helpful.active {
-    background: #f59e0b;
-    border-color: #f59e0b;
-    color: #fff;
-}
+/* ============================================
+   RESPONSIVE
+   ============================================ */
 
-.badge-helpful {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.admin-tab-helpful.active .badge-helpful {
-    background: rgba(255,255,255,0.3);
-    color: #fff;
+@media (max-width: 600px) {
+    .admin-message-card-header { flex-direction: column; }
+    .admin-message-card-header-right { align-items: flex-start; }
+    .admin-message-actions { flex-direction: column; align-items: flex-start; }
+    .admin-main-tab-btn { padding: 0.9rem 1.2rem; font-size: 1.3rem; }
 }

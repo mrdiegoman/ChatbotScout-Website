@@ -7,65 +7,100 @@ requireRole('admin');
 $db = Database::getInstance()->getConnection();
 
 // ============================================
-// FILTERS
+// ACTIVE TAB
+// ============================================
+
+$activeTab   = $_GET['tab'] ?? 'messages';
+$allowedTabs = ['messages', 'reviews'];
+if (!in_array($activeTab, $allowedTabs, true)) {
+    $activeTab = 'messages';
+}
+
+// ============================================
+// MESSAGES — filters + fetch
 // ============================================
 
 $allowedStatuses = ['all', 'new', 'replied', 'resolved', 'spam'];
 $filterStatus    = $_GET['status']  ?? 'all';
-$filterHelpful   = isset($_GET['helpful']); // ?helpful flag
+$filterHelpful   = isset($_GET['helpful']);
 
 if (!in_array($filterStatus, $allowedStatuses, true)) {
     $filterStatus = 'all';
 }
 
-// ============================================
-// FETCH MESSAGES
-// ============================================
-
 $whereParts = [];
-$params     = [];
+$msgParams  = [];
 
 if ($filterStatus !== 'all') {
-    $whereParts[] = 'status = :status';
-    $params['status'] = $filterStatus;
+    $whereParts[]         = 'status = :status';
+    $msgParams['status']  = $filterStatus;
 }
-
 if ($filterHelpful) {
     $whereParts[] = 'helpful = 1';
 }
 
-$whereClause = !empty($whereParts) ? 'WHERE ' . implode(' AND ', $whereParts) : '';
+$msgWhere = !empty($whereParts) ? 'WHERE ' . implode(' AND ', $whereParts) : '';
 
-$stmt = $db->prepare("
-    SELECT
-        id, first_name, last_name, email, subject, message,
-        status, helpful, response, internal_notes, ip_address,
-        created_at, first_responded_at, resolved_at
+$msgStmt = $db->prepare("
+    SELECT id, first_name, last_name, email, subject, message,
+           status, helpful, response, internal_notes, ip_address,
+           created_at, first_responded_at, resolved_at
     FROM contact_messages
-    $whereClause
-    ORDER BY
-        CASE status WHEN 'new' THEN 0 ELSE 1 END,
-        created_at DESC
+    $msgWhere
+    ORDER BY CASE status WHEN 'new' THEN 0 ELSE 1 END, created_at DESC
 ");
+$msgStmt->execute($msgParams);
+$messages = $msgStmt->fetchAll();
 
-$stmt->execute($params);
-$messages = $stmt->fetchAll();
+// Message counts
+$msgCountStmt = $db->query("SELECT status, COUNT(*) as cnt FROM contact_messages GROUP BY status");
+$msgCounts    = ['all' => 0, 'new' => 0, 'replied' => 0, 'resolved' => 0, 'spam' => 0];
+foreach ($msgCountStmt->fetchAll() as $row) {
+    $msgCounts[$row['status']] = (int)$row['cnt'];
+    $msgCounts['all']         += (int)$row['cnt'];
+}
+$helpfulCount = (int)$db->query("SELECT COUNT(*) FROM contact_messages WHERE helpful = 1")->fetchColumn();
 
 // ============================================
-// COUNTS PER STATUS
+// REVIEWS — filters + fetch
 // ============================================
 
-$countStmt = $db->query("SELECT status, COUNT(*) as cnt FROM contact_messages GROUP BY status");
-$rawCounts = $countStmt->fetchAll();
-
-$counts = ['all' => 0, 'new' => 0, 'replied' => 0, 'resolved' => 0, 'spam' => 0];
-foreach ($rawCounts as $row) {
-    $counts[$row['status']] = (int)$row['cnt'];
-    $counts['all'] += (int)$row['cnt'];
+$allowedReviewStatuses = ['all', 'pending', 'approved', 'rejected', 'flagged', 'removed'];
+$filterReviewStatus    = $_GET['review_status'] ?? 'all';
+if (!in_array($filterReviewStatus, $allowedReviewStatuses, true)) {
+    $filterReviewStatus = 'all';
 }
 
-// Helpful count
-$helpfulCount = (int)$db->query("SELECT COUNT(*) FROM contact_messages WHERE helpful = 1")->fetchColumn();
+$reviewWhere  = $filterReviewStatus !== 'all' ? 'WHERE r.status = :status' : '';
+$reviewParams = $filterReviewStatus !== 'all' ? ['status' => $filterReviewStatus] : [];
+
+$reviewStmt = $db->prepare("
+    SELECT
+        r.id, r.rating, r.title, r.review_text,
+        r.status, r.moderation_notes,
+        r.created_at, r.moderated_at,
+        u.first_name, u.last_name, u.email,
+        c.name AS chatbot_name
+    FROM reviews r
+    JOIN users u    ON r.user_id    = u.id
+    JOIN chatbots c ON r.chatbot_id = c.id
+    $reviewWhere
+    ORDER BY
+        CASE r.status WHEN 'pending' THEN 0 ELSE 1 END,
+        r.created_at DESC
+");
+$reviewStmt->execute($reviewParams);
+$reviews = $reviewStmt->fetchAll();
+
+// Review counts per status
+$reviewCountStmt = $db->query("SELECT status, COUNT(*) as cnt FROM reviews GROUP BY status");
+$reviewCounts    = ['all' => 0, 'pending' => 0, 'approved' => 0, 'rejected' => 0, 'flagged' => 0, 'removed' => 0];
+foreach ($reviewCountStmt->fetchAll() as $row) {
+    if (isset($reviewCounts[$row['status']])) {
+        $reviewCounts[$row['status']] = (int)$row['cnt'];
+    }
+    $reviewCounts['all'] += (int)$row['cnt'];
+}
 
 require '../inc/header.php';
 ?>
@@ -75,161 +110,287 @@ require '../inc/header.php';
 <div class="admin-wrapper">
 
     <div class="admin-header">
-        <h1>Contact Messages</h1>
-        <p>Manage and respond to incoming contact form submissions</p>
+        <h1>Admin Panel</h1>
+        <p>Manage contact messages and user reviews</p>
     </div>
 
-    <!-- Status filter tabs -->
-    <div class="admin-tabs">
-        <?php foreach (['all' => 'All', 'new' => 'New', 'replied' => 'Replied', 'resolved' => 'Resolved', 'spam' => 'Spam'] as $key => $label): ?>
-            <a href="?status=<?= $key ?>" class="admin-tab <?= $filterStatus === $key && !$filterHelpful ? 'active' : '' ?>">
-                <?= $label ?>
-                <span class="admin-tab-badge <?= $key === 'new' ? 'badge-new' : '' ?>">
-                    <?= $counts[$key] ?>
-                </span>
-            </a>
-        <?php endforeach; ?>
-        <a href="?helpful" class="admin-tab admin-tab-helpful <?= $filterHelpful ? 'active' : '' ?>">
-            ⭐ Helpful
-            <span class="admin-tab-badge badge-helpful">
-                <?= $helpfulCount ?>
-            </span>
-        </a>
+    <!-- Main tab navigation (like profile.php) -->
+    <div class="admin-main-tabs">
+        <button class="admin-main-tab-btn <?= $activeTab === 'messages' ? 'active' : '' ?>"
+                data-tab="messages">
+            Messages
+            <?php if ($msgCounts['new'] > 0): ?>
+                <span class="admin-main-tab-count"><?= $msgCounts['new'] ?></span>
+            <?php endif; ?>
+        </button>
+        <button class="admin-main-tab-btn <?= $activeTab === 'reviews' ? 'active' : '' ?>"
+                data-tab="reviews">
+            Reviews
+            <?php if ($reviewCounts['pending'] > 0): ?>
+                <span class="admin-main-tab-count"><?= $reviewCounts['pending'] ?></span>
+            <?php endif; ?>
+        </button>
     </div>
 
-    <!-- Messages list -->
-    <div class="admin-messages">
-        <?php if (empty($messages)): ?>
-            <div class="admin-empty">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                </svg>
-                <p>No messages found</p>
-            </div>
-        <?php else: ?>
-            <?php foreach ($messages as $msg): ?>
-                <?php $msgId = htmlspecialchars($msg['id']); ?>
-                <div class="admin-message-card <?= $msg['helpful'] ? 'is-helpful' : '' ?>" data-id="<?= $msgId ?>">
+    <!-- ============================================ -->
+    <!-- TAB: MESSAGES                               -->
+    <!-- ============================================ -->
 
-                    <!-- Card header -->
-                    <div class="admin-message-card-header">
-                        <div class="admin-message-card-header-left">
-                            <div class="admin-message-sender-row">
-                                <span class="admin-message-sender">
-                                    <?= htmlspecialchars($msg['first_name'] . ' ' . $msg['last_name']) ?>
-                                </span>
-                                <?php if ($msg['helpful']): ?>
-                                    <span class="admin-helpful-badge">⭐ Helpful</span>
-                                <?php endif; ?>
-                            </div>
-                            <span class="admin-message-email">
-                                <?= htmlspecialchars($msg['email']) ?>
-                            </span>
-                        </div>
-                        <div class="admin-message-card-header-right">
-                            <span class="admin-status-badge status-<?= $msg['status'] ?>">
-                                <?= ucfirst($msg['status']) ?>
-                            </span>
-                            <span class="admin-message-date">
-                                <?= date('d M Y, H:i', strtotime($msg['created_at'])) ?>
-                            </span>
-                        </div>
-                    </div>
+    <div class="admin-tab-pane <?= $activeTab === 'messages' ? 'active' : '' ?>" id="messages-tab">
 
-                    <!-- Subject -->
-                    <?php if ($msg['subject']): ?>
-                        <div class="admin-message-subject">
-                            📌 <?= htmlspecialchars($msg['subject']) ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <!-- Message body -->
-                    <div class="admin-message-body">
-                        <?= nl2br(htmlspecialchars($msg['message'])) ?>
-                    </div>
-
-                    <!-- Existing response -->
-                    <?php if ($msg['response']): ?>
-                        <div class="admin-existing-response">
-                            <strong>Your response:</strong>
-                            <p><?= nl2br(htmlspecialchars($msg['response'])) ?></p>
-                        </div>
-                    <?php endif; ?>
-
-                    <!-- Actions bar -->
-                    <div class="admin-message-actions">
-
-                        <!-- Status buttons -->
-                        <div class="admin-status-actions">
-                            <?php foreach (['new' => 'New', 'replied' => 'Replied', 'resolved' => 'Resolved', 'spam' => 'Spam'] as $s => $label): ?>
-                                <button
-                                    class="admin-status-btn <?= $msg['status'] === $s ? 'active' : '' ?>"
-                                    data-status="<?= $s ?>"
-                                    onclick="updateStatus('<?= $msgId ?>', '<?= $s ?>', this)">
-                                    <?= $label ?>
-                                </button>
-                            <?php endforeach; ?>
-                        </div>
-
-                        <!-- Toggle buttons -->
-                        <div class="admin-toggle-actions">
-                            <button
-                                class="admin-helpful-btn <?= $msg['helpful'] ? 'active' : '' ?>"
-                                onclick="toggleHelpful('<?= $msgId ?>', this)"
-                                title="Mark as helpful">
-                                ⭐ Helpful
-                            </button>
-                            <button class="admin-toggle-btn" onclick="toggleSection(this, 'reply-<?= $msgId ?>')">
-                                ✏️ Reply
-                            </button>
-                            <button class="admin-toggle-btn" onclick="toggleSection(this, 'notes-<?= $msgId ?>')">
-                                📝 Notes
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Reply section -->
-                    <div class="admin-reply-section" id="reply-<?= $msgId ?>" style="display:none;">
-                        <label>Reply to <?= htmlspecialchars($msg['first_name']) ?>
-                            <span class="admin-reply-hint">(email will be sent to <?= htmlspecialchars($msg['email']) ?>)</span>
-                        </label>
-                        <textarea
-                            class="admin-textarea"
-                            placeholder="Write your reply here..."><?= htmlspecialchars($msg['response'] ?? '') ?></textarea>
-                        <button class="admin-save-btn" onclick="sendReply('<?= $msgId ?>', this)">
-                            📨 Send Reply
-                        </button>
-                    </div>
-
-                    <!-- Notes section -->
-                    <div class="admin-notes-section" id="notes-<?= $msgId ?>" style="display:none;">
-                        <label>Internal Notes <span class="admin-reply-hint">(not visible to user)</span></label>
-                        <textarea
-                            class="admin-textarea"
-                            placeholder="Add internal notes here..."><?= htmlspecialchars($msg['internal_notes'] ?? '') ?></textarea>
-                        <button class="admin-save-btn" onclick="saveNotes('<?= $msgId ?>', this)">
-                            Save Notes
-                        </button>
-                    </div>
-
-                    <!-- Meta info -->
-                    <div class="admin-message-meta">
-                        <?php if ($msg['ip_address']): ?>
-                            <span>IP: <?= htmlspecialchars($msg['ip_address']) ?></span>
-                        <?php endif; ?>
-                        <?php if ($msg['first_responded_at']): ?>
-                            <span>First responded: <?= date('d M Y, H:i', strtotime($msg['first_responded_at'])) ?></span>
-                        <?php endif; ?>
-                        <?php if ($msg['resolved_at']): ?>
-                            <span>Resolved: <?= date('d M Y, H:i', strtotime($msg['resolved_at'])) ?></span>
-                        <?php endif; ?>
-                    </div>
-
-                </div>
+        <!-- Status filter tabs -->
+        <div class="admin-tabs">
+            <?php foreach (['all' => 'All', 'new' => 'New', 'replied' => 'Replied', 'resolved' => 'Resolved', 'spam' => 'Spam'] as $key => $label): ?>
+                <a href="?tab=messages&status=<?= $key ?>"
+                   class="admin-tab <?= $filterStatus === $key && !$filterHelpful ? 'active' : '' ?>">
+                    <?= $label ?>
+                    <span class="admin-tab-badge <?= $key === 'new' ? 'badge-new' : '' ?>">
+                        <?= $msgCounts[$key] ?>
+                    </span>
+                </a>
             <?php endforeach; ?>
-        <?php endif; ?>
+            <a href="?tab=messages&helpful"
+               class="admin-tab admin-tab-helpful <?= $filterHelpful ? 'active' : '' ?>">
+                ⭐ Helpful
+                <span class="admin-tab-badge badge-helpful"><?= $helpfulCount ?></span>
+            </a>
+        </div>
+
+        <div class="admin-messages">
+            <?php if (empty($messages)): ?>
+                <div class="admin-empty">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    <p>No messages found</p>
+                </div>
+            <?php else: ?>
+                <?php foreach ($messages as $msg): ?>
+                    <?php $msgId = htmlspecialchars($msg['id']); ?>
+                    <div class="admin-message-card <?= $msg['helpful'] ? 'is-helpful' : '' ?>" data-id="<?= $msgId ?>">
+
+                        <div class="admin-message-card-header">
+                            <div class="admin-message-card-header-left">
+                                <div class="admin-message-sender-row">
+                                    <span class="admin-message-sender">
+                                        <?= htmlspecialchars($msg['first_name'] . ' ' . $msg['last_name']) ?>
+                                    </span>
+                                    <?php if ($msg['helpful']): ?>
+                                        <span class="admin-helpful-badge">⭐ Helpful</span>
+                                    <?php endif; ?>
+                                </div>
+                                <span class="admin-message-email"><?= htmlspecialchars($msg['email']) ?></span>
+                            </div>
+                            <div class="admin-message-card-header-right">
+                                <span class="admin-status-badge status-<?= $msg['status'] ?>">
+                                    <?= ucfirst($msg['status']) ?>
+                                </span>
+                                <span class="admin-message-date">
+                                    <?= date('d M Y, H:i', strtotime($msg['created_at'])) ?>
+                                </span>
+                            </div>
+                        </div>
+
+                        <?php if ($msg['subject']): ?>
+                            <div class="admin-message-subject">📌 <?= htmlspecialchars($msg['subject']) ?></div>
+                        <?php endif; ?>
+
+                        <div class="admin-message-body">
+                            <?= nl2br(htmlspecialchars($msg['message'])) ?>
+                        </div>
+
+                        <?php if ($msg['response']): ?>
+                            <div class="admin-existing-response">
+                                <strong>Your response:</strong>
+                                <p><?= nl2br(htmlspecialchars($msg['response'])) ?></p>
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="admin-message-actions">
+                            <div class="admin-status-actions">
+                                <?php foreach (['new' => 'New', 'replied' => 'Replied', 'resolved' => 'Resolved', 'spam' => 'Spam'] as $s => $label): ?>
+                                    <button class="admin-status-btn <?= $msg['status'] === $s ? 'active' : '' ?>"
+                                            data-status="<?= $s ?>"
+                                            onclick="updateStatus('<?= $msgId ?>', '<?= $s ?>', this)">
+                                        <?= $label ?>
+                                    </button>
+                                <?php endforeach; ?>
+                            </div>
+                            <div class="admin-toggle-actions">
+                                <button class="admin-helpful-btn <?= $msg['helpful'] ? 'active' : '' ?>"
+                                        onclick="toggleHelpful('<?= $msgId ?>', this)">
+                                    ⭐ Helpful
+                                </button>
+                                <button class="admin-toggle-btn" onclick="toggleSection(this, 'reply-<?= $msgId ?>')">✏️ Reply</button>
+                                <button class="admin-toggle-btn" onclick="toggleSection(this, 'notes-<?= $msgId ?>')">📝 Notes</button>
+                            </div>
+                        </div>
+
+                        <div class="admin-reply-section" id="reply-<?= $msgId ?>" style="display:none;">
+                            <label>Reply to <?= htmlspecialchars($msg['first_name']) ?>
+                                <span class="admin-reply-hint">(email will be sent to <?= htmlspecialchars($msg['email']) ?>)</span>
+                            </label>
+                            <textarea class="admin-textarea" placeholder="Write your reply here..."><?= htmlspecialchars($msg['response'] ?? '') ?></textarea>
+                            <button class="admin-save-btn" onclick="sendReply('<?= $msgId ?>', this)">📨 Send Reply</button>
+                        </div>
+
+                        <div class="admin-notes-section" id="notes-<?= $msgId ?>" style="display:none;">
+                            <label>Internal Notes <span class="admin-reply-hint">(not visible to user)</span></label>
+                            <textarea class="admin-textarea" placeholder="Add internal notes here..."><?= htmlspecialchars($msg['internal_notes'] ?? '') ?></textarea>
+                            <button class="admin-save-btn" onclick="saveNotes('<?= $msgId ?>', this)">Save Notes</button>
+                        </div>
+
+                        <div class="admin-message-meta">
+                            <?php if ($msg['ip_address']): ?>
+                                <span>IP: <?= htmlspecialchars($msg['ip_address']) ?></span>
+                            <?php endif; ?>
+                            <?php if ($msg['first_responded_at']): ?>
+                                <span>First responded: <?= date('d M Y, H:i', strtotime($msg['first_responded_at'])) ?></span>
+                            <?php endif; ?>
+                            <?php if ($msg['resolved_at']): ?>
+                                <span>Resolved: <?= date('d M Y, H:i', strtotime($msg['resolved_at'])) ?></span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
     </div>
-</div>
+
+    <!-- ============================================ -->
+    <!-- TAB: REVIEWS                                -->
+    <!-- ============================================ -->
+
+    <div class="admin-tab-pane <?= $activeTab === 'reviews' ? 'active' : '' ?>" id="reviews-tab">
+
+        <!-- Review status filter tabs -->
+        <div class="admin-tabs">
+            <?php foreach ([
+                'all'      => 'All',
+                'pending'  => 'Pending',
+                'approved' => 'Approved',
+                'rejected' => 'Rejected',
+                'flagged'  => 'Flagged',
+                'removed'  => 'Removed',
+            ] as $key => $label): ?>
+                <a href="?tab=reviews&review_status=<?= $key ?>"
+                   class="admin-tab <?= $filterReviewStatus === $key ? 'active' : '' ?>">
+                    <?= $label ?>
+                    <span class="admin-tab-badge <?= $key === 'pending' ? 'badge-new' : '' ?>">
+                        <?= $reviewCounts[$key] ?>
+                    </span>
+                </a>
+            <?php endforeach; ?>
+        </div>
+
+        <div class="admin-messages">
+            <?php if (empty($reviews)): ?>
+                <div class="admin-empty">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                    </svg>
+                    <p>No reviews found</p>
+                </div>
+            <?php else: ?>
+                <?php foreach ($reviews as $review): ?>
+                    <?php $reviewId = htmlspecialchars($review['id']); ?>
+                    <div class="admin-message-card admin-review-card" data-id="<?= $reviewId ?>">
+
+                        <!-- Review card header -->
+                        <div class="admin-message-card-header">
+                            <div class="admin-message-card-header-left">
+                                <div class="admin-message-sender-row">
+                                    <span class="admin-message-sender">
+                                        <?= htmlspecialchars($review['first_name'] . ' ' . $review['last_name']) ?>
+                                    </span>
+                                    <!-- Star rating -->
+                                    <span class="admin-review-stars">
+                                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                                            <span class="<?= $i <= $review['rating'] ? 'star-filled' : 'star-empty' ?>">★</span>
+                                        <?php endfor; ?>
+                                        <span class="admin-review-rating-num"><?= $review['rating'] ?>/5</span>
+                                    </span>
+                                </div>
+                                <span class="admin-message-email"><?= htmlspecialchars($review['email']) ?></span>
+                            </div>
+                            <div class="admin-message-card-header-right">
+                                <span class="admin-status-badge review-status-<?= $review['status'] ?>">
+                                    <?= ucfirst($review['status']) ?>
+                                </span>
+                                <span class="admin-message-date">
+                                    <?= date('d M Y, H:i', strtotime($review['created_at'])) ?>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Chatbot name -->
+                        <div class="admin-message-subject">
+                            🤖 <?= htmlspecialchars($review['chatbot_name']) ?>
+                        </div>
+
+                        <!-- Review title -->
+                        <?php if ($review['title']): ?>
+                            <div class="admin-review-title">"<?= htmlspecialchars($review['title']) ?>"</div>
+                        <?php endif; ?>
+
+                        <!-- Review text -->
+                        <div class="admin-message-body">
+                            <?= nl2br(htmlspecialchars($review['review_text'])) ?>
+                        </div>
+
+                        <!-- Existing moderation notes -->
+                        <?php if ($review['moderation_notes']): ?>
+                            <div class="admin-existing-response">
+                                <strong>Moderation notes:</strong>
+                                <p><?= nl2br(htmlspecialchars($review['moderation_notes'])) ?></p>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Review actions -->
+                        <div class="admin-message-actions">
+                            <div class="admin-status-actions">
+                                <?php foreach ([
+                                    'approved' => 'Approve',
+                                    'rejected' => 'Reject',
+                                    'flagged'  => 'Flag',
+                                    'removed'  => 'Remove',
+                                ] as $s => $label): ?>
+                                    <button class="admin-status-btn review-status-action-btn <?= $review['status'] === $s ? 'active' : '' ?>"
+                                            data-status="<?= $s ?>"
+                                            onclick="updateReviewStatus('<?= $reviewId ?>', '<?= $s ?>', this)">
+                                        <?= $label ?>
+                                    </button>
+                                <?php endforeach; ?>
+                            </div>
+                            <div class="admin-toggle-actions">
+                                <button class="admin-toggle-btn" onclick="toggleSection(this, 'review-notes-<?= $reviewId ?>')">
+                                    📝 Notes
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Moderation notes section -->
+                        <div class="admin-notes-section" id="review-notes-<?= $reviewId ?>" style="display:none;">
+                            <label>Moderation Notes <span class="admin-reply-hint">(internal only)</span></label>
+                            <textarea class="admin-textarea"
+                                      placeholder="e.g. Rejected — contains spam links..."><?= htmlspecialchars($review['moderation_notes'] ?? '') ?></textarea>
+                            <button class="admin-save-btn" onclick="saveReviewNotes('<?= $reviewId ?>', this)">Save Notes</button>
+                        </div>
+
+                        <!-- Moderated at -->
+                        <?php if ($review['moderated_at']): ?>
+                            <div class="admin-message-meta">
+                                <span>Moderated: <?= date('d M Y, H:i', strtotime($review['moderated_at'])) ?></span>
+                            </div>
+                        <?php endif; ?>
+
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </div>
+
+</div><!-- end admin-wrapper -->
 
 <script src="../js/admin.js" defer></script>
 
