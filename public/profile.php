@@ -16,7 +16,7 @@ if (!$isLoggedIn) {
 
 // Get active tab from URL
 $activeTab = $_GET['tab'] ?? 'profile';
-$allowedTabs = ['profile', 'billing', 'settings'];
+$allowedTabs = ['profile', 'billing', 'settings', 'reviews'];
 if (!in_array($activeTab, $allowedTabs)) {
     $activeTab = 'profile';
 }
@@ -68,6 +68,7 @@ require '../inc/header.php';
 ?>
 
 <link rel="stylesheet" href="../css/profile.css">
+<link rel="stylesheet" href="../css/profileReviews.css">
 
 <div class="profile-page">
     <div class="profile-container">
@@ -91,6 +92,10 @@ require '../inc/header.php';
             <button class="tab-btn <?php echo $activeTab === 'settings' ? 'active' : ''; ?>" 
                     data-tab="settings">
                 Settings
+            </button>
+            <button class="tab-btn <?php echo $activeTab === 'reviews' ? 'active' : ''; ?>" 
+                    data-tab="reviews">
+                My Reviews
             </button>
         </div>
 
@@ -411,6 +416,92 @@ require '../inc/header.php';
             </div>
 
         </div>
+
+            <!-- MY REVIEWS TAB -->
+            <div class="tab-pane <?php echo $activeTab === 'reviews' ? 'active' : ''; ?>"
+                 id="reviews-tab">
+
+                <div class="pr-loading" id="myReviewsLoading">
+                    <div class="pr-loading-spinner"></div>
+                </div>
+
+                <div class="pr-empty" id="myReviewsEmpty">
+                    <p>You haven't written any reviews yet.<br>
+                    <a href="chatbotShowcase.php">Browse chatbots</a> and share your experience!</p>
+                </div>
+
+                <div class="pr-cards" id="myReviewsContainer"></div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- EDIT REVIEW MODAL -->
+<div class="pr-modal-overlay" id="editReviewOverlay">
+    <div class="pr-modal-content">
+        <div class="pr-modal-header">
+            <h2 id="editReviewModalTitle">Edit Review</h2>
+            <button class="pr-modal-close-btn" id="editReviewCloseBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="1.75"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="m15 9-6 6"/><path d="m9 9 6 6"/>
+                </svg>
+            </button>
+        </div>
+        <div class="pr-modal-body">
+            <div class="pr-modal-stars-wrapper">
+                <div class="pr-modal-stars" id="editRatingStarsPicker">
+                    <span class="pr-modal-star" data-value="1">★</span>
+                    <span class="pr-modal-star" data-value="2">★</span>
+                    <span class="pr-modal-star" data-value="3">★</span>
+                    <span class="pr-modal-star" data-value="4">★</span>
+                    <span class="pr-modal-star" data-value="5">★</span>
+                </div>
+                <p class="pr-modal-stars-label" id="editRatingStarsLabel">Select a rating</p>
+            </div>
+            <div class="pr-modal-field">
+                <label for="editReviewTitleInput">Title <span class="pr-modal-optional">(optional)</span></label>
+                <input type="text" id="editReviewTitleInput" maxlength="200" placeholder="Short summary of your experience">
+            </div>
+            <div class="pr-modal-field">
+                <label for="editReviewTextInput">Your review <span class="pr-modal-required">*</span></label>
+                <textarea id="editReviewTextInput" maxlength="5000" rows="5" placeholder="Share your experience..."></textarea>
+            </div>
+            <p class="pr-modal-error"   id="editReviewError"></p>
+            <p class="pr-modal-success" id="editReviewSuccess"></p>
+        </div>
+        <div class="pr-modal-footer">
+            <button class="pr-modal-cancel-btn" id="editReviewCancelBtn">Cancel</button>
+            <button class="pr-modal-submit-btn" id="editReviewSubmitBtn">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="pr-modal-overlay" id="deleteReviewOverlay">
+    <div class="pr-delete-modal-content">
+        <div class="pr-delete-modal-header">
+            <h2>Delete Review</h2>
+            <button class="pr-modal-close-btn" id="deleteReviewCloseBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="1.75"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="m15 9-6 6"/><path d="m9 9 6 6"/>
+                </svg>
+            </button>
+        </div>
+        <div class="pr-delete-modal-body">
+            <p>Are you sure you want to delete this review? This action cannot be undone.</p>
+        </div>
+        <div class="pr-delete-modal-footer">
+            <button class="pr-modal-cancel-btn" id="deleteReviewCancelBtn">Cancel</button>
+            <button class="pr-delete-confirm-btn" id="deleteReviewConfirmBtn">Yes, delete</button>
+        </div>
     </div>
 </div>
 
@@ -548,6 +639,7 @@ require '../inc/header.php';
 </div>
 
 <script src="../js/profile.js"></script>
+<script src="../js/profileReviews.js" defer></script>
 <script src="../js/togglePasswordProfile.js"></script>
 
 <?php
