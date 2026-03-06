@@ -65,6 +65,12 @@ window.getActiveFilterParams = function () {
         }
     });
 
+    // Integrations — OR filter
+    if (typeof window.getActiveIntegrationIds === 'function') {
+        const intIds = window.getActiveIntegrationIds();
+        if (intIds.length > 0) params['integrations[]'] = intIds;
+    }
+
     return params;
 };
 
@@ -95,6 +101,7 @@ function clearAllFilters() {
     if (typeof window.updateFilterBadge === 'function')           window.updateFilterBadge();
     if (typeof window.triggerFeatureCountsRefresh === 'function') window.triggerFeatureCountsRefresh();
     if (typeof window.applyFilters === 'function')                window.applyFilters();
+    if (typeof window.clearIntegrationFilters === 'function')     window.clearIntegrationFilters();
 }
 
 if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearAllFilters);

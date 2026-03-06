@@ -76,6 +76,12 @@
 
         count += document.querySelectorAll(`.${spanClass}.active`).length;
 
+        // Rátaj aj aktívne integrácie
+        const intSpanClass = isFavourites
+            ? 'favourites-filters-modal-body-integrations-single'
+            : 'chatbot-filters-modal-body-integrations-single';
+        count += document.querySelectorAll(`.${intSpanClass}.active`).length;
+
         if (filtersCountBadge) filtersCountBadge.style.display = count > 0 ? 'flex' : 'none';
         if (filtersCountNum)   filtersCountNum.textContent = count;
     }

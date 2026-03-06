@@ -602,6 +602,12 @@ function openRatingModal(chatbotId, chatbotName) {
                     params['features[]'].push(span.dataset.featureId);
                 }
             });
+        
+        // Integrations — OR filter
+        if (typeof window.getActiveIntegrationIds === 'function') {
+            const intIds = window.getActiveIntegrationIds();
+            if (intIds.length > 0) params['integrations[]'] = intIds;
+        }
 
         return params;
     };

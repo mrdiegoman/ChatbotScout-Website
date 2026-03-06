@@ -154,7 +154,7 @@ require '../inc/header.php';
 <div class="favourites-filters-modal-overlay" id="filtersModalOverlay">
     <div class="favourites-filters-modal-content">
         <div class="favourites-filters-modal-header">
-            <h2>Filter chatbots by</h2>
+            <h2>Filter favorite chatbots by</h2>
             <button class="favourites-filters-modal-close-btn" id="filtersCloseBtn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                     stroke="#232127" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
@@ -205,6 +205,11 @@ require '../inc/header.php';
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
                         <path d="M320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM288 224C288 206.3 302.3 192 320 192C337.7 192 352 206.3 352 224C352 241.7 337.7 256 320 256C302.3 256 288 241.7 288 224zM280 288L328 288C341.3 288 352 298.7 352 312L352 400L360 400C373.3 400 384 410.7 384 424C384 437.3 373.3 448 360 448L280 448C266.7 448 256 437.3 256 424C256 410.7 266.7 400 280 400L304 400L304 336L280 336C266.7 336 256 325.3 256 312C256 298.7 266.7 288 280 288z"/>
                     </svg>
+                    <div class="favourites-filters-modal-body-row-group-label-tooltip">
+                        <p>The numbers in the bubbles show how many chatbots offer that feature 
+                            along with your current selections. These counts will update 
+                            automatically as you select more features.</p>
+                        </div>
                 </span>
                 <div class="favourites-filters-modal-body-features-container" id="basicFeaturesContainer">
                     <!-- Dynamicky plnené cez filterFeaturesAdding.js -->
@@ -217,6 +222,23 @@ require '../inc/header.php';
                 </span>
                 <div class="favourites-advanced-filters-modal-body-features-container" id="advancedFeaturesContainer">
                     <!-- Dynamicky plnené cez filterFeaturesAdding.js -->
+                </div>
+            </div>
+            <!-- INTEGRATIONS FILTER -->
+            <div class="favourites-filters-modal-body-features-wrapper">
+                <span class="favourites-filters-modal-body-row-group-label">
+                    <p>Integrations</p>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                        <path d="M320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM288 224C288 206.3 302.3 192 320 192C337.7 192 352 206.3 352 224C352 241.7 337.7 256 320 256C302.3 256 288 241.7 288 224zM280 288L328 288C341.3 288 352 298.7 352 312L352 400L360 400C373.3 400 384 410.7 384 424C384 437.3 373.3 448 360 448L280 448C266.7 448 256 437.3 256 424C256 410.7 266.7 400 280 400L304 400L304 336L280 336C266.7 336 256 325.3 256 312C256 298.7 266.7 288 280 288z"/>
+                    </svg>
+                    <div class="favourites-filters-modal-body-row-group-label-tooltip">
+                        <p>Select one or more integrations. Results will include chatbots 
+                           that support <strong>at least one</strong> of your selected integrations =>
+                           the more you pick, the broader the results.</p>
+                    </div>
+                </span>
+                <div class="favourites-filters-modal-body-features-container" id="integrationsContainer">
+                    <!-- Dynamicky plnené cez filterIntegrationsAdding.js -->
                 </div>
             </div>
         </div>
@@ -274,6 +296,7 @@ require '../inc/header.php';
 <script src="../js/featuresSwiping.js" defer></script>
 <script src="../js/layoutSwapping.js" defer></script>
 <script src="../js/filterFeaturesAdding.js" defer></script>
+<script src="../js/filterIntegrationsAdding.js" defer></script>
 <script src="../js/showAdvancedFeatures.js" defer></script>
 <script src="../js/favouritesShowcase.js" defer></script>
 <script src="../js/platformsPopup.js" defer></script>

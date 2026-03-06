@@ -50,6 +50,13 @@ $featureIds  = array_values(array_filter(
 ));
 $featureCount = count($featureIds);
 
+// integrations[] — OR logika, pole UUID
+$integrationIds = array_values(array_filter(
+    (array)($_GET['integrations'] ?? []),
+    fn($id) => is_string($id) && preg_match('/^[0-9a-f\-]{36}$/i', $id)
+));
+$integrationCount = count($integrationIds);
+
 // ============================================
 // SORT LOGIC
 // ============================================
@@ -90,6 +97,18 @@ if ($featureCount > 0) {
           AND (cf2.boolean_value = 1 OR cf2.text_value IS NOT NULL)
     ) = {$featureCount}";
     foreach ($featureIds as $i => $id) { $params[":fid{$i}"] = $id; }
+}
+
+// Integrations — OR logika (chatbot musí mať aspoň jednu)
+if ($integrationCount > 0) {
+    $ip = implode(',', array_map(fn($i) => ":iid{$i}", range(0, $integrationCount - 1)));
+    $where[] = "EXISTS (
+        SELECT 1 FROM chatbot_integrations ci_f
+        WHERE ci_f.chatbot_id = c.id
+          AND ci_f.integration_id IN ({$ip})
+          AND ci_f.is_supported = 1
+    )";
+    foreach ($integrationIds as $i => $id) { $params[":iid{$i}"] = $id; }
 }
 
 $whereStr = implode(' AND ', $where);

@@ -1208,6 +1208,39 @@ body {
     padding: 0.175rem 0.4rem;
 }
 
+/* Integrations filter spans — rovnaký štýl ako features */
+.chatbot-filters-modal-body-integrations-single {
+    display: flex;
+    align-items: center;
+    border: 0.1rem solid var(--black-color-light);
+    border-radius: 2rem;
+    color: var(--black-color-light);
+    font-size: 1.2rem;
+    padding: 0.5rem 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.1s ease, color 0.1s ease;
+    user-select: none;
+}
+
+.chatbot-filters-modal-body-integrations-single.active {
+    border: 0.1rem solid var(--black-color-light);
+    border-radius: 2rem;
+    color: var(--white-color-dark);
+    background-color: var(--blue-color-2);
+    font-size: 1.2rem;
+    padding: 0.5rem 0.5rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Hidden wrapper pre show more */
+.integrations-hidden-wrapper {
+    display: none;
+}
+.integrations-hidden-wrapper[style*="contents"] {
+    display: contents;
+}
+
 .filters-modal-results-count {
     font-size: 1.4rem;
     font-family: outfit-medium;
