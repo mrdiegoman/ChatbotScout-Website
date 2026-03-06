@@ -225,17 +225,86 @@ function updateLoadMoreBar(section) {
 }
 
 // ============================================
-// SCROLL TO OLDEST
+// SCROLL TO OLDEST — načíta VŠETKY zvyšné, potom scrollne
 // ============================================
 
-function scrollToOldest(section) {
-    const selector = section === 'messages'
-        ? '#messages-tab .admin-messages .admin-message-card:last-child'
-        : '#reviews-tab .admin-messages .admin-message-card:last-child';
-    const lastCard = document.querySelector(selector);
-    if (lastCard) {
-        lastCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+async function scrollToOldest(section) {
+    const btn = document.querySelector(
+        section === 'messages'
+            ? '#messagesScrollOldestBtn'
+            : '#reviewsScrollOldestBtn'
+    );
+    if (btn) { btn.disabled = true; btn.textContent = 'Loading...'; }
+
+    try {
+        // Načítaj všetky zvyšné stránky
+        while (adminState[section].hasMore) {
+            if (section === 'messages') {
+                await loadAllChunk('messages');
+            } else {
+                await loadAllChunk('reviews');
+            }
+        }
+    } catch (err) {
+        console.error(err);
+        showNotification('Failed to load all items', 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '↓ Jump to oldest'; }
     }
+
+    // Scrollni na poslednú kartu
+    const selector = section === 'messages'
+        ? '#messages-tab .admin-messages .admin-message-card'
+        : '#reviews-tab .admin-messages .admin-message-card';
+    const cards = document.querySelectorAll(selector);
+    if (cards.length > 0) {
+        cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// Interný helper — načíta jeden chunk bez tlačidla
+async function loadAllChunk(section) {
+    const state = adminState[section];
+
+    let url;
+    if (section === 'messages') {
+        const activeSubTab = document.querySelector('#messages-tab .admin-tabs .admin-tab.active');
+        let status = 'all', helpful = '';
+        if (activeSubTab) {
+            const href = activeSubTab.getAttribute('href') || '';
+            if (href.includes('helpful')) { helpful = '&helpful'; }
+            else { const m = href.match(/status=([^&]+)/); status = m ? m[1] : 'all'; }
+        }
+        url = `../api/getAdminData.php?type=messages&status=${encodeURIComponent(status)}${helpful}&limit=50&offset=${state.offset}`;
+    } else {
+        const activeSubTab = document.querySelector('#reviews-tab .admin-tabs .admin-tab.active');
+        let reviewStatus = 'all';
+        if (activeSubTab) {
+            const href = activeSubTab.getAttribute('href') || '';
+            const m = href.match(/review_status=([^&]+)/);
+            reviewStatus = m ? m[1] : 'all';
+        }
+        url = `../api/getAdminData.php?type=reviews&review_status=${encodeURIComponent(reviewStatus)}&limit=50&offset=${state.offset}`;
+    }
+
+    const res  = await fetch(url);
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+
+    const barId = section === 'messages' ? 'messagesLoadMoreBar' : 'reviewsLoadMoreBar';
+    const bar   = document.getElementById(barId);
+    const items = section === 'messages' ? data.messages : data.reviews;
+    const html  = section === 'messages'
+        ? items.map(buildMessageCard).join('')
+        : items.map(buildReviewCard).join('');
+
+    bar.insertAdjacentHTML('beforebegin', html);
+
+    state.offset  += items.length;
+    state.hasMore  = data.hasMore;
+    state.total    = data.total;
+
+    updateLoadMoreBar(section);
 }
 
 // ============================================
@@ -261,18 +330,17 @@ async function loadMoreMessages(btn) {
         }
     }
 
-    const newOffset = state.offset + PAGE_SIZE;
-    const url = `../api/getAdminData.php?type=messages&status=${encodeURIComponent(status)}${helpful}&limit=${PAGE_SIZE}&offset=${newOffset}`;
+    const url = `../api/getAdminData.php?type=messages&status=${encodeURIComponent(status)}${helpful}&limit=${PAGE_SIZE}&offset=${state.offset}`;
 
     try {
         const res  = await fetch(url);
         const data = await res.json();
         if (!data.success) throw new Error(data.message);
 
-        const container = document.querySelector('#messages-tab .admin-messages');
-        container.insertAdjacentHTML('beforeend', data.messages.map(buildMessageCard).join(''));
+        const bar = document.getElementById('messagesLoadMoreBar');
+        bar.insertAdjacentHTML('beforebegin', data.messages.map(buildMessageCard).join(''));
 
-        state.offset  = newOffset;
+        state.offset  += data.messages.length;
         state.hasMore = data.hasMore;
         state.total   = data.total;
 
@@ -304,18 +372,17 @@ async function loadMoreReviews(btn) {
         reviewStatus = match ? match[1] : 'all';
     }
 
-    const newOffset = state.offset + PAGE_SIZE;
-    const url = `../api/getAdminData.php?type=reviews&review_status=${encodeURIComponent(reviewStatus)}&limit=${PAGE_SIZE}&offset=${newOffset}`;
+    const url = `../api/getAdminData.php?type=reviews&review_status=${encodeURIComponent(reviewStatus)}&limit=${PAGE_SIZE}&offset=${state.offset}`;
 
     try {
         const res  = await fetch(url);
         const data = await res.json();
         if (!data.success) throw new Error(data.message);
 
-        const container = document.querySelector('#reviews-tab .admin-messages');
-        container.insertAdjacentHTML('beforeend', data.reviews.map(buildReviewCard).join(''));
+        const bar = document.getElementById('reviewsLoadMoreBar');
+        bar.insertAdjacentHTML('beforebegin', data.reviews.map(buildReviewCard).join(''));
 
-        state.offset  = newOffset;
+        state.offset  += data.reviews.length;
         state.hasMore = data.hasMore;
         state.total   = data.total;
 

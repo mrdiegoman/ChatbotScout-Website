@@ -86,3 +86,9 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+.admin-jump-to-oldest-bar {
+    display: flex;
+    justify-content: flex-end;
+    padding-bottom: 1rem;
+}

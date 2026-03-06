@@ -200,6 +200,17 @@ require '../inc/header.php';
         <div class="admin-messages"
             data-total="<?= $msgTotal ?>"
             data-has-more="<?= $msgHasMore ? 'true' : 'false' ?>">
+
+            <!-- JUMP TO OLDEST — navrchu sekcie -->
+            <?php if ($msgTotal > 10): ?>
+            <div class="admin-jump-to-oldest-bar">
+                <button id="messagesScrollOldestBtn"
+                        class="admin-scroll-oldest-btn"
+                        onclick="scrollToOldest('messages')">
+                    ↓ Jump to oldest
+                </button>
+            </div>
+            <?php endif; ?>
             <?php if (empty($messages)): ?>
                 <div class="admin-empty">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -300,9 +311,6 @@ require '../inc/header.php';
             <!-- MESSAGES LOAD MORE BAR -->
             <div class="admin-load-more-bar" id="messagesLoadMoreBar" style="display:none;">
                 <span class="admin-load-more-counter"></span>
-                <button class="admin-scroll-oldest-btn" onclick="scrollToOldest('messages')" style="display:none;">
-                    ↓ Scroll to oldest
-                </button>
                 <button class="admin-show-more-btn" onclick="loadMoreMessages(this)" style="display:none;">
                     Show more
                 </button>
@@ -339,6 +347,17 @@ require '../inc/header.php';
         <div class="admin-messages"
             data-total="<?= $reviewTotal ?>"
             data-has-more="<?= $reviewHasMore ? 'true' : 'false' ?>">
+
+            <!-- JUMP TO OLDEST — navrchu sekcie -->
+            <?php if ($reviewTotal > 10): ?>
+            <div class="admin-jump-to-oldest-bar">
+                <button id="reviewsScrollOldestBtn"
+                        class="admin-scroll-oldest-btn"
+                        onclick="scrollToOldest('reviews')">
+                    ↓ Jump to oldest
+                </button>
+            </div>
+            <?php endif; ?>
             <?php if (empty($reviews)): ?>
                 <div class="admin-empty">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -445,9 +464,6 @@ require '../inc/header.php';
             <!-- REVIEWS LOAD MORE BAR -->
             <div class="admin-load-more-bar" id="reviewsLoadMoreBar" style="display:none;">
                 <span class="admin-load-more-counter"></span>
-                <button class="admin-scroll-oldest-btn" onclick="scrollToOldest('reviews')" style="display:none;">
-                    ↓ Scroll to oldest
-                </button>
                 <button class="admin-show-more-btn" onclick="loadMoreReviews(this)" style="display:none;">
                     Show more
                 </button>
