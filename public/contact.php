@@ -61,6 +61,7 @@ function old(string $key, array $old): string {
                             placeholder="Please enter first name"
                             value="<?= old('firstName', $oldInput) ?>"
                             maxlength="50"
+                            autocomplete="name"
                             required>
                     </div>
                     <div class="contact-page-main-section-2-form-row-group">
@@ -72,6 +73,7 @@ function old(string $key, array $old): string {
                             placeholder="Please enter last name"
                             value="<?= old('lastName', $oldInput) ?>"
                             maxlength="50"
+                            autocomplete="family-name"
                             required>
                     </div>
                 </div>
@@ -86,10 +88,11 @@ function old(string $key, array $old): string {
                             placeholder="Please enter your email"
                             value="<?= old('email', $oldInput) ?>"
                             maxlength="255"
+                            autocomplete="email"
                             required>
                     </div>
                     <div class="contact-page-main-section-2-form-row-group">
-                        <label for="subject">Subject <span class="required">*</span></label>
+                        <label>Subject <span class="required">*</span></label>
 
                         <!-- Hidden input carries the actual value to PHP -->
                         <input type="hidden" id="subjectValue" name="subject" value="<?= old('subject', $oldInput) ?>">

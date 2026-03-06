@@ -41,16 +41,23 @@ if ($filterHelpful) {
 
 $msgWhere = !empty($whereParts) ? 'WHERE ' . implode(' AND ', $whereParts) : '';
 
-$msgStmt = $db->prepare("
-    SELECT id, first_name, last_name, email, subject, message,
-           status, helpful, response, internal_notes, ip_address,
-           created_at, first_responded_at, resolved_at
-    FROM contact_messages
-    $msgWhere
-    ORDER BY CASE status WHEN 'new' THEN 0 ELSE 1 END, created_at DESC
-");
-$msgStmt->execute($msgParams);
-$messages = $msgStmt->fetchAll();
+// Total count pre messages
+    $msgTotalStmt = $db->prepare("SELECT COUNT(*) FROM contact_messages $msgWhere");
+    $msgTotalStmt->execute($msgParams);
+    $msgTotal   = (int)$msgTotalStmt->fetchColumn();
+    $msgHasMore = $msgTotal > 10;
+
+    $msgStmt = $db->prepare("
+        SELECT id, first_name, last_name, email, subject, message,
+               status, helpful, response, internal_notes, ip_address,
+               created_at, first_responded_at, resolved_at
+        FROM contact_messages
+        $msgWhere
+        ORDER BY CASE status WHEN 'new' THEN 0 ELSE 1 END, created_at DESC
+        LIMIT 10
+    ");
+    $msgStmt->execute($msgParams);
+    $messages = $msgStmt->fetchAll();
 
 // Message counts
 $msgCountStmt = $db->query("SELECT status, COUNT(*) as cnt FROM contact_messages GROUP BY status");
@@ -74,23 +81,35 @@ if (!in_array($filterReviewStatus, $allowedReviewStatuses, true)) {
 $reviewWhere  = $filterReviewStatus !== 'all' ? 'WHERE r.status = :status' : '';
 $reviewParams = $filterReviewStatus !== 'all' ? ['status' => $filterReviewStatus] : [];
 
-$reviewStmt = $db->prepare("
-    SELECT
-        r.id, r.rating, r.title, r.review_text,
-        r.status, r.moderation_notes,
-        r.created_at, r.moderated_at,
-        u.first_name, u.last_name, u.email,
-        c.name AS chatbot_name
-    FROM reviews r
-    JOIN users u    ON r.user_id    = u.id
-    JOIN chatbots c ON r.chatbot_id = c.id
-    $reviewWhere
-    ORDER BY
-        CASE r.status WHEN 'pending' THEN 0 ELSE 1 END,
-        r.created_at DESC
-");
-$reviewStmt->execute($reviewParams);
-$reviews = $reviewStmt->fetchAll();
+// Total count pre reviews
+    $reviewTotalStmt = $db->prepare("
+        SELECT COUNT(*) FROM reviews r
+        JOIN users u    ON r.user_id    = u.id
+        JOIN chatbots c ON r.chatbot_id = c.id
+        $reviewWhere
+    ");
+    $reviewTotalStmt->execute($reviewParams);
+    $reviewTotal   = (int)$reviewTotalStmt->fetchColumn();
+    $reviewHasMore = $reviewTotal > 10;
+
+    $reviewStmt = $db->prepare("
+        SELECT
+            r.id, r.rating, r.title, r.review_text,
+            r.status, r.moderation_notes,
+            r.created_at, r.moderated_at,
+            u.first_name, u.last_name, u.email,
+            c.name AS chatbot_name
+        FROM reviews r
+        JOIN users u    ON r.user_id    = u.id
+        JOIN chatbots c ON r.chatbot_id = c.id
+        $reviewWhere
+        ORDER BY
+            CASE r.status WHEN 'pending' THEN 0 ELSE 1 END,
+            r.created_at DESC
+        LIMIT 10
+    ");
+    $reviewStmt->execute($reviewParams);
+    $reviews = $reviewStmt->fetchAll();
 
 // Review counts per status
 $reviewCountStmt = $db->query("SELECT status, COUNT(*) as cnt FROM reviews GROUP BY status");
@@ -178,7 +197,9 @@ require '../inc/header.php';
             </a>
         </div>
 
-        <div class="admin-messages">
+        <div class="admin-messages"
+            data-total="<?= $msgTotal ?>"
+            data-has-more="<?= $msgHasMore ? 'true' : 'false' ?>">
             <?php if (empty($messages)): ?>
                 <div class="admin-empty">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -276,6 +297,16 @@ require '../inc/header.php';
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
+            <!-- MESSAGES LOAD MORE BAR -->
+            <div class="admin-load-more-bar" id="messagesLoadMoreBar" style="display:none;">
+                <span class="admin-load-more-counter"></span>
+                <button class="admin-scroll-oldest-btn" onclick="scrollToOldest('messages')" style="display:none;">
+                    ↓ Scroll to oldest
+                </button>
+                <button class="admin-show-more-btn" onclick="loadMoreMessages(this)" style="display:none;">
+                    Show more
+                </button>
+            </div>
         </div>
     </div>
 
@@ -305,7 +336,9 @@ require '../inc/header.php';
             <?php endforeach; ?>
         </div>
 
-        <div class="admin-messages">
+        <div class="admin-messages"
+            data-total="<?= $reviewTotal ?>"
+            data-has-more="<?= $reviewHasMore ? 'true' : 'false' ?>">
             <?php if (empty($reviews)): ?>
                 <div class="admin-empty">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -409,6 +442,16 @@ require '../inc/header.php';
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
+            <!-- REVIEWS LOAD MORE BAR -->
+            <div class="admin-load-more-bar" id="reviewsLoadMoreBar" style="display:none;">
+                <span class="admin-load-more-counter"></span>
+                <button class="admin-scroll-oldest-btn" onclick="scrollToOldest('reviews')" style="display:none;">
+                    ↓ Scroll to oldest
+                </button>
+                <button class="admin-show-more-btn" onclick="loadMoreReviews(this)" style="display:none;">
+                    Show more
+                </button>
+            </div>
         </div>
     </div>
 

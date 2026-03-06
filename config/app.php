@@ -65,9 +65,8 @@ return [
             'email_lockout'      => 60 * 60,
         ],
 
-        // Contact form — 5 submissions per IP per hour
         'contact_form' => [
-            'max_attempts' => 5,
+            'max_attempts' => 10,
             'window'       => 60 * 60, // 1 hour
             'lockout'      => 60 * 60, // 1 hour lockout
         ],

@@ -35,7 +35,7 @@ body {
     color: var(--red-heart-color);
     transform: rotate(15deg);
     transform-origin: center; 
-    width: 10%;
+    width: 12rem;
     height: auto;
     opacity: 0.85;
 }
@@ -1840,9 +1840,6 @@ body {
     .favourites-page-main-content-topbar-group {
         padding-right: 0;
     }
-}
-
-@media (max-width: 600px) {
 
     .favourites-page-main-content-topbar-group-sort-label{
         display: none;
@@ -1852,6 +1849,13 @@ body {
         margin-left: 0;
     }
 }
+
+/* @media (max-width: 600px) {
+
+    .favourites-page-main-content-topbar-group-sort-select-div {
+        margin-left: 0;
+    }
+} */
 
 /* Mobily (portrait a landscape) */
 @media (max-width: 768px) {

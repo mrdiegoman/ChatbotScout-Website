@@ -4,6 +4,7 @@
  *
  * Returns paginated messages or reviews with counts for admin refresh.
  * Supports same filters as admin.php (status, review_status, helpful).
+ * Supports limit/offset for "Show more" pagination.
  */
 
 error_reporting(E_ALL);
@@ -30,6 +31,10 @@ if (!in_array($type, ['messages', 'reviews'], true)) {
     echo json_encode(['success' => false, 'message' => 'Invalid type']);
     exit;
 }
+
+// Pagination params
+$limit  = max(1, min(100, (int)($_GET['limit']  ?? 10)));
+$offset = max(0, (int)($_GET['offset'] ?? 0));
 
 // ============================================
 // MESSAGES
@@ -58,6 +63,12 @@ if ($type === 'messages') {
 
     $msgWhere = !empty($whereParts) ? 'WHERE ' . implode(' AND ', $whereParts) : '';
 
+    // Total count
+    $countStmt = $db->prepare("SELECT COUNT(*) FROM contact_messages $msgWhere");
+    $countStmt->execute($msgParams);
+    $total = (int)$countStmt->fetchColumn();
+
+    // Paginated items
     $msgStmt = $db->prepare("
         SELECT id, first_name, last_name, email, subject, message,
                status, helpful, response, internal_notes, ip_address,
@@ -65,22 +76,26 @@ if ($type === 'messages') {
         FROM contact_messages
         $msgWhere
         ORDER BY CASE status WHEN 'new' THEN 0 ELSE 1 END, created_at DESC
+        LIMIT :limit OFFSET :offset
     ");
-    $msgStmt->execute($msgParams);
+    foreach ($msgParams as $k => $v) $msgStmt->bindValue($k, $v);
+    $msgStmt->bindValue(':limit',  $limit,  PDO::PARAM_INT);
+    $msgStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $msgStmt->execute();
     $messages = $msgStmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Format dates for JS
     foreach ($messages as &$msg) {
-        $msg['created_at_formatted']        = date('d M Y, H:i', strtotime($msg['created_at']));
+        $msg['created_at_formatted']         = date('d M Y, H:i', strtotime($msg['created_at']));
         $msg['first_responded_at_formatted'] = $msg['first_responded_at']
             ? date('d M Y, H:i', strtotime($msg['first_responded_at'])) : null;
-        $msg['resolved_at_formatted']       = $msg['resolved_at']
+        $msg['resolved_at_formatted']        = $msg['resolved_at']
             ? date('d M Y, H:i', strtotime($msg['resolved_at'])) : null;
         $msg['helpful'] = (bool)$msg['helpful'];
     }
     unset($msg);
 
-    // Counts
+    // Counts per status
     $msgCountStmt = $db->query("SELECT status, COUNT(*) as cnt FROM contact_messages GROUP BY status");
     $msgCounts    = ['all' => 0, 'new' => 0, 'replied' => 0, 'resolved' => 0, 'spam' => 0];
     foreach ($msgCountStmt->fetchAll() as $row) {
@@ -97,6 +112,9 @@ if ($type === 'messages') {
         'success'  => true,
         'messages' => $messages,
         'counts'   => $msgCounts,
+        'total'    => $total,
+        'hasMore'  => ($offset + $limit) < $total,
+        'offset'   => $offset,
     ]);
     exit;
 }
@@ -116,6 +134,18 @@ if ($type === 'reviews') {
     $reviewWhere  = $filterReviewStatus !== 'all' ? 'WHERE r.status = :status' : '';
     $reviewParams = $filterReviewStatus !== 'all' ? ['status' => $filterReviewStatus] : [];
 
+    // Total count
+    $countStmt = $db->prepare("
+        SELECT COUNT(*)
+        FROM reviews r
+        JOIN users u    ON r.user_id    = u.id
+        JOIN chatbots c ON r.chatbot_id = c.id
+        $reviewWhere
+    ");
+    $countStmt->execute($reviewParams);
+    $total = (int)$countStmt->fetchColumn();
+
+    // Paginated items
     $reviewStmt = $db->prepare("
         SELECT
             r.id, r.rating, r.title, r.review_text,
@@ -130,20 +160,24 @@ if ($type === 'reviews') {
         ORDER BY
             CASE r.status WHEN 'pending' THEN 0 ELSE 1 END,
             r.created_at DESC
+        LIMIT :limit OFFSET :offset
     ");
-    $reviewStmt->execute($reviewParams);
+    foreach ($reviewParams as $k => $v) $reviewStmt->bindValue($k, $v);
+    $reviewStmt->bindValue(':limit',  $limit,  PDO::PARAM_INT);
+    $reviewStmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $reviewStmt->execute();
     $reviews = $reviewStmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Format dates for JS
     foreach ($reviews as &$review) {
-        $review['created_at_formatted']  = date('d M Y, H:i', strtotime($review['created_at']));
+        $review['created_at_formatted']   = date('d M Y, H:i', strtotime($review['created_at']));
         $review['moderated_at_formatted'] = $review['moderated_at']
             ? date('d M Y, H:i', strtotime($review['moderated_at'])) : null;
         $review['rating'] = (int)$review['rating'];
     }
     unset($review);
 
-    // Counts
+    // Counts per status
     $reviewCountStmt = $db->query("SELECT status, COUNT(*) as cnt FROM reviews GROUP BY status");
     $reviewCounts    = ['all' => 0, 'pending' => 0, 'approved' => 0, 'rejected' => 0, 'flagged' => 0, 'removed' => 0];
     foreach ($reviewCountStmt->fetchAll() as $row) {
@@ -157,6 +191,9 @@ if ($type === 'reviews') {
         'success' => true,
         'reviews' => $reviews,
         'counts'  => $reviewCounts,
+        'total'   => $total,
+        'hasMore' => ($offset + $limit) < $total,
+        'offset'  => $offset,
     ]);
     exit;
 }

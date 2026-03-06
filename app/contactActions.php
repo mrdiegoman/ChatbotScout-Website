@@ -169,7 +169,7 @@ try {
     // SUCCESS
     // ============================================
 
-    $rateLimiter->reset('contact_form', $ipAddress);
+    $rateLimiter->recordFailedAttempt('contact_form', $ipAddress);
     $_SESSION['contact_success'] = "Your message has been sent! We'll get back to you within a few business days.";
     header('Location: ' . $contactUrl);
     exit;

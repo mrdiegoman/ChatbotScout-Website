@@ -44,3 +44,45 @@
     from { transform: rotate(0deg); }
     to   { transform: rotate(360deg); }
 }
+
+/* ---- Load more bar ---- */
+.admin-load-more-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.2rem 0 0.4rem;
+    flex-wrap: wrap;
+}
+
+.admin-load-more-counter {
+    font-size: 1.3rem;
+    color: var(--grey-color, #9ca3af);
+    flex: 1;
+}
+
+.admin-show-more-btn,
+.admin-scroll-oldest-btn {
+    padding: 0.7rem 1.4rem;
+    border-radius: 0.8rem;
+    border: 0.15rem solid var(--black-color-light, #1f2937);
+    background: transparent;
+    font-size: 1.35rem;
+    font-family: outfit-medium, sans-serif;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.admin-show-more-btn:hover {
+    background: var(--blue-color-2, #2563eb);
+    color: #fff;
+    border-color: var(--blue-color-2, #2563eb);
+}
+
+.admin-scroll-oldest-btn:hover {
+    background: var(--grey-hover-color, #f3f4f6);
+}
+
+.admin-show-more-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

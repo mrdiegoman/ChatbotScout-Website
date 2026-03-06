@@ -18,6 +18,17 @@ function nlToBr(str) {
 }
 
 // ============================================
+// STATE — offset pre každú sekciu
+// ============================================
+
+const adminState = {
+    messages: { offset: 0, hasMore: false, total: 0 },
+    reviews:  { offset: 0, hasMore: false, total: 0 },
+};
+
+const PAGE_SIZE = 10;
+
+// ============================================
 // MESSAGE CARD BUILDER
 // ============================================
 
@@ -44,13 +55,10 @@ function buildMessageCard(msg) {
 
     const helpfulActive = isHelpful ? ' active' : '';
 
-    const ipBlock  = msg.ip_address
-        ? `<span>IP: ${escHtml(msg.ip_address)}</span>` : '';
-    const respBlock = msg.first_responded_at_formatted
-        ? `<span>First responded: ${escHtml(msg.first_responded_at_formatted)}</span>` : '';
-    const resolvedBlock = msg.resolved_at_formatted
-        ? `<span>Resolved: ${escHtml(msg.resolved_at_formatted)}</span>` : '';
-    const hasMeta  = ipBlock || respBlock || resolvedBlock;
+    const ipBlock      = msg.ip_address             ? `<span>IP: ${escHtml(msg.ip_address)}</span>` : '';
+    const respBlock    = msg.first_responded_at_formatted ? `<span>First responded: ${escHtml(msg.first_responded_at_formatted)}</span>` : '';
+    const resolvedBlock= msg.resolved_at_formatted  ? `<span>Resolved: ${escHtml(msg.resolved_at_formatted)}</span>` : '';
+    const hasMeta      = ipBlock || respBlock || resolvedBlock;
 
     return `
     <div class="admin-message-card ${isHelpful ? 'is-helpful' : ''}" data-id="${id}">
@@ -179,7 +187,150 @@ function buildReviewCard(review) {
 }
 
 // ============================================
-// REFRESH MESSAGES
+// LOAD MORE BAR — update visibility + counter
+// ============================================
+
+function updateLoadMoreBar(section) {
+    const state   = adminState[section];
+    const barId   = section === 'messages' ? 'messagesLoadMoreBar' : 'reviewsLoadMoreBar';
+    const bar     = document.getElementById(barId);
+    if (!bar) return;
+
+    const showMoreBtn   = bar.querySelector('.admin-show-more-btn');
+    const scrollOldBtn  = bar.querySelector('.admin-scroll-oldest-btn');
+    const counterEl     = bar.querySelector('.admin-load-more-counter');
+
+    // Zobraz bar len keď sú nejaké karty
+    const container = document.querySelector(
+        section === 'messages' ? '#messages-tab .admin-messages' : '#reviews-tab .admin-messages'
+    );
+    const cardCount = container ? container.querySelectorAll('.admin-message-card').length : 0;
+
+    bar.style.display = cardCount > 0 ? 'flex' : 'none';
+
+    // Show more button
+    if (showMoreBtn) {
+        showMoreBtn.style.display = state.hasMore ? 'inline-flex' : 'none';
+    }
+
+    // Counter: "Showing X of Y"
+    if (counterEl) {
+        counterEl.textContent = `Showing ${cardCount} of ${state.total}`;
+    }
+
+    // Scroll to oldest — zobraz len keď je viac ako 1 karta
+    if (scrollOldBtn) {
+        scrollOldBtn.style.display = cardCount > 1 ? 'inline-flex' : 'none';
+    }
+}
+
+// ============================================
+// SCROLL TO OLDEST
+// ============================================
+
+function scrollToOldest(section) {
+    const selector = section === 'messages'
+        ? '#messages-tab .admin-messages .admin-message-card:last-child'
+        : '#reviews-tab .admin-messages .admin-message-card:last-child';
+    const lastCard = document.querySelector(selector);
+    if (lastCard) {
+        lastCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// ============================================
+// LOAD MORE MESSAGES
+// ============================================
+
+async function loadMoreMessages(btn) {
+    btn.disabled    = true;
+    btn.textContent = 'Loading...';
+
+    const state = adminState.messages;
+
+    const activeSubTab = document.querySelector('#messages-tab .admin-tabs .admin-tab.active');
+    let status  = 'all';
+    let helpful = '';
+    if (activeSubTab) {
+        const href = activeSubTab.getAttribute('href') || '';
+        if (href.includes('helpful')) {
+            helpful = '&helpful';
+        } else {
+            const match = href.match(/status=([^&]+)/);
+            status = match ? match[1] : 'all';
+        }
+    }
+
+    const newOffset = state.offset + PAGE_SIZE;
+    const url = `../api/getAdminData.php?type=messages&status=${encodeURIComponent(status)}${helpful}&limit=${PAGE_SIZE}&offset=${newOffset}`;
+
+    try {
+        const res  = await fetch(url);
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message);
+
+        const container = document.querySelector('#messages-tab .admin-messages');
+        container.insertAdjacentHTML('beforeend', data.messages.map(buildMessageCard).join(''));
+
+        state.offset  = newOffset;
+        state.hasMore = data.hasMore;
+        state.total   = data.total;
+
+        updateLoadMoreBar('messages');
+    } catch (err) {
+        console.error(err);
+        showNotification('Failed to load more messages', 'error');
+    } finally {
+        btn.disabled    = false;
+        btn.textContent = 'Show more';
+    }
+}
+
+// ============================================
+// LOAD MORE REVIEWS
+// ============================================
+
+async function loadMoreReviews(btn) {
+    btn.disabled    = true;
+    btn.textContent = 'Loading...';
+
+    const state = adminState.reviews;
+
+    const activeSubTab = document.querySelector('#reviews-tab .admin-tabs .admin-tab.active');
+    let reviewStatus = 'all';
+    if (activeSubTab) {
+        const href  = activeSubTab.getAttribute('href') || '';
+        const match = href.match(/review_status=([^&]+)/);
+        reviewStatus = match ? match[1] : 'all';
+    }
+
+    const newOffset = state.offset + PAGE_SIZE;
+    const url = `../api/getAdminData.php?type=reviews&review_status=${encodeURIComponent(reviewStatus)}&limit=${PAGE_SIZE}&offset=${newOffset}`;
+
+    try {
+        const res  = await fetch(url);
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message);
+
+        const container = document.querySelector('#reviews-tab .admin-messages');
+        container.insertAdjacentHTML('beforeend', data.reviews.map(buildReviewCard).join(''));
+
+        state.offset  = newOffset;
+        state.hasMore = data.hasMore;
+        state.total   = data.total;
+
+        updateLoadMoreBar('reviews');
+    } catch (err) {
+        console.error(err);
+        showNotification('Failed to load more reviews', 'error');
+    } finally {
+        btn.disabled    = false;
+        btn.textContent = 'Show more';
+    }
+}
+
+// ============================================
+// REFRESH MESSAGES — reset na offset 0
 // ============================================
 
 async function refreshMessages(btn) {
@@ -195,21 +346,17 @@ async function refreshMessages(btn) {
             status = match ? match[1] : 'all';
         }
     }
-    const url = `../api/getAdminData.php?type=messages&status=${encodeURIComponent(status)}${helpful}`;
+
+    const url = `../api/getAdminData.php?type=messages&status=${encodeURIComponent(status)}${helpful}&limit=${PAGE_SIZE}&offset=0`;
 
     btn.classList.add('spinning');
     btn.disabled = true;
 
     try {
-        const res    = await fetch(url);
-        const data   = await res.json();
+        const res  = await fetch(url);
+        const data = await res.json();
+        if (!data.success) { showNotification(data.message || 'Refresh failed', 'error'); return; }
 
-        if (!data.success) {
-            showNotification(data.message || 'Refresh failed', 'error');
-            return;
-        }
-
-        // Rebuild cards
         const container = document.querySelector('#messages-tab .admin-messages');
         if (data.messages.length === 0) {
             container.innerHTML = `
@@ -223,22 +370,23 @@ async function refreshMessages(btn) {
             container.innerHTML = data.messages.map(buildMessageCard).join('');
         }
 
-        // Update main tab badge
+        // Reset state
+        adminState.messages.offset  = 0;
+        adminState.messages.hasMore = data.hasMore;
+        adminState.messages.total   = data.total;
+        updateLoadMoreBar('messages');
+
+        // Update badges
         updateMainTabBadge('messages', data.counts.new);
-
-        // Update sub-tab badges
-        const subBadges = document.querySelectorAll('#messages-tab .admin-tabs .admin-tab');
-        subBadges.forEach(tab => {
-            const href   = tab.getAttribute('href') || '';
-            const badge  = tab.querySelector('.admin-tab-badge');
+        document.querySelectorAll('#messages-tab .admin-tabs .admin-tab').forEach(tab => {
+            const href  = tab.getAttribute('href') || '';
+            const badge = tab.querySelector('.admin-tab-badge');
             if (!badge) return;
-
             if (tab.classList.contains('admin-tab-helpful')) {
                 badge.textContent = data.counts.helpful ?? 0;
             } else {
                 const match = href.match(/status=([^&]+)/);
-                const key   = match ? match[1] : 'all';
-                badge.textContent = data.counts[key] ?? 0;
+                badge.textContent = data.counts[match ? match[1] : 'all'] ?? 0;
             }
         });
 
@@ -253,7 +401,7 @@ async function refreshMessages(btn) {
 }
 
 // ============================================
-// REFRESH REVIEWS
+// REFRESH REVIEWS — reset na offset 0
 // ============================================
 
 async function refreshReviews(btn) {
@@ -264,7 +412,8 @@ async function refreshReviews(btn) {
         const match = href.match(/review_status=([^&]+)/);
         reviewStatus = match ? match[1] : 'all';
     }
-    const url = `../api/getAdminData.php?type=reviews&review_status=${encodeURIComponent(reviewStatus)}`;
+
+    const url = `../api/getAdminData.php?type=reviews&review_status=${encodeURIComponent(reviewStatus)}&limit=${PAGE_SIZE}&offset=0`;
 
     btn.classList.add('spinning');
     btn.disabled = true;
@@ -272,13 +421,8 @@ async function refreshReviews(btn) {
     try {
         const res  = await fetch(url);
         const data = await res.json();
+        if (!data.success) { showNotification(data.message || 'Refresh failed', 'error'); return; }
 
-        if (!data.success) {
-            showNotification(data.message || 'Refresh failed', 'error');
-            return;
-        }
-
-        // Rebuild cards
         const container = document.querySelector('#reviews-tab .admin-messages');
         if (data.reviews.length === 0) {
             container.innerHTML = `
@@ -292,18 +436,20 @@ async function refreshReviews(btn) {
             container.innerHTML = data.reviews.map(buildReviewCard).join('');
         }
 
-        // Update main tab badge
-        updateMainTabBadge('reviews', data.counts.pending);
+        // Reset state
+        adminState.reviews.offset  = 0;
+        adminState.reviews.hasMore = data.hasMore;
+        adminState.reviews.total   = data.total;
+        updateLoadMoreBar('reviews');
 
-        // Update sub-tab badges
-        const subBadges = document.querySelectorAll('#reviews-tab .admin-tabs .admin-tab');
-        subBadges.forEach(tab => {
+        // Update badges
+        updateMainTabBadge('reviews', data.counts.pending);
+        document.querySelectorAll('#reviews-tab .admin-tabs .admin-tab').forEach(tab => {
             const href  = tab.getAttribute('href') || '';
             const badge = tab.querySelector('.admin-tab-badge');
             if (!badge) return;
             const match = href.match(/review_status=([^&]+)/);
-            const key   = match ? match[1] : 'all';
-            badge.textContent = data.counts[key] ?? 0;
+            badge.textContent = data.counts[match ? match[1] : 'all'] ?? 0;
         });
 
         showNotification('Reviews refreshed', 'success');
@@ -336,3 +482,28 @@ function updateMainTabBadge(tab, count) {
         if (badge) badge.remove();
     }
 }
+
+// ============================================
+// INIT — nastav state z PHP-rendered kariet
+// ============================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Zisti koľko kariet PHP vyrendroval a nastav state
+    ['messages', 'reviews'].forEach(section => {
+        const selector = section === 'messages'
+            ? '#messages-tab .admin-messages .admin-message-card'
+            : '#reviews-tab .admin-messages .admin-message-card';
+        const cards = document.querySelectorAll(selector);
+
+        // total a hasMore sú nastavené v data atribútoch na kontajneri (viď admin.php)
+        const container = document.querySelector(
+            section === 'messages' ? '#messages-tab .admin-messages' : '#reviews-tab .admin-messages'
+        );
+        if (container) {
+            adminState[section].offset  = cards.length;
+            adminState[section].total   = parseInt(container.dataset.total  || cards.length, 10);
+            adminState[section].hasMore = container.dataset.hasMore === 'true';
+        }
+        updateLoadMoreBar(section);
+    });
+});
