@@ -53,7 +53,10 @@
         span.addEventListener('click', () => {
             span.classList.toggle('active');
             updateBadge();
-            scheduleFetch();
+            scheduleFetch(); // refreshne integration počty
+            if (typeof window.triggerFeatureCountsRefresh === 'function') {
+                window.triggerFeatureCountsRefresh(); // refreshne aj feature počty
+            }
         });
 
         return span;

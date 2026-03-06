@@ -50,6 +50,13 @@ $activeIds   = array_values(array_filter(
 ));
 $activeCount = count($activeIds);
 
+// Sanitize activeIntegrationIds
+$activeIntIds = array_values(array_filter(
+    (array)($data['activeIntegrationIds'] ?? []),
+    fn($id) => is_string($id) && preg_match('/^[0-9a-f\-]{36}$/i', $id)
+));
+$activeIntCount = count($activeIntIds);
+
 // isFavourites — restrict counts to current user's favourites only
 $isFavourites = !empty($data['isFavourites']) && $isLoggedIn && !empty($user['id']);
 
@@ -88,6 +95,18 @@ try {
         foreach ($activeIds as $i => $id) {
             $params[":af{$i}"] = $id;
         }
+    }
+
+    // Integrations — OR logika
+    if ($activeIntCount > 0) {
+        $intPh = implode(',', array_map(fn($i) => ":ai{$i}", range(0, $activeIntCount - 1)));
+        $where[] = "EXISTS (
+            SELECT 1 FROM chatbot_integrations ci_fc
+            WHERE ci_fc.chatbot_id = c.id
+              AND ci_fc.integration_id IN ({$intPh})
+              AND ci_fc.is_supported = 1
+        )";
+        foreach ($activeIntIds as $i => $id) { $params[":ai{$i}"] = $id; }
     }
 
     $whereStr = implode(' AND ', $where);

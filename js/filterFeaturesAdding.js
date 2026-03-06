@@ -92,17 +92,25 @@
 
     function getActiveFilters() {
         const val = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+
+        const intSpanClass = isFavourites
+            ? 'favourites-filters-modal-body-integrations-single'
+            : 'chatbot-filters-modal-body-integrations-single';
+
         return {
-            ratingStart:      val('ratingInputStart'),
-            ratingEnd:        val('ratingInputEnd'),
-            votesStart:       val('votesInputStart'),
-            votesEnd:         val('votesInputEnd'),
-            favoritesStart:   val('favoritesInputStart'),
-            favoritesEnd:     val('favoritesInputEnd'),
-            priceStart:       val('priceInputStart'),
-            priceEnd:         val('priceInputEnd'),
-            activeFeatureIds: [...document.querySelectorAll(`.${spanClass}.active`)]
+            ratingStart:          val('ratingInputStart'),
+            ratingEnd:            val('ratingInputEnd'),
+            votesStart:           val('votesInputStart'),
+            votesEnd:             val('votesInputEnd'),
+            favoritesStart:       val('favoritesInputStart'),
+            favoritesEnd:         val('favoritesInputEnd'),
+            priceStart:           val('priceInputStart'),
+            priceEnd:             val('priceInputEnd'),
+            activeFeatureIds:     [...document.querySelectorAll(`.${spanClass}.active`)]
                 .map(s => s.dataset.featureId)
+                .filter(Boolean),
+            activeIntegrationIds: [...document.querySelectorAll(`.${intSpanClass}.active`)]
+                .map(s => s.dataset.integrationId)
                 .filter(Boolean),
             isFavourites: isFavourites,
         };
@@ -158,10 +166,13 @@
         span.dataset.featureName = feature.name;
         span.textContent          = feature.name;
 
-        span.addEventListener('click', function () {
-            this.classList.toggle('active');
+        span.addEventListener('click', () => {
+            span.classList.toggle('active');
             updateBadge();
-            scheduleFetch();
+            scheduleFetch(); // refreshne feature počty
+            if (typeof window.triggerIntegrationCountsRefresh === 'function') {
+                window.triggerIntegrationCountsRefresh(); // refreshne aj integration počty
+            }
         });
 
         return span;
