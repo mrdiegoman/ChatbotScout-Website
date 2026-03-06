@@ -125,6 +125,24 @@ CREATE TABLE `visitors` (
   COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
+-- Settings table
+-- Global key-value store pre site-wide nastavenia
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS `settings` (
+    `key`        VARCHAR(100) NOT NULL,
+    `value`      TEXT         DEFAULT NULL,
+    `updated_at` DATETIME     DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Default hodnoty
+INSERT INTO `settings` (`key`, `value`) VALUES
+    ('reply_from_email', 'noreply@chatbothub.com'),
+    ('reply_from_name',  'ChatbotHub Support')
+ON DUPLICATE KEY UPDATE `key` = `key`;
+
+-- ============================================
 -- CHATBOT LISTINGS (WEBSITES)
 -- ============================================
 

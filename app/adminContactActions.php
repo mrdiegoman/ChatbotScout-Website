@@ -73,7 +73,6 @@ if ($action === 'update_status') {
 if ($action === 'send_reply') {
     $response = trim($data['response'] ?? '');
 
-    // Empty check
     if (empty($response)) {
         echo json_encode(['success' => false, 'message' => 'Reply cannot be empty — not sent.']);
         exit;
@@ -107,6 +106,19 @@ if ($action === 'send_reply') {
         }
 
         // ============================================
+        // NAČÍTAJ REPLY-FROM SETTINGS Z DB
+        // ============================================
+
+        $settingsStmt = $db->query("
+            SELECT `key`, `value` FROM settings
+            WHERE `key` IN ('reply_from_email', 'reply_from_name')
+        ");
+        $settingsRows = $settingsStmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
+        $replyFromEmail = $settingsRows['reply_from_email'] ?? '';
+        $replyFromName  = $settingsRows['reply_from_name']  ?? '';
+
+        // ============================================
         // SEND EMAIL
         // ============================================
 
@@ -116,7 +128,9 @@ if ($action === 'send_reply') {
             $msg['email'],
             $fullName,
             $msg['subject'] ?? 'Your inquiry',
-            $response
+            $response,
+            $replyFromEmail,
+            $replyFromName
         );
 
         if (!$sent) {

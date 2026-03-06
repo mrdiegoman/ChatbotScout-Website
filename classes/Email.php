@@ -55,23 +55,30 @@ class Email
     /**
      * Admin reply to a contact message
      *
-     * @param string $toEmail      Recipient email
-     * @param string $toName       Recipient full name
-     * @param string $originalSubject  Original message subject
-     * @param string $replyText    Admin reply content
-     * @return bool
+     * @param string $toEmail         Recipient email
+     * @param string $toName          Recipient full name
+     * @param string $originalSubject Original message subject
+     * @param string $replyText       Admin reply content
+     * @param string $fromEmail       Optional override for From address (z DB settings)
+     * @param string $fromName        Optional override for From name (z DB settings)
      */
     public function sendAdminReply(
         string $toEmail,
         string $toName,
         string $originalSubject,
-        string $replyText
+        string $replyText,
+        string $fromEmail = '',
+        string $fromName  = ''
     ): bool {
         $emailSubject = 'Re: ' . $originalSubject . ' – ChatbotHub';
         $htmlBody     = $this->getAdminReplyTemplate($toName, $originalSubject, $replyText);
         $textBody     = "Hi $toName,\n\nThank you for contacting us. Here is our response to your inquiry regarding \"$originalSubject\":\n\n$replyText\n\nBest regards,\nThe ChatbotHub Team";
 
-        return $this->send($toEmail, $toName, $emailSubject, $htmlBody, $textBody);
+        // Použi override ak je nastavený, inak fallback na config
+        $resolvedFromEmail = !empty($fromEmail) ? $fromEmail : $this->config['from_email'];
+        $resolvedFromName  = !empty($fromName)  ? $fromName  : $this->config['from_name'];
+
+        return $this->send($toEmail, $toName, $emailSubject, $htmlBody, $textBody, $resolvedFromEmail, $resolvedFromName);
     }
 
     // ============================================
@@ -83,7 +90,9 @@ class Email
         string $toName,
         string $subject,
         string $htmlBody,
-        string $textBody
+        string $textBody,
+        string $fromEmail = '',
+        string $fromName  = ''
     ): bool {
         $mail = new PHPMailer(true);
 
@@ -97,7 +106,10 @@ class Email
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->CharSet    = 'UTF-8';
 
-            $mail->setFrom($this->config['from_email'], $this->config['from_name']);
+            $mail->setFrom(
+                !empty($fromEmail) ? $fromEmail : $this->config['from_email'],
+                !empty($fromName)  ? $fromName  : $this->config['from_name']
+            );
             $mail->addAddress($toEmail, $toName);
 
             $mail->isHTML(true);
@@ -134,14 +146,14 @@ class Email
             <div class="container">
                 <h2>Welcome to ChatbotHub! 🎉</h2>
                 <p>Hi <strong>$name</strong>,</p>
-                <p>Thanks for signing up! Please verify your email address to activate your account.</p>
-                <p><a href="$link" class="button">Verify Email Address</a></p>
-                <p>Or copy this link to your browser:</p>
-                <p style="word-break: break-all; color: #666;">$link</p>
-                <p><strong>This link will expire in 24 hours.</strong></p>
+                <p>Thanks for signing up! Please verify your email address to get started.</p>
+                <a href="$link" class="button">Verify Email Address</a>
+                <p>Or copy and paste this link into your browser:</p>
+                <p><a href="$link">$link</a></p>
+                <p>This link will expire in <strong>24 hours</strong>.</p>
                 <div class="footer">
-                    <p>If you didn't create this account, please ignore this email.</p>
-                    <p>&copy; 2025 ChatbotHub. All rights reserved.</p>
+                    <p>If you didn't create an account, you can safely ignore this email.</p>
+                    <p>© ChatbotHub</p>
                 </div>
             </div>
         </body>
@@ -159,21 +171,24 @@ class Email
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
             .button { display: inline-block; padding: 12px 30px; background-color: #2196F3; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+            .warning { background-color: #fff3cd; border: 1px solid #ffc107; padding: 10px; border-radius: 5px; margin: 20px 0; }
             .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
         </style>
         </head>
         <body>
             <div class="container">
-                <h2>Reset Your Password</h2>
-                <p>Hi $name,</p>
-                <p>You requested to reset your ChatbotHub password. Click the button below to create a new password:</p>
-                <p><a href="$link" class="button">Reset Password</a></p>
-                <p>Or copy this link to your browser:</p>
-                <p style="word-break: break-all; color: #666;">$link</p>
-                <p><strong>This link will expire in 1 hour.</strong></p>
+                <h2>Password Reset Request</h2>
+                <p>Hi <strong>$name</strong>,</p>
+                <p>We received a request to reset your password. Click the button below to create a new password:</p>
+                <a href="$link" class="button">Reset Password</a>
+                <p>Or copy and paste this link into your browser:</p>
+                <p><a href="$link">$link</a></p>
+                <div class="warning">
+                    ⚠️ This link will expire in <strong>1 hour</strong>.
+                </div>
                 <div class="footer">
-                    <p>If you didn't request this, please ignore this email. Your password will remain unchanged.</p>
-                    <p>&copy; 2025 ChatbotHub. All rights reserved.</p>
+                    <p>If you didn't request a password reset, please ignore this email. Your password will remain unchanged.</p>
+                    <p>© ChatbotHub</p>
                 </div>
             </div>
         </body>
@@ -190,21 +205,21 @@ class Email
         <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .badge { display: inline-block; padding: 6px 14px; background-color: #f0f4ff; color: #3b82f6; border-radius: 20px; font-size: 13px; font-weight: 600; margin: 8px 0 16px; }
+            .subject-box { background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #4CAF50; }
             .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
         </style>
         </head>
         <body>
             <div class="container">
-                <h2>We got your message! ✉️</h2>
+                <h2>We received your message ✓</h2>
                 <p>Hi <strong>$name</strong>,</p>
-                <p>Thank you for reaching out to us. We have received your message regarding:</p>
-                <span class="badge">$subject</span>
-                <p>Our team will review your message and get back to you within a few business days.</p>
-                <p>If your matter is urgent, please note that we prioritize all incoming messages and will do our best to respond as quickly as possible.</p>
+                <p>Thank you for reaching out! We have received your message regarding:</p>
+                <div class="subject-box">
+                    <strong>$subject</strong>
+                </div>
+                <p>We aim to respond within a few business days.</p>
                 <div class="footer">
-                    <p>Please do not reply to this email — it was sent automatically.</p>
-                    <p>&copy; 2025 ChatbotHub. All rights reserved.</p>
+                    <p>© ChatbotHub</p>
                 </div>
             </div>
         </body>
@@ -215,7 +230,6 @@ class Email
     private function getAdminReplyTemplate(string $name, string $originalSubject, string $replyText): string
     {
         $replyHtml = nl2br(htmlspecialchars($replyText));
-
         return <<<HTML
         <!DOCTYPE html>
         <html>
@@ -223,22 +237,20 @@ class Email
         <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .subject-badge { display: inline-block; padding: 6px 14px; background-color: #f0f4ff; color: #3b82f6; border-radius: 20px; font-size: 13px; font-weight: 600; margin: 4px 0 20px; }
-            .reply-box { background-color: #f9fafb; border-left: 4px solid #3b82f6; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; color: #374151; font-size: 15px; }
+            .subject-box { background-color: #f5f5f5; padding: 10px 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #2196F3; font-size: 13px; color: #666; }
+            .reply-body { background: #fff; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px; }
             .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
         </style>
         </head>
         <body>
             <div class="container">
-                <h2>We replied to your inquiry ✉️</h2>
+                <h2>Response to your inquiry</h2>
                 <p>Hi <strong>$name</strong>,</p>
-                <p>Thank you for contacting us. Here is our response regarding:</p>
-                <span class="subject-badge">$originalSubject</span>
-                <div class="reply-box">$replyHtml</div>
-                <p>If you have any further questions, feel free to contact us again via our <a href="{$this->config['base_url']}/contact.php">contact form</a>.</p>
+                <div class="subject-box">Re: $originalSubject</div>
+                <div class="reply-body">$replyHtml</div>
+                <p style="margin-top:20px;">Best regards,<br><strong>The ChatbotHub Team</strong></p>
                 <div class="footer">
-                    <p>Please do not reply to this email — use our contact form for further inquiries.</p>
-                    <p>&copy; 2025 ChatbotHub. All rights reserved.</p>
+                    <p>© ChatbotHub</p>
                 </div>
             </div>
         </body>

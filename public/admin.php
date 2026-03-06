@@ -11,7 +11,7 @@ $db = Database::getInstance()->getConnection();
 // ============================================
 
 $activeTab   = $_GET['tab'] ?? 'messages';
-$allowedTabs = ['messages', 'reviews'];
+$allowedTabs = ['messages', 'reviews', 'settings'];
 if (!in_array($activeTab, $allowedTabs, true)) {
     $activeTab = 'messages';
 }
@@ -107,6 +107,7 @@ require '../inc/header.php';
 
 <link rel="stylesheet" href="../css/admin.css">
 <link rel="stylesheet" href="../css/admin_refresh.css">
+<link rel="stylesheet" href="../css/admin_settings.css">
 
 <div class="admin-wrapper">
 
@@ -146,6 +147,10 @@ require '../inc/header.php';
                     <path d="M3.51 9a9 9 0 0114.36-3.36L23 10M1 14l5.13 4.36A9 9 0 0020.49 15"/>
                 </svg>
             </span>
+        </button>
+        <button class="admin-main-tab-btn <?= $activeTab === 'settings' ? 'active' : '' ?>"
+                data-tab="settings">
+            ⚙️ Settings
         </button>
     </div>
 
@@ -405,6 +410,61 @@ require '../inc/header.php';
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- TAB: SETTINGS                               -->
+    <!-- ============================================ -->
+
+    <div class="admin-tab-pane <?= $activeTab === 'settings' ? 'active' : '' ?>" id="settings-tab">
+
+        <div class="admin-settings-loading" id="settingsLoading" style="display:none;">
+            <div class="admin-settings-spinner"></div>
+        </div>
+
+        <div id="settingsContent" style="display:none;">
+
+            <div class="admin-settings-card">
+                <div class="admin-settings-card-header">
+                    <h2>Reply Email Settings</h2>
+                    <p>Outgoing email address used when replying to contact messages. Keep this separate from your admin login email.</p>
+                </div>
+
+                <div class="admin-settings-form" id="adminSettingsForm">
+
+                    <div class="admin-settings-field">
+                        <label for="settingReplyEmail">Reply-from email <span class="admin-settings-required">*</span></label>
+                        <input type="email"
+                               id="settingReplyEmail"
+                               maxlength="254"
+                               placeholder="support@yourdomain.com"
+                               autocomplete="off">
+                        <span class="admin-settings-hint">Users will see this address in their inbox when you reply.</span>
+                    </div>
+
+                    <div class="admin-settings-field">
+                        <label for="settingReplyName">Reply-from name</label>
+                        <input type="text"
+                               id="settingReplyName"
+                               maxlength="100"
+                               placeholder="ChatbotHub Support"
+                               autocomplete="off">
+                        <span class="admin-settings-hint">Display name shown alongside the email address.</span>
+                    </div>
+
+                    <div class="admin-settings-footer">
+                        <span class="admin-settings-updated" id="settingsLastUpdated"></span>
+                        <button class="admin-save-btn admin-settings-save-btn"
+                                onclick="saveAdminSettings(this)">
+                            Save Settings
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
     </div>
 
 </div><!-- end admin-wrapper -->

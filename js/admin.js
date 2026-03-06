@@ -44,7 +44,7 @@ notifStyles.textContent = `
 document.head.appendChild(notifStyles);
 
 // ============================================
-// MAIN TAB SWITCHING (Messages / Reviews)
+// MAIN TAB SWITCHING (Messages / Reviews / Settings)
 // ============================================
 
 document.querySelectorAll('.admin-main-tab-btn').forEach(btn => {
@@ -67,6 +67,15 @@ document.querySelectorAll('.admin-main-tab-btn').forEach(btn => {
         // Update pane visibility
         document.querySelectorAll('.admin-tab-pane').forEach(p => p.classList.remove('active'));
         document.getElementById(tab + '-tab').classList.add('active');
+
+        // Lazy load settings pri prvom otvorení
+        if (tab === 'settings') {
+            const settingsTab = document.getElementById('settings-tab');
+            if (!settingsTab.dataset.loaded) {
+                settingsTab.dataset.loaded = '1';
+                loadAdminSettings();
+            }
+        }
     });
 });
 
@@ -204,8 +213,6 @@ async function saveNotes(id, btn) {
 // ============================================
 
 async function toggleHelpful(id, btn) {
-    btn.disabled = true;
-
     try {
         const res    = await fetch('../app/adminContactActions.php', {
             method: 'POST',
@@ -215,33 +222,13 @@ async function toggleHelpful(id, btn) {
         const result = await res.json();
 
         if (result.success) {
-            const card      = btn.closest('.admin-message-card');
-            const isHelpful = result.helpful;
-
-            btn.classList.toggle('active', isHelpful);
-            card.classList.toggle('is-helpful', isHelpful);
-
-            const senderRow = card.querySelector('.admin-message-sender-row');
-            let badge = senderRow.querySelector('.admin-helpful-badge');
-            if (isHelpful) {
-                if (!badge) {
-                    badge = document.createElement('span');
-                    badge.className   = 'admin-helpful-badge';
-                    badge.textContent = '⭐ Helpful';
-                    senderRow.appendChild(badge);
-                }
-            } else {
-                if (badge) badge.remove();
-            }
-
-            showNotification(isHelpful ? 'Marked as helpful ⭐' : 'Helpful mark removed', 'success');
+            btn.classList.toggle('active', result.helpful);
+            showNotification(result.helpful ? 'Marked as helpful' : 'Removed helpful mark', 'success');
         } else {
-            showNotification(result.message || 'Failed to update', 'error');
+            showNotification(result.message || 'Failed', 'error');
         }
     } catch (err) {
         showNotification('Something went wrong.', 'error');
-    } finally {
-        btn.disabled = false;
     }
 }
 
@@ -259,7 +246,7 @@ async function updateReviewStatus(id, status, clickedBtn) {
         const result = await res.json();
 
         if (result.success) {
-            const card = clickedBtn.closest('.admin-message-card');
+            const card = clickedBtn.closest('.admin-review-card');
             card.querySelectorAll('.review-status-action-btn').forEach(b => b.classList.remove('active'));
             clickedBtn.classList.add('active');
 
@@ -270,7 +257,7 @@ async function updateReviewStatus(id, status, clickedBtn) {
             }
             showNotification(`Review ${status}`, 'success');
         } else {
-            showNotification(result.message || 'Failed to update review', 'error');
+            showNotification(result.message || 'Failed to update status', 'error');
         }
     } catch (err) {
         showNotification('Something went wrong.', 'error');
@@ -297,24 +284,7 @@ async function saveReviewNotes(id, btn) {
         });
         const result = await res.json();
 
-        if (result.success) {
-            // Update or insert moderation notes block
-            const card = btn.closest('.admin-message-card');
-            let notesBlock = card.querySelector('.admin-existing-response');
-            if (notes) {
-                if (!notesBlock) {
-                    notesBlock = document.createElement('div');
-                    notesBlock.className = 'admin-existing-response';
-                    card.querySelector('.admin-message-body').after(notesBlock);
-                }
-                notesBlock.innerHTML = `<strong>Moderation notes:</strong><p>${notes.replace(/\n/g, '<br>')}</p>`;
-            } else if (notesBlock) {
-                notesBlock.remove();
-            }
-            showNotification('Notes saved!', 'success');
-        } else {
-            showNotification(result.message || 'Failed to save notes', 'error');
-        }
+        showNotification(result.success ? 'Notes saved!' : (result.message || 'Failed'), result.success ? 'success' : 'error');
     } catch (err) {
         showNotification('Something went wrong.', 'error');
     } finally {
@@ -322,3 +292,114 @@ async function saveReviewNotes(id, btn) {
         btn.textContent = 'Save Notes';
     }
 }
+
+// ============================================
+// SETTINGS — LOAD
+// ============================================
+
+async function loadAdminSettings() {
+    const form       = document.getElementById('adminSettingsForm');
+    const loadingEl  = document.getElementById('settingsLoading');
+    const contentEl  = document.getElementById('settingsContent');
+
+    if (loadingEl) loadingEl.style.display = 'flex';
+    if (contentEl) contentEl.style.display = 'none';
+
+    try {
+        const res  = await fetch('../app/adminSettingsActions.php', { method: 'GET' });
+        const data = await res.json();
+
+        if (!data.success) {
+            showNotification('Failed to load settings', 'error');
+            return;
+        }
+
+        const s = data.settings;
+
+        const emailInput = document.getElementById('settingReplyEmail');
+        const nameInput  = document.getElementById('settingReplyName');
+        const updatedEl  = document.getElementById('settingsLastUpdated');
+
+        if (emailInput) emailInput.value = s['reply_from_email']?.value ?? '';
+        if (nameInput)  nameInput.value  = s['reply_from_name']?.value  ?? '';
+
+        // Zobraz kedy boli naposledy zmenené
+        const updatedAt = s['reply_from_email']?.updated_at || s['reply_from_name']?.updated_at;
+        if (updatedEl) {
+            updatedEl.textContent = updatedAt ? `Last updated: ${updatedAt}` : '';
+        }
+
+        if (contentEl) contentEl.style.display = 'block';
+
+    } catch (err) {
+        showNotification('Failed to load settings', 'error');
+    } finally {
+        if (loadingEl) loadingEl.style.display = 'none';
+    }
+}
+
+// ============================================
+// SETTINGS — SAVE
+// ============================================
+
+async function saveAdminSettings(btn) {
+    const emailInput = document.getElementById('settingReplyEmail');
+    const nameInput  = document.getElementById('settingReplyName');
+
+    const replyEmail = emailInput?.value.trim() ?? '';
+    const replyName  = nameInput?.value.trim()  ?? '';
+
+    if (!replyEmail) {
+        showNotification('Reply-from email cannot be empty', 'error');
+        emailInput?.focus();
+        return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = 'Saving...';
+
+    try {
+        const res  = await fetch('../app/adminSettingsActions.php', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({
+                reply_from_email: replyEmail,
+                reply_from_name:  replyName,
+            }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showNotification('Settings saved!', 'success');
+
+            // Aktualizuj "Last updated" na aktuálny čas
+            const updatedEl = document.getElementById('settingsLastUpdated');
+            if (updatedEl) {
+                const now = new Date();
+                const formatted = now.toLocaleDateString('en-GB', {
+                    day: '2-digit', month: 'short', year: 'numeric',
+                }) + ', ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                updatedEl.textContent = `Last updated: ${formatted}`;
+            }
+        } else {
+            showNotification(data.message || 'Failed to save settings', 'error');
+        }
+    } catch (err) {
+        showNotification('Something went wrong.', 'error');
+    } finally {
+        btn.disabled    = false;
+        btn.textContent = 'Save Settings';
+    }
+}
+
+// ============================================
+// INIT — ak je settings tab aktívny pri načítaní
+// ============================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    const settingsTab = document.getElementById('settings-tab');
+    if (settingsTab?.classList.contains('active')) {
+        settingsTab.dataset.loaded = '1';
+        loadAdminSettings();
+    }
+});
