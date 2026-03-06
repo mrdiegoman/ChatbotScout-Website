@@ -106,6 +106,7 @@ require '../inc/header.php';
 ?>
 
 <link rel="stylesheet" href="../css/admin.css">
+<link rel="stylesheet" href="../css/admin_refresh.css">
 
 <div class="admin-wrapper">
 
@@ -114,7 +115,7 @@ require '../inc/header.php';
         <p>Manage contact messages and user reviews</p>
     </div>
 
-    <!-- Main tab navigation (like profile.php) -->
+    <!-- Main tab navigation -->
     <div class="admin-main-tabs">
         <button class="admin-main-tab-btn <?= $activeTab === 'messages' ? 'active' : '' ?>"
                 data-tab="messages">
@@ -122,6 +123,14 @@ require '../inc/header.php';
             <?php if ($msgCounts['new'] > 0): ?>
                 <span class="admin-main-tab-count"><?= $msgCounts['new'] ?></span>
             <?php endif; ?>
+            <span class="admin-refresh-btn" id="refreshMessagesBtn"
+                  onclick="event.stopPropagation(); refreshMessages(this)" title="Refresh messages">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+                    <path d="M3.51 9a9 9 0 0114.36-3.36L23 10M1 14l5.13 4.36A9 9 0 0020.49 15"/>
+                </svg>
+            </span>
         </button>
         <button class="admin-main-tab-btn <?= $activeTab === 'reviews' ? 'active' : '' ?>"
                 data-tab="reviews">
@@ -129,6 +138,14 @@ require '../inc/header.php';
             <?php if ($reviewCounts['pending'] > 0): ?>
                 <span class="admin-main-tab-count"><?= $reviewCounts['pending'] ?></span>
             <?php endif; ?>
+            <span class="admin-refresh-btn" id="refreshReviewsBtn"
+                  onclick="event.stopPropagation(); refreshReviews(this)" title="Refresh reviews">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+                    <path d="M3.51 9a9 9 0 0114.36-3.36L23 10M1 14l5.13 4.36A9 9 0 0020.49 15"/>
+                </svg>
+            </span>
         </button>
     </div>
 
@@ -393,5 +410,6 @@ require '../inc/header.php';
 </div><!-- end admin-wrapper -->
 
 <script src="../js/admin.js" defer></script>
+<script src="../js/admin_refresh.js" defer></script>
 
 <?php require '../inc/footer.php'; ?>

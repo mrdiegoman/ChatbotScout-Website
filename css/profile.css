@@ -65,8 +65,9 @@
     gap: 8px;
     margin-bottom: 32px;
     border-bottom: 2px solid var(--profile-border);
-    overflow-x: auto;
-    overflow-y: hidden;
+    /* overflow-x: auto;
+    overflow-y: hidden; */
+    height: fit-content;
 }
 
 .tab-btn {
@@ -77,11 +78,11 @@
     font-weight: 500;
     color: var(--profile-text-muted);
     cursor: pointer;
-    transition: all 0.3s ease;
+    /* transition: all 0.3s ease; */
     border-bottom: 3px solid transparent;
     white-space: nowrap;
     position: relative;
-    bottom: -2px;
+    /* bottom: -2px; */
     border-top-left-radius: 1rem;
     border-top-right-radius: 1rem;
 }
@@ -93,7 +94,7 @@
 
 .tab-btn.active {
     color: var(--profile-accent);
-    border: 5px solid var(--profile-accent);
+    border-bottom: 3px solid var(--profile-accent);
     background-color: white;
 }
 

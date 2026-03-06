@@ -24,7 +24,7 @@ $view = in_array($_GET['view'] ?? 'grid', ['grid', 'list']) ? $_GET['view'] : 'g
 $sort = $_GET['sort'] ?? 'popularity';
 $page = max(1, (int)($_GET['page'] ?? 1));
 
-$limit  = ($view === 'list') ? 12 : 20;
+$limit  = ($view === 'list') ? 6 : 12;
 $offset = ($page - 1) * $limit;
 
 $allowedSorts = ['popularity', 'price', 'alphabetical', 'rating', 'number-of-ratings'];
