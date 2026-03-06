@@ -18,8 +18,6 @@ trigger ak user ma viac ako 5 reviews approved tak mu prida verified reviewer na
 
 sfunkcnit search
 
-ked som klkikol show more aj scroll to oldest v admine tak mi to nezobrazilo dalsie
-
 REDIS COMMANDY:
     redis-cli
     INFO keyspace

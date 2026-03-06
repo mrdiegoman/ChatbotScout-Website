@@ -111,12 +111,13 @@ require '../inc/header.php';
                     <!-- Avatar Section -->
                     <div class="profile-card avatar-card">
                         <div class="avatar-wrapper">                     
-                        <img src="<?php echo isset($user['profile_picture_url'])
-                                        ? '../' . $user['profile_picture_url']
-                                        : '../img/default-avatar2.png'; ?>" 
-                                 alt="Profile picture" 
-                                 class="profile-avatar user-avatar-img"
-                                 id="current-avatar">
+                            <img src="<?php echo isset($user['profile_picture_url'])
+                                    ? '../' . $user['profile_picture_url']
+                                    : '../img/default-avatar2.png'; ?>" 
+                                alt="Profile picture" 
+                                class="profile-avatar user-avatar-img"
+                                id="current-avatar"
+                                onerror="this.onerror=null; this.src='../img/default-avatar2.png';">
                             <div class="avatar-overlay">
                                 <label for="avatar-upload" class="avatar-upload-label">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

@@ -76,6 +76,7 @@ body {
     cursor: pointer;
     transition: background-color 0.2s, box-shadow 0.2s;
     margin-bottom: 1rem;
+    text-decoration: none;
 }
 
 .google-btn:hover {
@@ -397,6 +398,24 @@ select.error:focus,
 textarea.error:focus {
     border-color: #dc2626 !important;
     box-shadow: 0 0 0 0.3rem rgba(220, 38, 38, 0.1);
+}
+
+.google-terms-text {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #6b7280;
+    margin-top: 0.6rem;
+    margin-bottom: 0;
+    line-height: 1.5;
+}
+
+.google-terms-text a {
+    color: #4285F4;
+    text-decoration: none;
+}
+
+.google-terms-text a:hover {
+    text-decoration: underline;
 }
 
 /* ============================================

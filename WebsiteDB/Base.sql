@@ -16,10 +16,15 @@ CREATE TABLE `users` (
   `id` CHAR(36) NOT NULL COMMENT 'UUID, e.g., "550e8400-e29b-41d4-a716-446655440000", "7c9e6679-7425-40de-944b-e07fc1f90ae7"',
   `email` VARCHAR(255) NOT NULL COMMENT 'User email, e.g., "john.doe@gmail.com", "maria.kovacova@azet.sk", "business@chatbotcompany.com"',
   `password_hash` VARCHAR(255) NOT NULL COMMENT 'Argon2id hashed password, e.g., "$argon2id$v=19$m=65536,t=3,p=4$c29tZXNhbHQ$RdescudvJCsgt3ub+b+dWRWJTmaaJObG", "$argon2id$v=19$m=19456,t=2,p=1$kL7kJRMI3JxWD5mEZLzBsQ$jWY6NJ3aqNJzCXLBcE0nLg"',
+  `google_id` VARCHAR(255) NULL UNIQUE COMMENT 'Google OAuth user ID',
+  `terms_accepted` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'User accepted Terms of Service',
+  `terms_accepted_at` TIMESTAMP NULL COMMENT 'When user accepted Terms of Service',
   `username` VARCHAR(50) NULL UNIQUE COMMENT 'Unique username, e.g., "johndoe123", "maria_k", "tech_guru_2025"',
   `first_name` VARCHAR(100) NULL COMMENT 'First name, e.g., "John", "Mária", "Peter"',
   `last_name` VARCHAR(100) NULL COMMENT 'Last name, e.g., "Doe", "Kováčová", "Novák"',
   `is_admin` BOOLEAN NOT NULL DEFAULT FALSE,
+
+
 #   -- Affiliate Program
 #   `is_affiliate` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Is user an affiliate?, e.g., TRUE, FALSE',
 #   `affiliate_code` VARCHAR(20) NULL UNIQUE COMMENT 'User own affiliate code, e.g., "JOHN2025", "MARIA-REF", "TECH50"',

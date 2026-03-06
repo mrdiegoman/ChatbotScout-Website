@@ -74,8 +74,8 @@ return [
 
     // Google OAuth
     'google' => [
-        'client_id'     => '',
-        'client_secret' => '',
+        'client_id'     => '726695024122-ge43n76e5fgkt0omrmlfbl9crr641fd5.apps.googleusercontent.com',
+        'client_secret' => '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',
         'redirect_uri'  => 'http://localhost/mainwebsite/public/googleCallback.php',
     ],
 

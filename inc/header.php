@@ -12,7 +12,7 @@ if ($userRole) {
 
 // Získaj profilovú fotku (Variant 2 - Upload + Default)
 $profilePicture = isset($user['profile_picture_url'])
-    ? '../' . $user['profile_picture_url']
+    ? $user['profile_picture_url']
     : '../img/default-avatar2.png';
 $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User';
 ?>
@@ -87,7 +87,8 @@ $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User'
                 <div class="header-profile-dropdown-wrapper">
 
                     <a class="header-main-right-profile-avatar" id="profileAvatarBtn" title="<?php echo htmlspecialchars($userName); ?>">
-                        <img src="<?php echo htmlspecialchars($profilePicture); ?>" alt="Profile" class="profile-avatar-img user-avatar-img">
+                        <img src="<?php echo htmlspecialchars($profilePicture); ?>" alt="Profile" class="profile-avatar-img user-avatar-img"
+                            onerror="this.onerror=null; this.src='../img/default-avatar2.png';">
                     </a>
 
                     <div class="header-profile-dropdown" id="profileDropdown">
@@ -157,7 +158,8 @@ $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User'
                     <a href="signUp.php" class="header-mobile-signup">Sign Up</a>
                 <?php else: ?>
                     <a href="profile.php" class="header-mobile-profile">
-                        <img src="<?php echo htmlspecialchars($profilePicture); ?>" alt="Profile" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px; vertical-align: middle;">
+                        <img src="<?php echo htmlspecialchars($profilePicture); ?>" alt="Profile" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px; vertical-align: middle;"
+                            onerror="this.onerror=null; this.src='../img/default-avatar2.png';">
                         <p>Profile</p>
                     </a>
                     <a href="favouritesShowcase.php" class="header-mobile-favourites">⭐ Favourites</a>
