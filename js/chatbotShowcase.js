@@ -74,6 +74,15 @@
         loadingEl.style.display = on ? 'flex' : 'none';
     }
 
+    function escapeAttr(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
     function escapeHtml(str) {
         return String(str ?? '')
             .replace(/&/g, '&amp;')
@@ -162,6 +171,9 @@
         const link    = escapeHtml(chatbot.link);
         const name    = escapeHtml(chatbot.name);
         const desc    = escapeHtml(chatbot.description || '');
+        const integrations = chatbot.integrations || [];
+        const intJson      = escapeAttr(JSON.stringify(integrations));
+        const intEmpty     = integrations.length === 0 ? ' platforms-btn--empty' : '';
         const rating  = chatbot.rating_average ? Number(chatbot.rating_average).toFixed(1) : '—';
         const rCount  = chatbot.rating_count ? Number(chatbot.rating_count).toLocaleString() : '0';
         const favCount = chatbot.favorite_count ?? 0;
@@ -199,7 +211,10 @@
     <div class="chatbot-page-main-content-chatbots-grid-view-item-description-container">
         <div class="chatbot-page-main-content-chatbots-grid-view-item-description-container-header">
             <p class="chatbot-page-main-content-chatbots-grid-view-item-description-container-subtitle">Description</p>
-            <button class="chatbot-page-main-content-chatbots-grid-view-item-features-container-1-imp-btn">
+            <button class="chatbot-page-main-content-chatbots-grid-view-item-features-container-1-imp-btn${intEmpty}"
+                    data-integrations="${intJson}"
+                    data-chatbot-name="${escapeAttr(name)}"
+                    onclick="openPlatformsPopup(event, this)">
                 <p>Platforms</p>
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -235,6 +250,9 @@
         const link     = escapeHtml(chatbot.link);
         const name     = escapeHtml(chatbot.name);
         const desc     = escapeHtml(chatbot.description || '');
+        const integrations = chatbot.integrations || [];
+        const intJson      = escapeAttr(JSON.stringify(integrations));
+        const intEmpty     = integrations.length === 0 ? ' platforms-btn--empty' : '';
         const rating   = chatbot.rating_average ? Number(chatbot.rating_average).toFixed(1) : '—';
         const rCount   = chatbot.rating_count ? Number(chatbot.rating_count).toLocaleString() : '0';
         const favCount = chatbot.favorite_count ?? 0;
@@ -274,7 +292,10 @@
             <div class="chatbot-page-main-content-chatbots-list-view-item-description-container">
                 <div class="chatbot-page-main-content-chatbots-list-view-item-description-container-header">
                     <p class="chatbot-page-main-content-chatbots-list-view-item-description-container-subtitle">Description</p>
-                    <button class="chatbot-page-main-content-chatbots-list-view-item-features-container-1-imp-btn">
+                    <button class="chatbot-page-main-content-chatbots-list-view-item-features-container-1-imp-btn${intEmpty}"
+                            data-integrations="${intJson}"
+                            data-chatbot-name="${escapeAttr(name)}"
+                            onclick="openPlatformsPopup(event, this)">
                         <p>Platforms</p>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -588,53 +609,53 @@
     });
 
     // ============================================
-// PATCH — openRatingModal (rovnaká zmena pre oba súbory)
-// chatbotShowcase.js  &  favouritesShowcase.js
-// ============================================
-//
-// Nahraď pôvodnú funkciu openRatingModal touto:
+    // PATCH — openRatingModal (rovnaká zmena pre oba súbory)
+    // chatbotShowcase.js  &  favouritesShowcase.js
+    // ============================================
+    //
+    // Nahraď pôvodnú funkciu openRatingModal touto:
 
-function openRatingModal(chatbotId, chatbotName) {
-    state.ratingChatbotId = chatbotId;
-    state.ratingValue = 0;
+    function openRatingModal(chatbotId, chatbotName) {
+        state.ratingChatbotId = chatbotId;
+        state.ratingValue = 0;
 
-    ratingModalTitle.textContent = `Rate: ${chatbotName}`;
-    ratingTitleInput.value = '';
-    ratingTextInput.value = '';
-    ratingModalError.textContent = '';
-    ratingModalError.style.display = 'none';
-    ratingModalSuccess.textContent = '';
-    ratingModalSuccess.style.display = 'none';
+        ratingModalTitle.textContent = `Rate: ${chatbotName}`;
+        ratingTitleInput.value = '';
+        ratingTextInput.value = '';
+        ratingModalError.textContent = '';
+        ratingModalError.style.display = 'none';
+        ratingModalSuccess.textContent = '';
+        ratingModalSuccess.style.display = 'none';
 
-    // Zablokuj submit kým sa neoverí či user už dal review
-    ratingSubmitBtn.disabled = true;
-    ratingSubmitBtn.textContent = 'Checking...';
+        // Zablokuj submit kým sa neoverí či user už dal review
+        ratingSubmitBtn.disabled = true;
+        ratingSubmitBtn.textContent = 'Checking...';
 
-    updatePickerStars(0);
+        updatePickerStars(0);
 
-    ratingOverlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
+        ratingOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
 
-    // Skontroluj či user už dal review pre tento chatbot
-    fetch(`../api/checkReview.php?chatbot_id=${encodeURIComponent(chatbotId)}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success && data.has_reviewed) {
-                ratingModalError.textContent = 'You have already submitted a review for this chatbot.';
-                ratingModalError.style.display = 'block';
-                ratingSubmitBtn.disabled = true;
-                ratingSubmitBtn.textContent = 'Already Reviewed';
-            } else {
+        // Skontroluj či user už dal review pre tento chatbot
+        fetch(`../api/checkReview.php?chatbot_id=${encodeURIComponent(chatbotId)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.has_reviewed) {
+                    ratingModalError.textContent = 'You have already submitted a review for this chatbot.';
+                    ratingModalError.style.display = 'block';
+                    ratingSubmitBtn.disabled = true;
+                    ratingSubmitBtn.textContent = 'Already Reviewed';
+                } else {
+                    ratingSubmitBtn.disabled = false;
+                    ratingSubmitBtn.textContent = 'Submit Review';
+                }
+            })
+            .catch(() => {
+                // Pri chybe siete odblokuj — submit server-side validácia to aj tak chytí
                 ratingSubmitBtn.disabled = false;
                 ratingSubmitBtn.textContent = 'Submit Review';
-            }
-        })
-        .catch(() => {
-            // Pri chybe siete odblokuj — submit server-side validácia to aj tak chytí
-            ratingSubmitBtn.disabled = false;
-            ratingSubmitBtn.textContent = 'Submit Review';
-        });
-}
+            });
+    }
 
     function closeRatingModal() {
         ratingOverlay.classList.remove('active');

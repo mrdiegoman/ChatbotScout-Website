@@ -276,4 +276,5 @@ require '../inc/header.php';
 <script src="../js/filterFeaturesAdding.js" defer></script>
 <script src="../js/showAdvancedFeatures.js" defer></script>
 <script src="../js/favouritesShowcase.js" defer></script>
+<script src="../js/platformsPopup.js" defer></script>
 

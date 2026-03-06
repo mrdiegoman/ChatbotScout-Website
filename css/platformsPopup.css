@@ -1,0 +1,130 @@
+/* ============================================
+   PLATFORMS POPUP
+   Zdieľané pre chatbotShowcase aj favouritesShowcase
+   ============================================ */
+
+.platforms-popup-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    background: rgba(0, 0, 0, 0.45);
+    align-items: center;
+    justify-content: center;
+    padding: 1.6rem;
+}
+
+.platforms-popup {
+    position: relative;
+    pointer-events: all;
+    width: 36rem;
+    max-width: 100%;
+    max-height: 70vh;
+    background: var(--white-color-dark, #fff);
+    border: 0.15rem solid var(--grey-color-mid, #e5e7eb);
+    border-radius: 1.2rem;
+    box-shadow: 0 0.8rem 2.4rem rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+
+    /* Animácia */
+    opacity: 0;
+    transform: translateY(1rem) scale(0.97);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.platforms-popup--open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* ---- Header ---- */
+.platforms-popup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.4rem 1.6rem 1.2rem;
+    border-bottom: 0.1rem solid var(--grey-color-mid, #e5e7eb);
+    flex-shrink: 0;
+}
+
+.platforms-popup-title {
+    font-size: 1.55rem;
+    font-family: outfit-semiBold, sans-serif;
+    color: var(--black-color-light, #1f2937);
+    margin: 0;
+}
+
+.platforms-popup-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 2rem;
+    line-height: 1;
+    color: var(--grey-color, #9ca3af);
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.5rem;
+    transition: color 0.15s ease, background 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.platforms-popup-close:hover {
+    color: var(--black-color-light, #1f2937);
+    background: var(--grey-hover-color, #f3f4f6);
+}
+
+/* ---- List ---- */
+.platforms-popup-list {
+    list-style: none;
+    margin: 0;
+    padding: 0.8rem 0;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.platforms-popup-item {
+    padding: 0.9rem 1.6rem;
+    font-size: 1.45rem;
+    font-family: outfit-medium, sans-serif;
+    color: var(--black-color-light, #1f2937);
+    cursor: default;
+    transition: background 0.12s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.platforms-popup-item::before {
+    content: '';
+    display: inline-block;
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 50%;
+    background: var(--blue-color-2, #2563eb);
+    flex-shrink: 0;
+}
+
+.platforms-popup-item:hover {
+    background: var(--grey-hover-color, #f9fafb);
+}
+
+/* Empty state */
+.platforms-popup-empty {
+    padding: 2rem 1.6rem;
+    font-size: 1.4rem;
+    color: var(--grey-color, #9ca3af);
+    text-align: center;
+}
+
+/* ---- Disabled button state ---- */
+.chatbot-page-main-content-chatbots-grid-view-item-features-container-1-imp-btn.platforms-btn--empty,
+.chatbot-page-main-content-chatbots-list-view-item-features-container-1-imp-btn.platforms-btn--empty,
+.favourites-page-main-content-chatbots-grid-view-item-features-container-1-imp-btn.platforms-btn--empty,
+.favourites-page-main-content-chatbots-list-view-item-features-container-1-imp-btn.platforms-btn--empty {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}

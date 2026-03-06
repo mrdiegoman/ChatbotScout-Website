@@ -432,20 +432,20 @@ CREATE TABLE `chatbot_features` (
 CREATE TABLE `integrations` (
   `id` CHAR(36) NOT NULL COMMENT 'Integration UUID, e.g., "f50e8400-e29b-41d4-a716-446655440010", "8h9i0j1k-2l3m-4n5o-6p7q-8r9s0t1u2v3w"',
   `name` VARCHAR(100) NOT NULL UNIQUE COMMENT 'Integration name, e.g., "Shopify", "WordPress", "Salesforce"',
-  `slug` VARCHAR(150) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "shopify", "wordpress", "salesforce"',
-  `logo_url` VARCHAR(500) NULL COMMENT 'Logo image, e.g., "https://cdn.chatbotdir.com/integrations/shopify.png", "https://assets.wordpress.org/logo.svg", "https://cdn.salesforce.com/logo.png"',
-  `website_url` VARCHAR(500) NULL COMMENT 'Official website, e.g., "https://www.shopify.com", "https://wordpress.org", "https://www.salesforce.com"',
-  `description` TEXT NULL COMMENT 'Integration description, e.g., "E-commerce platform for online stores", "Open-source content management system", "CRM and sales automation platform"',
-  `category` ENUM('cms', 'ecommerce', 'crm', 'marketing', 'analytics', 'communication', 'productivity', 'other') NULL COMMENT 'Integration category, e.g., "ecommerce", "cms", "crm"',
-  `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
-  `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
+#   `slug` VARCHAR(150) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "shopify", "wordpress", "salesforce"',
+#   `logo_url` VARCHAR(500) NULL COMMENT 'Logo image, e.g., "https://cdn.chatbotdir.com/integrations/shopify.png", "https://assets.wordpress.org/logo.svg", "https://cdn.salesforce.com/logo.png"',
+#   `website_url` VARCHAR(500) NULL COMMENT 'Official website, e.g., "https://www.shopify.com", "https://wordpress.org", "https://www.salesforce.com"',
+#   `description` TEXT NULL COMMENT 'Integration description, e.g., "E-commerce platform for online stores", "Open-source content management system", "CRM and sales automation platform"',
+#   `category` ENUM('cms', 'ecommerce', 'crm', 'marketing', 'analytics', 'communication', 'productivity', 'other') NULL COMMENT 'Integration category, e.g., "ecommerce", "cms", "crm"',
+#   `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
+#   `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
 
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-10 09:00:00", "2024-11-25 11:00:00"',
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 15:00:00", "2025-01-22 13:30:00"',
 
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_slug` (`slug`),
-  KEY `idx_active` (`is_active`, `display_order`)
+  PRIMARY KEY (`id`)
+#   UNIQUE KEY `idx_slug` (`slug`),
+#   KEY `idx_active` (`is_active`, `display_order`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
@@ -455,18 +455,18 @@ CREATE TABLE `chatbot_integrations` (
   `chatbot_id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
   `integration_id` CHAR(36) NOT NULL COMMENT 'Integration UUID, e.g., "f50e8400-e29b-41d4-a716-446655440010", "8h9i0j1k-2l3m-4n5o-6p7q-8r9s0t1u2v3w"',
   `is_supported` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is supported?, e.g., TRUE, FALSE',
-  `is_native` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Native vs third-party integration, e.g., TRUE (native/built-in), FALSE (via Zapier/API)',
-  `difficulty` ENUM('easy', 'medium', 'advanced') NULL COMMENT 'Setup difficulty, e.g., "easy", "medium", "advanced"',
-  `setup_time_minutes` INT NULL COMMENT 'Setup time estimate, e.g., 5, 30, 120',
-  `documentation_url` VARCHAR(500) NULL COMMENT 'Setup guide URL, e.g., "https://help.intercom.com/shopify-integration", "https://docs.drift.com/wordpress-setup", "https://support.tidio.com/salesforce-guide"',
-  `notes` TEXT NULL COMMENT 'Additional notes, e.g., "Requires Pro plan or higher", "Supports custom fields mapping", "Real-time sync available"',
+#   `is_native` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Native vs third-party integration, e.g., TRUE (native/built-in), FALSE (via Zapier/API)',
+#   `difficulty` ENUM('easy', 'medium', 'advanced') NULL COMMENT 'Setup difficulty, e.g., "easy", "medium", "advanced"',
+#   `setup_time_minutes` INT NULL COMMENT 'Setup time estimate, e.g., 5, 30, 120',
+#   `documentation_url` VARCHAR(500) NULL COMMENT 'Setup guide URL, e.g., "https://help.intercom.com/shopify-integration", "https://docs.drift.com/wordpress-setup", "https://support.tidio.com/salesforce-guide"',
+#   `notes` TEXT NULL COMMENT 'Additional notes, e.g., "Requires Pro plan or higher", "Supports custom fields mapping", "Real-time sync available"',
 
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Added at, e.g., "2025-01-15 14:00:00", "2024-12-22 10:30:00"',
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 15:30:00", "2025-01-28 11:45:00"',
 
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_chatbot_integration` (`chatbot_id`, `integration_id`),
-  KEY `idx_integration_supported` (`integration_id`, `is_supported`),
+#   KEY `idx_integration_supported` (`integration_id`, `is_supported`),
 
   CONSTRAINT `fk_chatbot_integrations_chatbot` FOREIGN KEY (`chatbot_id`)
     REFERENCES `chatbots` (`id`) ON DELETE CASCADE,

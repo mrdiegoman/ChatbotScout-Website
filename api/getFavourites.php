@@ -182,6 +182,24 @@ foreach ($tagStmt->fetchAll(PDO::FETCH_ASSOC) as $tag) {
 }
 
 // ============================================
+// INTEGRATIONS
+// ============================================
+
+$intStmt = $db->prepare("
+    SELECT ci.chatbot_id, i.name AS integration_name
+    FROM `chatbot_integrations` ci
+    JOIN `integrations` i ON ci.integration_id = i.id
+    WHERE ci.chatbot_id IN ({$placeholders})
+      AND ci.is_supported = 1
+    ORDER BY i.name ASC
+");
+$intStmt->execute($chatbotIds);
+$integrationMap = [];
+foreach ($intStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+    $integrationMap[$row['chatbot_id']][] = $row['integration_name'];
+}
+
+// ============================================
 // PRICING HELPER
 // ============================================
 
@@ -232,6 +250,7 @@ foreach ($chatbots as $chatbot) {
         'pricing'        => buildPricingDisplay($chatbot),
         'features'       => $featureMap[$id] ?? [],
         'tags'           => $tagMap[$id] ?? [],
+        'integrations'   => $integrationMap[$id] ?? [],
     ];
 }
 

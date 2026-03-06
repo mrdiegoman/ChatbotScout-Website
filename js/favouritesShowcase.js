@@ -82,6 +82,15 @@
         loadingEl.style.display = on ? 'flex' : 'none';
     }
 
+    function escapeAttr(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
     function escapeHtml(str) {
         return String(str ?? '')
             .replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -166,6 +175,9 @@
         const link    = escapeHtml(chatbot.link);
         const name    = escapeHtml(chatbot.name);
         const desc    = escapeHtml(chatbot.description || '');
+        const integrations = chatbot.integrations || [];
+        const intJson      = escapeAttr(JSON.stringify(integrations));
+        const intEmpty     = integrations.length === 0 ? ' platforms-btn--empty' : '';
         const rating  = chatbot.rating_average ? Number(chatbot.rating_average).toFixed(1) : '—';
         const rCount  = chatbot.rating_count ? Number(chatbot.rating_count).toLocaleString() : '0';
 
@@ -189,7 +201,19 @@
         </div>
     </div>
     <div class="favourites-page-main-content-chatbots-grid-view-item-description-container">
-        <p class="favourites-page-main-content-chatbots-grid-view-item-description-container-subtitle">Description</p>
+        <div class="favourites-page-main-content-chatbots-grid-view-item-description-container-header">
+            <p class="favourites-page-main-content-chatbots-grid-view-item-description-container-subtitle">Description</p>
+            <button class="favourites-page-main-content-chatbots-grid-view-item-features-container-1-imp-btn${intEmpty}"
+                    data-integrations="${intJson}"
+                    data-chatbot-name="${escapeAttr(name)}"
+                    onclick="openPlatformsPopup(event, this)">
+                <p>Platforms</p>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/>
+                </svg>
+            </button>
+        </div>
         <p class="favourites-page-main-content-chatbots-grid-view-item-description-container-text">${desc}</p>
     </div>
     <div class="favourites-page-main-content-chatbots-grid-view-item-btns-container">
@@ -213,6 +237,9 @@
     function buildListItem(chatbot) {
         const stars   = buildStars(chatbot.rating_average, chatbot.id);
         const tags    = buildTags(chatbot.tags);
+        const integrations = chatbot.integrations || [];
+        const intJson      = escapeAttr(JSON.stringify(integrations));
+        const intEmpty     = integrations.length === 0 ? ' platforms-btn--empty' : '';
         const cards   = buildFeatureCards(chatbot.features);
         const pricing = renderPricing(chatbot.pricing);
         const link    = escapeHtml(chatbot.link);
@@ -256,7 +283,10 @@
             <div class="favourites-page-main-content-chatbots-list-view-item-features-container">
                 <div class="favourites-page-main-content-chatbots-list-view-item-features-container-1">
                     <p class="favourites-page-main-content-chatbots-list-view-item-description-container-subtitle">Features</p>
-                    <button class="favourites-page-main-content-chatbots-list-view-item-features-container-1-imp-btn">
+                    <button class="favourites-page-main-content-chatbots-list-view-item-features-container-1-imp-btn${intEmpty}"
+                            data-integrations="${intJson}"
+                            data-chatbot-name="${escapeAttr(name)}"
+                            onclick="openPlatformsPopup(event, this)">
                         <p>Platforms</p>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

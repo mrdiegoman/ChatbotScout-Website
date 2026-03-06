@@ -345,3 +345,4 @@ require '../inc/header.php';
 <script src="../js/showAdvancedFeatures.js" defer></script>
 <script src="../js/mobileSearch.js" defer></script>
 <script src="../js/chatbotShowcase.js" defer></script>
+<script src="../js/platformsPopup.js" defer></script>

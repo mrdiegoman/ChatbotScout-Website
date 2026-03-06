@@ -36,6 +36,7 @@ $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User'
     <?php if ($page === 'chatbotShowcase'): ?>
         <link rel="stylesheet" href="../css/chatbotShowcase.css">
         <link rel="stylesheet" href="../css/featuresShowMore.css">
+        <link rel="stylesheet" href="../css/platformsPopup.css">
     <?php elseif ($page === 'contact'): ?>
         <link rel="stylesheet" href="../css/contact.css">
     <?php elseif ($page === 'aboutUs'): ?>
@@ -45,6 +46,7 @@ $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User'
     <?php elseif ($page === 'favouritesShowcase'): ?>
         <link rel="stylesheet" href="../css/favouritesShowcase.css">
         <link rel="stylesheet" href="../css/featuresShowMore.css">
+        <link rel="stylesheet" href="../css/platformsPopup.css">
     <?php elseif ($page === 'profile'): ?>
         <link rel="stylesheet" href="../css/profile.css">
     <?php elseif (in_array($page, $authPages, true)): ?>
@@ -170,3 +172,4 @@ $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User'
 
     <script src="../js/BurgerMenuHeader.js" defer></script>
     <script src="../js/ProfileDropdown.js" defer></script>
+    
