@@ -7,6 +7,7 @@
  *  - Fetchne počty chatbotov per feature (getFeatureCounts.php) a zobrazí ich
  *  - Prepočítava počty pri každej zmene filtra (input, klik na feature)
  *  - Na favouritesShowcase: live aktualizuje počet výsledkov vedľa Clear all
+ *  - Limit 10 features + "+N" show more / show less button
  *
  * Funguje na chatbotShowcase aj favouritesShowcase.
  * Vystavuje window.updateFilterBadge() a window.triggerFeatureCountsRefresh()
@@ -30,6 +31,12 @@
     const advancedToggle    = document.getElementById('advancedFeaturesToggleLabel');
 
     if (!basicContainer) return; // filter popup nie je na tejto stránke
+
+    // ============================================
+    // CONSTANTS
+    // ============================================
+
+    const FEATURE_LIMIT = 10;
 
     // ============================================
     // DOM — badge elementy + number inputy + results count
@@ -155,6 +162,59 @@
     }
 
     // ============================================
+    // RENDER WITH LIMIT — helper pre basic aj advanced
+    // ============================================
+
+    function renderWithLimit(container, features) {
+        container.innerHTML = '';
+
+        if (features.length === 0) return;
+
+        const visible = features.slice(0, FEATURE_LIMIT);
+        const hidden  = features.slice(FEATURE_LIMIT);
+
+        // Vykreslí prvých 10
+        visible.forEach(f => container.appendChild(buildSpan(f)));
+
+        if (hidden.length === 0) return;
+
+        // Wrapper pre schované features
+        const hiddenWrapper = document.createElement('div');
+        hiddenWrapper.className = 'features-hidden-wrapper';
+        hiddenWrapper.style.display = 'none';
+        hidden.forEach(f => hiddenWrapper.appendChild(buildSpan(f)));
+        container.appendChild(hiddenWrapper);
+
+        // Show more button (+N)
+        const showMoreBtn = document.createElement('span');
+        showMoreBtn.className   = 'features-show-more-btn';
+        showMoreBtn.textContent = `+${hidden.length}`;
+        container.appendChild(showMoreBtn);
+
+        let expanded = false;
+
+        showMoreBtn.addEventListener('click', () => {
+            expanded = !expanded;
+
+            if (expanded) {
+                hiddenWrapper.style.display = 'contents';
+                showMoreBtn.textContent     = 'Show less';
+                showMoreBtn.classList.add('features-show-more-btn--open');
+            } else {
+                // Pri collapse — ak sú aktívne schované features, neschovaj ich
+                const hasActiveHidden = hiddenWrapper.querySelector(`.${spanClass}.active`);
+                if (hasActiveHidden) {
+                    // Ostatok schovaných features ostane viditeľný
+                    return;
+                }
+                hiddenWrapper.style.display = 'none';
+                showMoreBtn.textContent     = `+${hidden.length}`;
+                showMoreBtn.classList.remove('features-show-more-btn--open');
+            }
+        });
+    }
+
+    // ============================================
     // RENDER FEATURES INTO CONTAINERS
     // ============================================
 
@@ -165,7 +225,7 @@
             basicContainer.innerHTML =
                 '<span style="font-size:1.2rem;color:var(--grey-color)">No features available.</span>';
         } else {
-            basic.forEach(f => basicContainer.appendChild(buildSpan(f)));
+            renderWithLimit(basicContainer, basic);
         }
 
         if (advancedContainer) {
@@ -174,7 +234,7 @@
                 if (advancedToggle) advancedToggle.style.display = 'none';
             } else {
                 if (advancedToggle) advancedToggle.style.display = '';
-                advanced.forEach(f => advancedContainer.appendChild(buildSpan(f)));
+                renderWithLimit(advancedContainer, advanced);
             }
         }
 

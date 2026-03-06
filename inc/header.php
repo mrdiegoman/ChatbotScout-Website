@@ -35,6 +35,7 @@ $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User'
     <link rel="stylesheet" href="../css/main.css">
     <?php if ($page === 'chatbotShowcase'): ?>
         <link rel="stylesheet" href="../css/chatbotShowcase.css">
+        <link rel="stylesheet" href="../css/featuresShowMore.css">
     <?php elseif ($page === 'contact'): ?>
         <link rel="stylesheet" href="../css/contact.css">
     <?php elseif ($page === 'aboutUs'): ?>
@@ -43,6 +44,7 @@ $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User'
         <link rel="stylesheet" href="../css/affiliateDisclosure.css">
     <?php elseif ($page === 'favouritesShowcase'): ?>
         <link rel="stylesheet" href="../css/favouritesShowcase.css">
+        <link rel="stylesheet" href="../css/featuresShowMore.css">
     <?php elseif ($page === 'profile'): ?>
         <link rel="stylesheet" href="../css/profile.css">
     <?php elseif (in_array($page, $authPages, true)): ?>

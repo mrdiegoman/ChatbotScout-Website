@@ -269,7 +269,7 @@ require '../inc/header.php';
                     <div class="chatbot-filters-modal-body-features-container" id="basicFeaturesContainer">
                         <!-- Dynamicky plnené cez filterFeaturesAdding.js -->
                     </div>
-                    <span class="chatbot-filters-modal-body-features-ending"> +8</span>
+                    <!-- <span class="chatbot-filters-modal-body-features-ending"> +8</span> -->
                 </div>
                 <span class="chatbot-advanced-filters-modal-body-row-group-label" id="advancedFeaturesToggleLabel">
                     <p>Show advanced features</p>
@@ -281,7 +281,7 @@ require '../inc/header.php';
                     <div class="chatbot-advanced-filters-modal-body-features-container" id="advancedFeaturesContainer">
                         <!-- Dynamicky plnené cez filterFeaturesAdding.js -->
                     </div>
-                    <span class="chatbot-filters-modal-body-features-ending"> +8</span>
+                    <!-- <span class="chatbot-filters-modal-body-features-ending"> +8</span> -->
                 </div>
             </div>
         </div>

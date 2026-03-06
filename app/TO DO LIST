@@ -16,8 +16,7 @@ Stripe -> nakup, visa, paypal, apple-pay (celkove zobrazenie tj. inputy)
 
 trigger ak user ma viac ako 5 reviews approved tak mu prida verified reviewer na true  ??
 
-zobrazit review ked user klikne na review alebo umoznit review delete od usera
- alebo umoznit opravu review od usera
+sfunkcnit search
 
 REDIS COMMANDY:
     redis-cli
