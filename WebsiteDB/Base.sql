@@ -604,7 +604,7 @@ CREATE TABLE `billing_periods` (
 
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_name` (`name`),
-  UNIQUE KEY `idx_type_duration` (`type`, `duration`),
+  UNIQUE KEY `idx_type_duration` (`type`, `duration`)
 #   CONSTRAINT `chk_discount` CHECK (`discount_percentage` BETWEEN 0.00 AND 100.00)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -681,6 +681,82 @@ CREATE TABLE `listing_plans` (
 # ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
+-- PROMOTIONS (active promotion campaigns)
+-- ============================================
+
+CREATE TABLE `promotions` (
+  `id` CHAR(36) NOT NULL COMMENT 'Plan UUID, e.g., "650e8400-e29b-41d4-a716-446655440017", "5o6p7q8r-9s0t-1u2v-3w4x-5y6z7a8b9c0d"',
+  `name` VARCHAR(100) NOT NULL COMMENT 'Plan name, e.g., "Basic Listing", "Premium Listing", "Pro Listing"',
+  `slot_type` ENUM('homepage_hero', 'category_featured') NOT NULL,
+
+#   `slug` VARCHAR(150) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "basic-listing", "premium-listing", "pro-listing"',
+#   `description` TEXT NULL COMMENT 'Plan description, e.g., "Get your chatbot listed on our directory with basic features", "Premium visibility with featured badge and priority placement", "Maximum exposure with homepage banner and verified badge"',
+
+  -- Listing Features
+#   `max_screenshots` TINYINT NOT NULL DEFAULT 3 COMMENT 'Max screenshot images, e.g., 3, 5, 10',
+#   `allows_video` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Video allowed?, e.g., TRUE, FALSE',
+#   `priority_support` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Priority support?, e.g., TRUE, FALSE',
+#   `verified_badge` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Verified badge?, e.g., TRUE, FALSE',
+#   `featured_in_category` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Featured in category?, e.g., TRUE, FALSE',
+#   `homepage_visibility` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Homepage visibility?, e.g., TRUE, FALSE',
+
+  `billing_period_id` CHAR(36) NOT NULL,
+  `currency_id` CHAR(36) NOT NULL,
+  `price` DECIMAL(10,2) NOT NULL,
+  `discount_percentage` DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT 'Discount percentage, e.g., 0.00, 20.00, 15.50',
+
+  -- Display
+  `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
+  `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
+#   `is_popular` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Popular badge?, e.g., TRUE, FALSE',
+
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-05 10:00:00", "2024-12-10 08:30:00"',
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 13:00:00", "2025-01-26 10:20:00"',
+  `deleted_at` TIMESTAMP NULL COMMENT 'Soft delete, e.g., "2025-01-28 16:00:00", NULL',
+
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_slot_period_currency` (`slot_type`, `billing_period_id`, `currency_id`),
+  KEY `idx_active_order` (`deleted_at`, `is_active`, `display_order`),
+  KEY `idx_billing_period` (`billing_period_id`),
+  KEY `idx_currency` (`currency_id`),
+  CONSTRAINT `chk_discount` CHECK (`discount_percentage` BETWEEN 0.00 AND 100.00),
+  CONSTRAINT `chk_promotions_price` CHECK (`price` >= 0.00),
+  CONSTRAINT `fk_promotions_period` FOREIGN KEY (`billing_period_id`)
+    REFERENCES `billing_periods` (`id`) ON DELETE RESTRICT,
+  CONSTRAINT `fk_promotions_currency` FOREIGN KEY (`currency_id`)
+    REFERENCES `currencies` (`id`) ON DELETE RESTRICT
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- PROMOTION SLOTS
+-- ============================================
+
+CREATE TABLE `promotion_slots` (
+  `id` CHAR(36) NOT NULL COMMENT 'Slot UUID, e.g., "850e8400-e29b-41d4-a716-446655440019", "7q8r9s0t-1u2v-3w4x-5y6z-7a8b9c0d1e2f"',
+  `name` VARCHAR(100) NOT NULL COMMENT 'Slot name, e.g., "Homepage Hero", "Category Top Banner", "Sidebar Featured"',
+  `subscription_id` CHAR(36) NOT NULL,
+#   `identifier` VARCHAR(150) NOT NULL UNIQUE COMMENT 'Unique identifier, e.g., "homepage_hero", "category_top", "sidebar_featured"',
+#   `page_location` VARCHAR(100) NULL COMMENT 'Page location, e.g., "homepage", "category_customer_support", "search_results"',
+  `position` INT NOT NULL COMMENT 'Display position (1 = top), e.g., 1, 2, 3',
+#   `max_concurrent` TINYINT NOT NULL DEFAULT 1 COMMENT 'Max concurrent promotions, e.g., 1, 3, 5',
+#   `description` TEXT NULL COMMENT 'Slot description, e.g., "Large hero banner at the top of homepage", "Featured position in category listing", "Sidebar widget visible on all pages"',
+#   `dimensions` VARCHAR(50) NULL COMMENT 'Recommended dimensions, e.g., "1200x300", "300x250", "728x90"',
+  `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
+
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-05 12:00:00", "2024-12-12 10:00:00"',
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 14:00:00", "2025-01-28 09:30:00"',
+
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_promotion_position` (`subscription_id`, `position`),
+  KEY `idx_type_active_position` (`is_active`, `position`),
+  KEY `idx_promotions` (`subscription_id`),
+  CONSTRAINT `chk_position` CHECK (`position` >= 1),
+  CONSTRAINT `fk_promotion_slots_promotion` FOREIGN KEY (`subscription_id`)
+    REFERENCES `promotions` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
 -- SUBSCRIPTIONS (for both listings and promotions)
 -- ============================================
 
@@ -749,83 +825,6 @@ CREATE TABLE `subscriptions` (
     (cancel_at_period_end = TRUE)
   )
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ============================================
--- PROMOTION SLOTS
--- ============================================
-
-CREATE TABLE `promotion_slots` (
-  `id` CHAR(36) NOT NULL COMMENT 'Slot UUID, e.g., "850e8400-e29b-41d4-a716-446655440019", "7q8r9s0t-1u2v-3w4x-5y6z-7a8b9c0d1e2f"',
-  `name` VARCHAR(100) NOT NULL COMMENT 'Slot name, e.g., "Homepage Hero", "Category Top Banner", "Sidebar Featured"',
-  `subscription_id` CHAR(36) NOT NULL,
-#   `identifier` VARCHAR(150) NOT NULL UNIQUE COMMENT 'Unique identifier, e.g., "homepage_hero", "category_top", "sidebar_featured"',
-#   `page_location` VARCHAR(100) NULL COMMENT 'Page location, e.g., "homepage", "category_customer_support", "search_results"',
-  `position` INT NOT NULL COMMENT 'Display position (1 = top), e.g., 1, 2, 3',
-#   `max_concurrent` TINYINT NOT NULL DEFAULT 1 COMMENT 'Max concurrent promotions, e.g., 1, 3, 5',
-#   `description` TEXT NULL COMMENT 'Slot description, e.g., "Large hero banner at the top of homepage", "Featured position in category listing", "Sidebar widget visible on all pages"',
-#   `dimensions` VARCHAR(50) NULL COMMENT 'Recommended dimensions, e.g., "1200x300", "300x250", "728x90"',
-  `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
-
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-05 12:00:00", "2024-12-12 10:00:00"',
-  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 14:00:00", "2025-01-28 09:30:00"',
-
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_promotion_position` (`subscription_id`, `position`),
-  KEY `idx_type_active_position` (`is_active`, `position`),
-  KEY `idx_promotions` (`subscription_id`),
-  CONSTRAINT `chk_position` CHECK (`position` >= 1),
-  CONSTRAINT `fk_promotion_slots_promotion` FOREIGN KEY (`subscription_id`)
-    REFERENCES `promotions` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ============================================
--- PROMOTIONS (active promotion campaigns)
--- ============================================
-
-CREATE TABLE `promotions` (
-  `id` CHAR(36) NOT NULL COMMENT 'Plan UUID, e.g., "650e8400-e29b-41d4-a716-446655440017", "5o6p7q8r-9s0t-1u2v-3w4x-5y6z7a8b9c0d"',
-  `name` VARCHAR(100) NOT NULL COMMENT 'Plan name, e.g., "Basic Listing", "Premium Listing", "Pro Listing"',
-  `slot_type` ENUM('homepage_hero', 'category_featured') NOT NULL,
-
-#   `slug` VARCHAR(150) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "basic-listing", "premium-listing", "pro-listing"',
-#   `description` TEXT NULL COMMENT 'Plan description, e.g., "Get your chatbot listed on our directory with basic features", "Premium visibility with featured badge and priority placement", "Maximum exposure with homepage banner and verified badge"',
-
-  -- Listing Features
-#   `max_screenshots` TINYINT NOT NULL DEFAULT 3 COMMENT 'Max screenshot images, e.g., 3, 5, 10',
-#   `allows_video` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Video allowed?, e.g., TRUE, FALSE',
-#   `priority_support` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Priority support?, e.g., TRUE, FALSE',
-#   `verified_badge` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Verified badge?, e.g., TRUE, FALSE',
-#   `featured_in_category` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Featured in category?, e.g., TRUE, FALSE',
-#   `homepage_visibility` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Homepage visibility?, e.g., TRUE, FALSE',
-
-  `billing_period_id` CHAR(36) NOT NULL,
-  `currency_id` CHAR(36) NOT NULL,
-  `price` DECIMAL(10,2) NOT NULL,
-  `discount_percentage` DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT 'Discount percentage, e.g., 0.00, 20.00, 15.50',
-
-  -- Display
-  `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
-  `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
-#   `is_popular` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Popular badge?, e.g., TRUE, FALSE',
-
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-05 10:00:00", "2024-12-10 08:30:00"',
-  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 13:00:00", "2025-01-26 10:20:00"',
-  `deleted_at` TIMESTAMP NULL COMMENT 'Soft delete, e.g., "2025-01-28 16:00:00", NULL',
-
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_slot_period_currency` (`slot_type`, `billing_period_id`, `currency_id`),
-  KEY `idx_active_order` (`deleted_at`, `is_active`, `display_order`),
-  KEY `idx_billing_period` (`billing_period_id`),
-  KEY `idx_currency` (`currency_id`),
-  CONSTRAINT `chk_discount` CHECK (`discount_percentage` BETWEEN 0.00 AND 100.00),
-  CONSTRAINT `chk_promotions_price` CHECK (`price` >= 0.00),
-  CONSTRAINT `fk_promotions_period` FOREIGN KEY (`billing_period_id`)
-    REFERENCES `billing_periods` (`id`) ON DELETE RESTRICT,
-  CONSTRAINT `fk_promotions_currency` FOREIGN KEY (`currency_id`)
-    REFERENCES `currencies` (`id`) ON DELETE RESTRICT
-
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 
 -- ============================================
 -- PAYMENTS
@@ -1164,9 +1163,9 @@ INSERT INTO `currencies` (`id`, `code`, `name`, `symbol`) VALUES
 (UUID(), 'GBP', 'British Pound', '£');
 
 -- Insert billing periods
-INSERT INTO `billing_periods` (`id`, `name`, `type`, `duration`, `discount_percentage`) VALUES
-(UUID(), 'Monthly', 'monthly', 1, 0.00),
-(UUID(), 'Annually', 'yearly', 12, 20.00);
+INSERT INTO `billing_periods` (`id`, `name`, `type`, `duration`) VALUES
+(UUID(), 'Monthly', 'monthly', 1),
+(UUID(), 'Annually', 'yearly', 12);
 
 -- Insert listing plans
 INSERT INTO `listing_plans` (`id`, `name`, `billing_period_id`, `currency_id`, `price`) VALUES
@@ -1180,6 +1179,20 @@ INSERT INTO `listing_plans` (`id`, `name`, `billing_period_id`, `currency_id`, `
   (SELECT `id` FROM `currencies` WHERE `code` = 'USD'),
   29.99
 );
+
+INSERT INTO `promotions` (`id`, `name`,`slot_type` ,`billing_period_id`, `currency_id`, `price`) VALUES
+(UUID(), 'Basic Listing', 'homepage_hero',
+  (SELECT `id` FROM `billing_periods` WHERE `name` = 'Monthly'),
+  (SELECT `id` FROM `currencies` WHERE `code` = 'USD'),
+  300
+),
+(UUID(), 'Basic Listing', 'category_featured',
+  (SELECT `id` FROM `billing_periods` WHERE `name` = 'Monthly'),
+  (SELECT `id` FROM `currencies` WHERE `code` = 'USD'),
+  300
+);
+
+
 
 -- Insert promotion slots
 # INSERT INTO `promotion_slots` (`id`, `name`, `identifier`, `slot_type`, `page_location`, `position`, `max_concurrent`, `dimensions`) VALUES

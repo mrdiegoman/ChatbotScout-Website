@@ -30,3 +30,10 @@ git status   (ukaze modifikovane subory)
 git add .     (prida vsetky subory zo subora)
 git commit -m ""     (ulozi zmeny lokalne na pc)
 git push   (posle zmeny na github repozitar)
+
+
+
+payment logika je taka ze v subscriptions su vsekty listingy a promtiony s 
+tym ze ak ide o promotion tak sa vytvara aj promotion slot ktory referencuje 
+na subscription. Ak sa teda vytvori subscription tak sa vytvara aj zaznam 
+v payments. 
