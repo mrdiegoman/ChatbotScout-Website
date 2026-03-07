@@ -575,10 +575,10 @@ CREATE TABLE `favorites` (
 
 CREATE TABLE `currencies` (
   `id` CHAR(36) NOT NULL COMMENT 'Currency UUID, e.g., "450e8400-e29b-41d4-a716-446655440015", "3m4n5o6p-7q8r-9s0t-1u2v-3w4x5y6z7a8b"',
-  `code` CHAR(3) NOT NULL UNIQUE COMMENT 'ISO 4217, e.g., "USD", "EUR", "GBP"',
+  `code` CHAR(3) NOT NULL COMMENT 'ISO 4217, e.g., "USD", "EUR", "GBP"',
   `name` VARCHAR(100) NOT NULL COMMENT 'Currency name, e.g., "US Dollar", "Euro", "British Pound"',
   `symbol` VARCHAR(10) NOT NULL COMMENT 'Currency symbol, e.g., "$", "€", "£"',
-  `decimal_places` TINYINT NOT NULL DEFAULT 2 COMMENT 'Decimal places, e.g., 2, 0, 3',
+#   `decimal_places` TINYINT NOT NULL DEFAULT 2 COMMENT 'Decimal places, e.g., 2, 0, 3',
   `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
 
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-01 10:00:00", "2024-12-15 08:30:00"',
@@ -592,17 +592,20 @@ CREATE TABLE `currencies` (
 
 CREATE TABLE `billing_periods` (
   `id` CHAR(36) NOT NULL COMMENT 'Period UUID, e.g., "550e8400-e29b-41d4-a716-446655440016", "4n5o6p7q-8r9s-0t1u-2v3w-4x5y6z7a8b9c"',
-  `name` VARCHAR(50) NOT NULL UNIQUE COMMENT 'Period name, e.g., "Monthly", "Annually", "Quarterly"',
-  `slug` VARCHAR(50) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "monthly", "annually", "quarterly"',
-  `duration_months` TINYINT NOT NULL COMMENT 'Duration in months, e.g., 1 (monthly), 12 (annually), 3 (quarterly)',
+  `name` VARCHAR(50) NOT NULL COMMENT 'Period name, e.g., "Monthly", "Annually", "Quarterly"',
+#   `slug` VARCHAR(50) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "monthly", "annually", "quarterly"',
+  `type` ENUM('daily', 'weekly', 'monthly', 'yearly') NOT NULL,
+  `duration` TINYINT NOT NULL COMMENT 'Duration, e.g., 1 (monthly), 12 (annually), 3 (quarterly)',
   `discount_percentage` DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT 'Discount percentage, e.g., 0.00, 20.00, 15.50',
-  `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
+#   `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
 
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-01 10:00:00", "2024-12-01 08:00:00"',
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 12:30:00", "2025-01-25 09:15:00"',
 
   PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_slug` (`slug`)
+  UNIQUE KEY `idx_name` (`name`),
+  UNIQUE KEY `idx_type_duration` (`type`, `duration`),
+  CONSTRAINT `chk_discount` CHECK (`discount_percentage` BETWEEN 0.00 AND 100.00)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
@@ -612,106 +615,67 @@ CREATE TABLE `billing_periods` (
 CREATE TABLE `listing_plans` (
   `id` CHAR(36) NOT NULL COMMENT 'Plan UUID, e.g., "650e8400-e29b-41d4-a716-446655440017", "5o6p7q8r-9s0t-1u2v-3w4x-5y6z7a8b9c0d"',
   `name` VARCHAR(100) NOT NULL COMMENT 'Plan name, e.g., "Basic Listing", "Premium Listing", "Pro Listing"',
-  `slug` VARCHAR(150) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "basic-listing", "premium-listing", "pro-listing"',
-  `description` TEXT NULL COMMENT 'Plan description, e.g., "Get your chatbot listed on our directory with basic features", "Premium visibility with featured badge and priority placement", "Maximum exposure with homepage banner and verified badge"',
+#   `slug` VARCHAR(150) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "basic-listing", "premium-listing", "pro-listing"',
+#   `description` TEXT NULL COMMENT 'Plan description, e.g., "Get your chatbot listed on our directory with basic features", "Premium visibility with featured badge and priority placement", "Maximum exposure with homepage banner and verified badge"',
 
   -- Listing Features
-  `max_screenshots` TINYINT NOT NULL DEFAULT 3 COMMENT 'Max screenshot images, e.g., 3, 5, 10',
-  `allows_video` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Video allowed?, e.g., TRUE, FALSE',
-  `priority_support` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Priority support?, e.g., TRUE, FALSE',
-  `verified_badge` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Verified badge?, e.g., TRUE, FALSE',
-  `featured_in_category` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Featured in category?, e.g., TRUE, FALSE',
-  `homepage_visibility` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Homepage visibility?, e.g., TRUE, FALSE',
+#   `max_screenshots` TINYINT NOT NULL DEFAULT 3 COMMENT 'Max screenshot images, e.g., 3, 5, 10',
+#   `allows_video` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Video allowed?, e.g., TRUE, FALSE',
+#   `priority_support` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Priority support?, e.g., TRUE, FALSE',
+#   `verified_badge` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Verified badge?, e.g., TRUE, FALSE',
+#   `featured_in_category` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Featured in category?, e.g., TRUE, FALSE',
+#   `homepage_visibility` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Homepage visibility?, e.g., TRUE, FALSE',
+
+  `billing_period_id` CHAR(36) NOT NULL,
+  `currency_id` CHAR(36) NOT NULL,
+  `price` DECIMAL(10,2) NOT NULL,
 
   -- Display
   `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
   `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
-  `is_popular` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Popular badge?, e.g., TRUE, FALSE',
+#   `is_popular` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Popular badge?, e.g., TRUE, FALSE',
 
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-05 10:00:00", "2024-12-10 08:30:00"',
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 13:00:00", "2025-01-26 10:20:00"',
   `deleted_at` TIMESTAMP NULL COMMENT 'Soft delete, e.g., "2025-01-28 16:00:00", NULL',
 
   PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_slug` (`slug`),
-  KEY `idx_active_order` (`is_active`, `display_order`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ============================================
-
-CREATE TABLE `listing_plan_prices` (
-  `id` CHAR(36) NOT NULL COMMENT 'Price UUID, e.g., "750e8400-e29b-41d4-a716-446655440018", "6p7q8r9s-0t1u-2v3w-4x5y-6z7a8b9c0d1e"',
-  `plan_id` CHAR(36) NOT NULL COMMENT 'Plan UUID, e.g., "650e8400-e29b-41d4-a716-446655440017", "5o6p7q8r-9s0t-1u2v-3w4x-5y6z7a8b9c0d"',
-  `billing_period_id` CHAR(36) NOT NULL COMMENT 'Period UUID, e.g., "550e8400-e29b-41d4-a716-446655440016", "4n5o6p7q-8r9s-0t1u-2v3w-4x5y6z7a8b9c"',
-  `currency_id` CHAR(36) NOT NULL COMMENT 'Currency UUID, e.g., "450e8400-e29b-41d4-a716-446655440015", "3m4n5o6p-7q8r-9s0t-1u2v-3w4x5y6z7a8b"',
-  `price` DECIMAL(10,2) NOT NULL COMMENT 'Current price, e.g., 29.99, 299.00, 49.99',
-  `original_price` DECIMAL(10,2) NULL COMMENT 'Strikethrough pricing, e.g., 39.99, 399.00, 69.99',
-
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-05 11:00:00", "2024-12-10 09:00:00"',
-  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 13:30:00", "2025-01-27 11:45:00"',
-
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_plan_period_currency` (`plan_id`, `billing_period_id`, `currency_id`),
-  KEY `idx_plan` (`plan_id`),
+  UNIQUE KEY `idx_name` (`name`),
+  KEY `idx_active_order` (`deleted_at`, `is_active`, `display_order`),
   KEY `idx_billing_period` (`billing_period_id`),
   KEY `idx_currency` (`currency_id`),
-
-  CONSTRAINT `fk_listing_prices_plan` FOREIGN KEY (`plan_id`)
-    REFERENCES `listing_plans` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `chk_price` CHECK (`price` >= 0.00),
   CONSTRAINT `fk_listing_prices_period` FOREIGN KEY (`billing_period_id`)
     REFERENCES `billing_periods` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_listing_prices_currency` FOREIGN KEY (`currency_id`)
     REFERENCES `currencies` (`id`) ON DELETE RESTRICT
+
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
--- PROMOTION SLOTS
--- ============================================
 
-# CREATE TABLE `promotion_slots` (
-#   `id` CHAR(36) NOT NULL COMMENT 'Slot UUID, e.g., "850e8400-e29b-41d4-a716-446655440019", "7q8r9s0t-1u2v-3w4x-5y6z-7a8b9c0d1e2f"',
-#   `name` VARCHAR(100) NOT NULL COMMENT 'Slot name, e.g., "Homepage Hero", "Category Top Banner", "Sidebar Featured"',
-# #   `identifier` VARCHAR(150) NOT NULL UNIQUE COMMENT 'Unique identifier, e.g., "homepage_hero", "category_top", "sidebar_featured"',
-# #   `slot_type` ENUM('homepage_banner', 'homepage_hero', 'category_featured', 'sidebar', 'search_top') NOT NULL COMMENT 'Slot type, e.g., "homepage_hero", "category_featured", "sidebar"',
-# #   `page_location` VARCHAR(100) NULL COMMENT 'Page location, e.g., "homepage", "category_customer_support", "search_results"',
-#   `position` INT NOT NULL COMMENT 'Display position (1 = top), e.g., 1, 2, 3',
-# #   `max_concurrent` TINYINT NOT NULL DEFAULT 1 COMMENT 'Max concurrent promotions, e.g., 1, 3, 5',
-# #   `description` TEXT NULL COMMENT 'Slot description, e.g., "Large hero banner at the top of homepage", "Featured position in category listing", "Sidebar widget visible on all pages"',
-# #   `dimensions` VARCHAR(50) NULL COMMENT 'Recommended dimensions, e.g., "1200x300", "300x250", "728x90"',
-#   `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
-#
-#   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-05 12:00:00", "2024-12-12 10:00:00"',
-#   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 14:00:00", "2025-01-28 09:30:00"',
-#
-#   PRIMARY KEY (`id`),
-# #   UNIQUE KEY `idx_identifier` (`identifier`),
-#   KEY `idx_type_active_position` (`slot_type`, `is_active`, `position`)
-# ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ============================================
-
-# CREATE TABLE `promotion_slot_prices` (
-#   `id` CHAR(36) NOT NULL COMMENT 'Price UUID, e.g., "950e8400-e29b-41d4-a716-446655440020", "8r9s0t1u-2v3w-4x5y-6z7a-8b9c0d1e2f3g"',
-#   `slot_id` CHAR(36) NOT NULL COMMENT 'Slot UUID, e.g., "850e8400-e29b-41d4-a716-446655440019", "7q8r9s0t-1u2v-3w4x-5y6z-7a8b9c0d1e2f"',
+# CREATE TABLE `listing_plan_prices` (
+#   `id` CHAR(36) NOT NULL COMMENT 'Price UUID, e.g., "750e8400-e29b-41d4-a716-446655440018", "6p7q8r9s-0t1u-2v3w-4x5y-6z7a8b9c0d1e"',
+#   `plan_id` CHAR(36) NOT NULL COMMENT 'Plan UUID, e.g., "650e8400-e29b-41d4-a716-446655440017", "5o6p7q8r-9s0t-1u2v-3w4x-5y6z7a8b9c0d"',
 #   `billing_period_id` CHAR(36) NOT NULL COMMENT 'Period UUID, e.g., "550e8400-e29b-41d4-a716-446655440016", "4n5o6p7q-8r9s-0t1u-2v3w-4x5y6z7a8b9c"',
 #   `currency_id` CHAR(36) NOT NULL COMMENT 'Currency UUID, e.g., "450e8400-e29b-41d4-a716-446655440015", "3m4n5o6p-7q8r-9s0t-1u2v-3w4x5y6z7a8b"',
-#   `price` DECIMAL(10,2) NOT NULL COMMENT 'Current price, e.g., 299.00, 499.99, 199.00',
-#   `original_price` DECIMAL(10,2) NULL COMMENT 'Strikethrough pricing, e.g., 399.00, 599.99, 249.00',
+#   `price` DECIMAL(10,2) NOT NULL COMMENT 'Current price, e.g., 29.99, 299.00, 49.99',
+#   `original_price` DECIMAL(10,2) NULL COMMENT 'Strikethrough pricing, e.g., 39.99, 399.00, 69.99',
 #
-#   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-05 13:00:00", "2024-12-12 11:00:00"',
-#   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 14:30:00", "2025-01-28 10:15:00"',
+#   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-05 11:00:00", "2024-12-10 09:00:00"',
+#   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 13:30:00", "2025-01-27 11:45:00"',
 #
 #   PRIMARY KEY (`id`),
-#   UNIQUE KEY `idx_slot_period_currency` (`slot_id`, `billing_period_id`, `currency_id`),
-#   KEY `idx_slot` (`slot_id`),
+#   UNIQUE KEY `idx_plan_period_currency` (`plan_id`, `billing_period_id`, `currency_id`),
+#   KEY `idx_plan` (`plan_id`),
 #   KEY `idx_billing_period` (`billing_period_id`),
 #   KEY `idx_currency` (`currency_id`),
 #
-# #   CONSTRAINT `fk_promotion_prices_slot` FOREIGN KEY (`slot_id`)
-# #     REFERENCES `promotion_slots` (`id`) ON DELETE CASCADE,
-#   CONSTRAINT `fk_promotion_prices_period` FOREIGN KEY (`billing_period_id`)
+#   CONSTRAINT `fk_listing_prices_plan` FOREIGN KEY (`plan_id`)
+#     REFERENCES `listing_plans` (`id`) ON DELETE CASCADE,
+#   CONSTRAINT `fk_listing_prices_period` FOREIGN KEY (`billing_period_id`)
 #     REFERENCES `billing_periods` (`id`) ON DELETE RESTRICT,
-#   CONSTRAINT `fk_promotion_prices_currency` FOREIGN KEY (`currency_id`)
+#   CONSTRAINT `fk_listing_prices_currency` FOREIGN KEY (`currency_id`)
 #     REFERENCES `currencies` (`id`) ON DELETE RESTRICT
 # ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -726,9 +690,12 @@ CREATE TABLE `subscriptions` (
 
   -- Type: listing OR promotion
   `subscription_type` ENUM('listing', 'promotion') NOT NULL COMMENT 'Subscription type, e.g., "listing", "promotion"',
-
+  `listing_plan_id` CHAR(36) NULL,
+  `promotions_id` CHAR(36) NULL,
   -- For listing subscriptions
-  `listing_price_id` CHAR(36) NULL COMMENT 'Listing price UUID (NULL if promotion), e.g., "750e8400-e29b-41d4-a716-446655440018", NULL',
+#   `listing_price_id` CHAR(36) NULL COMMENT 'Listing price UUID (NULL if promotion), e.g., "750e8400-e29b-41d4-a716-446655440018", NULL',
+
+
 
   -- For promotion subscriptions
 #   `promotion_slot_price_id` CHAR(36) NULL COMMENT 'Promotion price UUID (NULL if listing), e.g., "950e8400-e29b-41d4-a716-446655440020", NULL',
@@ -757,22 +724,57 @@ CREATE TABLE `subscriptions` (
   KEY `idx_chatbot_type_status` (`chatbot_id`, `subscription_type`, `status`),
   KEY `idx_expiring` (`status`, `end_date`),
   KEY `idx_stripe_customer` (`stripe_customer_id`),
-  KEY `idx_listing_price` (`listing_price_id`),
-#   KEY `idx_promotion_price` (`promotion_slot_price_id`),
+  KEY `idx_listing_plan` (`listing_plan_id`),
+  KEY `idx_promotions` (`promotions_id`),
 
   CONSTRAINT `fk_subscriptions_user` FOREIGN KEY (`user_id`)
     REFERENCES `users` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_subscriptions_chatbot` FOREIGN KEY (`chatbot_id`)
     REFERENCES `chatbots` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_subscriptions_listing_price` FOREIGN KEY (`listing_price_id`)
-    REFERENCES `listing_plan_prices` (`id`) ON DELETE RESTRICT,
-#   CONSTRAINT `fk_subscriptions_promotion_price` FOREIGN KEY (`promotion_slot_price_id`)
-#     REFERENCES `promotion_slot_prices` (`id`) ON DELETE RESTRICT,
-#   CONSTRAINT `chk_subscription_price` CHECK (
-#     (`subscription_type` = 'listing' AND `listing_price_id` IS NOT NULL AND `promotion_slot_price_id` IS NULL) OR
-#     (`subscription_type` = 'promotion' AND `promotion_slot_price_id` IS NOT NULL AND `listing_price_id` IS NULL)
-#   ),
-  CONSTRAINT `chk_dates` CHECK (`end_date` > `start_date`)
+  CONSTRAINT `fk_subscriptions_listing_plan` FOREIGN KEY (`listing_plan_id`)
+    REFERENCES `listing_plans` (`id`) ON DELETE RESTRICT,
+  CONSTRAINT `fk_subscriptions_promotion` FOREIGN KEY (`promotions_id`)
+    REFERENCES `promotions` (`id`) ON DELETE RESTRICT,
+
+  CONSTRAINT `chk_dates` CHECK (`end_date` > `start_date`),
+  CONSTRAINT `chk_trial` CHECK (trial_end_date IS NULL OR trial_end_date > start_date),
+  CONSTRAINT `chk_subscription_type_ids` CHECK (
+    (`subscription_type` = 'listing' AND `listing_plan_id` IS NOT NULL AND `promotions_id` IS NULL) OR
+    (`subscription_type` = 'promotion' AND `promotions_id` IS NOT NULL AND `listing_plan_id` IS NULL)
+  ),
+  CONSTRAINT `chk_cancellation` CHECK (
+    (status = 'cancelled' AND cancelled_at IS NOT NULL) OR
+    (status != 'cancelled' AND cancelled_at IS NULL) OR
+    (cancel_at_period_end = TRUE)
+  )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- PROMOTION SLOTS
+-- ============================================
+
+CREATE TABLE `promotion_slots` (
+  `id` CHAR(36) NOT NULL COMMENT 'Slot UUID, e.g., "850e8400-e29b-41d4-a716-446655440019", "7q8r9s0t-1u2v-3w4x-5y6z-7a8b9c0d1e2f"',
+  `name` VARCHAR(100) NOT NULL COMMENT 'Slot name, e.g., "Homepage Hero", "Category Top Banner", "Sidebar Featured"',
+  `promotions_id` CHAR(36) NOT NULL,
+#   `identifier` VARCHAR(150) NOT NULL UNIQUE COMMENT 'Unique identifier, e.g., "homepage_hero", "category_top", "sidebar_featured"',
+#   `page_location` VARCHAR(100) NULL COMMENT 'Page location, e.g., "homepage", "category_customer_support", "search_results"',
+  `position` INT NOT NULL COMMENT 'Display position (1 = top), e.g., 1, 2, 3',
+#   `max_concurrent` TINYINT NOT NULL DEFAULT 1 COMMENT 'Max concurrent promotions, e.g., 1, 3, 5',
+#   `description` TEXT NULL COMMENT 'Slot description, e.g., "Large hero banner at the top of homepage", "Featured position in category listing", "Sidebar widget visible on all pages"',
+#   `dimensions` VARCHAR(50) NULL COMMENT 'Recommended dimensions, e.g., "1200x300", "300x250", "728x90"',
+  `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
+
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-05 12:00:00", "2024-12-12 10:00:00"',
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 14:00:00", "2025-01-28 09:30:00"',
+
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_promotion_position` (`promotions_id`, `position`),
+  KEY `idx_type_active_position` (`is_active`, `position`),
+  KEY `idx_promotions` (`promotions_id`),
+  CONSTRAINT `chk_position` CHECK (`position` >= 1),
+  CONSTRAINT `fk_promotion_slots_promotion` FOREIGN KEY (`promotions_id`)
+    REFERENCES `promotions` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
@@ -780,47 +782,47 @@ CREATE TABLE `subscriptions` (
 -- ============================================
 
 CREATE TABLE `promotions` (
-  `id` CHAR(36) NOT NULL COMMENT 'Promotion UUID, e.g., "b50e8400-e29b-41d4-a716-446655440022", "0t1u2v3w-4x5y-6z7a-8b9c-0d1e2f3g4h5i"',
-  `chatbot_id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
-#   `promotion_slot_id` CHAR(36) NOT NULL COMMENT 'Slot UUID, e.g., "850e8400-e29b-41d4-a716-446655440019", "7q8r9s0t-1u2v-3w4x-5y6z-7a8b9c0d1e2f"',
-  `subscription_id` CHAR(36) NOT NULL COMMENT 'Subscription UUID, e.g., "a50e8400-e29b-41d4-a716-446655440021", "9s0t1u2v-3w4x-5y6z-7a8b-9c0d1e2f3g4h"',
+  `id` CHAR(36) NOT NULL COMMENT 'Plan UUID, e.g., "650e8400-e29b-41d4-a716-446655440017", "5o6p7q8r-9s0t-1u2v-3w4x-5y6z7a8b9c0d"',
+  `name` VARCHAR(100) NOT NULL COMMENT 'Plan name, e.g., "Basic Listing", "Premium Listing", "Pro Listing"',
+  `slot_type` ENUM('homepage_hero', 'category_featured') NOT NULL,
 
-  -- Schedule (matches subscription dates)
-  `start_date` TIMESTAMP NOT NULL COMMENT 'Promotion start, e.g., "2025-01-15 00:00:00", "2025-02-01 00:00:00"',
-  `end_date` TIMESTAMP NOT NULL COMMENT 'Promotion end, e.g., "2025-02-15 23:59:59", "2026-02-01 23:59:59"',
-  `status` ENUM('pending', 'active', 'paused', 'expired', 'cancelled') NOT NULL DEFAULT 'pending' COMMENT 'Promotion status, e.g., "active", "pending", "paused"',
+#   `slug` VARCHAR(150) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "basic-listing", "premium-listing", "pro-listing"',
+#   `description` TEXT NULL COMMENT 'Plan description, e.g., "Get your chatbot listed on our directory with basic features", "Premium visibility with featured badge and priority placement", "Maximum exposure with homepage banner and verified badge"',
 
-  -- Custom Display Content
-  `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Display order, e.g., 1, 2, 3',
-  `custom_title` VARCHAR(200) NULL COMMENT 'Custom title, e.g., "Best AI Customer Support 2025", "Transform Your Business with Intercom", "50% OFF - Limited Time"',
-  `custom_description` TEXT NULL COMMENT 'Custom description, e.g., "Automate 80% of customer support with AI-powered chatbot", "Join 25,000+ businesses using our platform", "Enterprise features at startup prices"',
-  `custom_cta_text` VARCHAR(50) NULL COMMENT 'CTA button text, e.g., "Try Free", "Get Started", "Learn More"',
-  `custom_image_url` VARCHAR(500) NULL COMMENT 'Custom banner image, e.g., "https://cdn.chatbotdir.com/promo/intercom-hero.jpg", "https://assets.drift.com/promo-banner.png"',
+  -- Listing Features
+#   `max_screenshots` TINYINT NOT NULL DEFAULT 3 COMMENT 'Max screenshot images, e.g., 3, 5, 10',
+#   `allows_video` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Video allowed?, e.g., TRUE, FALSE',
+#   `priority_support` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Priority support?, e.g., TRUE, FALSE',
+#   `verified_badge` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Verified badge?, e.g., TRUE, FALSE',
+#   `featured_in_category` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Featured in category?, e.g., TRUE, FALSE',
+#   `homepage_visibility` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Homepage visibility?, e.g., TRUE, FALSE',
 
-  -- Analytics (denormalized for performance)
-  `impressions` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Total impressions, e.g., 15234, 45892, 2341',
-  `clicks` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Total clicks, e.g., 456, 1234, 89',
-  `ctr` DECIMAL(5,4) NOT NULL DEFAULT 0.0000 COMMENT 'Click-through rate, e.g., 0.0299 (2.99%), 0.0580 (5.80%), 0.0125 (1.25%)',
+  `billing_period_id` CHAR(36) NOT NULL,
+  `currency_id` CHAR(36) NOT NULL,
+  `price` DECIMAL(10,2) NOT NULL,
 
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-15 11:00:00", "2025-02-01 09:00:00"',
-  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 15:30:00", "2025-01-28 13:20:00"',
-  `activated_at` TIMESTAMP NULL COMMENT 'Activated at, e.g., "2025-01-15 12:00:00", "2025-02-01 10:00:00"',
-  `paused_at` TIMESTAMP NULL COMMENT 'Paused at, e.g., "2025-01-25 16:00:00", NULL',
+  -- Display
+  `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
+  `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
+#   `is_popular` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Popular badge?, e.g., TRUE, FALSE',
+
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-05 10:00:00", "2024-12-10 08:30:00"',
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 13:00:00", "2025-01-26 10:20:00"',
+  `deleted_at` TIMESTAMP NULL COMMENT 'Soft delete, e.g., "2025-01-28 16:00:00", NULL',
 
   PRIMARY KEY (`id`),
-  KEY `idx_chatbot` (`chatbot_id`),
-#   KEY `idx_slot_active` (`promotion_slot_id`, `status`, `start_date`, `end_date`),
-  KEY `idx_expiring` (`status`, `end_date`),
-  KEY `idx_subscription` (`subscription_id`),
+  UNIQUE KEY `idx_slot_period_currency` (`slot_type`, `billing_period_id`, `currency_id`),
+  KEY `idx_active_order` (`deleted_at`, `is_active`, `display_order`),
+  KEY `idx_billing_period` (`billing_period_id`),
+  KEY `idx_currency` (`currency_id`),
+  CONSTRAINT `chk_promotions_price` CHECK (`price` >= 0.00),
+  CONSTRAINT `fk_promotions_period` FOREIGN KEY (`billing_period_id`)
+    REFERENCES `billing_periods` (`id`) ON DELETE RESTRICT,
+  CONSTRAINT `fk_promotions_currency` FOREIGN KEY (`currency_id`)
+    REFERENCES `currencies` (`id`) ON DELETE RESTRICT
 
-  CONSTRAINT `fk_promotions_chatbot` FOREIGN KEY (`chatbot_id`)
-    REFERENCES `chatbots` (`id`) ON DELETE CASCADE,
-#   CONSTRAINT `fk_promotions_slot` FOREIGN KEY (`promotion_slot_id`)
-#     REFERENCES `promotion_slots` (`id`) ON DELETE RESTRICT,
-  CONSTRAINT `fk_promotions_subscription` FOREIGN KEY (`subscription_id`)
-    REFERENCES `subscriptions` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `chk_promotion_dates` CHECK (`end_date` > `start_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- ============================================
 -- PAYMENTS
@@ -839,12 +841,12 @@ CREATE TABLE `payments` (
   `status` ENUM('pending', 'processing', 'succeeded', 'failed', 'cancelled', 'refunded', 'partially_refunded') NOT NULL DEFAULT 'pending' COMMENT 'Payment status, e.g., "succeeded", "pending", "failed"',
 
   -- Stripe Integration
-  `stripe_payment_intent_id` VARCHAR(255) NULL UNIQUE COMMENT 'Stripe payment intent, e.g., "pi_3OXKqYAbCD1234567890", "pi_1PQRSTab1234567890AB"',
+  `stripe_payment_intent_id` VARCHAR(255) NULL COMMENT 'Stripe payment intent, e.g., "pi_3OXKqYAbCD1234567890", "pi_1PQRSTab1234567890AB"',
   `stripe_charge_id` VARCHAR(255) NULL COMMENT 'Stripe charge, e.g., "ch_3OXKqYAbCD1234567890", "ch_1PQRSTab1234567890AB"',
   `stripe_invoice_id` VARCHAR(255) NULL COMMENT 'Stripe invoice, e.g., "in_1OXKqYAbCD1234567890", "in_1PQRSTab1234567890AB"',
 
   -- Additional Info
-  `transaction_id` VARCHAR(100) NULL UNIQUE COMMENT 'Internal transaction ID, e.g., "TXN_2025_001234", "PAY_20250129_ABC123", "INV_20250115_XYZ789"',
+  `transaction_id` VARCHAR(100) NULL COMMENT 'Internal transaction ID, e.g., "TXN_2025_001234", "PAY_20250129_ABC123", "INV_20250115_XYZ789"',
   `invoice_url` VARCHAR(500) NULL COMMENT 'Invoice PDF URL, e.g., "https://cdn.chatbotdir.com/invoices/2025/01/invoice_001234.pdf", "https://invoice.stripe.com/i/acct_1ABC/test_YWNjdF8x"',
   `receipt_url` VARCHAR(500) NULL COMMENT 'Receipt URL, e.g., "https://cdn.chatbotdir.com/receipts/2025/01/receipt_001234.pdf", "https://receipt.stripe.com/r/pi_3OXKqY"',
 
@@ -876,7 +878,25 @@ CREATE TABLE `payments` (
   KEY `idx_chatbot` (`chatbot_id`),
   KEY `idx_status_date` (`status`, `created_at`),
   KEY `idx_currency` (`currency_id`),
+  KEY `idx_stripe_invoice` (`stripe_invoice_id`),
 
+  CONSTRAINT `chk_amount` CHECK (`amount` > 0.00),
+  CONSTRAINT `chk_refund_amount` CHECK (
+    `refund_amount` IS NULL OR
+    (`refund_amount` > 0.00 AND `refund_amount` <= `amount`)
+  ),
+  CONSTRAINT `chk_refund_consistency` CHECK (
+    (status IN ('refunded', 'partially_refunded')
+      AND refund_amount IS NOT NULL
+      AND refunded_at IS NOT NULL) OR
+    (status NOT IN ('refunded', 'partially_refunded')
+      AND refund_amount IS NULL
+      AND refunded_at IS NULL)
+  ),
+  CONSTRAINT `chk_failure_consistency` CHECK (
+    (status = 'failed' AND failure_code IS NOT NULL) OR
+    (status != 'failed' AND failure_code IS NULL)
+  ),
   CONSTRAINT `fk_payments_user` FOREIGN KEY (`user_id`)
     REFERENCES `users` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_payments_subscription` FOREIGN KEY (`subscription_id`)
@@ -1135,20 +1155,28 @@ PARTITION BY RANGE (UNIX_TIMESTAMP(created_at)) (
 -- ============================================
 
 -- Insert default currencies
-INSERT INTO `currencies` (`id`, `code`, `name`, `symbol`, `decimal_places`) VALUES
-(UUID(), 'USD', 'US Dollar', '$', 2),
-(UUID(), 'EUR', 'Euro', '€', 2),
-(UUID(), 'GBP', 'British Pound', '£', 2);
+INSERT INTO `currencies` (`id`, `code`, `name`, `symbol`) VALUES
+(UUID(), 'USD', 'US Dollar', '$'),
+(UUID(), 'EUR', 'Euro', '€'),
+(UUID(), 'GBP', 'British Pound', '£');
 
 -- Insert billing periods
-INSERT INTO `billing_periods` (`id`, `name`, `slug`, `duration_months`, `discount_percentage`, `display_order`) VALUES
-(UUID(), 'Monthly', 'monthly', 1, 0.00, 1),
-(UUID(), 'Annually', 'annually', 12, 20.00, 2);
+INSERT INTO `billing_periods` (`id`, `name`, `type`, `duration`, `discount_percentage`) VALUES
+(UUID(), 'Monthly', 'monthly', 1, 0.00),
+(UUID(), 'Annually', 'yearly', 12, 20.00);
 
 -- Insert listing plans
-INSERT INTO `listing_plans` (`id`, `name`, `slug`, `description`, `max_screenshots`, `allows_video`, `priority_support`, `verified_badge`, `featured_in_category`, `homepage_visibility`, `is_popular`) VALUES
-(UUID(), 'Basic Listing', 'basic-listing', 'Get your chatbot listed in our directory', 3, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE),
-(UUID(), 'Premium Listing', 'premium-listing', 'Stand out with premium features and visibility', 10, TRUE, TRUE, TRUE, TRUE, FALSE, TRUE);
+INSERT INTO `listing_plans` (`id`, `name`, `billing_period_id`, `currency_id`, `price`) VALUES
+(UUID(), 'Basic Listing',
+  (SELECT `id` FROM `billing_periods` WHERE `name` = 'Monthly'),
+  (SELECT `id` FROM `currencies` WHERE `code` = 'USD'),
+  9.99
+),
+(UUID(), 'Premium Listing',
+  (SELECT `id` FROM `billing_periods` WHERE `name` = 'Monthly'),
+  (SELECT `id` FROM `currencies` WHERE `code` = 'USD'),
+  29.99
+);
 
 -- Insert promotion slots
 # INSERT INTO `promotion_slots` (`id`, `name`, `identifier`, `slot_type`, `page_location`, `position`, `max_concurrent`, `dimensions`) VALUES
