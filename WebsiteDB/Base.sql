@@ -596,7 +596,7 @@ CREATE TABLE `billing_periods` (
 #   `slug` VARCHAR(50) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "monthly", "annually", "quarterly"',
   `type` ENUM('daily', 'weekly', 'monthly', 'yearly') NOT NULL,
   `duration` TINYINT NOT NULL COMMENT 'Duration, e.g., 1 (monthly), 12 (annually), 3 (quarterly)',
-  `discount_percentage` DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT 'Discount percentage, e.g., 0.00, 20.00, 15.50',
+#   `discount_percentage` DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT 'Discount percentage, e.g., 0.00, 20.00, 15.50',
 #   `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
 
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-01 10:00:00", "2024-12-01 08:00:00"',
@@ -605,7 +605,7 @@ CREATE TABLE `billing_periods` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_name` (`name`),
   UNIQUE KEY `idx_type_duration` (`type`, `duration`),
-  CONSTRAINT `chk_discount` CHECK (`discount_percentage` BETWEEN 0.00 AND 100.00)
+#   CONSTRAINT `chk_discount` CHECK (`discount_percentage` BETWEEN 0.00 AND 100.00)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
@@ -629,6 +629,7 @@ CREATE TABLE `listing_plans` (
   `billing_period_id` CHAR(36) NOT NULL,
   `currency_id` CHAR(36) NOT NULL,
   `price` DECIMAL(10,2) NOT NULL,
+  `discount_percentage` DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT 'Discount percentage, e.g., 0.00, 20.00, 15.50',
 
   -- Display
   `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
@@ -645,11 +646,11 @@ CREATE TABLE `listing_plans` (
   KEY `idx_billing_period` (`billing_period_id`),
   KEY `idx_currency` (`currency_id`),
   CONSTRAINT `chk_price` CHECK (`price` >= 0.00),
+  CONSTRAINT `chk_discount` CHECK (`discount_percentage` BETWEEN 0.00 AND 100.00),
   CONSTRAINT `fk_listing_prices_period` FOREIGN KEY (`billing_period_id`)
     REFERENCES `billing_periods` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_listing_prices_currency` FOREIGN KEY (`currency_id`)
     REFERENCES `currencies` (`id`) ON DELETE RESTRICT
-
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
@@ -756,7 +757,7 @@ CREATE TABLE `subscriptions` (
 CREATE TABLE `promotion_slots` (
   `id` CHAR(36) NOT NULL COMMENT 'Slot UUID, e.g., "850e8400-e29b-41d4-a716-446655440019", "7q8r9s0t-1u2v-3w4x-5y6z-7a8b9c0d1e2f"',
   `name` VARCHAR(100) NOT NULL COMMENT 'Slot name, e.g., "Homepage Hero", "Category Top Banner", "Sidebar Featured"',
-  `promotions_id` CHAR(36) NOT NULL,
+  `subscription_id` CHAR(36) NOT NULL,
 #   `identifier` VARCHAR(150) NOT NULL UNIQUE COMMENT 'Unique identifier, e.g., "homepage_hero", "category_top", "sidebar_featured"',
 #   `page_location` VARCHAR(100) NULL COMMENT 'Page location, e.g., "homepage", "category_customer_support", "search_results"',
   `position` INT NOT NULL COMMENT 'Display position (1 = top), e.g., 1, 2, 3',
@@ -769,11 +770,11 @@ CREATE TABLE `promotion_slots` (
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 14:00:00", "2025-01-28 09:30:00"',
 
   PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_promotion_position` (`promotions_id`, `position`),
+  UNIQUE KEY `idx_promotion_position` (`subscription_id`, `position`),
   KEY `idx_type_active_position` (`is_active`, `position`),
-  KEY `idx_promotions` (`promotions_id`),
+  KEY `idx_promotions` (`subscription_id`),
   CONSTRAINT `chk_position` CHECK (`position` >= 1),
-  CONSTRAINT `fk_promotion_slots_promotion` FOREIGN KEY (`promotions_id`)
+  CONSTRAINT `fk_promotion_slots_promotion` FOREIGN KEY (`subscription_id`)
     REFERENCES `promotions` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -800,6 +801,7 @@ CREATE TABLE `promotions` (
   `billing_period_id` CHAR(36) NOT NULL,
   `currency_id` CHAR(36) NOT NULL,
   `price` DECIMAL(10,2) NOT NULL,
+  `discount_percentage` DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT 'Discount percentage, e.g., 0.00, 20.00, 15.50',
 
   -- Display
   `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
@@ -815,6 +817,7 @@ CREATE TABLE `promotions` (
   KEY `idx_active_order` (`deleted_at`, `is_active`, `display_order`),
   KEY `idx_billing_period` (`billing_period_id`),
   KEY `idx_currency` (`currency_id`),
+  CONSTRAINT `chk_discount` CHECK (`discount_percentage` BETWEEN 0.00 AND 100.00),
   CONSTRAINT `chk_promotions_price` CHECK (`price` >= 0.00),
   CONSTRAINT `fk_promotions_period` FOREIGN KEY (`billing_period_id`)
     REFERENCES `billing_periods` (`id`) ON DELETE RESTRICT,
