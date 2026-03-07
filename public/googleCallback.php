@@ -282,7 +282,7 @@ try {
     // 7. PRIHLÁS USERA
     // ============================================
 
-    login($userData, false);
+    login($userData, true);
 
     header('Location: index.php');
     exit;

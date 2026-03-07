@@ -112,7 +112,7 @@ require '../inc/header.php';
                     <div class="profile-card avatar-card">
                         <div class="avatar-wrapper">                     
                             <img src="<?php echo isset($user['profile_picture_url'])
-                                    ? '../' . $user['profile_picture_url']
+                                    ? $user['profile_picture_url']
                                     : '../img/default-avatar2.png'; ?>" 
                                 alt="Profile picture" 
                                 class="profile-avatar user-avatar-img"
