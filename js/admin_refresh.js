@@ -591,7 +591,7 @@ function buildSubmissionCard(sub) {
     const adminNotesBlock = sub.admin_notes
         ? `<div class="admin-existing-response"><strong>Admin notes:</strong><p>${nlToBr(sub.admin_notes)}</p></div>` : '';
 
-    const approvedActive = status === 'active' ? ' active' : '';
+    const approvedActive = status === 'reviewed' ? ' active' : '';
     const rejectedActive = status === 'rejected' ? ' active' : '';
 
     return `
@@ -624,7 +624,7 @@ function buildSubmissionCard(sub) {
             <div class="admin-status-actions">
                 <button class="admin-status-btn submission-action-btn${approvedActive}"
                         data-status="approved"
-                        onclick="approveSubmission('${id}', this)">✅ Approve</button>
+                        onclick="approveSubmission('${id}', this)">✅ Mark Reviewed</button>
                 <button class="admin-status-btn submission-action-btn${rejectedActive}"
                         data-status="rejected"
                         onclick="toggleSection(this, 'sub-reject-${id}')">❌ Reject</button>
@@ -655,7 +655,7 @@ function buildSubmissionCard(sub) {
 async function approveSubmission(id, btn) {
     if (btn.disabled) return;
     btn.disabled    = true;
-    btn.textContent = 'Approving...';
+    btn.textContent = 'Reviewing...';
 
     try {
         const res  = await fetch('../app/adminSubmissionActions.php', {
@@ -670,21 +670,21 @@ async function approveSubmission(id, btn) {
         const card  = btn.closest('.admin-message-card');
         const badge = card.querySelector('.admin-status-badge');
         if (badge) {
-            badge.className = 'admin-status-badge submission-status-active';
-            badge.textContent = 'Approved';
+            badge.className = 'admin-status-badge submission-status-reviewed';
+            badge.textContent = 'Reviewed';
         }
         // Mark approve btn active, unmark reject
         card.querySelectorAll('.submission-action-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
 
-        showNotification('Chatbot approved — approval email sent to user ✅', 'success');
+        showNotification('Chatbot marked as reviewed — email sent to user ✅', 'success');
         updateMainTabBadge('submissions', data.pendingCount ?? 0);
     } catch (err) {
         console.error(err);
         showNotification(err.message || 'Failed to approve submission', 'error');
     } finally {
         btn.disabled    = false;
-        btn.textContent = '✅ Approve';
+        btn.textContent = '✅ Mark Reviewed';
     }
 }
 

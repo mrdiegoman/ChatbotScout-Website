@@ -184,7 +184,7 @@ CREATE TABLE `chatbots` (
   `pricing_url` VARCHAR(500) NULL COMMENT 'Pricing page, e.g., "https://www.intercom.com/pricing", "https://drift.com/plans", "https://tidio.com/pricing"',
 
   -- Listing Status
-  `status` ENUM('pending', 'active', 'suspended', 'rejected', 'archived') NOT NULL DEFAULT 'pending' COMMENT 'Listing status, e.g., "active", "pending", "suspended"',
+  `status` ENUM('pending', 'active', 'reviewed', 'suspended', 'rejected', 'archived') NOT NULL DEFAULT 'pending' COMMENT 'Listing status, e.g., "active", "pending", "suspended"',
   `is_verified` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Manually verified by admin, e.g., TRUE, FALSE',
   `is_featured` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Featured globally, e.g., TRUE, FALSE',
   `is_sponsored` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Paid promotion, e.g., TRUE, FALSE',

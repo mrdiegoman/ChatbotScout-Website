@@ -59,13 +59,13 @@ switch ($action) {
 
     // ── APPROVE ──────────────────────────────────────────────────────────────
     case 'approve':
-        if ($chatbot['status'] === 'active') {
+        if ($chatbot['status'] === 'reviewed') {
             echo json_encode(['success' => true, 'message' => 'Already approved.', 'pendingCount' => getPendingCount($db)]);
             exit;
         }
 
         $db->prepare("
-            UPDATE chatbots SET status = 'active', approved_at = NOW()
+            UPDATE chatbots SET status = 'reviewed', approved_at = NOW()
             WHERE id = :id
         ")->execute(['id' => $id]);
 

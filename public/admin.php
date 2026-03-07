@@ -72,7 +72,7 @@ $helpfulCount = (int)$db->query("SELECT COUNT(*) FROM contact_messages WHERE hel
 // REVIEWS — filters + fetch
 // ============================================
 
-$allowedReviewStatuses = ['all', 'pending', 'active', 'rejected', 'flagged', 'removed'];
+$allowedReviewStatuses = ['all', 'pending', 'reviewed', 'rejected', 'flagged', 'removed'];
 $filterReviewStatus    = $_GET['review_status'] ?? 'all';
 if (!in_array($filterReviewStatus, $allowedReviewStatuses, true)) {
     $filterReviewStatus = 'all';
@@ -113,7 +113,7 @@ $reviewParams = $filterReviewStatus !== 'all' ? ['status' => $filterReviewStatus
 
 // Review counts per status
 $reviewCountStmt = $db->query("SELECT status, COUNT(*) as cnt FROM reviews GROUP BY status");
-$reviewCounts    = ['all' => 0, 'pending' => 0, 'active' => 0, 'rejected' => 0, 'flagged' => 0, 'removed' => 0];
+$reviewCounts    = ['all' => 0, 'pending' => 0, 'reviewed' => 0, 'rejected' => 0, 'flagged' => 0, 'removed' => 0];
 foreach ($reviewCountStmt->fetchAll() as $row) {
     if (isset($reviewCounts[$row['status']])) {
         $reviewCounts[$row['status']] = (int)$row['cnt'];
@@ -125,13 +125,13 @@ foreach ($reviewCountStmt->fetchAll() as $row) {
 // SUBMISSIONS — filters + fetch
 // ============================================
 
-$allowedSubStatuses = ['all', 'pending', 'active', 'rejected'];
+$allowedSubStatuses = ['all', 'pending', 'reviewed', 'rejected'];
 $filterSubStatus    = $_GET['sub_status'] ?? 'pending';
 if (!in_array($filterSubStatus, $allowedSubStatuses, true)) {
     $filterSubStatus = 'pending';
 }
 
-$subWhere  = $filterSubStatus !== 'all' ? 'WHERE c.status = :status' : "WHERE c.status IN ('pending','active','rejected')";
+$subWhere  = $filterSubStatus !== 'all' ? 'WHERE c.status = :status' : "WHERE c.status IN ('pending','reviewed','rejected')";
 $subParams = $filterSubStatus !== 'all' ? ['status' => $filterSubStatus] : [];
 
 // Total count
@@ -166,11 +166,11 @@ $submissions = $subStmt->fetchAll();
 $subCountStmt = $db->query("
     SELECT status, COUNT(*) as cnt
     FROM chatbots
-    WHERE status IN ('pending','active','rejected')
+    WHERE status IN ('pending','reviewed','rejected')
     AND submitted_at IS NOT NULL
     GROUP BY status
 ");
-$subCounts = ['all' => 0, 'pending' => 0, 'active' => 0, 'rejected' => 0];
+$subCounts = ['all' => 0, 'pending' => 0, 'reviewed' => 0, 'rejected' => 0];
 foreach ($subCountStmt->fetchAll() as $row) {
     if (isset($subCounts[$row['status']])) {
         $subCounts[$row['status']] = (int)$row['cnt'];
@@ -202,7 +202,7 @@ require '../inc/header.php';
     border: 1.5px solid #e5e7eb;
 }
 .submission-status-pending  { background: #FEF3C7; color: #92400E; }
-.submission-status-active   { background: #D1FAE5; color: #065F46; }
+.submission-status-reviewed   { background: #D1FAE5; color: #065F46; }
 .submission-status-rejected { background: #FEE2E2; color: #991B1B; }
 </style>
 
@@ -422,7 +422,7 @@ require '../inc/header.php';
             <?php foreach ([
                 'all'      => 'All',
                 'pending'  => 'Pending',
-                'active' => 'Approved',
+                'reviewed' => 'Reviewed',
                 'rejected' => 'Rejected',
                 'flagged'  => 'Flagged',
                 'removed'  => 'Removed',
@@ -575,7 +575,7 @@ require '../inc/header.php';
             <?php foreach ([
                 'all'      => 'All',
                 'pending'  => 'Pending',
-                'active' => 'Approved',
+                'reviewed' => 'Reviewed',
                 'rejected' => 'Rejected',
             ] as $key => $label): ?>
                 <a href="?tab=submissions&sub_status=<?= $key ?>"
@@ -669,10 +669,10 @@ require '../inc/header.php';
                         <!-- Actions -->
                         <div class="admin-message-actions">
                             <div class="admin-status-actions">
-                                <button class="admin-status-btn submission-action-btn <?= $sub['status'] === 'active' ? 'active' : '' ?>"
+                                <button class="admin-status-btn submission-action-btn <?= $sub['status'] === 'reviewed' ? 'active' : '' ?>"
                                         data-status="approved"
                                         onclick="approveSubmission('<?= $subId ?>', this)">
-                                    ✅ Approve
+                                    ✅ Mark Reviewed
                                 </button>
                                 <button class="admin-status-btn submission-action-btn <?= $sub['status'] === 'rejected' ? 'active' : '' ?>"
                                         data-status="rejected"

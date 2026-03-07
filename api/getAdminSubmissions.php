@@ -13,7 +13,7 @@ header('Content-Type: application/json');
 
 $db = Database::getInstance()->getConnection();
 
-$allowedStatuses = ['all', 'pending', 'active', 'rejected'];
+$allowedStatuses = ['all', 'pending', 'reviewed', 'rejected'];
 $subStatus       = $_GET['sub_status'] ?? 'pending';
 if (!in_array($subStatus, $allowedStatuses, true)) {
     $subStatus = 'pending';
@@ -24,7 +24,7 @@ $offset = max((int)($_GET['offset'] ?? 0),   0);
 
 $where  = $subStatus !== 'all'
     ? "WHERE c.status = :status AND c.submitted_at IS NOT NULL"
-    : "WHERE c.status IN ('pending','active','rejected') AND c.submitted_at IS NOT NULL";
+    : "WHERE c.status IN ('pending','reviewed','rejected') AND c.submitted_at IS NOT NULL";
 $params = $subStatus !== 'all' ? ['status' => $subStatus] : [];
 
 // Total count
@@ -63,11 +63,11 @@ unset($row);
 $countStmt = $db->query("
     SELECT status, COUNT(*) as cnt
     FROM chatbots
-    WHERE status IN ('pending','active','rejected')
+    WHERE status IN ('pending','reviewed','rejected')
     AND submitted_at IS NOT NULL
     GROUP BY status
 ");
-$counts = ['all' => 0, 'pending' => 0, 'active' => 0, 'rejected' => 0];
+$counts = ['all' => 0, 'pending' => 0, 'reviewed' => 0, 'rejected' => 0];
 foreach ($countStmt->fetchAll() as $c) {
     if (isset($counts[$c['status']])) {
         $counts[$c['status']] = (int)$c['cnt'];
