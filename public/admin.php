@@ -11,7 +11,7 @@ $db = Database::getInstance()->getConnection();
 // ============================================
 
 $activeTab   = $_GET['tab'] ?? 'messages';
-$allowedTabs = ['messages', 'reviews', 'settings'];
+$allowedTabs = ['messages', 'reviews', 'submissions', 'settings'];
 if (!in_array($activeTab, $allowedTabs, true)) {
     $activeTab = 'messages';
 }
@@ -72,7 +72,7 @@ $helpfulCount = (int)$db->query("SELECT COUNT(*) FROM contact_messages WHERE hel
 // REVIEWS — filters + fetch
 // ============================================
 
-$allowedReviewStatuses = ['all', 'pending', 'approved', 'rejected', 'flagged', 'removed'];
+$allowedReviewStatuses = ['all', 'pending', 'active', 'rejected', 'flagged', 'removed'];
 $filterReviewStatus    = $_GET['review_status'] ?? 'all';
 if (!in_array($filterReviewStatus, $allowedReviewStatuses, true)) {
     $filterReviewStatus = 'all';
@@ -113,12 +113,69 @@ $reviewParams = $filterReviewStatus !== 'all' ? ['status' => $filterReviewStatus
 
 // Review counts per status
 $reviewCountStmt = $db->query("SELECT status, COUNT(*) as cnt FROM reviews GROUP BY status");
-$reviewCounts    = ['all' => 0, 'pending' => 0, 'approved' => 0, 'rejected' => 0, 'flagged' => 0, 'removed' => 0];
+$reviewCounts    = ['all' => 0, 'pending' => 0, 'active' => 0, 'rejected' => 0, 'flagged' => 0, 'removed' => 0];
 foreach ($reviewCountStmt->fetchAll() as $row) {
     if (isset($reviewCounts[$row['status']])) {
         $reviewCounts[$row['status']] = (int)$row['cnt'];
     }
     $reviewCounts['all'] += (int)$row['cnt'];
+}
+
+// ============================================
+// SUBMISSIONS — filters + fetch
+// ============================================
+
+$allowedSubStatuses = ['all', 'pending', 'active', 'rejected'];
+$filterSubStatus    = $_GET['sub_status'] ?? 'pending';
+if (!in_array($filterSubStatus, $allowedSubStatuses, true)) {
+    $filterSubStatus = 'pending';
+}
+
+$subWhere  = $filterSubStatus !== 'all' ? 'WHERE c.status = :status' : "WHERE c.status IN ('pending','active','rejected')";
+$subParams = $filterSubStatus !== 'all' ? ['status' => $filterSubStatus] : [];
+
+// Total count
+$subTotalStmt = $db->prepare("
+    SELECT COUNT(*) FROM chatbots c
+    LEFT JOIN users u ON c.owner_user_id = u.id
+    $subWhere
+    AND c.submitted_at IS NOT NULL
+");
+$subTotalStmt->execute($subParams);
+$subTotal   = (int)$subTotalStmt->fetchColumn();
+$subHasMore = $subTotal > 10;
+
+$subStmt = $db->prepare("
+    SELECT
+        c.id, c.name, c.website_url, c.logo_url,
+        c.status, c.submitted_at, c.access_note, c.admin_notes,
+        u.first_name, u.last_name, u.email AS user_email
+    FROM chatbots c
+    LEFT JOIN users u ON c.owner_user_id = u.id
+    $subWhere
+    AND c.submitted_at IS NOT NULL
+    ORDER BY
+        CASE c.status WHEN 'pending' THEN 0 ELSE 1 END,
+        c.submitted_at DESC
+    LIMIT 10
+");
+$subStmt->execute($subParams);
+$submissions = $subStmt->fetchAll();
+
+// Submission counts per status
+$subCountStmt = $db->query("
+    SELECT status, COUNT(*) as cnt
+    FROM chatbots
+    WHERE status IN ('pending','active','rejected')
+    AND submitted_at IS NOT NULL
+    GROUP BY status
+");
+$subCounts = ['all' => 0, 'pending' => 0, 'active' => 0, 'rejected' => 0];
+foreach ($subCountStmt->fetchAll() as $row) {
+    if (isset($subCounts[$row['status']])) {
+        $subCounts[$row['status']] = (int)$row['cnt'];
+    }
+    $subCounts['all'] += (int)$row['cnt'];
 }
 
 require '../inc/header.php';
@@ -128,11 +185,32 @@ require '../inc/header.php';
 <link rel="stylesheet" href="../css/admin_refresh.css">
 <link rel="stylesheet" href="../css/admin_settings.css">
 
+<style>
+.admin-submission-logo {
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 0.5rem;
+    object-fit: contain;
+    background: #f3f4f6;
+    flex-shrink: 0;
+}
+.admin-submission-logo--placeholder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    border: 1.5px solid #e5e7eb;
+}
+.submission-status-pending  { background: #FEF3C7; color: #92400E; }
+.submission-status-active   { background: #D1FAE5; color: #065F46; }
+.submission-status-rejected { background: #FEE2E2; color: #991B1B; }
+</style>
+
 <div class="admin-wrapper">
 
     <div class="admin-header">
         <h1>Admin Panel</h1>
-        <p>Manage contact messages and user reviews</p>
+        <p>Manage contact messages, user reviews and chatbot submissions</p>
     </div>
 
     <!-- Main tab navigation -->
@@ -160,6 +238,21 @@ require '../inc/header.php';
             <?php endif; ?>
             <span class="admin-refresh-btn" id="refreshReviewsBtn"
                   onclick="event.stopPropagation(); refreshReviews(this)" title="Refresh reviews">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+                    <path d="M3.51 9a9 9 0 0114.36-3.36L23 10M1 14l5.13 4.36A9 9 0 0020.49 15"/>
+                </svg>
+            </span>
+        </button>
+        <button class="admin-main-tab-btn <?= $activeTab === 'submissions' ? 'active' : '' ?>"
+                data-tab="submissions">
+            Submissions
+            <?php if ($subCounts['pending'] > 0): ?>
+                <span class="admin-main-tab-count"><?= $subCounts['pending'] ?></span>
+            <?php endif; ?>
+            <span class="admin-refresh-btn" id="refreshSubmissionsBtn"
+                  onclick="event.stopPropagation(); refreshSubmissions(this)" title="Refresh submissions">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                      stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
@@ -329,7 +422,7 @@ require '../inc/header.php';
             <?php foreach ([
                 'all'      => 'All',
                 'pending'  => 'Pending',
-                'approved' => 'Approved',
+                'active' => 'Approved',
                 'rejected' => 'Rejected',
                 'flagged'  => 'Flagged',
                 'removed'  => 'Removed',
@@ -468,6 +561,169 @@ require '../inc/header.php';
                     Show more
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- TAB: SUBMISSIONS                            -->
+    <!-- ============================================ -->
+
+    <div class="admin-tab-pane <?= $activeTab === 'submissions' ? 'active' : '' ?>" id="submissions-tab">
+
+        <!-- Status filter tabs -->
+        <div class="admin-tabs">
+            <?php foreach ([
+                'all'      => 'All',
+                'pending'  => 'Pending',
+                'active' => 'Approved',
+                'rejected' => 'Rejected',
+            ] as $key => $label): ?>
+                <a href="?tab=submissions&sub_status=<?= $key ?>"
+                   class="admin-tab <?= $filterSubStatus === $key ? 'active' : '' ?>">
+                    <?= $label ?>
+                    <span class="admin-tab-badge <?= $key === 'pending' ? 'badge-new' : '' ?>">
+                        <?= $subCounts[$key] ?>
+                    </span>
+                </a>
+            <?php endforeach; ?>
+        </div>
+
+        <div class="admin-messages"
+             data-total="<?= $subTotal ?>"
+             data-has-more="<?= $subHasMore ? 'true' : 'false' ?>">
+
+            <?php if ($subTotal > 10): ?>
+            <div class="admin-jump-to-oldest-bar">
+                <button id="submissionsScrollOldestBtn"
+                        class="admin-scroll-oldest-btn"
+                        onclick="scrollToOldestSubmissions()">
+                    ↓ Jump to oldest
+                </button>
+            </div>
+            <?php endif; ?>
+
+            <?php if (empty($submissions)): ?>
+                <div class="admin-empty">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <p>No submissions found</p>
+                </div>
+            <?php else: ?>
+                <?php foreach ($submissions as $sub): ?>
+                    <?php $subId = htmlspecialchars($sub['id']); ?>
+                    <div class="admin-message-card admin-submission-card" data-id="<?= $subId ?>">
+
+                        <div class="admin-message-card-header">
+                            <div class="admin-message-card-header-left">
+                                <div class="admin-message-sender-row">
+                                    <?php if ($sub['logo_url']): ?>
+                                        <img src="../<?= htmlspecialchars($sub['logo_url']) ?>"
+                                             alt="logo"
+                                             class="admin-submission-logo">
+                                    <?php else: ?>
+                                        <div class="admin-submission-logo admin-submission-logo--placeholder">🤖</div>
+                                    <?php endif; ?>
+                                    <span class="admin-message-sender">
+                                        <?= htmlspecialchars($sub['name']) ?>
+                                    </span>
+                                </div>
+                                <span class="admin-message-email">
+                                    Submitted by <?= htmlspecialchars($sub['first_name'] . ' ' . $sub['last_name']) ?>
+                                    · <a href="mailto:<?= htmlspecialchars($sub['user_email']) ?>"><?= htmlspecialchars($sub['user_email']) ?></a>
+                                </span>
+                            </div>
+                            <div class="admin-message-card-header-right">
+                                <span class="admin-status-badge submission-status-<?= $sub['status'] ?>">
+                                    <?= ucfirst($sub['status']) ?>
+                                </span>
+                                <span class="admin-message-date">
+                                    <?= date('d M Y, H:i', strtotime($sub['submitted_at'])) ?>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Website URL -->
+                        <div class="admin-message-subject">
+                            🌐 <a href="<?= htmlspecialchars($sub['website_url']) ?>" target="_blank" rel="noopener">
+                                <?= htmlspecialchars($sub['website_url']) ?>
+                            </a>
+                        </div>
+
+                        <!-- Access note -->
+                        <?php if ($sub['access_note']): ?>
+                            <div class="admin-message-body">
+                                <strong>Access note:</strong><br>
+                                <?= nl2br(htmlspecialchars($sub['access_note'])) ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Existing admin notes -->
+                        <?php if ($sub['admin_notes']): ?>
+                            <div class="admin-existing-response">
+                                <strong>Admin notes:</strong>
+                                <p><?= nl2br(htmlspecialchars($sub['admin_notes'])) ?></p>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Actions -->
+                        <div class="admin-message-actions">
+                            <div class="admin-status-actions">
+                                <button class="admin-status-btn submission-action-btn <?= $sub['status'] === 'active' ? 'active' : '' ?>"
+                                        data-status="approved"
+                                        onclick="approveSubmission('<?= $subId ?>', this)">
+                                    ✅ Approve
+                                </button>
+                                <button class="admin-status-btn submission-action-btn <?= $sub['status'] === 'rejected' ? 'active' : '' ?>"
+                                        data-status="rejected"
+                                        onclick="toggleSection(this, 'sub-reject-<?= $subId ?>')">
+                                    ❌ Reject
+                                </button>
+                            </div>
+                            <div class="admin-toggle-actions">
+                                <button class="admin-toggle-btn"
+                                        onclick="toggleSection(this, 'sub-notes-<?= $subId ?>')">
+                                    📝 Notes
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Reject section -->
+                        <div class="admin-reply-section" id="sub-reject-<?= $subId ?>" style="display:none;">
+                            <label>Rejection reason
+                                <span class="admin-reply-hint">(will be sent to user via email)</span>
+                            </label>
+                            <textarea class="admin-textarea"
+                                      placeholder="e.g. The chatbot is not publicly accessible, the website appears to be inactive..."></textarea>
+                            <button class="admin-save-btn admin-reject-btn"
+                                    onclick="rejectSubmission('<?= $subId ?>', this)">
+                                Send Rejection
+                            </button>
+                        </div>
+
+                        <!-- Admin notes section -->
+                        <div class="admin-notes-section" id="sub-notes-<?= $subId ?>" style="display:none;">
+                            <label>Admin Notes <span class="admin-reply-hint">(internal only, not sent to user)</span></label>
+                            <textarea class="admin-textarea"
+                                      placeholder="e.g. Tested on 12.3, working fine. Missing pricing page..."><?= htmlspecialchars($sub['admin_notes'] ?? '') ?></textarea>
+                            <button class="admin-save-btn"
+                                    onclick="saveSubmissionNotes('<?= $subId ?>', this)">
+                                Save Notes
+                            </button>
+                        </div>
+
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+
+            <!-- SUBMISSIONS LOAD MORE BAR -->
+            <div class="admin-load-more-bar" id="submissionsLoadMoreBar" style="display:none;">
+                <span class="admin-load-more-counter"></span>
+                <button class="admin-show-more-btn" onclick="loadMoreSubmissions(this)" style="display:none;">
+                    Show more
+                </button>
+            </div>
+
         </div>
     </div>
 

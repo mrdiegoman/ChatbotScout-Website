@@ -1,0 +1,537 @@
+/* ============================================================
+   submitChatbot.css  —  ChatbotHub Submit Page
+   ============================================================ */
+
+:root {
+    --sc-purple:        #6B3FF6;
+    --sc-purple-light:  #8B5FF8;
+    --sc-purple-faint:  #f5f0ff;
+    --sc-green:         #22C55E;
+    --sc-red:           #EF233C;
+    --sc-border:        #E5E7EB;
+    --sc-text:          #1F2937;
+    --sc-text-muted:    #6B7280;
+    --sc-bg:            #F9FAFB;
+    --sc-radius:        12px;
+    --sc-shadow:        0 4px 24px rgba(0,0,0,0.08);
+}
+
+/* ── Layout ───────────────────────────────────────────────── */
+.sc-page {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ── Sidebar ──────────────────────────────────────────────── */
+.sc-sidebar {
+    width: 380px;
+    flex-shrink: 0;
+    background: linear-gradient(160deg, #1e1040 0%, #2d1b69 50%, #1a3a6e 100%);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.sc-sidebar__inner {
+    margin-top: 60px;
+    padding: 2rem 3.6rem;
+}
+
+.sc-sidebar__logo {
+    margin-bottom: 48px;
+}
+
+.sc-sidebar__logo img {
+    height: 36px;
+    filter: brightness(0) invert(1);
+}
+
+.sc-sidebar__title {
+    font-size: 2.1rem;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.3;
+    margin-bottom: 14px;
+}
+
+.sc-sidebar__sub {
+    font-size: 1.25rem;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.7;
+    margin-bottom: 40px;
+}
+
+/* Steps */
+.sc-steps {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.sc-steps__item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    opacity: 0.55;
+    transition: opacity 0.2s;
+}
+
+.sc-steps__item:last-child {
+    border-bottom: none;
+}
+
+.sc-steps__item--active {
+    opacity: 1;
+}
+
+.sc-steps__dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    border: 2px solid rgba(255,255,255,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.0rem;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.sc-steps__item--active .sc-steps__dot {
+    background: var(--sc-purple-light);
+    border-color: var(--sc-purple-light);
+    box-shadow: 0 0 0 4px rgba(139, 95, 248, 0.3);
+}
+
+.sc-steps__item strong {
+    display: block;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 3px;
+}
+
+.sc-steps__item span {
+    font-size: 1.0rem;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.4;
+}
+
+/* Note box */
+.sc-sidebar__note {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    padding: 18px 20px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.sc-sidebar__note-icon {
+    font-size: 1.6rem;
+    flex-shrink: 0;
+}
+
+.sc-sidebar__note p {
+    font-size: 1.02rem;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.65;
+    margin: 0;
+}
+
+@media (max-width: 860px) {
+    .sc-sidebar { display: none; }
+}
+
+/* ── Main form area ───────────────────────────────────────── */
+.sc-main {
+    flex: 1;
+    background: var(--sc-bg);
+    overflow-y: auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    margin-top: 60px;
+    padding: 2rem 2rem 8rem;
+    margin-bottom: 0;
+}
+
+.sc-main__inner {
+    width: 100%;
+    max-width: 580px;
+}
+
+/* Form header */
+.sc-form-header {
+    margin-bottom: 36px;
+}
+
+.sc-form-header h1 {
+    font-size: 2.3rem;
+    font-weight: 800;
+    color: var(--sc-text);
+    margin-bottom: 8px;
+}
+
+.sc-form-header p {
+    font-size: 1.3rem;
+    color: var(--sc-text-muted);
+}
+
+/* ── Form fields ──────────────────────────────────────────── */
+.sc-form {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.sc-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sc-label {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--sc-text);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    cursor: default;
+}
+
+.sc-label-hint {
+    font-weight: 400;
+    font-size: 1.02rem;
+    color: var(--sc-text-muted);
+    line-height: 1.5;
+}
+
+.sc-required {
+    color: var(--sc-red);
+    font-weight: 700;
+    margin-left: 2px;
+}
+
+/* Inputs */
+.sc-input,
+.sc-textarea {
+    width: 100%;
+    padding: 13px 16px;
+    border: 2px solid var(--sc-border);
+    border-radius: var(--sc-radius);
+    font-size: 1.15rem;
+    color: var(--sc-text);
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.sc-input:focus,
+.sc-textarea:focus {
+    border-color: var(--sc-purple);
+    box-shadow: 0 0 0 3px rgba(107, 63, 246, 0.1);
+}
+
+.sc-input--error,
+.sc-textarea--error {
+    border-color: var(--sc-red) !important;
+    box-shadow: 0 0 0 3px rgba(239, 35, 60, 0.08) !important;
+}
+
+.sc-textarea {
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.6;
+}
+
+/* Input with icon */
+.sc-input-wrap {
+    position: relative;
+}
+
+.sc-input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.15rem;
+    pointer-events: none;
+    line-height: 1;
+}
+
+.sc-input--icon {
+    padding-left: 42px;
+}
+
+/* Character count */
+.sc-char-count {
+    text-align: right;
+    font-size: 0.95rem;
+    color: var(--sc-text-muted);
+    margin-top: -4px;
+}
+
+/* Error message */
+.sc-error {
+    font-size: 1.02rem;
+    color: var(--sc-red);
+    font-weight: 500;
+    min-height: 18px;
+    display: block;
+}
+
+/* ── Logo Upload ──────────────────────────────────────────── */
+.sc-logo-upload {
+    position: relative;
+    border: 2px dashed var(--sc-border);
+    border-radius: var(--sc-radius);
+    background: #fff;
+    transition: border-color 0.2s, background 0.2s;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.sc-logo-upload:hover,
+.sc-logo-upload--dragover {
+    border-color: var(--sc-purple);
+    background: var(--sc-purple-faint);
+}
+
+.sc-logo-upload__input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+}
+
+.sc-logo-upload__placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+    pointer-events: none;
+}
+
+.sc-logo-upload__icon {
+    font-size: 2.2rem;
+    margin-bottom: 12px;
+    opacity: 0.6;
+}
+
+.sc-logo-upload__text {
+    font-size: 1.15rem;
+    color: var(--sc-text);
+    margin-bottom: 4px;
+}
+
+.sc-logo-upload__hint {
+    font-size: 1.0rem;
+    color: var(--sc-text-muted);
+}
+
+/* Preview */
+.sc-logo-upload__preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+}
+
+.sc-logo-upload__preview img {
+    max-height: 100px;
+    max-width: 200px;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: var(--sc-shadow);
+}
+
+.sc-logo-upload__remove {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    z-index: 3;
+}
+
+.sc-logo-upload__remove:hover {
+    background: rgba(0,0,0,0.75);
+}
+
+/* ── Checkbox ─────────────────────────────────────────────── */
+.sc-checkbox {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    cursor: pointer;
+}
+
+.sc-checkbox__input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sc-checkbox__box {
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--sc-border);
+    border-radius: 6px;
+    background: #fff;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+
+.sc-checkbox__input:checked + .sc-checkbox__box {
+    background: var(--sc-purple);
+    border-color: var(--sc-purple);
+}
+
+.sc-checkbox__input:checked + .sc-checkbox__box::after {
+    content: '✓';
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.sc-checkbox__text {
+    font-size: 1.3rem;
+    color: var(--sc-text);
+    line-height: 1.6;
+}
+
+/* ── Form footer ──────────────────────────────────────────── */
+.sc-form__footer {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-top: 8px;
+}
+
+.sc-form__note {
+    font-size: 1.0rem;
+    color: var(--sc-text-muted);
+    line-height: 1.55;
+}
+
+.sc-form__note a {
+    color: var(--sc-purple);
+    text-decoration: none;
+}
+
+.sc-form__note a:hover { text-decoration: underline; }
+
+.sc-submit-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--sc-purple);
+    color: #fff;
+    border: none;
+    border-radius: var(--sc-radius);
+    font-size: 1.3rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+}
+
+.sc-submit-btn:hover:not(:disabled) {
+    background: var(--sc-purple-light);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(107, 63, 246, 0.35);
+}
+
+.sc-submit-btn:disabled {
+    background: #e5e7eb;
+    color: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.sc-global-error {
+    text-align: center;
+    font-size: 0.92rem;
+    color: var(--sc-red);
+    font-weight: 600;
+    min-height: 20px;
+}
+
+/* ── Success state ────────────────────────────────────────── */
+.sc-success {
+    text-align: center;
+    padding: 60px 20px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: var(--sc-shadow);
+    border: 1px solid var(--sc-border);
+}
+
+.sc-success__icon {
+    font-size: 3.5rem;
+    margin-bottom: 20px;
+}
+
+.sc-success h2 {
+    font-size: 2.1rem;
+    font-weight: 800;
+    color: var(--sc-text);
+    margin-bottom: 16px;
+}
+
+.sc-success p {
+    font-size: 1.25rem;
+    color: var(--sc-text-muted);
+    line-height: 1.7;
+    max-width: 440px;
+    margin: 0 auto 12px;
+}
+
+.sc-success__btn {
+    display: inline-block;
+    margin-top: 28px;
+    padding: 13px 32px;
+    background: var(--sc-purple);
+    color: #fff;
+    border-radius: 100px;
+    font-weight: 700;
+    font-size: 1.15rem;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.sc-success__btn:hover { opacity: 0.88; }

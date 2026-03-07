@@ -29,15 +29,14 @@ $subStmt = $db->prepare("
     SELECT 
         s.*,
         lp.name AS plan_name,
-        lpp.price,
+        lp.price,
         c.symbol AS currency_symbol,
         c.code AS currency_code,
         bp.name AS billing_period
     FROM subscriptions s
-    JOIN listing_plan_prices lpp ON s.listing_price_id = lpp.id
-    JOIN listing_plans lp ON lpp.plan_id = lp.id
-    JOIN currencies c ON lpp.currency_id = c.id
-    JOIN billing_periods bp ON lpp.billing_period_id = bp.id
+    JOIN listing_plans lp ON s.listing_plan_id = lp.id
+    JOIN currencies c ON lp.currency_id = c.id
+    JOIN billing_periods bp ON lp.billing_period_id = bp.id
     WHERE s.user_id = :user_id 
     AND s.status = 'active'
     AND s.subscription_type = 'listing'

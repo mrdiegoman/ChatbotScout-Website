@@ -85,4 +85,9 @@ return [
         'secret_key' => '',
         'enabled'    => false,
     ],
+
+    // Admin
+    'admin' => [
+        'email' => 'rafaj.jakub@gmail.com.com', // ← zmeň na svoj reálny email
+    ],
 ];

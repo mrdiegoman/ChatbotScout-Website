@@ -47,6 +47,8 @@ $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User'
         <link rel="stylesheet" href="../css/favouritesShowcase.css">
         <link rel="stylesheet" href="../css/featuresShowMore.css">
         <link rel="stylesheet" href="../css/platformsPopup.css">
+    <?php elseif ($page === 'advertise'): ?>
+        <link rel="stylesheet" href="../css/advertise.css">
     <?php elseif ($page === 'profile'): ?>
         <link rel="stylesheet" href="../css/profile.css">
     <?php elseif (in_array($page, $authPages, true)): ?>
@@ -68,7 +70,7 @@ $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User'
             </ul>
         </nav>
         <div class="header-main-btns-promo">
-            <a href="submit.php" class="header-main-btn-submit">Submit Chatbot</a>
+            <a href="submitChatbot.php" class="header-main-btn-submit">Submit Chatbot</a>
             <a href="advertise.php" class="header-main-btn-advertise">Advertise</a>
         </div>
         <div class="header-main-right">

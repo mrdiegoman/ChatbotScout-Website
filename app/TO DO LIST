@@ -37,3 +37,134 @@ payment logika je taka ze v subscriptions su vsekty listingy a promtiony s
 tym ze ak ide o promotion tak sa vytvara aj promotion slot ktory referencuje 
 na subscription. Ak sa teda vytvori subscription tak sa vytvara aj zaznam 
 v payments. 
+
+
+/api
+    checkReview.php
+    getAdminData.php
+    getChatbots.php
+    getFavourites.php
+    getFeatureCounts.php
+    getFeatures.php
+    getIntegrationCounts.php
+    getIntegrations.php
+    getUserReviews.php
+    recordVisit.php
+    submitReview.php
+    toggleFavorite.php
+    updateReview.php
+/app
+    adminContactActions.php
+    adminReviewActions.php
+    adminSettingsActions.php
+    auth.php
+    contactActions.php
+    guard.php
+    profileActions.php
+/classes
+    Database.php
+    Email.php
+    RateLimiter.php
+    Session.php
+    User.php
+    Visitor.php
+/config
+    app.php
+    database.php
+    mailtrap.php
+    redis.php
+/css
+    aboutUs.css
+    admin.css
+    admin_refresh.css
+    admin_settings.css
+    advertise.css
+    affiliateDisclosure.css
+    chatbotShowcase.css
+    contact.css
+    favouritesShowcase.css
+    featuresShowMore.css
+    main.css
+    platformsPopup.css
+    profile.css
+    profileReviews.css
+    reset.css
+    userAuthAll.css
+    verificationSent.css
+/Fonts
+    /Outfit
+    /RubikDistressed
+/img
+    /avatars
+        avatar_7c00702d(...).png
+        avatar_ff121870(...).png
+    /favicons
+        apple-touch-icon.png
+        favicon-16x16.png
+        favicon-32x32.png
+        favicon.ico
+        site.webmanifest
+    /websiteLogos
+        chatbothub_logo.png
+    chatbot robot.png
+    chatbothub_logo.png
+    default-avatar.png
+    default-avatar1.png
+    default-avatar2.png
+    heart.png
+/inc
+    bootstrap.php
+    footer.php
+    header.php
+/js
+    admin.js
+    admin_refresh.js
+    authValidation.js
+    BurgerMenuHeader.js
+    chatbotFilters.js
+    chatbotShowcase.js
+    clearButton.js
+    contact.js
+    dropdownOptions.js
+    favouritesButtonAdding.js
+    favouritesShowcase.js
+    featuresSwiping.js
+    filterFeaturesAdding.js
+    filterIntegrationsAdding.js
+    footerVertical.js
+    layoutSwapping.js
+    mobileSearch.js
+    passwordToggle.js
+    platformsPopup.js
+    profile.js
+    ProfileDropdown.js
+    profileReviews.js
+    resendEmail.js
+    showAdvancedFeatures.js
+    togglePasswordProfile.js
+/logs
+    email_errors.log
+/public
+    aboutUs.php
+    admin.php
+    advertise.php
+    affiliateDisclosure.php
+    chatbotShowcase.php
+    contact.php
+    favouritesShowcase.php
+    forgotPassword.php
+    googleAuth.php
+    googleCallback.php
+    index.php
+    login.php
+    logout.php
+    profile.php
+    resetPassword.php
+    signUp.php
+    verificationSent.php
+    verifyEmail.php
+/vendor
+/WebsiteDB
+    Base.sql
+composer.json
+composer.lock

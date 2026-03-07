@@ -22,8 +22,9 @@ function nlToBr(str) {
 // ============================================
 
 const adminState = {
-    messages: { offset: 0, hasMore: false, total: 0 },
-    reviews:  { offset: 0, hasMore: false, total: 0 },
+    messages:    { offset: 0, hasMore: false, total: 0 },
+    reviews:     { offset: 0, hasMore: false, total: 0 },
+    submissions: { offset: 0, hasMore: false, total: 0 },
 };
 
 const PAGE_SIZE = 10;
@@ -192,35 +193,29 @@ function buildReviewCard(review) {
 
 function updateLoadMoreBar(section) {
     const state   = adminState[section];
-    const barId   = section === 'messages' ? 'messagesLoadMoreBar' : 'reviewsLoadMoreBar';
+    const barId   = section === 'messages'    ? 'messagesLoadMoreBar'
+                  : section === 'reviews'     ? 'reviewsLoadMoreBar'
+                  : 'submissionsLoadMoreBar';
     const bar     = document.getElementById(barId);
     if (!bar) return;
 
     const showMoreBtn   = bar.querySelector('.admin-show-more-btn');
-    const scrollOldBtn  = bar.querySelector('.admin-scroll-oldest-btn');
     const counterEl     = bar.querySelector('.admin-load-more-counter');
 
-    // Zobraz bar len keď sú nejaké karty
-    const container = document.querySelector(
-        section === 'messages' ? '#messages-tab .admin-messages' : '#reviews-tab .admin-messages'
-    );
-    const cardCount = container ? container.querySelectorAll('.admin-message-card').length : 0;
+    const containerSel  = section === 'messages'    ? '#messages-tab .admin-messages'
+                        : section === 'reviews'     ? '#reviews-tab .admin-messages'
+                        : '#submissions-tab .admin-messages';
+    const container     = document.querySelector(containerSel);
+    const cardCount     = container ? container.querySelectorAll('.admin-message-card').length : 0;
 
     bar.style.display = cardCount > 0 ? 'flex' : 'none';
 
-    // Show more button
     if (showMoreBtn) {
         showMoreBtn.style.display = state.hasMore ? 'inline-flex' : 'none';
     }
 
-    // Counter: "Showing X of Y"
     if (counterEl) {
         counterEl.textContent = `Showing ${cardCount} of ${state.total}`;
-    }
-
-    // Scroll to oldest — zobraz len keď je viac ako 1 karta
-    if (scrollOldBtn) {
-        scrollOldBtn.style.display = cardCount > 1 ? 'inline-flex' : 'none';
     }
 }
 
@@ -555,17 +550,19 @@ function updateMainTabBadge(tab, count) {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Zisti koľko kariet PHP vyrendroval a nastav state
-    ['messages', 'reviews'].forEach(section => {
-        const selector = section === 'messages'
-            ? '#messages-tab .admin-messages .admin-message-card'
-            : '#reviews-tab .admin-messages .admin-message-card';
-        const cards = document.querySelectorAll(selector);
-
-        // total a hasMore sú nastavené v data atribútoch na kontajneri (viď admin.php)
-        const container = document.querySelector(
-            section === 'messages' ? '#messages-tab .admin-messages' : '#reviews-tab .admin-messages'
-        );
+    ['messages', 'reviews', 'submissions'].forEach(section => {
+        const selectorMap = {
+            messages:    '#messages-tab .admin-messages .admin-message-card',
+            reviews:     '#reviews-tab .admin-messages .admin-message-card',
+            submissions: '#submissions-tab .admin-messages .admin-message-card',
+        };
+        const containerMap = {
+            messages:    '#messages-tab .admin-messages',
+            reviews:     '#reviews-tab .admin-messages',
+            submissions: '#submissions-tab .admin-messages',
+        };
+        const cards     = document.querySelectorAll(selectorMap[section]);
+        const container = document.querySelector(containerMap[section]);
         if (container) {
             adminState[section].offset  = cards.length;
             adminState[section].total   = parseInt(container.dataset.total  || cards.length, 10);
@@ -574,3 +571,342 @@ document.addEventListener('DOMContentLoaded', () => {
         updateLoadMoreBar(section);
     });
 });
+// ============================================
+// SUBMISSION CARD BUILDER
+// ============================================
+
+function buildSubmissionCard(sub) {
+    const id     = escHtml(sub.id);
+    const name   = escHtml(sub.name);
+    const status = escHtml(sub.status);
+    const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+
+    const logoHtml = sub.logo_url
+        ? `<img src="../${escHtml(sub.logo_url)}" alt="logo" class="admin-submission-logo">`
+        : `<div class="admin-submission-logo admin-submission-logo--placeholder">🤖</div>`;
+
+    const accessNoteBlock = sub.access_note
+        ? `<div class="admin-message-body"><strong>Access note:</strong><br>${nlToBr(sub.access_note)}</div>` : '';
+
+    const adminNotesBlock = sub.admin_notes
+        ? `<div class="admin-existing-response"><strong>Admin notes:</strong><p>${nlToBr(sub.admin_notes)}</p></div>` : '';
+
+    const approvedActive = status === 'active' ? ' active' : '';
+    const rejectedActive = status === 'rejected' ? ' active' : '';
+
+    return `
+    <div class="admin-message-card admin-submission-card" data-id="${id}">
+        <div class="admin-message-card-header">
+            <div class="admin-message-card-header-left">
+                <div class="admin-message-sender-row">
+                    ${logoHtml}
+                    <span class="admin-message-sender">${name}</span>
+                </div>
+                <span class="admin-message-email">
+                    Submitted by ${escHtml(sub.first_name + ' ' + sub.last_name)}
+                    · <a href="mailto:${escHtml(sub.user_email)}">${escHtml(sub.user_email)}</a>
+                </span>
+            </div>
+            <div class="admin-message-card-header-right">
+                <span class="admin-status-badge submission-status-${status}">${statusLabel}</span>
+                <span class="admin-message-date">${escHtml(sub.submitted_at_formatted)}</span>
+            </div>
+        </div>
+
+        <div class="admin-message-subject">
+            🌐 <a href="${escHtml(sub.website_url)}" target="_blank" rel="noopener">${escHtml(sub.website_url)}</a>
+        </div>
+
+        ${accessNoteBlock}
+        ${adminNotesBlock}
+
+        <div class="admin-message-actions">
+            <div class="admin-status-actions">
+                <button class="admin-status-btn submission-action-btn${approvedActive}"
+                        data-status="approved"
+                        onclick="approveSubmission('${id}', this)">✅ Approve</button>
+                <button class="admin-status-btn submission-action-btn${rejectedActive}"
+                        data-status="rejected"
+                        onclick="toggleSection(this, 'sub-reject-${id}')">❌ Reject</button>
+            </div>
+            <div class="admin-toggle-actions">
+                <button class="admin-toggle-btn" onclick="toggleSection(this, 'sub-notes-${id}')">📝 Notes</button>
+            </div>
+        </div>
+
+        <div class="admin-reply-section" id="sub-reject-${id}" style="display:none;">
+            <label>Rejection reason <span class="admin-reply-hint">(will be sent to user via email)</span></label>
+            <textarea class="admin-textarea" placeholder="e.g. The chatbot is not publicly accessible..."></textarea>
+            <button class="admin-save-btn admin-reject-btn" onclick="rejectSubmission('${id}', this)">Send Rejection</button>
+        </div>
+
+        <div class="admin-notes-section" id="sub-notes-${id}" style="display:none;">
+            <label>Admin Notes <span class="admin-reply-hint">(internal only)</span></label>
+            <textarea class="admin-textarea" placeholder="e.g. Tested, working fine...">${escHtml(sub.admin_notes || '')}</textarea>
+            <button class="admin-save-btn" onclick="saveSubmissionNotes('${id}', this)">Save Notes</button>
+        </div>
+    </div>`;
+}
+
+// ============================================
+// APPROVE SUBMISSION
+// ============================================
+
+async function approveSubmission(id, btn) {
+    if (btn.disabled) return;
+    btn.disabled    = true;
+    btn.textContent = 'Approving...';
+
+    try {
+        const res  = await fetch('../app/adminSubmissionActions.php', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ action: 'approve', id })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message);
+
+        // Update status badge on card
+        const card  = btn.closest('.admin-message-card');
+        const badge = card.querySelector('.admin-status-badge');
+        if (badge) {
+            badge.className = 'admin-status-badge submission-status-active';
+            badge.textContent = 'Approved';
+        }
+        // Mark approve btn active, unmark reject
+        card.querySelectorAll('.submission-action-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        showNotification('Chatbot approved — approval email sent to user ✅', 'success');
+        updateMainTabBadge('submissions', data.pendingCount ?? 0);
+    } catch (err) {
+        console.error(err);
+        showNotification(err.message || 'Failed to approve submission', 'error');
+    } finally {
+        btn.disabled    = false;
+        btn.textContent = '✅ Approve';
+    }
+}
+
+// ============================================
+// REJECT SUBMISSION
+// ============================================
+
+async function rejectSubmission(id, btn) {
+    const section  = document.getElementById(`sub-reject-${id}`);
+    const textarea = section ? section.querySelector('textarea') : null;
+    const reason   = textarea ? textarea.value.trim() : '';
+
+    if (!reason) {
+        showNotification('Please enter a rejection reason before sending.', 'error');
+        return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = 'Sending...';
+
+    try {
+        const res  = await fetch('../app/adminSubmissionActions.php', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ action: 'reject', id, reason })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message);
+
+        const card  = btn.closest('.admin-message-card');
+        const badge = card.querySelector('.admin-status-badge');
+        if (badge) {
+            badge.className = 'admin-status-badge submission-status-rejected';
+            badge.textContent = 'Rejected';
+        }
+        card.querySelectorAll('.submission-action-btn').forEach(b => b.classList.remove('active'));
+        const rejectBtn = card.querySelector('[data-status="rejected"]');
+        if (rejectBtn) rejectBtn.classList.add('active');
+
+        if (section) section.style.display = 'none';
+
+        showNotification('Chatbot rejected — rejection email sent to user.', 'success');
+        updateMainTabBadge('submissions', data.pendingCount ?? 0);
+    } catch (err) {
+        console.error(err);
+        showNotification(err.message || 'Failed to reject submission', 'error');
+    } finally {
+        btn.disabled    = false;
+        btn.textContent = 'Send Rejection';
+    }
+}
+
+// ============================================
+// SAVE SUBMISSION ADMIN NOTES
+// ============================================
+
+async function saveSubmissionNotes(id, btn) {
+    const section  = document.getElementById(`sub-notes-${id}`);
+    const textarea = section ? section.querySelector('textarea') : null;
+    const notes    = textarea ? textarea.value.trim() : '';
+
+    btn.disabled    = true;
+    btn.textContent = 'Saving...';
+
+    try {
+        const res  = await fetch('../app/adminSubmissionActions.php', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ action: 'save_notes', id, notes })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message);
+
+        showNotification('Notes saved', 'success');
+    } catch (err) {
+        console.error(err);
+        showNotification('Failed to save notes', 'error');
+    } finally {
+        btn.disabled    = false;
+        btn.textContent = 'Save Notes';
+    }
+}
+
+// ============================================
+// LOAD MORE SUBMISSIONS
+// ============================================
+
+async function loadMoreSubmissions(btn) {
+    btn.disabled    = true;
+    btn.textContent = 'Loading...';
+
+    const state    = adminState.submissions;
+    const activeTab = document.querySelector('#submissions-tab .admin-tabs .admin-tab.active');
+    let subStatus   = 'pending';
+    if (activeTab) {
+        const href  = activeTab.getAttribute('href') || '';
+        const match = href.match(/sub_status=([^&]+)/);
+        subStatus   = match ? match[1] : 'pending';
+    }
+
+    const url = `../api/getAdminSubmissions.php?sub_status=${encodeURIComponent(subStatus)}&limit=${PAGE_SIZE}&offset=${state.offset}`;
+
+    try {
+        const res  = await fetch(url);
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message);
+
+        const bar = document.getElementById('submissionsLoadMoreBar');
+        bar.insertAdjacentHTML('beforebegin', data.submissions.map(buildSubmissionCard).join(''));
+
+        state.offset  += data.submissions.length;
+        state.hasMore  = data.hasMore;
+        state.total    = data.total;
+
+        updateLoadMoreBar('submissions');
+    } catch (err) {
+        console.error(err);
+        showNotification('Failed to load more submissions', 'error');
+    } finally {
+        btn.disabled    = false;
+        btn.textContent = 'Show more';
+    }
+}
+
+// ============================================
+// SCROLL TO OLDEST — SUBMISSIONS
+// ============================================
+
+async function scrollToOldestSubmissions() {
+    const btn = document.getElementById('submissionsScrollOldestBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Loading...'; }
+
+    try {
+        while (adminState.submissions.hasMore) {
+            const state    = adminState.submissions;
+            const activeTab = document.querySelector('#submissions-tab .admin-tabs .admin-tab.active');
+            let subStatus   = 'pending';
+            if (activeTab) {
+                const href  = activeTab.getAttribute('href') || '';
+                const match = href.match(/sub_status=([^&]+)/);
+                subStatus   = match ? match[1] : 'pending';
+            }
+            const url = `../api/getAdminSubmissions.php?sub_status=${encodeURIComponent(subStatus)}&limit=50&offset=${state.offset}`;
+            const res  = await fetch(url);
+            const data = await res.json();
+            if (!data.success) throw new Error(data.message);
+            const bar = document.getElementById('submissionsLoadMoreBar');
+            bar.insertAdjacentHTML('beforebegin', data.submissions.map(buildSubmissionCard).join(''));
+            state.offset  += data.submissions.length;
+            state.hasMore  = data.hasMore;
+            state.total    = data.total;
+            updateLoadMoreBar('submissions');
+        }
+    } catch (err) {
+        console.error(err);
+        showNotification('Failed to load all submissions', 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '↓ Jump to oldest'; }
+    }
+
+    const cards = document.querySelectorAll('#submissions-tab .admin-messages .admin-message-card');
+    if (cards.length > 0) {
+        cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// ============================================
+// REFRESH SUBMISSIONS
+// ============================================
+
+async function refreshSubmissions(btn) {
+    const activeTab = document.querySelector('#submissions-tab .admin-tabs .admin-tab.active');
+    let subStatus   = 'pending';
+    if (activeTab) {
+        const href  = activeTab.getAttribute('href') || '';
+        const match = href.match(/sub_status=([^&]+)/);
+        subStatus   = match ? match[1] : 'pending';
+    }
+
+    const url = `../api/getAdminSubmissions.php?sub_status=${encodeURIComponent(subStatus)}&limit=${PAGE_SIZE}&offset=0`;
+
+    btn.classList.add('spinning');
+    btn.disabled = true;
+
+    try {
+        const res  = await fetch(url);
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || 'Refresh failed');
+
+        const container = document.querySelector('#submissions-tab .admin-messages');
+        if (data.submissions.length === 0) {
+            container.innerHTML = `
+                <div class="admin-empty">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <p>No submissions found</p>
+                </div>`;
+        } else {
+            container.innerHTML = data.submissions.map(buildSubmissionCard).join('');
+        }
+
+        adminState.submissions.offset  = 0;
+        adminState.submissions.hasMore = data.hasMore;
+        adminState.submissions.total   = data.total;
+        updateLoadMoreBar('submissions');
+
+        updateMainTabBadge('submissions', data.counts.pending ?? 0);
+        document.querySelectorAll('#submissions-tab .admin-tabs .admin-tab').forEach(tab => {
+            const href  = tab.getAttribute('href') || '';
+            const badge = tab.querySelector('.admin-tab-badge');
+            if (!badge) return;
+            const match = href.match(/sub_status=([^&]+)/);
+            badge.textContent = data.counts[match ? match[1] : 'all'] ?? 0;
+        });
+
+        showNotification('Submissions refreshed', 'success');
+    } catch (err) {
+        console.error(err);
+        showNotification('Refresh failed', 'error');
+    } finally {
+        btn.classList.remove('spinning');
+        btn.disabled = false;
+    }
+}
