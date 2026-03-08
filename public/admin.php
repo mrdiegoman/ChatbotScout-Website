@@ -295,7 +295,6 @@ require '../inc/header.php';
             data-has-more="<?= $msgHasMore ? 'true' : 'false' ?>">
 
             <!-- JUMP TO OLDEST — navrchu sekcie -->
-            <?php if ($msgTotal > 10): ?>
             <div class="admin-jump-to-oldest-bar">
                 <button id="messagesScrollOldestBtn"
                         class="admin-scroll-oldest-btn"
@@ -303,7 +302,6 @@ require '../inc/header.php';
                     ↓ Jump to oldest
                 </button>
             </div>
-            <?php endif; ?>
             <?php if (empty($messages)): ?>
                 <div class="admin-empty">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -314,7 +312,7 @@ require '../inc/header.php';
             <?php else: ?>
                 <?php foreach ($messages as $msg): ?>
                     <?php $msgId = htmlspecialchars($msg['id']); ?>
-                    <div class="admin-message-card <?= $msg['helpful'] ? 'is-helpful' : '' ?>" data-id="<?= $msgId ?>">
+                    <div class="admin-message-card <?= $msg['helpful'] ? 'is-helpful' : '' ?>" data-id="<?= $msgId ?>" data-status="<?= htmlspecialchars($msg['status']) ?>">
 
                         <div class="admin-message-card-header">
                             <div class="admin-message-card-header-left">
@@ -442,7 +440,6 @@ require '../inc/header.php';
             data-has-more="<?= $reviewHasMore ? 'true' : 'false' ?>">
 
             <!-- JUMP TO OLDEST — navrchu sekcie -->
-            <?php if ($reviewTotal > 10): ?>
             <div class="admin-jump-to-oldest-bar">
                 <button id="reviewsScrollOldestBtn"
                         class="admin-scroll-oldest-btn"
@@ -450,7 +447,6 @@ require '../inc/header.php';
                     ↓ Jump to oldest
                 </button>
             </div>
-            <?php endif; ?>
             <?php if (empty($reviews)): ?>
                 <div class="admin-empty">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -461,7 +457,7 @@ require '../inc/header.php';
             <?php else: ?>
                 <?php foreach ($reviews as $review): ?>
                     <?php $reviewId = htmlspecialchars($review['id']); ?>
-                    <div class="admin-message-card admin-review-card" data-id="<?= $reviewId ?>">
+                    <div class="admin-message-card admin-review-card" data-id="<?= $reviewId ?>" data-status="<?= htmlspecialchars($review['status']) ?>">
 
                         <!-- Review card header -->
                         <div class="admin-message-card-header">
@@ -592,7 +588,6 @@ require '../inc/header.php';
              data-total="<?= $subTotal ?>"
              data-has-more="<?= $subHasMore ? 'true' : 'false' ?>">
 
-            <?php if ($subTotal > 10): ?>
             <div class="admin-jump-to-oldest-bar">
                 <button id="submissionsScrollOldestBtn"
                         class="admin-scroll-oldest-btn"
@@ -600,7 +595,6 @@ require '../inc/header.php';
                     ↓ Jump to oldest
                 </button>
             </div>
-            <?php endif; ?>
 
             <?php if (empty($submissions)): ?>
                 <div class="admin-empty">
@@ -612,7 +606,7 @@ require '../inc/header.php';
             <?php else: ?>
                 <?php foreach ($submissions as $sub): ?>
                     <?php $subId = htmlspecialchars($sub['id']); ?>
-                    <div class="admin-message-card admin-submission-card" data-id="<?= $subId ?>">
+                    <div class="admin-message-card admin-submission-card" data-id="<?= $subId ?>" data-status="<?= htmlspecialchars($sub['status']) ?>">
 
                         <div class="admin-message-card-header">
                             <div class="admin-message-card-header-left">

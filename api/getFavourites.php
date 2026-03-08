@@ -38,6 +38,8 @@ $offset = ($page - 1) * $limit;
 $allowedSorts = ['popularity', 'price', 'alphabetical', 'rating', 'number-of-ratings', 'date-added'];
 if (!in_array($sort, $allowedSorts)) $sort = 'date-added';
 
+$direction = ($_GET['direction'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
+
 // ============================================
 // INPUT VALIDATION — filters
 // ============================================
@@ -68,15 +70,17 @@ $integrationCount = count($integrationIds);
 // SORT LOGIC
 // ============================================
 
+$dir = $direction === 'asc' ? 'ASC' : 'DESC';
+
 $orderBy = match($sort) {
-    'popularity'        => 'c.click_count DESC, c.rating_average DESC',
-    'alphabetical'      => 'c.name ASC',
-    'rating'            => 'c.rating_average DESC, c.rating_count DESC',
-    'number-of-ratings' => 'c.rating_count DESC, c.rating_average DESC',
-    'date-added'        => 'fav.created_at DESC',
-    default             => 'fav.created_at DESC',
+    'popularity'        => "c.click_count $dir, c.rating_average $dir",
+    'alphabetical'      => "c.name $dir",
+    'rating'            => "c.rating_average $dir, c.rating_count $dir",
+    'number-of-ratings' => "c.rating_count $dir, c.rating_average $dir",
+    'date-added'        => "fav.created_at $dir",
+    default             => "fav.created_at $dir",
 };
-if ($sort === 'price') $orderBy = 'ISNULL(c.starting_price) ASC, c.starting_price ASC';
+if ($sort === 'price') $orderBy = "ISNULL(c.starting_price) ASC, c.starting_price $dir";
 
 // ============================================
 // BUILD WHERE + PARAMS

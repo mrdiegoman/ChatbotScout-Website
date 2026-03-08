@@ -16,14 +16,15 @@
     // ============================================
 
     const state = {
-        currentView:     'grid',
-        currentSort:     'popularity',
-        currentPage:     1,
-        totalPages:      1,
-        totalItems:      0,
-        isLoading:       false,
-        ratingChatbotId: null,
-        ratingValue:     0,
+        currentView:      'grid',
+        currentSort:      'popularity',
+        currentPage:      1,
+        totalPages:       1,
+        totalItems:       0,
+        isLoading:        false,
+        ratingChatbotId:  null,
+        ratingValue:      0,
+        sortDirection:    'desc',
     };
 
     const LOGIN_URL = '../public/login.php?redirect=chatbotShowcase.php';
@@ -437,9 +438,10 @@
         setLoading(true);
  
         const params = new URLSearchParams({
-            view: state.currentView,
-            sort: state.currentSort,
-            page: state.currentPage,
+            view:      state.currentView,
+            sort:      state.currentSort,
+            page:      state.currentPage,
+            direction: state.sortDirection,
         });
  
         // Pridaj aktívne filtre z modalu
@@ -812,10 +814,11 @@
     });
 
     if (sortArrow) {
-        let sortAscending = false;
         sortArrow.addEventListener('click', () => {
-            sortAscending = !sortAscending;
-            sortArrow.style.transform = sortAscending ? 'scaleY(-1)' : 'scaleY(1)';
+            state.sortDirection = state.sortDirection === 'desc' ? 'asc' : 'desc';
+            sortArrow.style.transform = state.sortDirection === 'asc' ? 'scaleY(-1)' : 'scaleY(1)';
+            state.currentPage = 1;
+            loadChatbots(false);
         });
     }
 

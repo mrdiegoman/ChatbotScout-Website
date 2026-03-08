@@ -24,6 +24,7 @@
         isLoading:       false,
         ratingChatbotId: null,
         ratingValue:     0,
+        sortDirection:   'desc',
     };
 
     const LOGIN_URL = '../public/login.php?redirect=favouritesShowcase.php';
@@ -43,6 +44,7 @@
     const gridBtn       = document.getElementById('gridBtn');
     const sortSelectDiv = document.getElementById('sortSelectDiv');
     const sortSelected  = document.getElementById('sortSelected');
+    const sortArrow     = document.getElementById('sortArrow');
     const filtersCount  = document.getElementById('filtersCount');
     const filtersCountNum = document.getElementById('filtersCountNum');
 
@@ -620,6 +622,7 @@ function openRatingModal(chatbotId, chatbotName) {
             view: state.currentView,
             sort: state.currentSort,
             page: state.currentPage,
+            direction: state.sortDirection,
         });
 
         if (typeof window.getActiveFilterParams === 'function') {
@@ -773,6 +776,15 @@ function openRatingModal(chatbotId, chatbotName) {
             sortSelectDiv.classList.remove('active');
         }
     });
+
+    if (sortArrow) {
+        sortArrow.addEventListener('click', () => {
+            state.sortDirection = state.sortDirection === 'desc' ? 'asc' : 'desc';
+            sortArrow.style.transform = state.sortDirection === 'asc' ? 'scaleY(-1)' : 'scaleY(1)';
+            state.currentPage = 1;
+            loadFavourites();
+        });
+    }
 
     // ============================================
     // FILTERS MODAL

@@ -56,13 +56,14 @@ function buildMessageCard(msg) {
 
     const helpfulActive = isHelpful ? ' active' : '';
 
-    const ipBlock      = msg.ip_address             ? `<span>IP: ${escHtml(msg.ip_address)}</span>` : '';
-    const respBlock    = msg.first_responded_at_formatted ? `<span>First responded: ${escHtml(msg.first_responded_at_formatted)}</span>` : '';
-    const resolvedBlock= msg.resolved_at_formatted  ? `<span>Resolved: ${escHtml(msg.resolved_at_formatted)}</span>` : '';
-    const hasMeta      = ipBlock || respBlock || resolvedBlock;
+    const ipBlock       = msg.ip_address                  ? `<span>IP: ${escHtml(msg.ip_address)}</span>` : '';
+    const respBlock     = msg.first_responded_at_formatted ? `<span>First responded: ${escHtml(msg.first_responded_at_formatted)}</span>` : '';
+    const resolvedBlock = msg.resolved_at_formatted        ? `<span>Resolved: ${escHtml(msg.resolved_at_formatted)}</span>` : '';
+    const hasMeta       = ipBlock || respBlock || resolvedBlock;
 
+    // FIX #2: data-status pridaný na kartu
     return `
-    <div class="admin-message-card ${isHelpful ? 'is-helpful' : ''}" data-id="${id}">
+    <div class="admin-message-card ${isHelpful ? 'is-helpful' : ''}" data-id="${id}" data-status="${status}">
         <div class="admin-message-card-header">
             <div class="admin-message-card-header-left">
                 <div class="admin-message-sender-row">
@@ -142,8 +143,9 @@ function buildReviewCard(review) {
     const moderatedBlock = review.moderated_at_formatted
         ? `<div class="admin-message-meta"><span>Moderated: ${escHtml(review.moderated_at_formatted)}</span></div>` : '';
 
+    // FIX #2: data-status pridaný na kartu
     return `
-    <div class="admin-message-card admin-review-card" data-id="${id}">
+    <div class="admin-message-card admin-review-card" data-id="${id}" data-status="${status}">
         <div class="admin-message-card-header">
             <div class="admin-message-card-header-left">
                 <div class="admin-message-sender-row">
@@ -188,6 +190,74 @@ function buildReviewCard(review) {
 }
 
 // ============================================
+// SUBMISSION CARD BUILDER
+// ============================================
+
+function buildSubmissionCard(sub) {
+    const id          = escHtml(sub.id);
+    const name        = escHtml(sub.name);
+    const status      = escHtml(sub.status);
+    const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+
+    const logoHtml = sub.logo_url
+        ? `<img src="../${escHtml(sub.logo_url)}" alt="logo" class="admin-submission-logo">`
+        : `<div class="admin-submission-logo admin-submission-logo--placeholder">🤖</div>`;
+
+    const accessNoteBlock = sub.access_note
+        ? `<div class="admin-message-body"><strong>Access note:</strong><br>${nlToBr(sub.access_note)}</div>` : '';
+
+    const adminNotesBlock = sub.admin_notes
+        ? `<div class="admin-existing-response"><strong>Admin notes:</strong><p>${nlToBr(sub.admin_notes)}</p></div>` : '';
+
+    const submissionStatusBtns = { reviewed: 'Approve', rejected: 'Reject' };
+    const statusBtns = Object.entries(submissionStatusBtns).map(([s, label]) => {
+        const active = sub.status === s ? ' active' : '';
+        return `<button class="admin-status-btn${active}" data-status="${s}"
+                    onclick="updateSubmissionStatus('${id}', '${s}', this)">${label}</button>`;
+    }).join('');
+
+    // FIX #2: data-status pridaný na kartu
+    return `
+    <div class="admin-message-card admin-submission-card" data-id="${id}" data-status="${status}">
+        <div class="admin-message-card-header">
+            <div class="admin-message-card-header-left">
+                <div class="admin-message-sender-row">
+                    ${logoHtml}
+                    <span class="admin-message-sender">${name}</span>
+                </div>
+                <span class="admin-message-email">
+                    Submitted by ${escHtml(sub.first_name + ' ' + sub.last_name)} (${escHtml(sub.user_email)})
+                </span>
+            </div>
+            <div class="admin-message-card-header-right">
+                <span class="admin-status-badge submission-status-${status}">${statusLabel}</span>
+                <span class="admin-message-date">${escHtml(sub.submitted_at_formatted)}</span>
+            </div>
+        </div>
+
+        <div class="admin-message-subject">
+            🌐 <a href="${escHtml(sub.website_url)}" target="_blank" rel="noopener">${escHtml(sub.website_url)}</a>
+        </div>
+
+        ${accessNoteBlock}
+        ${adminNotesBlock}
+
+        <div class="admin-message-actions">
+            <div class="admin-status-actions">${statusBtns}</div>
+            <div class="admin-toggle-actions">
+                <button class="admin-toggle-btn" onclick="toggleSection(this, 'sub-notes-${id}')">📝 Notes</button>
+            </div>
+        </div>
+
+        <div class="admin-notes-section" id="sub-notes-${id}" style="display:none;">
+            <label>Admin Notes <span class="admin-reply-hint">(internal only)</span></label>
+            <textarea class="admin-textarea" placeholder="Add notes about this submission...">${escHtml(sub.admin_notes || '')}</textarea>
+            <button class="admin-save-btn" onclick="saveSubmissionNotes('${id}', this)">Save Notes</button>
+        </div>
+    </div>`;
+}
+
+// ============================================
 // LOAD MORE BAR — update visibility + counter
 // ============================================
 
@@ -220,40 +290,61 @@ function updateLoadMoreBar(section) {
 }
 
 // ============================================
-// SCROLL TO OLDEST — načíta VŠETKY zvyšné, potom scrollne
+// SCROLL HELPER — scrollne na kartu s offsetom od vrchu (30% viewportu)
 // ============================================
 
+function scrollToCard(card) {
+    const cardTop    = card.getBoundingClientRect().top + window.scrollY;
+    const offset     = window.innerHeight * 0.30;
+    window.scrollTo({ top: cardTop - offset, behavior: 'smooth' });
+}
+
+
+
 async function scrollToOldest(section) {
-    const btn = document.querySelector(
-        section === 'messages'
-            ? '#messagesScrollOldestBtn'
-            : '#reviewsScrollOldestBtn'
-    );
+    const btnId = section === 'messages' ? '#messagesScrollOldestBtn' : '#reviewsScrollOldestBtn';
+    const btn   = document.querySelector(btnId);
     if (btn) { btn.disabled = true; btn.textContent = 'Loading...'; }
 
     try {
-        // Načítaj všetky zvyšné stránky
-        while (adminState[section].hasMore) {
-            if (section === 'messages') {
-                await loadAllChunk('messages');
-            } else {
-                await loadAllChunk('reviews');
-            }
+        // 1. Opýtaj sa API na ID najstaršieho new/pending záznamu
+        const res  = await fetch(`../api/getOldestNewItem.php?type=${section}`);
+        const data = await res.json();
+
+        if (!data.success) throw new Error(data.message);
+
+        if (!data.id) {
+            showNotification('No new items found', 'info');
+            return;
         }
+
+        const targetId = data.id;
+
+        // 2. Skontroluj či karta už je v DOM
+        const containerSel = section === 'messages'
+            ? '#messages-tab .admin-messages'
+            : '#reviews-tab .admin-messages';
+
+        let targetCard = document.querySelector(`${containerSel} .admin-message-card[data-id="${targetId}"]`);
+
+        // 3. Načítavaj chunky len kým sa karta neobjaví v DOM
+        while (!targetCard && adminState[section].hasMore) {
+            await loadAllChunk(section);
+            targetCard = document.querySelector(`${containerSel} .admin-message-card[data-id="${targetId}"]`);
+        }
+
+        // 4. Scrollni na kartu
+        if (targetCard) {
+            scrollToCard(targetCard);
+        } else {
+            showNotification('No new items found', 'info');
+        }
+
     } catch (err) {
         console.error(err);
-        showNotification('Failed to load all items', 'error');
+        showNotification('Failed to jump to oldest', 'error');
     } finally {
         if (btn) { btn.disabled = false; btn.textContent = '↓ Jump to oldest'; }
-    }
-
-    // Scrollni na poslednú kartu
-    const selector = section === 'messages'
-        ? '#messages-tab .admin-messages .admin-message-card'
-        : '#reviews-tab .admin-messages .admin-message-card';
-    const cards = document.querySelectorAll(selector);
-    if (cards.length > 0) {
-        cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 }
 
@@ -420,20 +511,25 @@ async function refreshMessages(btn) {
         if (!data.success) { showNotification(data.message || 'Refresh failed', 'error'); return; }
 
         const container = document.querySelector('#messages-tab .admin-messages');
+
+        // FIX #1: Vymaž iba karty a empty state, nie celý container (zachová load-more bar)
+        container.querySelectorAll('.admin-message-card, .admin-empty').forEach(el => el.remove());
+
+        const bar = document.getElementById('messagesLoadMoreBar');
         if (data.messages.length === 0) {
-            container.innerHTML = `
+            bar.insertAdjacentHTML('beforebegin', `
                 <div class="admin-empty">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     </svg>
                     <p>No messages found</p>
-                </div>`;
+                </div>`);
         } else {
-            container.innerHTML = data.messages.map(buildMessageCard).join('');
+            bar.insertAdjacentHTML('beforebegin', data.messages.map(buildMessageCard).join(''));
         }
 
         // Reset state
-        adminState.messages.offset  = 0;
+        adminState.messages.offset  = data.messages.length;
         adminState.messages.hasMore = data.hasMore;
         adminState.messages.total   = data.total;
         updateLoadMoreBar('messages');
@@ -486,20 +582,25 @@ async function refreshReviews(btn) {
         if (!data.success) { showNotification(data.message || 'Refresh failed', 'error'); return; }
 
         const container = document.querySelector('#reviews-tab .admin-messages');
+
+        // FIX #1: Vymaž iba karty a empty state, nie celý container (zachová load-more bar)
+        container.querySelectorAll('.admin-message-card, .admin-empty').forEach(el => el.remove());
+
+        const bar = document.getElementById('reviewsLoadMoreBar');
         if (data.reviews.length === 0) {
-            container.innerHTML = `
+            bar.insertAdjacentHTML('beforebegin', `
                 <div class="admin-empty">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
                     </svg>
                     <p>No reviews found</p>
-                </div>`;
+                </div>`);
         } else {
-            container.innerHTML = data.reviews.map(buildReviewCard).join('');
+            bar.insertAdjacentHTML('beforebegin', data.reviews.map(buildReviewCard).join(''));
         }
 
         // Reset state
-        adminState.reviews.offset  = 0;
+        adminState.reviews.offset  = data.reviews.length;
         adminState.reviews.hasMore = data.hasMore;
         adminState.reviews.total   = data.total;
         updateLoadMoreBar('reviews');
@@ -515,6 +616,182 @@ async function refreshReviews(btn) {
         });
 
         showNotification('Reviews refreshed', 'success');
+    } catch (err) {
+        console.error(err);
+        showNotification('Refresh failed', 'error');
+    } finally {
+        btn.classList.remove('spinning');
+        btn.disabled = false;
+    }
+}
+
+// ============================================
+// LOAD MORE SUBMISSIONS
+// ============================================
+
+async function loadMoreSubmissions(btn) {
+    btn.disabled    = true;
+    btn.textContent = 'Loading...';
+
+    const state = adminState.submissions;
+
+    const activeTab = document.querySelector('#submissions-tab .admin-tabs .admin-tab.active');
+    let subStatus   = 'pending';
+    if (activeTab) {
+        const href  = activeTab.getAttribute('href') || '';
+        const match = href.match(/sub_status=([^&]+)/);
+        subStatus   = match ? match[1] : 'pending';
+    }
+
+    const url = `../api/getAdminSubmissions.php?sub_status=${encodeURIComponent(subStatus)}&limit=${PAGE_SIZE}&offset=${state.offset}`;
+
+    try {
+        const res  = await fetch(url);
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message);
+
+        const bar = document.getElementById('submissionsLoadMoreBar');
+        bar.insertAdjacentHTML('beforebegin', data.submissions.map(buildSubmissionCard).join(''));
+
+        state.offset  += data.submissions.length;
+        state.hasMore  = data.hasMore;
+        state.total    = data.total;
+
+        updateLoadMoreBar('submissions');
+    } catch (err) {
+        console.error(err);
+        showNotification('Failed to load more submissions', 'error');
+    } finally {
+        btn.disabled    = false;
+        btn.textContent = 'Show more';
+    }
+}
+
+// ============================================
+// SCROLL TO OLDEST — SUBMISSIONS (smart)
+// ============================================
+
+async function scrollToOldestSubmissions() {
+    const btn = document.getElementById('submissionsScrollOldestBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Loading...'; }
+
+    try {
+        // 1. Opýtaj sa API na ID najstaršieho pending submission
+        const res  = await fetch('../api/getOldestNewItem.php?type=submissions');
+        const data = await res.json();
+
+        if (!data.success) throw new Error(data.message);
+
+        if (!data.id) {
+            showNotification('No new items found', 'info');
+            return;
+        }
+
+        const targetId = data.id;
+
+        // 2. Skontroluj či karta už je v DOM
+        let targetCard = document.querySelector(
+            `#submissions-tab .admin-messages .admin-message-card[data-id="${targetId}"]`
+        );
+
+        // 3. Načítavaj chunky len kým sa karta neobjaví
+        while (!targetCard && adminState.submissions.hasMore) {
+            const state     = adminState.submissions;
+            const activeTab = document.querySelector('#submissions-tab .admin-tabs .admin-tab.active');
+            let subStatus   = 'pending';
+            if (activeTab) {
+                const href  = activeTab.getAttribute('href') || '';
+                const match = href.match(/sub_status=([^&]+)/);
+                subStatus   = match ? match[1] : 'pending';
+            }
+            const url      = `../api/getAdminSubmissions.php?sub_status=${encodeURIComponent(subStatus)}&limit=50&offset=${state.offset}`;
+            const chunkRes = await fetch(url);
+            const chunkData = await chunkRes.json();
+            if (!chunkData.success) throw new Error(chunkData.message);
+
+            const bar = document.getElementById('submissionsLoadMoreBar');
+            bar.insertAdjacentHTML('beforebegin', chunkData.submissions.map(buildSubmissionCard).join(''));
+            state.offset  += chunkData.submissions.length;
+            state.hasMore  = chunkData.hasMore;
+            state.total    = chunkData.total;
+            updateLoadMoreBar('submissions');
+
+            targetCard = document.querySelector(
+                `#submissions-tab .admin-messages .admin-message-card[data-id="${targetId}"]`
+            );
+        }
+
+        // 4. Scrollni na kartu
+        if (targetCard) {
+            scrollToCard(targetCard);
+        } else {
+            showNotification('No new items found', 'info');
+        }
+
+    } catch (err) {
+        console.error(err);
+        showNotification('Failed to jump to oldest', 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '↓ Jump to oldest'; }
+    }
+}
+
+// ============================================
+// REFRESH SUBMISSIONS
+// ============================================
+
+async function refreshSubmissions(btn) {
+    const activeTab = document.querySelector('#submissions-tab .admin-tabs .admin-tab.active');
+    let subStatus   = 'pending';
+    if (activeTab) {
+        const href  = activeTab.getAttribute('href') || '';
+        const match = href.match(/sub_status=([^&]+)/);
+        subStatus   = match ? match[1] : 'pending';
+    }
+
+    const url = `../api/getAdminSubmissions.php?sub_status=${encodeURIComponent(subStatus)}&limit=${PAGE_SIZE}&offset=0`;
+
+    btn.classList.add('spinning');
+    btn.disabled = true;
+
+    try {
+        const res  = await fetch(url);
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || 'Refresh failed');
+
+        const container = document.querySelector('#submissions-tab .admin-messages');
+
+        // FIX #1: Vymaž iba karty a empty state, nie celý container (zachová load-more bar)
+        container.querySelectorAll('.admin-message-card, .admin-empty').forEach(el => el.remove());
+
+        const bar = document.getElementById('submissionsLoadMoreBar');
+        if (data.submissions.length === 0) {
+            bar.insertAdjacentHTML('beforebegin', `
+                <div class="admin-empty">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <p>No submissions found</p>
+                </div>`);
+        } else {
+            bar.insertAdjacentHTML('beforebegin', data.submissions.map(buildSubmissionCard).join(''));
+        }
+
+        adminState.submissions.offset  = data.submissions.length;
+        adminState.submissions.hasMore = data.hasMore;
+        adminState.submissions.total   = data.total;
+        updateLoadMoreBar('submissions');
+
+        updateMainTabBadge('submissions', data.counts.pending ?? 0);
+        document.querySelectorAll('#submissions-tab .admin-tabs .admin-tab').forEach(tab => {
+            const href  = tab.getAttribute('href') || '';
+            const badge = tab.querySelector('.admin-tab-badge');
+            if (!badge) return;
+            const match = href.match(/sub_status=([^&]+)/);
+            badge.textContent = data.counts[match ? match[1] : 'all'] ?? 0;
+        });
+
+        showNotification('Submissions refreshed', 'success');
     } catch (err) {
         console.error(err);
         showNotification('Refresh failed', 'error');
@@ -571,342 +848,3 @@ document.addEventListener('DOMContentLoaded', () => {
         updateLoadMoreBar(section);
     });
 });
-// ============================================
-// SUBMISSION CARD BUILDER
-// ============================================
-
-function buildSubmissionCard(sub) {
-    const id     = escHtml(sub.id);
-    const name   = escHtml(sub.name);
-    const status = escHtml(sub.status);
-    const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
-
-    const logoHtml = sub.logo_url
-        ? `<img src="../${escHtml(sub.logo_url)}" alt="logo" class="admin-submission-logo">`
-        : `<div class="admin-submission-logo admin-submission-logo--placeholder">🤖</div>`;
-
-    const accessNoteBlock = sub.access_note
-        ? `<div class="admin-message-body"><strong>Access note:</strong><br>${nlToBr(sub.access_note)}</div>` : '';
-
-    const adminNotesBlock = sub.admin_notes
-        ? `<div class="admin-existing-response"><strong>Admin notes:</strong><p>${nlToBr(sub.admin_notes)}</p></div>` : '';
-
-    const approvedActive = status === 'reviewed' ? ' active' : '';
-    const rejectedActive = status === 'rejected' ? ' active' : '';
-
-    return `
-    <div class="admin-message-card admin-submission-card" data-id="${id}">
-        <div class="admin-message-card-header">
-            <div class="admin-message-card-header-left">
-                <div class="admin-message-sender-row">
-                    ${logoHtml}
-                    <span class="admin-message-sender">${name}</span>
-                </div>
-                <span class="admin-message-email">
-                    Submitted by ${escHtml(sub.first_name + ' ' + sub.last_name)}
-                    · <a href="mailto:${escHtml(sub.user_email)}">${escHtml(sub.user_email)}</a>
-                </span>
-            </div>
-            <div class="admin-message-card-header-right">
-                <span class="admin-status-badge submission-status-${status}">${statusLabel}</span>
-                <span class="admin-message-date">${escHtml(sub.submitted_at_formatted)}</span>
-            </div>
-        </div>
-
-        <div class="admin-message-subject">
-            🌐 <a href="${escHtml(sub.website_url)}" target="_blank" rel="noopener">${escHtml(sub.website_url)}</a>
-        </div>
-
-        ${accessNoteBlock}
-        ${adminNotesBlock}
-
-        <div class="admin-message-actions">
-            <div class="admin-status-actions">
-                <button class="admin-status-btn submission-action-btn${approvedActive}"
-                        data-status="approved"
-                        onclick="approveSubmission('${id}', this)">✅ Mark Reviewed</button>
-                <button class="admin-status-btn submission-action-btn${rejectedActive}"
-                        data-status="rejected"
-                        onclick="toggleSection(this, 'sub-reject-${id}')">❌ Reject</button>
-            </div>
-            <div class="admin-toggle-actions">
-                <button class="admin-toggle-btn" onclick="toggleSection(this, 'sub-notes-${id}')">📝 Notes</button>
-            </div>
-        </div>
-
-        <div class="admin-reply-section" id="sub-reject-${id}" style="display:none;">
-            <label>Rejection reason <span class="admin-reply-hint">(will be sent to user via email)</span></label>
-            <textarea class="admin-textarea" placeholder="e.g. The chatbot is not publicly accessible..."></textarea>
-            <button class="admin-save-btn admin-reject-btn" onclick="rejectSubmission('${id}', this)">Send Rejection</button>
-        </div>
-
-        <div class="admin-notes-section" id="sub-notes-${id}" style="display:none;">
-            <label>Admin Notes <span class="admin-reply-hint">(internal only)</span></label>
-            <textarea class="admin-textarea" placeholder="e.g. Tested, working fine...">${escHtml(sub.admin_notes || '')}</textarea>
-            <button class="admin-save-btn" onclick="saveSubmissionNotes('${id}', this)">Save Notes</button>
-        </div>
-    </div>`;
-}
-
-// ============================================
-// APPROVE SUBMISSION
-// ============================================
-
-async function approveSubmission(id, btn) {
-    if (btn.disabled) return;
-    btn.disabled    = true;
-    btn.textContent = 'Reviewing...';
-
-    try {
-        const res  = await fetch('../app/adminSubmissionActions.php', {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ action: 'approve', id })
-        });
-        const data = await res.json();
-        if (!data.success) throw new Error(data.message);
-
-        // Update status badge on card
-        const card  = btn.closest('.admin-message-card');
-        const badge = card.querySelector('.admin-status-badge');
-        if (badge) {
-            badge.className = 'admin-status-badge submission-status-reviewed';
-            badge.textContent = 'Reviewed';
-        }
-        // Mark approve btn active, unmark reject
-        card.querySelectorAll('.submission-action-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        showNotification('Chatbot marked as reviewed — email sent to user ✅', 'success');
-        updateMainTabBadge('submissions', data.pendingCount ?? 0);
-    } catch (err) {
-        console.error(err);
-        showNotification(err.message || 'Failed to approve submission', 'error');
-    } finally {
-        btn.disabled    = false;
-        btn.textContent = '✅ Mark Reviewed';
-    }
-}
-
-// ============================================
-// REJECT SUBMISSION
-// ============================================
-
-async function rejectSubmission(id, btn) {
-    const section  = document.getElementById(`sub-reject-${id}`);
-    const textarea = section ? section.querySelector('textarea') : null;
-    const reason   = textarea ? textarea.value.trim() : '';
-
-    if (!reason) {
-        showNotification('Please enter a rejection reason before sending.', 'error');
-        return;
-    }
-
-    btn.disabled    = true;
-    btn.textContent = 'Sending...';
-
-    try {
-        const res  = await fetch('../app/adminSubmissionActions.php', {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ action: 'reject', id, reason })
-        });
-        const data = await res.json();
-        if (!data.success) throw new Error(data.message);
-
-        const card  = btn.closest('.admin-message-card');
-        const badge = card.querySelector('.admin-status-badge');
-        if (badge) {
-            badge.className = 'admin-status-badge submission-status-rejected';
-            badge.textContent = 'Rejected';
-        }
-        card.querySelectorAll('.submission-action-btn').forEach(b => b.classList.remove('active'));
-        const rejectBtn = card.querySelector('[data-status="rejected"]');
-        if (rejectBtn) rejectBtn.classList.add('active');
-
-        if (section) section.style.display = 'none';
-
-        showNotification('Chatbot rejected — rejection email sent to user.', 'success');
-        updateMainTabBadge('submissions', data.pendingCount ?? 0);
-    } catch (err) {
-        console.error(err);
-        showNotification(err.message || 'Failed to reject submission', 'error');
-    } finally {
-        btn.disabled    = false;
-        btn.textContent = 'Send Rejection';
-    }
-}
-
-// ============================================
-// SAVE SUBMISSION ADMIN NOTES
-// ============================================
-
-async function saveSubmissionNotes(id, btn) {
-    const section  = document.getElementById(`sub-notes-${id}`);
-    const textarea = section ? section.querySelector('textarea') : null;
-    const notes    = textarea ? textarea.value.trim() : '';
-
-    btn.disabled    = true;
-    btn.textContent = 'Saving...';
-
-    try {
-        const res  = await fetch('../app/adminSubmissionActions.php', {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ action: 'save_notes', id, notes })
-        });
-        const data = await res.json();
-        if (!data.success) throw new Error(data.message);
-
-        showNotification('Notes saved', 'success');
-    } catch (err) {
-        console.error(err);
-        showNotification('Failed to save notes', 'error');
-    } finally {
-        btn.disabled    = false;
-        btn.textContent = 'Save Notes';
-    }
-}
-
-// ============================================
-// LOAD MORE SUBMISSIONS
-// ============================================
-
-async function loadMoreSubmissions(btn) {
-    btn.disabled    = true;
-    btn.textContent = 'Loading...';
-
-    const state    = adminState.submissions;
-    const activeTab = document.querySelector('#submissions-tab .admin-tabs .admin-tab.active');
-    let subStatus   = 'pending';
-    if (activeTab) {
-        const href  = activeTab.getAttribute('href') || '';
-        const match = href.match(/sub_status=([^&]+)/);
-        subStatus   = match ? match[1] : 'pending';
-    }
-
-    const url = `../api/getAdminSubmissions.php?sub_status=${encodeURIComponent(subStatus)}&limit=${PAGE_SIZE}&offset=${state.offset}`;
-
-    try {
-        const res  = await fetch(url);
-        const data = await res.json();
-        if (!data.success) throw new Error(data.message);
-
-        const bar = document.getElementById('submissionsLoadMoreBar');
-        bar.insertAdjacentHTML('beforebegin', data.submissions.map(buildSubmissionCard).join(''));
-
-        state.offset  += data.submissions.length;
-        state.hasMore  = data.hasMore;
-        state.total    = data.total;
-
-        updateLoadMoreBar('submissions');
-    } catch (err) {
-        console.error(err);
-        showNotification('Failed to load more submissions', 'error');
-    } finally {
-        btn.disabled    = false;
-        btn.textContent = 'Show more';
-    }
-}
-
-// ============================================
-// SCROLL TO OLDEST — SUBMISSIONS
-// ============================================
-
-async function scrollToOldestSubmissions() {
-    const btn = document.getElementById('submissionsScrollOldestBtn');
-    if (btn) { btn.disabled = true; btn.textContent = 'Loading...'; }
-
-    try {
-        while (adminState.submissions.hasMore) {
-            const state    = adminState.submissions;
-            const activeTab = document.querySelector('#submissions-tab .admin-tabs .admin-tab.active');
-            let subStatus   = 'pending';
-            if (activeTab) {
-                const href  = activeTab.getAttribute('href') || '';
-                const match = href.match(/sub_status=([^&]+)/);
-                subStatus   = match ? match[1] : 'pending';
-            }
-            const url = `../api/getAdminSubmissions.php?sub_status=${encodeURIComponent(subStatus)}&limit=50&offset=${state.offset}`;
-            const res  = await fetch(url);
-            const data = await res.json();
-            if (!data.success) throw new Error(data.message);
-            const bar = document.getElementById('submissionsLoadMoreBar');
-            bar.insertAdjacentHTML('beforebegin', data.submissions.map(buildSubmissionCard).join(''));
-            state.offset  += data.submissions.length;
-            state.hasMore  = data.hasMore;
-            state.total    = data.total;
-            updateLoadMoreBar('submissions');
-        }
-    } catch (err) {
-        console.error(err);
-        showNotification('Failed to load all submissions', 'error');
-    } finally {
-        if (btn) { btn.disabled = false; btn.textContent = '↓ Jump to oldest'; }
-    }
-
-    const cards = document.querySelectorAll('#submissions-tab .admin-messages .admin-message-card');
-    if (cards.length > 0) {
-        cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-}
-
-// ============================================
-// REFRESH SUBMISSIONS
-// ============================================
-
-async function refreshSubmissions(btn) {
-    const activeTab = document.querySelector('#submissions-tab .admin-tabs .admin-tab.active');
-    let subStatus   = 'pending';
-    if (activeTab) {
-        const href  = activeTab.getAttribute('href') || '';
-        const match = href.match(/sub_status=([^&]+)/);
-        subStatus   = match ? match[1] : 'pending';
-    }
-
-    const url = `../api/getAdminSubmissions.php?sub_status=${encodeURIComponent(subStatus)}&limit=${PAGE_SIZE}&offset=0`;
-
-    btn.classList.add('spinning');
-    btn.disabled = true;
-
-    try {
-        const res  = await fetch(url);
-        const data = await res.json();
-        if (!data.success) throw new Error(data.message || 'Refresh failed');
-
-        const container = document.querySelector('#submissions-tab .admin-messages');
-        if (data.submissions.length === 0) {
-            container.innerHTML = `
-                <div class="admin-empty">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    <p>No submissions found</p>
-                </div>`;
-        } else {
-            container.innerHTML = data.submissions.map(buildSubmissionCard).join('');
-        }
-
-        adminState.submissions.offset  = 0;
-        adminState.submissions.hasMore = data.hasMore;
-        adminState.submissions.total   = data.total;
-        updateLoadMoreBar('submissions');
-
-        updateMainTabBadge('submissions', data.counts.pending ?? 0);
-        document.querySelectorAll('#submissions-tab .admin-tabs .admin-tab').forEach(tab => {
-            const href  = tab.getAttribute('href') || '';
-            const badge = tab.querySelector('.admin-tab-badge');
-            if (!badge) return;
-            const match = href.match(/sub_status=([^&]+)/);
-            badge.textContent = data.counts[match ? match[1] : 'all'] ?? 0;
-        });
-
-        showNotification('Submissions refreshed', 'success');
-    } catch (err) {
-        console.error(err);
-        showNotification('Refresh failed', 'error');
-    } finally {
-        btn.classList.remove('spinning');
-        btn.disabled = false;
-    }
-}

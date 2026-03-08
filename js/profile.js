@@ -80,14 +80,14 @@ if (avatarUpload) {
                 
                 // ✅ Update VŠETKY avatary
                 document.querySelectorAll('.user-avatar-img').forEach(img => {
-                    img.src = '../' + result.url;
+                    img.src = result.url;
                 });
             } else {
                 showNotification(result.message || 'Upload failed', 'error');
                 
                 // ✅ Vráť starú pre VŠETKY
                 document.querySelectorAll('.user-avatar-img').forEach(img => {
-                    img.src = '../' + oldAvatarUrl;
+                    img.src = oldAvatarUrl;
                 });
             }
         } catch (error) {

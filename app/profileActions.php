@@ -208,7 +208,7 @@ if ($action === 'upload_avatar') {
         imagedestroy($thumb);
         
         if ($user['profile_picture_url'] && strpos($user['profile_picture_url'], 'default-avatar') === false) {
-            $oldPath = __DIR__ . '/../' . $user['profile_picture_url'];
+            $oldPath = __DIR__ . '/' . $user['profile_picture_url'];
             error_log($oldPath);
             error_log(file_exists($oldPath) ? 'EXISTS' : 'NOT EXISTS');
             if (file_exists($oldPath)) unlink($oldPath);
@@ -216,7 +216,7 @@ if ($action === 'upload_avatar') {
         
         $db = Database::getInstance()->getConnection();
         $stmt = $db->prepare("UPDATE users SET profile_picture_url = :url WHERE id = :id");
-        $newUrl = 'img/avatars/' . $filename;
+        $newUrl = '../img/avatars/' . $filename;
         $stmt->execute(['url' => $newUrl, 'id' => $user['id']]);
         
         $_SESSION['user']['profile_picture_url'] = $newUrl;
