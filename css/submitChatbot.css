@@ -1,5 +1,5 @@
 /* ============================================================
-   submitChatbot.css  —  ChatbotHub Submit Page
+   submitChatbot.css  —  ChatbotHub Submit / Affiliate Page
    ============================================================ */
 
 :root {
@@ -56,7 +56,7 @@
 }
 
 .sc-sidebar__sub {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     color: rgba(255,255,255,0.7);
     line-height: 1.7;
     margin-bottom: 40px;
@@ -82,13 +82,8 @@
     transition: opacity 0.2s;
 }
 
-.sc-steps__item:last-child {
-    border-bottom: none;
-}
-
-.sc-steps__item--active {
-    opacity: 1;
-}
+.sc-steps__item:last-child { border-bottom: none; }
+.sc-steps__item--active    { opacity: 1; }
 
 .sc-steps__dot {
     width: 32px;
@@ -113,7 +108,7 @@
 
 .sc-steps__item strong {
     display: block;
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: #fff;
     margin-bottom: 3px;
@@ -142,7 +137,7 @@
 }
 
 .sc-sidebar__note p {
-    font-size: 1.02rem;
+    font-size: 1.0rem;
     color: rgba(255,255,255,0.7);
     line-height: 1.65;
     margin: 0;
@@ -162,17 +157,16 @@
     justify-content: center;
     margin-top: 60px;
     padding: 2rem 2rem 8rem;
-    margin-bottom: 0;
 }
 
 .sc-main__inner {
     width: 100%;
-    max-width: 580px;
+    max-width: 600px;
 }
 
 /* Form header */
 .sc-form-header {
-    margin-bottom: 36px;
+    margin-bottom: 32px;
 }
 
 .sc-form-header h1 {
@@ -183,15 +177,48 @@
 }
 
 .sc-form-header p {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     color: var(--sc-text-muted);
+    line-height: 1.6;
+}
+
+/* ── Affiliate banner ─────────────────────────────────────── */
+.sc-affiliate-banner {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-left: 4px solid var(--sc-green);
+    border-radius: var(--sc-radius);
+    padding: 16px 18px;
+}
+
+.sc-affiliate-banner__icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.sc-affiliate-banner strong {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #065F46;
+    margin-bottom: 4px;
+}
+
+.sc-affiliate-banner span {
+    font-size: 1.05rem;
+    color: #047857;
+    line-height: 1.5;
 }
 
 /* ── Form fields ──────────────────────────────────────────── */
 .sc-form {
     display: flex;
     flex-direction: column;
-    gap: 28px;
+    gap: 24px;
 }
 
 .sc-field {
@@ -200,19 +227,30 @@
     gap: 8px;
 }
 
+/* Two-column row */
+.sc-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 560px) {
+    .sc-row { grid-template-columns: 1fr; }
+}
+
 .sc-label {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     font-weight: 600;
     color: var(--sc-text);
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
     cursor: default;
 }
 
 .sc-label-hint {
     font-weight: 400;
-    font-size: 1.02rem;
+    font-size: 1.0rem;
     color: var(--sc-text-muted);
     line-height: 1.5;
 }
@@ -227,10 +265,10 @@
 .sc-input,
 .sc-textarea {
     width: 100%;
-    padding: 13px 16px;
+    padding: 12px 16px;
     border: 2px solid var(--sc-border);
     border-radius: var(--sc-radius);
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     color: var(--sc-text);
     background: #fff;
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -253,7 +291,7 @@
 
 .sc-textarea {
     resize: vertical;
-    min-height: 120px;
+    min-height: 130px;
     line-height: 1.6;
 }
 
@@ -267,7 +305,7 @@
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     pointer-events: none;
     line-height: 1;
 }
@@ -286,152 +324,11 @@
 
 /* Error message */
 .sc-error {
-    font-size: 1.02rem;
+    font-size: 1.0rem;
     color: var(--sc-red);
     font-weight: 500;
     min-height: 18px;
     display: block;
-}
-
-/* ── Logo Upload ──────────────────────────────────────────── */
-.sc-logo-upload {
-    position: relative;
-    border: 2px dashed var(--sc-border);
-    border-radius: var(--sc-radius);
-    background: #fff;
-    transition: border-color 0.2s, background 0.2s;
-    overflow: hidden;
-    cursor: pointer;
-}
-
-.sc-logo-upload:hover,
-.sc-logo-upload--dragover {
-    border-color: var(--sc-purple);
-    background: var(--sc-purple-faint);
-}
-
-.sc-logo-upload__input {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    cursor: pointer;
-    width: 100%;
-    height: 100%;
-    z-index: 2;
-}
-
-.sc-logo-upload__placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
-    text-align: center;
-    pointer-events: none;
-}
-
-.sc-logo-upload__icon {
-    font-size: 2.2rem;
-    margin-bottom: 12px;
-    opacity: 0.6;
-}
-
-.sc-logo-upload__text {
-    font-size: 1.15rem;
-    color: var(--sc-text);
-    margin-bottom: 4px;
-}
-
-.sc-logo-upload__hint {
-    font-size: 1.0rem;
-    color: var(--sc-text-muted);
-}
-
-/* Preview */
-.sc-logo-upload__preview {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    position: relative;
-}
-
-.sc-logo-upload__preview img {
-    max-height: 100px;
-    max-width: 200px;
-    object-fit: contain;
-    border-radius: 8px;
-    box-shadow: var(--sc-shadow);
-}
-
-.sc-logo-upload__remove {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.55);
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    font-size: 0.95rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
-    z-index: 3;
-}
-
-.sc-logo-upload__remove:hover {
-    background: rgba(0,0,0,0.75);
-}
-
-/* ── Checkbox ─────────────────────────────────────────────── */
-.sc-checkbox {
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
-    cursor: pointer;
-}
-
-.sc-checkbox__input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-}
-
-.sc-checkbox__box {
-    width: 22px;
-    height: 22px;
-    border: 2px solid var(--sc-border);
-    border-radius: 6px;
-    background: #fff;
-    flex-shrink: 0;
-    margin-top: 1px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s;
-}
-
-.sc-checkbox__input:checked + .sc-checkbox__box {
-    background: var(--sc-purple);
-    border-color: var(--sc-purple);
-}
-
-.sc-checkbox__input:checked + .sc-checkbox__box::after {
-    content: '✓';
-    color: #fff;
-    font-size: 0.95rem;
-    font-weight: 800;
-    line-height: 1;
-}
-
-.sc-checkbox__text {
-    font-size: 1.3rem;
-    color: var(--sc-text);
-    line-height: 1.6;
 }
 
 /* ── Form footer ──────────────────────────────────────────── */
@@ -439,7 +336,7 @@
     display: flex;
     flex-direction: column;
     gap: 14px;
-    padding-top: 8px;
+    padding-top: 4px;
 }
 
 .sc-form__note {
@@ -457,12 +354,12 @@
 
 .sc-submit-btn {
     width: 100%;
-    padding: 16px;
+    padding: 15px;
     background: var(--sc-purple);
     color: #fff;
     border: none;
     border-radius: var(--sc-radius);
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s;
@@ -514,7 +411,7 @@
 }
 
 .sc-success p {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     color: var(--sc-text-muted);
     line-height: 1.7;
     max-width: 440px;
@@ -535,3 +432,9 @@
 }
 
 .sc-success__btn:hover { opacity: 0.88; }
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 600px) {
+    .sc-form-header h1 { font-size: 1.8rem; }
+    .sc-main { padding: 1.5rem 1rem 6rem; }
+}

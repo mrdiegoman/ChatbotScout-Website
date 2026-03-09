@@ -1,6 +1,8 @@
 <?php
 /**
- * API: Get User Chatbots with active listing subscriptions
+ * API: Get User Chatbots
+ * Returns chatbots owned by the logged-in user that are active (reviewed/active status).
+ * Listing is now managed manually via affiliate deal — no listing_plans join needed.
  */
 
 require '../inc/bootstrap.php';
@@ -17,33 +19,26 @@ if (!$isLoggedIn) {
 try {
     $db = Database::getInstance()->getConnection();
 
-    // Get chatbots that have an active listing subscription
+    // Get all active/reviewed chatbots owned by this user
     $stmt = $db->prepare("
-        SELECT DISTINCT
+        SELECT
             c.id,
             c.name,
             c.logo_url,
             c.website_url,
-            c.status AS chatbot_status,
-            s.id        AS subscription_id,
-            s.status    AS subscription_status,
-            s.end_date  AS subscription_end_date,
-            lp.name     AS plan_name
+            c.status AS chatbot_status
         FROM chatbots c
-        JOIN subscriptions s  ON s.chatbot_id = c.id
-        JOIN listing_plans lp ON s.listing_plan_id = lp.id
-        WHERE c.owner_user_id     = :user_id
-          AND c.deleted_at        IS NULL
-          AND s.subscription_type = 'listing'
-          AND s.status            = 'active'
+        WHERE c.owner_user_id = :user_id
+          AND c.deleted_at    IS NULL
+          AND c.status        IN ('active', 'reviewed')
         ORDER BY c.name ASC
     ");
     $stmt->execute(['user_id' => $user['id']]);
     $chatbots = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode([
-        'success'  => true,
-        'chatbots' => $chatbots,
+        'success'    => true,
+        'chatbots'   => $chatbots,
         'hasListing' => count($chatbots) > 0
     ]);
 

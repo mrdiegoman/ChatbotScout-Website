@@ -1,8 +1,7 @@
 <?php
 /**
- * API: Submit Chatbot
- * Handles chatbot submission with logo upload
- * Sends confirmation email to user + notification email to admin
+ * API: Submit Chatbot — Affiliate Partnership Request
+ * Saves to DB + sends emails (user confirmation + admin notification)
  */
 
 require '../inc/bootstrap.php';
@@ -22,84 +21,58 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// ── Input validation ─────────────────────────────────────────────────────────
-$name       = trim($_POST['name']        ?? '');
-$websiteUrl = trim($_POST['website_url'] ?? '');
-$accessNote = trim($_POST['access_note'] ?? '');
-$agreed     = $_POST['access_agreement'] ?? '';
+$input = json_decode(file_get_contents('php://input'), true) ?? [];
 
+// ── Input ────────────────────────────────────────────────────────────────────
+$contactName = trim($input['contact_name'] ?? '');
+$companyName = trim($input['company_name'] ?? '');
+$contactEmail = trim($input['contact_email'] ?? '');
+$chatbotName  = trim($input['name']         ?? '');
+$websiteUrl   = trim($input['website_url']  ?? '');
+$message      = trim($input['message']      ?? '');
+
+// ── Validation ───────────────────────────────────────────────────────────────
 $errors = [];
 
-if (empty($name)) {
+if (empty($contactName)) {
+    $errors[] = 'Your name is required.';
+} elseif (mb_strlen($contactName) > 200) {
+    $errors[] = 'Name cannot exceed 200 characters.';
+}
+
+if (empty($companyName)) {
+    $errors[] = 'Company / product name is required.';
+} elseif (mb_strlen($companyName) > 200) {
+    $errors[] = 'Company name cannot exceed 200 characters.';
+}
+
+if (empty($contactEmail)) {
+    $errors[] = 'Contact email is required.';
+} elseif (!filter_var($contactEmail, FILTER_VALIDATE_EMAIL)) {
+    $errors[] = 'Please enter a valid email address.';
+}
+
+if (empty($chatbotName)) {
     $errors[] = 'Chatbot name is required.';
-} elseif (mb_strlen($name) > 200) {
+} elseif (mb_strlen($chatbotName) > 200) {
     $errors[] = 'Chatbot name cannot exceed 200 characters.';
 }
 
 if (empty($websiteUrl)) {
-    $errors[] = 'Website URL is required.';
+    $errors[] = 'Chatbot website URL is required.';
 } elseif (!filter_var($websiteUrl, FILTER_VALIDATE_URL)) {
-    $errors[] = 'Please enter a valid website URL (e.g. https://example.com).';
+    $errors[] = 'Please enter a valid URL (e.g. https://example.com).';
 }
 
-if (empty($accessNote)) {
-    $errors[] = 'Please describe how we can access your chatbot for testing.';
-} elseif (mb_strlen($accessNote) > 1000) {
-    $errors[] = 'Access note cannot exceed 1000 characters.';
-}
-
-if ($agreed !== '1') {
-    $errors[] = 'You must agree to provide access for testing.';
+if (empty($message)) {
+    $errors[] = 'Please tell us about your chatbot.';
+} elseif (mb_strlen($message) > 2000) {
+    $errors[] = 'Message cannot exceed 2000 characters.';
 }
 
 if (!empty($errors)) {
     echo json_encode(['success' => false, 'message' => implode(' ', $errors)]);
     exit;
-}
-
-// ── Logo upload ───────────────────────────────────────────────────────────────
-$logoUrl = null;
-
-if (!empty($_FILES['logo']) && $_FILES['logo']['error'] !== UPLOAD_ERR_NO_FILE) {
-    $file      = $_FILES['logo'];
-    $maxSize   = 5 * 1024 * 1024; // 5MB
-    $allowed   = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    $uploadDir = '../img/chatbot_logos/';
-
-    if ($file['error'] !== UPLOAD_ERR_OK) {
-        echo json_encode(['success' => false, 'message' => 'Logo upload failed. Please try again.']);
-        exit;
-    }
-
-    if ($file['size'] > $maxSize) {
-        echo json_encode(['success' => false, 'message' => 'Logo file is too large. Maximum size is 5MB.']);
-        exit;
-    }
-
-    $finfo    = finfo_open(FILEINFO_MIME_TYPE);
-    $mimeType = finfo_file($finfo, $file['tmp_name']);
-    finfo_close($finfo);
-
-    if (!in_array($mimeType, $allowed)) {
-        echo json_encode(['success' => false, 'message' => 'Invalid file type. Please use JPG, PNG, WebP or GIF.']);
-        exit;
-    }
-
-    // Create directory if it doesn't exist
-    if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0755, true);
-    }
-
-    $ext      = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $filename = 'logo_' . generateUUID() . '.' . strtolower($ext);
-    $destPath = $uploadDir . $filename;
-
-    if (!move_uploaded_file($file['tmp_name'], $destPath)) {
-        echo json_encode(['success' => false, 'message' => 'Failed to save logo. Please try again.']);
-        exit;
-    }
-
-    $logoUrl = 'img/chatbot_logos/' . $filename;
 }
 
 // ── Save to DB ────────────────────────────────────────────────────────────────
@@ -108,65 +81,63 @@ try {
 
     $chatbotId = generateUUID();
 
+    // Store company name + contact email + message in access_note
+    $accessNote = "Company: {$companyName}\nContact email: {$contactEmail}\n\n{$message}";
+
     $stmt = $db->prepare("
         INSERT INTO chatbots (
-            id, owner_user_id, name, website_url, logo_url,
+            id, owner_user_id, name, website_url,
             status, submitted_at, access_note,
             starting_price, pricing_model, pricing_currency,
             has_free_trial, has_affiliate_program
         ) VALUES (
-            :id, :owner_user_id, :name, :website_url, :logo_url,
+            :id, :owner_user_id, :name, :website_url,
             'pending', NOW(), :access_note,
             0.00, 'free', 'USD',
-            0, 0
+            0, 1
         )
     ");
 
     $stmt->execute([
         'id'            => $chatbotId,
         'owner_user_id' => $user['id'],
-        'name'          => $name,
+        'name'          => $chatbotName,
         'website_url'   => $websiteUrl,
-        'logo_url'      => $logoUrl,
         'access_note'   => $accessNote,
     ]);
 
     // ── Send emails ───────────────────────────────────────────────────────────
     $emailService = new Email();
-    $userName     = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: 'there';
+    $appConfig    = require '../config/app.php';
+    $adminEmail   = $appConfig['admin']['email'] ?? 'admin@chatbothub.com';
 
     // 1. Confirmation to user
     $emailService->sendChatbotSubmissionConfirmation(
-        $user['email'],
-        $userName,
-        $name,
+        $contactEmail,
+        $contactName,
+        $chatbotName,
         $websiteUrl
     );
 
     // 2. Notification to admin
-    $appConfig  = require '../config/app.php';
-    $adminEmail = $appConfig['admin']['email'] ?? 'admin@chatbothub.com';
     $emailService->sendChatbotSubmissionAdminNotification(
         $adminEmail,
-        $userName,
-        $user['email'],
-        $name,
+        $contactName,
+        $contactEmail,
+        $chatbotName,
         $websiteUrl,
-        $accessNote,
-        $chatbotId
+        $message,
+        $chatbotId,
+        $companyName
     );
 
     echo json_encode([
         'success'    => true,
         'chatbot_id' => $chatbotId,
-        'message'    => 'Your chatbot has been submitted successfully! We will review it and get back to you by email.'
+        'message'    => 'Your partnership request has been submitted! We will review it and get back to you by email.'
     ]);
 
 } catch (Exception $e) {
-    // Clean up uploaded logo if DB insert failed
-    if ($logoUrl && file_exists('../' . $logoUrl)) {
-        unlink('../' . $logoUrl);
-    }
     error_log('Submit chatbot error: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Something went wrong. Please try again.']);

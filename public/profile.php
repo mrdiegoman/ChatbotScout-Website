@@ -28,18 +28,19 @@ $db = Database::getInstance()->getConnection();
 $subStmt = $db->prepare("
     SELECT 
         s.*,
-        lp.name AS plan_name,
-        lp.price,
-        c.symbol AS currency_symbol,
-        c.code AS currency_code,
-        bp.name AS billing_period
+        p.slot_type        AS plan_name,
+        p.price,
+        c.symbol      AS currency_symbol,
+        c.code        AS currency_code,
+        bp.type       AS billing_period
     FROM subscriptions s
-    JOIN listing_plans lp ON s.listing_plan_id = lp.id
-    JOIN currencies c ON lp.currency_id = c.id
-    JOIN billing_periods bp ON lp.billing_period_id = bp.id
-    WHERE s.user_id = :user_id 
-    AND s.status = 'active'
-    AND s.subscription_type = 'listing'
+    JOIN promotions     p  ON s.promotions_id     = p.id
+    JOIN currencies     c  ON p.currency_id        = c.id
+    JOIN billing_periods bp ON p.billing_period_id = bp.id
+    WHERE s.user_id          = :user_id
+      AND s.status           = 'active'
+      AND s.subscription_type = 'promotion'
+    ORDER BY s.created_at DESC
     LIMIT 1
 ");
 $subStmt->execute(['user_id' => $user['id']]);

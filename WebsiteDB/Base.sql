@@ -766,8 +766,8 @@ CREATE TABLE `subscriptions` (
   `chatbot_id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
 
   -- Type: listing OR promotion
-  `subscription_type` ENUM('listing', 'promotion') NOT NULL COMMENT 'Subscription type, e.g., "listing", "promotion"',
-  `listing_plan_id` CHAR(36) NULL,
+  `subscription_type` ENUM('promotion') NOT NULL COMMENT 'Subscription type, only promotion supported',
+#   `listing_plan_id` CHAR(36) NULL,
   `promotions_id` CHAR(36) NULL,
   -- For listing subscriptions
 #   `listing_price_id` CHAR(36) NULL COMMENT 'Listing price UUID (NULL if promotion), e.g., "750e8400-e29b-41d4-a716-446655440018", NULL',
@@ -801,24 +801,24 @@ CREATE TABLE `subscriptions` (
   KEY `idx_chatbot_type_status` (`chatbot_id`, `subscription_type`, `status`),
   KEY `idx_expiring` (`status`, `end_date`),
   KEY `idx_stripe_customer` (`stripe_customer_id`),
-  KEY `idx_listing_plan` (`listing_plan_id`),
+#   KEY `idx_listing_plan` (`listing_plan_id`),
   KEY `idx_promotions` (`promotions_id`),
 
   CONSTRAINT `fk_subscriptions_user` FOREIGN KEY (`user_id`)
     REFERENCES `users` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_subscriptions_chatbot` FOREIGN KEY (`chatbot_id`)
     REFERENCES `chatbots` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_subscriptions_listing_plan` FOREIGN KEY (`listing_plan_id`)
-    REFERENCES `listing_plans` (`id`) ON DELETE RESTRICT,
+#   CONSTRAINT `fk_subscriptions_listing_plan` FOREIGN KEY (`listing_plan_id`)
+#     REFERENCES `listing_plans` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_subscriptions_promotion` FOREIGN KEY (`promotions_id`)
     REFERENCES `promotions` (`id`) ON DELETE RESTRICT,
 
   CONSTRAINT `chk_dates` CHECK (`end_date` > `start_date`),
   CONSTRAINT `chk_trial` CHECK (trial_end_date IS NULL OR trial_end_date > start_date),
-  CONSTRAINT `chk_subscription_type_ids` CHECK (
-    (`subscription_type` = 'listing' AND `listing_plan_id` IS NOT NULL AND `promotions_id` IS NULL) OR
-    (`subscription_type` = 'promotion' AND `promotions_id` IS NOT NULL AND `listing_plan_id` IS NULL)
-  ),
+#   CONSTRAINT `chk_subscription_type_ids` CHECK (
+#     (`subscription_type` = 'listing' AND `listing_plan_id` IS NOT NULL AND `promotions_id` IS NULL) OR
+#     (`subscription_type` = 'promotion' AND `promotions_id` IS NOT NULL AND `listing_plan_id` IS NULL)
+#   ),
   CONSTRAINT `chk_cancellation` CHECK (
     (status = 'cancelled' AND cancelled_at IS NOT NULL) OR
     (status != 'cancelled' AND cancelled_at IS NULL) OR

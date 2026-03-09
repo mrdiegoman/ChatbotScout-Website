@@ -1,93 +1,112 @@
 /**
- * submitChatbot.js
- * Handles: logo drag & drop preview, form validation, AJAX submit
+ * submitChatbot.js — Affiliate Partnership Request Form
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    setupLogoUpload();
     setupCharCounter();
     setupFormSubmit();
 });
 
-// ── Logo upload & preview ─────────────────────────────────────────────────────
-function setupLogoUpload() {
-    const area        = document.getElementById('logoUploadArea');
-    const input       = document.getElementById('logoFile');
-    const placeholder = document.getElementById('logoPlaceholder');
-    const preview     = document.getElementById('logoPreview');
-    const previewImg  = document.getElementById('logoPreviewImg');
-    const removeBtn   = document.getElementById('logoRemoveBtn');
-
-    if (!area) return;
-
-    // Click on area triggers file input (input already covers area via z-index)
-    // Drag & drop
-    area.addEventListener('dragover', e => {
-        e.preventDefault();
-        area.classList.add('sc-logo-upload--dragover');
-    });
-
-    area.addEventListener('dragleave', () => {
-        area.classList.remove('sc-logo-upload--dragover');
-    });
-
-    area.addEventListener('drop', e => {
-        e.preventDefault();
-        area.classList.remove('sc-logo-upload--dragover');
-        const file = e.dataTransfer.files[0];
-        if (file) handleLogoFile(file, input, placeholder, preview, previewImg);
-    });
-
-    input.addEventListener('change', () => {
-        const file = input.files[0];
-        if (file) handleLogoFile(file, input, placeholder, preview, previewImg);
-    });
-
-    removeBtn.addEventListener('click', e => {
-        e.stopPropagation();
-        input.value      = '';
-        previewImg.src   = '';
-        preview.style.display      = 'none';
-        placeholder.style.display  = 'flex';
-        clearError('logo');
-    });
-}
-
-function handleLogoFile(file, input, placeholder, preview, previewImg) {
-    const allowed  = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    const maxBytes = 5 * 1024 * 1024;
-
-    if (!allowed.includes(file.type)) {
-        showError('logo', 'Invalid file type. Please use JPG, PNG, WebP or GIF.');
-        return;
-    }
-
-    if (file.size > maxBytes) {
-        showError('logo', 'File is too large. Maximum size is 5MB.');
-        return;
-    }
-
-    clearError('logo');
-
-    // Show preview
-    const reader = new FileReader();
-    reader.onload = e => {
-        previewImg.src            = e.target.result;
-        placeholder.style.display = 'none';
-        preview.style.display     = 'flex';
-    };
-    reader.readAsDataURL(file);
-}
-
-// ── Character counter ─────────────────────────────────────────────────────────
+// ── Character counter ────────────────────────────────────────────────────────
 function setupCharCounter() {
-    const textarea = document.getElementById('accessNote');
-    const counter  = document.getElementById('accessNoteCount');
+    const textarea = document.getElementById('message');
+    const counter  = document.getElementById('messageCount');
     if (!textarea || !counter) return;
 
     textarea.addEventListener('input', () => {
         counter.textContent = textarea.value.length;
+        if (textarea.value.length > 1800) {
+            counter.style.color = '#EF233C';
+        } else {
+            counter.style.color = '';
+        }
     });
+}
+
+// ── Validation ───────────────────────────────────────────────────────────────
+function showError(fieldId, msg) {
+    const errEl = document.getElementById('error-' + fieldId);
+    const input = document.getElementById(
+        fieldId === 'contact-name' ? 'contactName'  :
+        fieldId === 'company'      ? 'companyName'  :
+        fieldId === 'email'        ? 'contactEmail' :
+        fieldId === 'name'         ? 'chatbotName'  :
+        fieldId === 'url'          ? 'websiteUrl'   :
+        fieldId === 'message'      ? 'message'      : fieldId
+    );
+    if (errEl) errEl.textContent = msg;
+    if (input) input.classList.add('sc-input--error', 'sc-textarea--error');
+}
+
+function clearError(fieldId) {
+    const errEl = document.getElementById('error-' + fieldId);
+    const input = document.getElementById(
+        fieldId === 'contact-name' ? 'contactName'  :
+        fieldId === 'company'      ? 'companyName'  :
+        fieldId === 'email'        ? 'contactEmail' :
+        fieldId === 'name'         ? 'chatbotName'  :
+        fieldId === 'url'          ? 'websiteUrl'   :
+        fieldId === 'message'      ? 'message'      : fieldId
+    );
+    if (errEl) errEl.textContent = '';
+    if (input) input.classList.remove('sc-input--error', 'sc-textarea--error');
+}
+
+function clearAllErrors() {
+    ['contact-name', 'company', 'email', 'name', 'url', 'message'].forEach(clearError);
+    const global = document.getElementById('scGlobalError');
+    if (global) global.textContent = '';
+}
+
+function validateForm() {
+    let valid = true;
+
+    const contactName  = document.getElementById('contactName')?.value.trim()  || '';
+    const companyName  = document.getElementById('companyName')?.value.trim()  || '';
+    const contactEmail = document.getElementById('contactEmail')?.value.trim() || '';
+    const chatbotName  = document.getElementById('chatbotName')?.value.trim()  || '';
+    const websiteUrl   = document.getElementById('websiteUrl')?.value.trim()   || '';
+    const message      = document.getElementById('message')?.value.trim()      || '';
+
+    if (!contactName) {
+        showError('contact-name', 'Your name is required.');
+        valid = false;
+    }
+
+    if (!companyName) {
+        showError('company', 'Company / product name is required.');
+        valid = false;
+    }
+
+    if (!contactEmail) {
+        showError('email', 'Contact email is required.');
+        valid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+        showError('email', 'Please enter a valid email address.');
+        valid = false;
+    }
+
+    if (!chatbotName) {
+        showError('name', 'Chatbot name is required.');
+        valid = false;
+    }
+
+    if (!websiteUrl) {
+        showError('url', 'Chatbot website URL is required.');
+        valid = false;
+    } else {
+        try { new URL(websiteUrl); } catch {
+            showError('url', 'Please enter a valid URL (e.g. https://example.com).');
+            valid = false;
+        }
+    }
+
+    if (!message) {
+        showError('message', 'Please tell us about your chatbot.');
+        valid = false;
+    }
+
+    return valid;
 }
 
 // ── Form submit ───────────────────────────────────────────────────────────────
@@ -97,9 +116,7 @@ function setupFormSubmit() {
 
     form.addEventListener('submit', async e => {
         e.preventDefault();
-
         clearAllErrors();
-
         if (!validateForm()) return;
 
         const submitBtn    = document.getElementById('scSubmitBtn');
@@ -111,10 +128,19 @@ function setupFormSubmit() {
         submitLoader.style.display = 'inline';
 
         try {
-            const formData = buildFormData();
-            const res      = await fetch('../api/submitChatbot.php', {
-                method: 'POST',
-                body: formData
+            const payload = {
+                contact_name:  document.getElementById('contactName').value.trim(),
+                company_name:  document.getElementById('companyName').value.trim(),
+                contact_email: document.getElementById('contactEmail').value.trim(),
+                name:          document.getElementById('chatbotName').value.trim(),
+                website_url:   document.getElementById('websiteUrl').value.trim(),
+                message:       document.getElementById('message').value.trim(),
+            };
+
+            const res  = await fetch('../api/submitChatbot.php', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify(payload)
             });
 
             const data = await res.json();
@@ -137,136 +163,6 @@ function setupFormSubmit() {
             submitBtn.disabled         = false;
             submitText.style.display   = 'inline';
             submitLoader.style.display = 'none';
-            console.error('Submit error:', err);
         }
     });
 }
-
-function buildFormData() {
-    const fd = new FormData();
-    fd.append('name',             document.getElementById('chatbotName').value.trim());
-    fd.append('website_url',      document.getElementById('websiteUrl').value.trim());
-    fd.append('access_note',      document.getElementById('accessNote').value.trim());
-    fd.append('access_agreement', document.getElementById('accessAgreement').checked ? '1' : '0');
-
-    const logoInput = document.getElementById('logoFile');
-    if (logoInput.files[0]) {
-        fd.append('logo', logoInput.files[0]);
-    }
-
-    return fd;
-}
-
-// ── Validation ────────────────────────────────────────────────────────────────
-function validateForm() {
-    let valid = true;
-
-    // Name
-    const name = document.getElementById('chatbotName').value.trim();
-    if (!name) {
-        showError('name', 'Chatbot name is required.');
-        valid = false;
-    } else if (name.length > 200) {
-        showError('name', 'Chatbot name cannot exceed 200 characters.');
-        valid = false;
-    }
-
-    // URL
-    const url = document.getElementById('websiteUrl').value.trim();
-    if (!url) {
-        showError('website', 'Website URL is required.');
-        valid = false;
-    } else if (!isValidUrl(url)) {
-        showError('website', 'Please enter a valid URL (e.g. https://example.com).');
-        valid = false;
-    }
-
-    // Access note
-    const note = document.getElementById('accessNote').value.trim();
-    if (!note) {
-        showError('access', 'Please describe how we can access your chatbot.');
-        valid = false;
-    } else if (note.length > 1000) {
-        showError('access', 'Access note cannot exceed 1000 characters.');
-        valid = false;
-    }
-
-    // Agreement
-    if (!document.getElementById('accessAgreement').checked) {
-        showError('agreement', 'You must agree to provide access for testing.');
-        valid = false;
-    }
-
-    return valid;
-}
-
-function isValidUrl(str) {
-    try {
-        const u = new URL(str);
-        return u.protocol === 'http:' || u.protocol === 'https:';
-    } catch {
-        return false;
-    }
-}
-
-// ── Error helpers ─────────────────────────────────────────────────────────────
-function showError(field, message) {
-    const errorEl = document.getElementById('error-' + field);
-    const inputEl = document.getElementById(
-        field === 'name'      ? 'chatbotName'      :
-        field === 'website'   ? 'websiteUrl'        :
-        field === 'access'    ? 'accessNote'        :
-        field === 'logo'      ? 'logoFile'          : null
-    );
-
-    if (errorEl) errorEl.textContent = message;
-    if (inputEl) inputEl.classList.add('sc-input--error', 'sc-textarea--error');
-}
-
-function clearError(field) {
-    const errorEl = document.getElementById('error-' + field);
-    if (errorEl) errorEl.textContent = '';
-
-    const inputEl = document.getElementById(
-        field === 'name'    ? 'chatbotName' :
-        field === 'website' ? 'websiteUrl'  :
-        field === 'access'  ? 'accessNote'  : null
-    );
-    if (inputEl) inputEl.classList.remove('sc-input--error', 'sc-textarea--error');
-}
-
-function clearAllErrors() {
-    ['name', 'website', 'access', 'logo', 'agreement'].forEach(clearError);
-    document.getElementById('scGlobalError').textContent = '';
-}
-
-// ── Live validation on blur ───────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-    const chatbotName = document.getElementById('chatbotName');
-    const websiteUrl  = document.getElementById('websiteUrl');
-    const accessNote  = document.getElementById('accessNote');
-
-    if (chatbotName) {
-        chatbotName.addEventListener('blur', () => {
-            if (chatbotName.value.trim()) clearError('name');
-        });
-    }
-
-    if (websiteUrl) {
-        websiteUrl.addEventListener('blur', () => {
-            const val = websiteUrl.value.trim();
-            if (!val) return;
-            if (!isValidUrl(val)) {
-                showError('website', 'Please enter a valid URL (e.g. https://example.com).');
-            } else {
-                clearError('website');
-            }
-        });
-    }
-
-    if (accessNote) {
-        accessNote.addEventListener('blur', () => {
-            if (accessNote.value.trim()) clearError('access');
-        });
-    }
-});

@@ -79,7 +79,7 @@ class Email
     ): bool {
         $subject  = 'We received your chatbot submission – ChatbotHub';
         $htmlBody = $this->getChatbotSubmissionConfirmationTemplate($toName, $chatbotName, $websiteUrl);
-        $textBody = "Hi $toName,\n\nThank you for submitting \"$chatbotName\" to ChatbotHub!\n\nWe have received your submission and will review it shortly. We may contact you to discuss access for testing purposes.\n\nOnce your chatbot is approved, you will receive another email with a link to choose your listing plan.\n\nBest regards,\nThe ChatbotHub Team";
+        $textBody = "Hi $toName,\n\nThank you for submitting \"$chatbotName\" to ChatbotHub!\n\nWe have received your partnership request and will review your chatbot shortly. Our team will contact you to discuss the affiliate revenue deal.\n\nBest regards,\nThe ChatbotHub Team";
 
         return $this->send($toEmail, $toName, $subject, $htmlBody, $textBody);
     }
@@ -92,13 +92,14 @@ class Email
         string $chatbotName,
         string $websiteUrl,
         string $accessNote,
-        string $chatbotId
+        string $chatbotId,
+        string $companyName = ''
     ): bool {
         $subject  = 'New chatbot submission: ' . $chatbotName;
         $htmlBody = $this->getChatbotAdminNotificationTemplate(
-            $userName, $userEmail, $chatbotName, $websiteUrl, $accessNote, $chatbotId
+            $userName, $userEmail, $chatbotName, $websiteUrl, $accessNote, $chatbotId, $companyName
         );
-        $textBody = "New chatbot submission:\n\nName: $chatbotName\nWebsite: $websiteUrl\nSubmitted by: $userName ($userEmail)\n\nAccess note:\n$accessNote\n\nChatbot ID: $chatbotId";
+        $textBody = "New affiliate partnership request:\n\nChatbot: $chatbotName\nWebsite: $websiteUrl\nCompany: $companyName\nSubmitted by: $userName ($userEmail)\n\nMessage:\n$accessNote\n\nChatbot ID: $chatbotId";
 
         return $this->send($adminEmail, 'Admin', $subject, $htmlBody, $textBody);
     }
@@ -108,11 +109,11 @@ class Email
         string $toEmail,
         string $toName,
         string $chatbotName,
-        string $pricingUrl
+        string $pricingUrl = ''
     ): bool {
         $subject  = '🎉 Your chatbot has been approved – ChatbotHub';
-        $htmlBody = $this->getChatbotApprovedTemplate($toName, $chatbotName, $pricingUrl);
-        $textBody = "Hi $toName,\n\nGreat news! Your chatbot \"$chatbotName\" has been approved and can now be added to ChatbotHub.\n\nChoose your listing plan here:\n$pricingUrl\n\nBest regards,\nThe ChatbotHub Team";
+        $htmlBody = $this->getChatbotApprovedTemplate($toName, $chatbotName);
+        $textBody = "Hi $toName,\n\nGreat news! \"$chatbotName\" has been approved for listing on ChatbotHub.\n\nOur team will be in touch soon to finalise the affiliate partnership details.\n\nBest regards,\nThe ChatbotHub Team";
 
         return $this->send($toEmail, $toName, $subject, $htmlBody, $textBody);
     }
@@ -296,8 +297,8 @@ class Email
     ): string {
         $content = <<<HTML
         <div class="header">
-            <h1>Chatbot Submission Received 📥</h1>
-            <p>We'll review it and get back to you soon</p>
+            <h1>Partnership Request Received 🤝</h1>
+            <p>We'll review your chatbot and be in touch soon</p>
         </div>
         <div class="body">
             <p>Hi <strong>$name</strong>,</p>
@@ -310,8 +311,8 @@ class Email
             </div>
             <div class="warning-box">
                 <strong>⚙️ What happens next?</strong><br><br>
-                Our team will review your submission and test your chatbot. We may reach out via email if we need additional access or have questions.<br><br>
-                Once approved, you'll receive another email with a link to choose your listing plan and get your chatbot published.
+                Our team will review your chatbot and reach out to discuss the affiliate partnership terms — revenue share tailored to your product.<br><br>
+                Once we agree on terms, your chatbot will be listed and start receiving high-intent traffic from ChatbotHub.
             </div>
             <p>Best regards,<br><strong>The ChatbotHub Team</strong></p>
         </div>
@@ -325,13 +326,15 @@ class Email
         string $chatbotName,
         string $websiteUrl,
         string $accessNote,
-        string $chatbotId
+        string $chatbotId,
+        string $companyName = ''
     ): string {
-        $accessNoteHtml = nl2br(htmlspecialchars($accessNote));
-        $content        = <<<HTML
+        $accessNoteHtml  = nl2br(htmlspecialchars($accessNote));
+        $companyDisplay  = $companyName ? htmlspecialchars($companyName) : '—';
+        $content = <<<HTML
         <div class="header">
-            <h1>New Chatbot Submission</h1>
-            <p>Action required: review and test</p>
+            <h1>New Affiliate Partnership Request</h1>
+            <p>Action required: review and reach out</p>
         </div>
         <div class="body">
             <div class="info-box">
@@ -339,16 +342,18 @@ class Email
                 <div class="value">$chatbotName</div>
                 <div class="label" style="margin-top:12px;">Website</div>
                 <div class="value"><a href="$websiteUrl" style="color:#6B3FF6;">$websiteUrl</a></div>
+                <div class="label" style="margin-top:12px;">Company / Product</div>
+                <div class="value">$companyDisplay</div>
                 <div class="label" style="margin-top:12px;">Submitted By</div>
                 <div class="value">$userName &lt;$userEmail&gt;</div>
                 <div class="label" style="margin-top:12px;">Chatbot ID</div>
                 <div class="value" style="font-size:12px;font-family:monospace;">$chatbotId</div>
             </div>
             <div class="warning-box">
-                <div class="label">Access Note from User</div>
+                <div class="label">Message from Submitter</div>
                 <div style="margin-top:8px;font-size:14px;color:#1F2937;">$accessNoteHtml</div>
             </div>
-            <p style="font-size:13px;color:#6B7280;">Log in to the admin panel to approve or reject this submission.</p>
+            <p style="font-size:13px;color:#6B7280;">Log in to the admin panel to review this submission and reach out to discuss affiliate terms.</p>
         </div>
         HTML;
         return $this->baseTemplate($content);
@@ -357,28 +362,29 @@ class Email
     private function getChatbotApprovedTemplate(
         string $name,
         string $chatbotName,
-        string $pricingUrl
+        string $pricingUrl = ''
     ): string {
         $content = <<<HTML
         <div class="header">
             <h1>Your Chatbot is Approved! 🎉</h1>
-            <p>Time to choose your listing plan</p>
+            <p>We'll be in touch about your affiliate partnership</p>
         </div>
         <div class="body">
             <p>Hi <strong>$name</strong>,</p>
-            <p>Great news! We've reviewed and tested <strong>$chatbotName</strong> and it has been approved for listing on ChatbotHub.</p>
+            <p>Great news! We've reviewed <strong>$chatbotName</strong> and it has been approved for listing on ChatbotHub.</p>
             <div class="success-box">
-                ✅ <strong>$chatbotName</strong> is ready to be published on ChatbotHub.
+                ✅ <strong>$chatbotName</strong> is approved and ready to go live on ChatbotHub.
             </div>
-            <p>To get your chatbot listed, choose a plan that works best for you:</p>
-            <a href="$pricingUrl" class="button button-green">Choose Your Listing Plan →</a>
-            <p style="font-size:13px;color:#6B7280;">Once you complete your purchase, your chatbot will go live on the directory and start receiving visitors.</p>
+            <div class="warning-box">
+                <strong>🤝 Next step — Affiliate Partnership</strong><br><br>
+                Our team will contact you shortly to finalise the affiliate revenue share terms. Once agreed, your chatbot will go live and start receiving traffic from our directory.
+            </div>
+            <p>If you have any questions in the meantime, feel free to reply to this email.</p>
             <p>Best regards,<br><strong>The ChatbotHub Team</strong></p>
         </div>
         HTML;
         return $this->baseTemplate($content);
     }
-
     private function getChatbotRejectedTemplate(
         string $name,
         string $chatbotName,

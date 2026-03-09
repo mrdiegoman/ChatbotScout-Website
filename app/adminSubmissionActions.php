@@ -69,10 +69,6 @@ switch ($action) {
             WHERE id = :id
         ")->execute(['id' => $id]);
 
-        // Send approval email
-        $pricingUrl = ($appConfig['app']['base_url'] ?? 'http://localhost/mainwebsite/public')
-                    . '/pricing.php?chatbot_id=' . urlencode($id);
-
         $userName = trim($chatbot['first_name'] . ' ' . $chatbot['last_name']) ?: 'there';
 
         try {
@@ -80,8 +76,7 @@ switch ($action) {
             $email->sendChatbotApproved(
                 $chatbot['user_email'],
                 $userName,
-                $chatbot['name'],
-                $pricingUrl
+                $chatbot['name']
             );
         } catch (Exception $e) {
             error_log('Approve email error: ' . $e->getMessage());

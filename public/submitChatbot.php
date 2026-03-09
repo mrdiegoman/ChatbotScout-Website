@@ -1,6 +1,6 @@
 <?php
 /**
- * Submit Chatbot Page
+ * Submit Chatbot Page — Affiliate Partnership
  */
 
 require '../inc/bootstrap.php';
@@ -16,7 +16,7 @@ if (!$isLoggedIn) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Submit Your Chatbot – ChatbotHub</title>
+    <title>Get Listed on ChatbotHub – Partner With Us</title>
     <?php require '../inc/header.php'; ?>
     <link rel="stylesheet" href="../css/submitChatbot.css">
 </head>
@@ -24,7 +24,7 @@ if (!$isLoggedIn) {
 
 <div class="sc-page">
 
-    <!-- ── Left panel: info ─────────────────────────────── -->
+    <!-- ── Left panel ───────────────────────────────────── -->
     <aside class="sc-sidebar">
         <div class="sc-sidebar__inner">
 
@@ -34,180 +34,184 @@ if (!$isLoggedIn) {
                 </a>
             </div>
 
-            <h2 class="sc-sidebar__title">Get your chatbot<br>in front of thousands</h2>
-            <p class="sc-sidebar__sub">Submit your chatbot and we'll review it, test it, and add it to the directory.</p>
+            <h2 class="sc-sidebar__title">Grow your chatbot<br>with affiliate revenue</h2>
+            <p class="sc-sidebar__sub">We list your chatbot, drive high-intent traffic to it, and earn a share of revenue — no upfront cost.</p>
 
             <ul class="sc-steps">
                 <li class="sc-steps__item sc-steps__item--active">
                     <div class="sc-steps__dot">1</div>
                     <div>
-                        <strong>Submit your chatbot</strong>
-                        <span>Fill in the form with basic info</span>
+                        <strong>Tell us about your chatbot</strong>
+                        <span>Fill in the short form</span>
                     </div>
                 </li>
                 <li class="sc-steps__item">
                     <div class="sc-steps__dot">2</div>
                     <div>
-                        <strong>We review & test it</strong>
-                        <span>Our team checks your chatbot</span>
+                        <strong>We review & reach out</strong>
+                        <span>Our team contacts you to discuss a deal</span>
                     </div>
                 </li>
                 <li class="sc-steps__item">
                     <div class="sc-steps__dot">3</div>
                     <div>
-                        <strong>Get approved</strong>
-                        <span>You'll receive an email notification</span>
+                        <strong>Agree on affiliate terms</strong>
+                        <span>Revenue share tailored to your product</span>
                     </div>
                 </li>
                 <li class="sc-steps__item">
                     <div class="sc-steps__dot">4</div>
                     <div>
-                        <strong>Choose a listing plan</strong>
-                        <span>Pick a plan and go live</span>
+                        <strong>Go live on ChatbotHub</strong>
+                        <span>Your chatbot reaches thousands of buyers</span>
                     </div>
                 </li>
             </ul>
 
             <div class="sc-sidebar__note">
-                <div class="sc-sidebar__note-icon">🔍</div>
-                <p>We personally test every chatbot before approving it. This ensures quality for our visitors and gives your chatbot accurate, trustworthy information on the directory.</p>
+                <div class="sc-sidebar__note-icon">🤝</div>
+                <p>Every listing is based on a direct affiliate partnership — no flat fees, no hidden costs. We earn only when you do.</p>
             </div>
 
         </div>
     </aside>
 
-    <!-- ── Right panel: form ─────────────────────────────── -->
+    <!-- ── Right panel: form ────────────────────────────── -->
     <main class="sc-main">
         <div class="sc-main__inner">
 
             <div class="sc-form-header">
-                <h1>Submit Your Chatbot</h1>
-                <p>Fill in the details below and we'll take it from there.</p>
+                <h1>Get Your Chatbot Listed</h1>
+                <p>Tell us about your chatbot and we'll get back to you about an affiliate partnership.</p>
             </div>
 
-            <!-- Success state (hidden by default) -->
+            <!-- Success state -->
             <div class="sc-success" id="scSuccess" style="display:none;">
                 <div class="sc-success__icon">🎉</div>
-                <h2>Submission received!</h2>
-                <p>Thanks for submitting your chatbot. We've sent a confirmation email to <strong><?php echo htmlspecialchars($user['email']); ?></strong>.</p>
-                <p>Our team will review and test your chatbot. Once approved, you'll get an email with a link to choose your listing plan.</p>
+                <h2>We got your submission!</h2>
+                <p>Thanks for reaching out. We've sent a confirmation to <strong><?php echo htmlspecialchars($user['email']); ?></strong>.</p>
+                <p>Our team will review your chatbot and contact you to discuss the affiliate partnership details.</p>
                 <a href="index.php" class="sc-success__btn">Back to Home</a>
             </div>
 
             <!-- Form -->
             <form class="sc-form" id="scForm" novalidate>
 
-                <!-- Chatbot name -->
-                <div class="sc-field" id="field-name">
-                    <label class="sc-label" for="chatbotName">
-                        Chatbot Name <span class="sc-required">*</span>
-                    </label>
+                <!-- Affiliate info banner -->
+                <div class="sc-affiliate-banner">
+                    <div class="sc-affiliate-banner__icon">💡</div>
+                    <div>
+                        <strong>This is an affiliate partnership request.</strong>
+                        <span>Getting listed is free — we'll reach out to discuss a revenue share deal that works for both sides.</span>
+                    </div>
+                </div>
+
+                <!-- Contact name -->
+                <div class="sc-field" id="field-contact-name">
+                    <label class="sc-label" for="contactName">Your Name <span class="sc-required">*</span></label>
                     <input
                         type="text"
-                        id="chatbotName"
-                        name="name"
+                        id="contactName"
+                        name="contact_name"
                         class="sc-input"
-                        placeholder="e.g. Intercom, Tidio, Drift"
+                        placeholder="e.g. John Smith"
+                        value="<?php echo htmlspecialchars(trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''))); ?>"
                         maxlength="200"
-                        autocomplete="off"
                     >
-                    <span class="sc-error" id="error-name"></span>
+                    <span class="sc-error" id="error-contact-name"></span>
                 </div>
 
-                <!-- Website URL -->
-                <div class="sc-field" id="field-website">
-                    <label class="sc-label" for="websiteUrl">
-                        Website URL <span class="sc-required">*</span>
+                <!-- Company name -->
+                <div class="sc-field" id="field-company">
+                    <label class="sc-label" for="companyName">Company / Product Name <span class="sc-required">*</span></label>
+                    <input
+                        type="text"
+                        id="companyName"
+                        name="company_name"
+                        class="sc-input"
+                        placeholder="e.g. Acme AI Inc."
+                        maxlength="200"
+                    >
+                    <span class="sc-error" id="error-company"></span>
+                </div>
+
+                <!-- Email -->
+                <div class="sc-field" id="field-email">
+                    <label class="sc-label" for="contactEmail">
+                        Contact Email <span class="sc-required">*</span>
+                        <span class="sc-label-hint">We'll use this to get in touch about the partnership</span>
                     </label>
-                    <div class="sc-input-wrap">
-                        <span class="sc-input-icon">🌐</span>
-                        <input
-                            type="url"
-                            id="websiteUrl"
-                            name="website_url"
-                            class="sc-input sc-input--icon"
-                            placeholder="https://yourchatbot.com"
-                            autocomplete="off"
-                        >
-                    </div>
-                    <span class="sc-error" id="error-website"></span>
+                    <input
+                        type="email"
+                        id="contactEmail"
+                        name="contact_email"
+                        class="sc-input"
+                        placeholder="e.g. hello@yourcompany.com"
+                        value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>"
+                        maxlength="255"
+                    >
+                    <span class="sc-error" id="error-email"></span>
                 </div>
 
-                <!-- Logo upload -->
-                <div class="sc-field" id="field-logo">
-                    <label class="sc-label">
-                        Chatbot Logo
-                        <span class="sc-label-hint">JPG, PNG or WebP · Max 5MB · Recommended 400×400px</span>
-                    </label>
-                    <div class="sc-logo-upload" id="logoUploadArea">
+                <!-- Two-column row: chatbot name + URL -->
+                <div class="sc-row">
+                    <div class="sc-field" id="field-name">
+                        <label class="sc-label" for="chatbotName">Chatbot Name <span class="sc-required">*</span></label>
                         <input
-                            type="file"
-                            id="logoFile"
-                            name="logo"
-                            accept="image/jpeg,image/png,image/webp,image/gif"
-                            class="sc-logo-upload__input"
+                            type="text"
+                            id="chatbotName"
+                            name="name"
+                            class="sc-input"
+                            placeholder="e.g. HelpBot Pro"
+                            maxlength="200"
                         >
-                        <div class="sc-logo-upload__placeholder" id="logoPlaceholder">
-                            <div class="sc-logo-upload__icon">📷</div>
-                            <p class="sc-logo-upload__text">
-                                <strong>Click to upload</strong> or drag & drop
-                            </p>
-                            <p class="sc-logo-upload__hint">PNG, JPG, WebP up to 5MB</p>
-                        </div>
-                        <div class="sc-logo-upload__preview" id="logoPreview" style="display:none;">
-                            <img id="logoPreviewImg" src="" alt="Logo preview">
-                            <button type="button" class="sc-logo-upload__remove" id="logoRemoveBtn">✕</button>
-                        </div>
+                        <span class="sc-error" id="error-name"></span>
                     </div>
-                    <span class="sc-error" id="error-logo"></span>
+                    <div class="sc-field" id="field-url">
+                        <label class="sc-label" for="websiteUrl">Chatbot Website URL <span class="sc-required">*</span></label>
+                        <div class="sc-input-wrap">
+                            <span class="sc-input-icon">🌐</span>
+                            <input
+                                type="url"
+                                id="websiteUrl"
+                                name="website_url"
+                                class="sc-input sc-input--icon"
+                                placeholder="https://yourchatbot.com"
+                                maxlength="500"
+                            >
+                        </div>
+                        <span class="sc-error" id="error-url"></span>
+                    </div>
                 </div>
 
-                <!-- Access note -->
-                <div class="sc-field" id="field-access">
-                    <label class="sc-label" for="accessNote">
-                        How can we access your chatbot for testing? <span class="sc-required">*</span>
-                        <span class="sc-label-hint">Provide a demo link, trial credentials, or describe how we can test your chatbot. We'll contact you via email if we need more info.</span>
+                <!-- Message -->
+                <div class="sc-field" id="field-message">
+                    <label class="sc-label" for="message">
+                        Tell us about your chatbot <span class="sc-required">*</span>
+                        <span class="sc-label-hint">Briefly describe what it does, who it's for, and your current pricing model or affiliate structure if you have one</span>
                     </label>
                     <textarea
-                        id="accessNote"
-                        name="access_note"
+                        id="message"
+                        name="message"
                         class="sc-textarea"
-                        placeholder="e.g. You can try our chatbot at https://yourchatbot.com/demo — no login required. Or: we can set up a trial account for you, just email us at..."
-                        rows="4"
-                        maxlength="1000"
+                        placeholder="e.g. HelpBot Pro is an AI customer support chatbot for SaaS companies. We offer monthly plans starting at $29. We're open to a 20–30% affiliate commission on referred signups..."
+                        rows="5"
+                        maxlength="2000"
                     ></textarea>
                     <div class="sc-char-count">
-                        <span id="accessNoteCount">0</span>/1000
+                        <span id="messageCount">0</span>/2000
                     </div>
-                    <span class="sc-error" id="error-access"></span>
-                </div>
-
-                <!-- Agreement checkbox -->
-                <div class="sc-field" id="field-agreement">
-                    <label class="sc-checkbox">
-                        <input
-                            type="checkbox"
-                            id="accessAgreement"
-                            name="access_agreement"
-                            value="1"
-                            class="sc-checkbox__input"
-                        >
-                        <span class="sc-checkbox__box"></span>
-                        <span class="sc-checkbox__text">
-                            I understand that ChatbotHub needs access to my chatbot in order to test it, gather information and add it to the directory. I agree to provide reasonable access during the review process.
-                        </span>
-                    </label>
-                    <span class="sc-error" id="error-agreement"></span>
+                    <span class="sc-error" id="error-message"></span>
                 </div>
 
                 <!-- Submit -->
                 <div class="sc-form__footer">
                     <p class="sc-form__note">
-                        By submitting, you confirm that you have the rights to list this chatbot and agree to our <a href="affiliateDisclosure.php">Terms of Service</a>.
+                        By submitting, you confirm that you have the rights to list this chatbot and agree to our <a href="affiliateDisclosure.php">Affiliate Terms</a>.
                     </p>
                     <button type="submit" class="sc-submit-btn" id="scSubmitBtn">
-                        <span id="scSubmitText">Submit Chatbot</span>
-                        <span id="scSubmitLoader" style="display:none;">Submitting...</span>
+                        <span id="scSubmitText">Send Partnership Request</span>
+                        <span id="scSubmitLoader" style="display:none;">Sending...</span>
                     </button>
                 </div>
 

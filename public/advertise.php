@@ -80,10 +80,9 @@ require '../app/auth.php';
         <h2 class="adv-section-title">Promotion Plans</h2>
         <p class="adv-section-subtitle">Choose the placement that works best for your chatbot</p>
 
-        <!-- Billing period toggle -->
+        <!-- Billing period toggle — Monthly / Yearly only -->
         <div class="adv-billing-toggle" id="billingToggle">
             <button class="adv-billing-btn active" data-period="monthly">Monthly</button>
-            <button class="adv-billing-btn" data-period="weekly">Weekly</button>
             <button class="adv-billing-btn" data-period="yearly">
                 Yearly
                 <span class="adv-billing-badge">Save more</span>

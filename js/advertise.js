@@ -112,7 +112,7 @@ function setupBillingToggle() {
 // ── Update card prices based on selected period ───────────────────────────────
 function updatePriceDisplay() {
     const period = state.selectedPeriod;
-    const periodLabel = { weekly: '/wk', monthly: '/mo', yearly: '/yr' };
+    const periodLabel = { monthly: '/mo', yearly: '/yr' };
 
     // Homepage Hero
     const hero = state.plans['homepage_hero']?.[period];
@@ -132,26 +132,22 @@ function updatePriceDisplay() {
         $('price-category_featured').textContent  = '—';
     }
 
-    // Bundle (sum of both)
+    // Bundle
     if (hero && cat) {
         const heroFinal = hero.price * (1 - hero.discount_percentage / 100);
         const catFinal  = cat.price  * (1 - cat.discount_percentage  / 100);
-        const bundle    = heroFinal + catFinal;
-        const heroRaw   = parseFloat(hero.price);
-        const catRaw    = parseFloat(cat.price);
-        const bundleRaw = heroRaw + catRaw;
-        const savings   = Math.round(((bundleRaw - bundle) / bundleRaw) * 100);
-
-        $('price-bundle').textContent  = bundle.toFixed(2);
+        $('price-bundle').textContent  = (heroFinal + catFinal).toFixed(2);
         $('period-bundle').textContent = periodLabel[period] || '/mo';
-
-        const savingsEl = $('savings-bundle');
+        const savings = ((1 - (heroFinal + catFinal) / (hero.price + cat.price)) * 100).toFixed(0);
         if (savings > 0) {
-            $('savings-amount').textContent = savings;
-            savingsEl.style.display = 'block';
+            $('savings-bundle').style.display  = 'block';
+            $('savings-amount').textContent    = savings;
         } else {
-            savingsEl.style.display = 'none';
+            $('savings-bundle').style.display  = 'none';
         }
+    } else {
+        $('price-bundle').textContent  = '—';
+        $('savings-bundle').style.display = 'none';
     }
 }
 
@@ -254,9 +250,9 @@ function populateChatbotSelect() {
 function populatePeriodOptions(slot) {
     periodGrid.innerHTML = '';
 
-    const periods = ['weekly', 'monthly', 'yearly'];
-    const periodLabel = { weekly: 'Weekly', monthly: 'Monthly', yearly: 'Yearly' };
-    const periodSub   = { weekly: '/week', monthly: '/month', yearly: '/year' };
+    const periods     = ['monthly', 'yearly'];
+    const periodLabel = { monthly: 'Monthly', yearly: 'Yearly' };
+    const periodSub   = { monthly: '/month', yearly: '/year' };
 
     periods.forEach(period => {
         let plan = null;
@@ -298,7 +294,6 @@ function populatePeriodOptions(slot) {
             div.classList.add('selected');
             state.selectedPeriod = period;
 
-            // Also update main page toggle
             billingToggle.querySelectorAll('.adv-billing-btn').forEach(b => {
                 b.classList.toggle('active', b.dataset.period === period);
             });
@@ -311,18 +306,18 @@ function populatePeriodOptions(slot) {
 }
 
 function updateSummary() {
-    const slot    = state.selectedSlot;
-    const period  = state.selectedPeriod;
-    const botId   = chatbotSelect.value;
+    const slot   = state.selectedSlot;
+    const period = state.selectedPeriod;
+    const botId  = chatbotSelect.value;
 
     if (!slot) return;
 
-    const slotNames = {
+    const slotNames   = {
         homepage_hero:     'Homepage Hero',
         category_featured: 'Category Featured',
         bundle:            'Full Bundle'
     };
-    const periodNames = { weekly: 'Weekly', monthly: 'Monthly', yearly: 'Yearly' };
+    const periodNames = { monthly: 'Monthly', yearly: 'Yearly' };
 
     $('summaryPlan').textContent    = slotNames[slot] || slot;
     $('summaryBilling').textContent = periodNames[period] || period;
@@ -330,7 +325,6 @@ function updateSummary() {
     const selectedBot = state.chatbots.find(b => b.id === botId);
     $('summaryChatbot').textContent = selectedBot ? selectedBot.name : '—';
 
-    // Calculate price
     let total = '—';
     state.selectedPlanId    = null;
     state.selectedPlanIdAlt = null;
@@ -353,9 +347,8 @@ function updateSummary() {
         }
     }
 
-    $('summaryTotal').textContent = total + ' ' + (period === 'weekly' ? '/wk' : period === 'yearly' ? '/yr' : '/mo');
+    $('summaryTotal').textContent = total + ' ' + (period === 'yearly' ? '/yr' : '/mo');
 
-    // Enable/disable confirm
     const canConfirm = botId && state.selectedPlanId;
     confirmBtn.disabled = !canConfirm;
 }
