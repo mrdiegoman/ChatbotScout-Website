@@ -33,7 +33,9 @@ $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User'
 
     <link rel="stylesheet" href="../css/reset.css">
     <link rel="stylesheet" href="../css/main.css">
-    <?php if ($page === 'chatbotShowcase'): ?>
+    <?php if ($page === 'index'): ?>
+        <link rel="stylesheet" href="../css/homePage.css">
+    <?php elseif ($page === 'chatbotShowcase'): ?>
         <link rel="stylesheet" href="../css/chatbotShowcase.css">
         <link rel="stylesheet" href="../css/featuresShowMore.css">
         <link rel="stylesheet" href="../css/platformsPopup.css">

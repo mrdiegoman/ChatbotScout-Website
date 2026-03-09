@@ -16,6 +16,8 @@ sfunkcnit search
 
 prepojit db so social links
 
+v home page most popular  ma bug, v home page je tam ze fitler by inddustry co nie je pravda
+
 REDIS COMMANDY:
     redis-cli
     INFO keyspace
@@ -23,7 +25,7 @@ REDIS COMMANDY:
     KEYS *
     GET chatbothub:ratelimit:login:::1:count   (Zobrazi count attemptov)
     FLUSHALL
-
+,
 Git Bash:
 cd C:/xampp/htdocs/MainWebsite
 git status   (ukaze modifikovane subory)
