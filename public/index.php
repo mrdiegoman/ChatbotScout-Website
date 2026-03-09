@@ -407,7 +407,7 @@ require '../inc/header.php';
             <div class="hp-filter-badge">
                 <i class="fa-solid fa-sliders"></i> Smart Filtering
             </div>
-            <h2>Filter Chatbots by Features,<br>Pricing and Integrations</h2>
+            <h2>Filter Chatbots by actual Features,<br>Pricing, Integrations and more</h2>
             <div class="hp-filter-features">
                 <div class="hp-filter-feature">
                     <div class="hp-filter-feature-icon">

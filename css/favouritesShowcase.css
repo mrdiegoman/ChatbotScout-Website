@@ -1073,6 +1073,7 @@ body {
     position: relative;
     display: inline-flex;
     gap: 0.2rem;
+    width: fit-content;
 }
 
 .favourites-filters-modal-body-row-group-label p{
@@ -1095,9 +1096,10 @@ body {
 
 .favourites-filters-modal-body-row-group-label-tooltip{
     position: absolute;
-    bottom: 24%;
-    left: 45%;
-    transform: translateX(-50%);
+    top: 50%;
+    transform: translateX(-100%);
+    width: 220px;
+    z-index: 10;
 
     background: var(--white-color-dark);
     padding: 1rem;

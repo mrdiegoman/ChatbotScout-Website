@@ -57,6 +57,9 @@
             if (typeof window.triggerFeatureCountsRefresh === 'function') {
                 window.triggerFeatureCountsRefresh(); // refreshne aj feature počty
             }
+            if (typeof window.triggerPricingCountsRefresh === 'function') {
+                window.triggerPricingCountsRefresh();
+            }
         });
 
         return span;
@@ -148,6 +151,8 @@
             )].map(s => s.dataset.featureId).filter(Boolean),
             activeIntegrationIds: [...document.querySelectorAll(`.${spanClass}.active`)]
                 .map(s => s.dataset.integrationId).filter(Boolean),
+            activePricingModels: typeof window.getActivePricingModels === 'function'
+                ? window.getActivePricingModels() : [],
             isFavourites,
         };
     }

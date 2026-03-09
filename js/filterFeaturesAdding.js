@@ -118,6 +118,8 @@
             activeIntegrationIds: [...document.querySelectorAll(`.${intSpanClass}.active`)]
                 .map(s => s.dataset.integrationId)
                 .filter(Boolean),
+            activePricingModels: typeof window.getActivePricingModels === 'function'
+                ? window.getActivePricingModels() : [],
             isFavourites: isFavourites,
         };
     }
@@ -178,6 +180,9 @@
             scheduleFetch(); // refreshne feature počty
             if (typeof window.triggerIntegrationCountsRefresh === 'function') {
                 window.triggerIntegrationCountsRefresh(); // refreshne aj integration počty
+            }
+            if (typeof window.triggerPricingCountsRefresh === 'function') {
+                window.triggerPricingCountsRefresh();
             }
         });
 
