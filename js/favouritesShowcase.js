@@ -611,6 +611,12 @@ function openRatingModal(chatbotId, chatbotName) {
             if (intIds.length > 0) params['integrations[]'] = intIds;
         }
 
+        // Pricing models — OR filter
+        if (typeof window.getActivePricingModels === 'function') {
+            const pmIds = window.getActivePricingModels();
+            if (pmIds.length > 0) params['pricing[]'] = pmIds;
+        }
+
         return params;
     };
 

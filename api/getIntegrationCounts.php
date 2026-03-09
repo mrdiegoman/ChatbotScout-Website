@@ -56,6 +56,12 @@ $activeIntIds = array_values(array_filter(
     fn($id) => is_string($id) && preg_match('/^[0-9a-f\-]{36}$/i', $id)
 ));
 
+// activePricingModels
+$activePricingModels = array_values(array_filter(
+    (array)($data['activePricingModels'] ?? []),
+    fn($m) => in_array($m, ['free','freemium','recurring','one-time','usage-based','custom'], true)
+));
+
 $isFavourites = !empty($data['isFavourites']) && $isLoggedIn;
 
 try {
@@ -88,6 +94,13 @@ try {
               AND (cf2.boolean_value = 1 OR cf2.text_value IS NOT NULL)
         ) = {$activeCount}";
         foreach ($activeIds as $i => $id) { $params[":af{$i}"] = $id; }
+    }
+    
+    // Pricing — OR logika
+    if (count($activePricingModels) > 0) {
+        $pmPh = implode(',', array_map(fn($i) => ":apm{$i}", range(0, count($activePricingModels) - 1)));
+        $where[] = "c.pricing_model IN ({$pmPh})";
+        foreach ($activePricingModels as $i => $m) { $params[":apm{$i}"] = $m; }
     }
 
     $whereStr = implode(' AND ', $where);

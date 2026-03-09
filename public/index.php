@@ -27,7 +27,9 @@ require '../inc/header.php';
             </p>
             <div class="hp-hero-cta">
                 <a href="chatbotShowcase.php" class="hp-btn hp-btn-green">
-                    See All Chatbots <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                    See All Chatbots <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m9 18 6-6-6-6"/></svg>
                 </a>
             </div>
         </div>
@@ -145,10 +147,14 @@ require '../inc/header.php';
             </div><!-- /hp-carousel-viewport -->
 
             <button class="hp-carousel-btn hp-prev" id="hp-carousel-prev" aria-label="Previous">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+                stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
             </button>
             <button class="hp-carousel-btn hp-next" id="hp-carousel-next" aria-label="Next">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+                stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
             </button>
             <div class="hp-carousel-dots" id="hp-carousel-dots"></div>
         </div><!-- /hp-carousel-wrap -->
@@ -165,13 +171,17 @@ require '../inc/header.php';
         <div class="hp-section-top hp-fade-up">
             <h2 class="hp-section-title">Most Popular</h2>
             <a href="chatbotShowcase.php" class="hp-link-green">
-                See More <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                See More <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+                stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
             </a>
         </div>
 
         <div class="hp-pop-carousel hp-fade-up">
             <button class="hp-pop-arrow hp-pop-prev" id="hp-pop-prev" aria-label="Previous">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+                stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
             </button>
 
             <div class="hp-pop-track-wrap">
@@ -187,7 +197,6 @@ require '../inc/header.php';
                     try {
                         $db = Database::getInstance()->getConnection();
 
-                        // Načítaj top 12 chatbotov podľa ratingu a počtu favoritov
                         $stmt = $db->query("
                             SELECT
                                 c.id,
@@ -198,10 +207,9 @@ require '../inc/header.php';
                                 c.favorite_count
                             FROM chatbots c
                             WHERE c.status     = 'active'
-                              AND c.deleted_at IS NULL
-                              AND c.rating_count > 0
-                            ORDER BY c.rating_average DESC, c.favorite_count DESC
-                            LIMIT 12
+                            AND c.deleted_at IS NULL
+                            ORDER BY (c.rating_average * LOG(c.click_count + 1)) DESC,c.rating_count DESC, c.click_count DESC, c.created_at DESC
+                            LIMIT 8
                         ");
                         $popularChatbots = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -266,7 +274,9 @@ require '../inc/header.php';
             </div><!-- /hp-pop-track-wrap -->
 
             <button class="hp-pop-arrow hp-pop-next" id="hp-pop-next" aria-label="Next">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+                stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
             </button>
         </div><!-- /hp-pop-carousel -->
     </div>
@@ -298,7 +308,9 @@ require '../inc/header.php';
                         uptime, and customer satisfaction.
                     </p>
                     <a href="chatbotShowcase.php" class="hp-link-green" style="margin-top:16px;display:inline-flex">
-                        Explore top rated <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                        Explore top rated <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m9 18 6-6-6-6"/></svg>
                     </a>
                 </div>
             </div>
@@ -315,7 +327,9 @@ require '../inc/header.php';
                         make the best decision in minutes — not hours.
                     </p>
                     <a href="chatbotShowcase.php" class="hp-link-green" style="margin-top:16px;display:inline-flex">
-                        Start comparing <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                        Start comparing <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m9 18 6-6-6-6"/></svg>
                     </a>
                 </div>
             </div>
@@ -342,25 +356,22 @@ require '../inc/header.php';
         <!-- Visual card mock-up -->
         <div class="hp-filter-visual hp-fade-up">
             <div class="hp-filter-visual-card">
-                <div class="hp-filter-visual-title">Filter by Industry</div>
-
+                <div class="hp-filter-visual-title">Filter by Pricing</div>
                 <div class="hp-filter-chip-row">
-                    <span class="hp-filter-chip hp-filter-chip-blue hp-chip-active">E-commerce</span>
-                    <span class="hp-filter-chip hp-filter-chip-green">Healthcare</span>
-                    <span class="hp-filter-chip hp-filter-chip-purple">Legal</span>
-                    <span class="hp-filter-chip hp-filter-chip-orange">Retail</span>
-                    <span class="hp-filter-chip hp-filter-chip-teal">Finance</span>
-                    <span class="hp-filter-chip hp-filter-chip-blue">HR</span>
-                    <span class="hp-filter-chip hp-filter-chip-green">Education</span>
+                    <span class="hp-filter-chip hp-filter-chip-green hp-chip-active">Free</span>
+                    <span class="hp-filter-chip hp-filter-chip-blue">Freemium</span>
+                    <span class="hp-filter-chip hp-filter-chip-purple">Recurring</span>
+                    <span class="hp-filter-chip hp-filter-chip-orange">Usage-based</span>
                 </div>
 
                 <div class="hp-filter-divider"></div>
 
-                <div class="hp-filter-visual-title">Filter by Platform</div>
+                <div class="hp-filter-visual-title">Filter by Features</div>
                 <div class="hp-filter-chip-row">
-                    <span class="hp-filter-chip hp-filter-chip-blue hp-chip-active">WordPress</span>
-                    <span class="hp-filter-chip hp-filter-chip-orange">Shopify</span>
-                    <span class="hp-filter-chip hp-filter-chip-purple">Custom</span>
+                    <span class="hp-filter-chip hp-filter-chip-blue hp-chip-active">Live agent support</span>
+                    <span class="hp-filter-chip hp-filter-chip-teal">Multilingual</span>
+                    <span class="hp-filter-chip hp-filter-chip-purple">AI agent</span>
+                    <span class="hp-filter-chip hp-filter-chip-green">Dashboard</span>
                 </div>
 
                 <div class="hp-filter-divider"></div>
@@ -396,15 +407,15 @@ require '../inc/header.php';
             <div class="hp-filter-badge">
                 <i class="fa-solid fa-sliders"></i> Smart Filtering
             </div>
-            <h2>Filter Chatbots by<br>Use Case and Industry</h2>
+            <h2>Filter Chatbots by Features,<br>Pricing and Integrations</h2>
             <div class="hp-filter-features">
                 <div class="hp-filter-feature">
                     <div class="hp-filter-feature-icon">
-                        <i class="fa-solid fa-bullseye"></i>
+                        <i class="fa-solid fa-tag"></i>
                     </div>
                     <div class="hp-filter-feature-text">
-                        <strong>Industry-specific results</strong>
-                        <span>Choose solutions designed for your industry — without wasting time on irrelevant options.</span>
+                        <strong>Pricing that fits your budget</strong>
+                        <span>Filter by free, freemium, recurring, or usage-based plans — find what works for your business in any industry.</span>
                     </div>
                 </div>
                 <div class="hp-filter-feature">
@@ -412,8 +423,8 @@ require '../inc/header.php';
                         <i class="fa-solid fa-gauge-high"></i>
                     </div>
                     <div class="hp-filter-feature-text">
-                        <strong>Narrow down instantly</strong>
-                        <span>Quickly find tools that fit your business goals and existing workflow.</span>
+                        <strong>Filter by specific features</strong>
+                        <span>Live agent support, multilingual, AI agent, dashboard, file uploads and more — pick exactly what you need.</span>
                     </div>
                 </div>
                 <div class="hp-filter-feature">
@@ -421,13 +432,13 @@ require '../inc/header.php';
                         <i class="fa-solid fa-puzzle-piece"></i>
                     </div>
                     <div class="hp-filter-feature-text">
-                        <strong>Platform compatibility</strong>
-                        <span>Filter by <a href="chatbotShowcase.php">WordPress</a>, <a href="chatbotShowcase.php">Shopify</a>, custom websites, and more.</span>
+                        <strong>Integration compatibility</strong>
+                        <span>Filter by platforms like <a href="chatbotShowcase.php">WordPress</a>, <a href="chatbotShowcase.php">Shopify</a>, Slack, and many more.</span>
                     </div>
                 </div>
             </div>
             <a href="chatbotShowcase.php" class="hp-filter-cta">
-                Browse All Chatbots <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                Browse All Chatbots <i class="fa-solid fa-arrow-right"></i>
             </a>
         </div>
 
@@ -459,7 +470,9 @@ require '../inc/header.php';
                 of others discover reliable, high-performing options.
             </p>
             <a href="chatbotShowcase.php" class="hp-btn hp-btn-blue">
-                Start Discovering <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                Start Discovering <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m9 18 6-6-6-6"/></svg>
             </a>
         </div>
 

@@ -59,6 +59,13 @@ $integrationIds = array_values(array_filter(
 ));
 $integrationCount = count($integrationIds);
 
+// pricing[] — OR logika, pole stringov (ENUM hodnoty)
+$pricingModels = array_values(array_filter(
+    (array)($_GET['pricing'] ?? []),
+    fn($m) => in_array($m, ['free','freemium','recurring','one-time','usage-based','custom'], true)
+));
+$pricingCount = count($pricingModels);
+
 // ============================================
 // SORT LOGIC
 // ============================================
@@ -66,7 +73,7 @@ $integrationCount = count($integrationIds);
 $dir = $direction === 'asc' ? 'ASC' : 'DESC';
 
 $orderBy = match($sort) {
-    'popularity'        => "c.click_count $dir, c.rating_average $dir",
+    'popularity' => "(c.rating_average * LOG(c.click_count + 1)) $dir",
     'alphabetical'      => "c.name $dir",
     'rating'            => "c.rating_average $dir, c.rating_count $dir",
     'number-of-ratings' => "c.rating_count $dir, c.rating_average $dir",
@@ -113,6 +120,13 @@ if ($integrationCount > 0) {
           AND ci_f.is_supported = 1
     )";
     foreach ($integrationIds as $i => $id) { $params[":iid{$i}"] = $id; }
+}
+
+// Pricing models — OR logika (chatbot musí mať aspoň jeden z vybraných)
+if ($pricingCount > 0) {
+    $pp = implode(',', array_map(fn($i) => ":pm{$i}", range(0, $pricingCount - 1)));
+    $where[] = "c.pricing_model IN ({$pp})";
+    foreach ($pricingModels as $i => $m) { $params[":pm{$i}"] = $m; }
 }
 
 $whereStr = implode(' AND ', $where);

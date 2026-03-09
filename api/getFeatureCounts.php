@@ -55,6 +55,11 @@ $activeIntIds = array_values(array_filter(
     (array)($data['activeIntegrationIds'] ?? []),
     fn($id) => is_string($id) && preg_match('/^[0-9a-f\-]{36}$/i', $id)
 ));
+// activePricingModels
+$activePricingModels = array_values(array_filter(
+    (array)($data['activePricingModels'] ?? []),
+    fn($m) => in_array($m, ['free','freemium','recurring','one-time','usage-based','custom'], true)
+));
 $activeIntCount = count($activeIntIds);
 
 // isFavourites — restrict counts to current user's favourites only
@@ -107,6 +112,13 @@ try {
               AND ci_fc.is_supported = 1
         )";
         foreach ($activeIntIds as $i => $id) { $params[":ai{$i}"] = $id; }
+    }
+
+    // Pricing — OR logika
+    if (count($activePricingModels) > 0) {
+        $pmPh = implode(',', array_map(fn($i) => ":apm{$i}", range(0, count($activePricingModels) - 1)));
+        $where[] = "c.pricing_model IN ({$pmPh})";
+        foreach ($activePricingModels as $i => $m) { $params[":apm{$i}"] = $m; }
     }
 
     $whereStr = implode(' AND ', $where);

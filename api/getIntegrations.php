@@ -19,10 +19,6 @@ try {
     $stmt = $db->query("
         SELECT i.id, i.name
         FROM integrations i
-        WHERE EXISTS (
-            SELECT 1 FROM chatbot_integrations ci
-            WHERE ci.integration_id = i.id AND ci.is_supported = 1
-        )
         ORDER BY i.name ASC
     ");
 

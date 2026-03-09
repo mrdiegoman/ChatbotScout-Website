@@ -71,6 +71,12 @@ window.getActiveFilterParams = function () {
         if (intIds.length > 0) params['integrations[]'] = intIds;
     }
 
+    // Pricing models — OR filter
+    if (typeof window.getActivePricingModels === 'function') {
+        const pmIds = window.getActivePricingModels();
+        if (pmIds.length > 0) params['pricing[]'] = pmIds;
+    }
+
     return params;
 };
 
@@ -102,6 +108,7 @@ function clearAllFilters() {
     if (typeof window.triggerFeatureCountsRefresh === 'function') window.triggerFeatureCountsRefresh();
     if (typeof window.applyFilters === 'function')                window.applyFilters();
     if (typeof window.clearIntegrationFilters === 'function')     window.clearIntegrationFilters();
+    if (typeof window.clearPricingFilters === 'function')         window.clearPricingFilters();
 }
 
 if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearAllFilters);
