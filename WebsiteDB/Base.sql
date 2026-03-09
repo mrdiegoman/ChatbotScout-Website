@@ -592,10 +592,10 @@ CREATE TABLE `currencies` (
 
 CREATE TABLE `billing_periods` (
   `id` CHAR(36) NOT NULL COMMENT 'Period UUID, e.g., "550e8400-e29b-41d4-a716-446655440016", "4n5o6p7q-8r9s-0t1u-2v3w-4x5y6z7a8b9c"',
-  `name` VARCHAR(50) NOT NULL COMMENT 'Period name, e.g., "Monthly", "Annually", "Quarterly"',
+#   `name` VARCHAR(50) NOT NULL COMMENT 'Period name, e.g., "Monthly", "Annually", "Quarterly"',
 #   `slug` VARCHAR(50) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "monthly", "annually", "quarterly"',
   `type` ENUM('daily', 'weekly', 'monthly', 'yearly') NOT NULL,
-  `duration` TINYINT NOT NULL COMMENT 'Duration, e.g., 1 (monthly), 12 (annually), 3 (quarterly)',
+  `duration` INT NOT NULL COMMENT 'Duration in days',
 #   `discount_percentage` DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT 'Discount percentage, e.g., 0.00, 20.00, 15.50',
 #   `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
 
@@ -603,7 +603,7 @@ CREATE TABLE `billing_periods` (
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 12:30:00", "2025-01-25 09:15:00"',
 
   PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_name` (`name`),
+#   UNIQUE KEY `idx_name` (`name`),
   UNIQUE KEY `idx_type_duration` (`type`, `duration`)
 #   CONSTRAINT `chk_discount` CHECK (`discount_percentage` BETWEEN 0.00 AND 100.00)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -686,8 +686,8 @@ CREATE TABLE `listing_plans` (
 
 CREATE TABLE `promotions` (
   `id` CHAR(36) NOT NULL COMMENT 'Plan UUID, e.g., "650e8400-e29b-41d4-a716-446655440017", "5o6p7q8r-9s0t-1u2v-3w4x-5y6z7a8b9c0d"',
-  `name` VARCHAR(100) NOT NULL COMMENT 'Plan name, e.g., "Basic Listing", "Premium Listing", "Pro Listing"',
-  `slot_type` ENUM('homepage_hero', 'category_featured') NOT NULL,
+#   `name` VARCHAR(100) NOT NULL COMMENT 'Plan name, e.g., "Basic Listing", "Premium Listing", "Pro Listing"',
+  `slot_type` ENUM('Homepage', 'Chatbots page') NOT NULL,
 
 #   `slug` VARCHAR(150) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "basic-listing", "premium-listing", "pro-listing"',
 #   `description` TEXT NULL COMMENT 'Plan description, e.g., "Get your chatbot listed on our directory with basic features", "Premium visibility with featured badge and priority placement", "Maximum exposure with homepage banner and verified badge"',
