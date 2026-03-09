@@ -147,6 +147,7 @@
                 const name  = span.dataset.featureName;
                 const count = counts[fid] ?? 0;
                 span.textContent = `${name} (${count})`;
+                // span.style.display = count === 0 && !span.classList.contains('active') ? 'none' : '';
             });
 
             // Live aktualizácia počtu výsledkov vedľa Clear all (iba na favouritesShowcase)

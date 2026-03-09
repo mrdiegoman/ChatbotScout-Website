@@ -301,7 +301,7 @@ require '../inc/header.php';
             </div>
             <div class="hp-feature-bubble-col">
                 <div class="hp-bubble from-right">
-                    <h3>🏆 Top-Rated Chatbots Chosen by Businesses</h3>
+                    <h3>🏆 Top-Rated Chatbots Chosen by Businesses from any Industry.</h3>
                     <p>
                         See which chatbots companies trust the most, based on real user feedback
                         and verified performance data. Our ranking factors in response quality,
@@ -320,7 +320,7 @@ require '../inc/header.php';
         <div class="hp-feature-row hp-reverse">
             <div class="hp-feature-bubble-col">
                 <div class="hp-bubble hp-bubble-green">
-                    <h3>📊 Compare AI Chatbots by Features, Pricing, and Reviews</h3>
+                    <h3>📊 Compare AI Chatbots by Features, Pricing, Reviews and more</h3>
                     <p>
                         Explore detailed listings that highlight key features, pricing models,
                         and real user feedback. Our side-by-side comparison tool helps you

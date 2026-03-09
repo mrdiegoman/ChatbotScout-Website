@@ -25,6 +25,11 @@ try {
     $stmt = $db->prepare("
         SELECT id, name, advanced
         FROM `features`
+        WHERE EXISTS (
+            SELECT 1 FROM chatbot_features cf
+            WHERE cf.feature_id = features.id
+            AND (cf.boolean_value = 1 OR cf.text_value IS NOT NULL)
+        )
         ORDER BY advanced ASC, name ASC
     ");
     $stmt->execute();

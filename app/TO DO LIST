@@ -2,11 +2,9 @@ PRidanie Adveritse
 
 Pridanie Submit Chatbot
 
-Pridanie home pages
-
 Nastavenie tabuliek v databaze
 
-Captcha
+Captcha??
 
 Stripe -> nakup, visa, paypal, apple-pay (celkove zobrazenie tj. inputy)
 
@@ -16,7 +14,6 @@ sfunkcnit search
 
 prepojit db so social links
 
-v home page most popular  ma bug, v home page je tam ze fitler by inddustry co nie je pravda
 
 REDIS COMMANDY:
     redis-cli
