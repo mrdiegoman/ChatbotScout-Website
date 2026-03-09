@@ -85,7 +85,7 @@ require '../app/auth.php';
             <button class="adv-billing-btn active" data-period="monthly">Monthly</button>
             <button class="adv-billing-btn" data-period="yearly">
                 Yearly
-                <span class="adv-billing-badge">Save more</span>
+                <span class="adv-billing-badge" id="billingBadge">Save more</span>
             </button>
         </div>
 
@@ -99,19 +99,26 @@ require '../app/auth.php';
         <div class="adv-plans__grid" id="plansGrid" style="display:none;">
 
             <!-- Homepage Hero Card -->
-            <div class="adv-plan-card" id="card-homepage_hero">
+            <div class="adv-plan-card" id="card-Homepage">
                 <div class="adv-plan-card__header">
                     <div class="adv-plan-card__icon">🏠</div>
                     <div class="adv-plan-card__badge">Most Popular</div>
                 </div>
-                <h3 class="adv-plan-card__name">Homepage Hero</h3>
+                <h3 class="adv-plan-card__name">Homepage Visibility</h3>
                 <p class="adv-plan-card__desc">Your chatbot appears at the very top of the homepage and inside the Most Popular section — the first thing every visitor sees.</p>
                 <div class="adv-plan-card__price-wrap">
                     <div class="adv-plan-card__price">
                         <span class="adv-plan-card__currency">$</span>
-                        <span class="adv-plan-card__amount" id="price-homepage_hero">—</span>
-                        <span class="adv-plan-card__period" id="period-homepage_hero">/mo</span>
+                        <span class="adv-plan-card__amount" id="price-Homepage">—</span>
+                        <span class="adv-plan-card__period" id="period-Homepage">/mo</span>
                     </div>
+                    <div class="adv-plan-card__yearly-info" id="yearly-info-Homepage" style="display:none;">
+                        <span class="adv-plan-card__original" id="original-Homepage"></span>
+                        <span class="adv-plan-card__saving-pct" id="saving-pct-Homepage"></span>
+                    </div>
+                    <button class="adv-plan-card__total-btn" id="total-btn-Homepage" style="display:none;" data-showing-total="false">
+                        Show total (12 months)
+                    </button>
                 </div>
                 <ul class="adv-plan-card__features">
                     <li><span class="adv-check">✓</span> Displayed on Home page hero banner</li>
@@ -119,24 +126,31 @@ require '../app/auth.php';
                     <li><span class="adv-check">✓</span> Logo, name & description highlighted</li>
                     <li><span class="adv-check">✓</span> Rotated every minute (max 3 chatbots)</li>
                 </ul>
-                <button class="adv-plan-card__btn" id="btn-homepage_hero" data-slot="homepage_hero">
-                    Get Homepage Hero
+                <button class="adv-plan-card__btn" id="btn-Homepage" data-slot="Homepage">
+                    Get Homepage Visibility
                 </button>
             </div>
 
             <!-- Category Featured Card -->
-            <div class="adv-plan-card" id="card-category_featured">
+            <div class="adv-plan-card" id="card-Chatbots_Page">
                 <div class="adv-plan-card__header">
                     <div class="adv-plan-card__icon">📂</div>
                 </div>
-                <h3 class="adv-plan-card__name">Category Featured</h3>
+                <h3 class="adv-plan-card__name">Chatbots Page Visibility</h3>
                 <p class="adv-plan-card__desc">Your chatbot stands out at the beginning of the Chatbots page. Customers look at your chatbot as the first one they see in the list.</p>
                 <div class="adv-plan-card__price-wrap">
                     <div class="adv-plan-card__price">
                         <span class="adv-plan-card__currency">$</span>
-                        <span class="adv-plan-card__amount" id="price-category_featured">—</span>
-                        <span class="adv-plan-card__period" id="period-category_featured">/mo</span>
+                        <span class="adv-plan-card__amount" id="price-Chatbots_Page">—</span>
+                        <span class="adv-plan-card__period" id="period-Chatbots_Page">/mo</span>
                     </div>
+                    <div class="adv-plan-card__yearly-info" id="yearly-info-Chatbots_Page" style="display:none;">
+                        <span class="adv-plan-card__original" id="original-Chatbots_Page"></span>
+                        <span class="adv-plan-card__saving-pct" id="saving-pct-Chatbots_Page"></span>
+                    </div>
+                    <button class="adv-plan-card__total-btn" id="total-btn-Chatbots_Page" style="display:none;" data-showing-total="false">
+                        Show total (12 months)
+                    </button>
                 </div>
                 <ul class="adv-plan-card__features">
                     <li><span class="adv-check">✓</span> Featured at top of Chatbots page</li>
@@ -144,8 +158,8 @@ require '../app/auth.php';
                     <li><span class="adv-check">✓</span> Key Features & pricing highlighted</li>
                     <li><span class="adv-check">✓</span> 100% exposure if only promoter</li>
                 </ul>
-                <button class="adv-plan-card__btn" id="btn-category_featured" data-slot="category_featured">
-                    Get Category Featured
+                <button class="adv-plan-card__btn" id="btn-Chatbots_Page" data-slot="Chatbots_Page">
+                    Get Chatbots Page Visibility
                 </button>
             </div>
 
@@ -166,10 +180,17 @@ require '../app/auth.php';
                     <div class="adv-plan-card__savings" id="savings-bundle" style="display:none;">
                         Save <span id="savings-amount">0</span>% vs buying separately
                     </div>
+                    <div class="adv-plan-card__yearly-info" id="yearly-info-bundle" style="display:none;">
+                        <span class="adv-plan-card__original" id="original-bundle"></span>
+                        <span class="adv-plan-card__saving-pct" id="saving-pct-bundle"></span>
+                    </div>
+                    <button class="adv-plan-card__total-btn" id="total-btn-bundle" style="display:none;" data-showing-total="false">
+                        Show total (12 months)
+                    </button>
                 </div>
                 <ul class="adv-plan-card__features">
-                    <li><span class="adv-check">✓</span> Everything in Homepage Hero</li>
-                    <li><span class="adv-check">✓</span> Everything in Category Featured</li>
+                    <li><span class="adv-check">✓</span> Everything in Homepage Visibility</li>
+                    <li><span class="adv-check">✓</span> Everything in Chatbots Page Visibility</li>
                     <li><span class="adv-check">✓</span> Maximum platform-wide exposure</li>
                     <li><span class="adv-check">✓</span> Priority placement over single plans</li>
                 </ul>
@@ -204,7 +225,7 @@ require '../app/auth.php';
                         <span></span><span></span><span></span>
                     </div>
                     <div class="adv-preview__screen-hero">
-                        <div class="adv-preview__screen-label">🏠 Homepage Hero</div>
+                        <div class="adv-preview__screen-label">🏠 Homepage Visibility</div>
                         <div class="adv-preview__screen-card adv-preview__screen-card--sponsored">
                             <span class="adv-preview__sponsored-tag">Sponsored</span>
                             <div class="adv-preview__card-logo"></div>
@@ -223,7 +244,7 @@ require '../app/auth.php';
                         <span></span><span></span><span></span>
                     </div>
                     <div class="adv-preview__screen-hero adv-preview__screen-hero--category">
-                        <div class="adv-preview__screen-label">📂 Category Featured</div>
+                        <div class="adv-preview__screen-label">📂 Chatbots Page Visibility</div>
                         <div class="adv-preview__screen-card adv-preview__screen-card--featured">
                             <span class="adv-preview__sponsored-tag adv-preview__sponsored-tag--green">Featured</span>
                             <div class="adv-preview__card-logo"></div>

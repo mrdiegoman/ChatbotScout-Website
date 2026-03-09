@@ -595,7 +595,7 @@ CREATE TABLE `billing_periods` (
 #   `name` VARCHAR(50) NOT NULL COMMENT 'Period name, e.g., "Monthly", "Annually", "Quarterly"',
 #   `slug` VARCHAR(50) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "monthly", "annually", "quarterly"',
   `type` ENUM('daily', 'weekly', 'monthly', 'yearly') NOT NULL,
-  `duration` INT NOT NULL COMMENT 'Duration in days',
+  `duration_days` INT NOT NULL COMMENT 'Duration in days',
 #   `discount_percentage` DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT 'Discount percentage, e.g., 0.00, 20.00, 15.50',
 #   `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
 

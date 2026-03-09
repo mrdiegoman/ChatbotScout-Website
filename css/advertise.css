@@ -236,7 +236,7 @@
 .adv-billing-badge {
     background: var(--adv-green);
     color: #fff;
-    font-size: 0.75rem;
+    font-size: 0.9rem;
     padding: 2px 10px;
     border-radius: 100px;
     font-weight: 700;
@@ -904,4 +904,56 @@
     background: #e5e7eb;
     color: #9ca3af;
     cursor: not-allowed;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Add these styles after .adv-plan-card__savings { ... }
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* Yearly per-month info row */
+.adv-plan-card__yearly-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+/* Strikethrough original monthly price */
+.adv-plan-card__original {
+    font-size: 1rem;
+    color: var(--adv-text-muted);
+    text-decoration: line-through;
+    font-weight: 500;
+}
+
+/* Green savings badge on card */
+.adv-plan-card__saving-pct {
+    background: #dcfce7;
+    color: #166534;
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 100px;
+    letter-spacing: 0.2px;
+}
+
+/* "Show total / Show per month" toggle button */
+.adv-plan-card__total-btn {
+    display: inline-block;
+    margin-top: 8px;
+    background: none;
+    border: none;
+    color: var(--adv-purple);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: opacity 0.15s;
+}
+
+.adv-plan-card__total-btn:hover {
+    opacity: 0.75;
 }

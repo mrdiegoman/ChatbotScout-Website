@@ -16,6 +16,12 @@ prepojit db so social links
 
 peidat do filtra OR logika pre tym currency
 
+bezpecnost pre apis atd.
+if (!defined('BOOTSTRAP_LOADED')) {
+    http_response_code(403);
+    exit;
+}
+
 REDIS COMMANDY:
     redis-cli
     INFO keyspace
