@@ -57,34 +57,26 @@ if (!$chatbot) {
 
 switch ($action) {
 
-    // ── APPROVE ──────────────────────────────────────────────────────────────
+    // ── APPROVE (toggle: pending ↔ reviewed, no email) ───────────────────────
     case 'approve':
-        if ($chatbot['status'] === 'reviewed') {
-            echo json_encode(['success' => true, 'message' => 'Already approved.', 'pendingCount' => getPendingCount($db)]);
-            exit;
-        }
+        // Accept optional target status from JS (for toggle support)
+        $newStatus = ($input['status'] ?? '') === 'pending' ? 'pending' : 'reviewed';
 
-        $db->prepare("
-            UPDATE chatbots SET status = 'reviewed', approved_at = NOW()
-            WHERE id = :id
-        ")->execute(['id' => $id]);
-
-        $userName = trim($chatbot['first_name'] . ' ' . $chatbot['last_name']) ?: 'there';
-
-        try {
-            $email = new Email();
-            $email->sendChatbotApproved(
-                $chatbot['user_email'],
-                $userName,
-                $chatbot['name']
-            );
-        } catch (Exception $e) {
-            error_log('Approve email error: ' . $e->getMessage());
+        if ($newStatus === 'reviewed') {
+            $db->prepare("
+                UPDATE chatbots SET status = 'reviewed', approved_at = NOW()
+                WHERE id = :id
+            ")->execute(['id' => $id]);
+        } else {
+            $db->prepare("
+                UPDATE chatbots SET status = 'pending', approved_at = NULL
+                WHERE id = :id
+            ")->execute(['id' => $id]);
         }
 
         echo json_encode([
             'success'      => true,
-            'message'      => 'Chatbot approved.',
+            'message'      => $newStatus === 'reviewed' ? 'Marked as reviewed.' : 'Moved back to pending.',
             'pendingCount' => getPendingCount($db)
         ]);
         break;

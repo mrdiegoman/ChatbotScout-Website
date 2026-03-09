@@ -24,12 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
 
 // ── Input ────────────────────────────────────────────────────────────────────
-$contactName = trim($input['contact_name'] ?? '');
-$companyName = trim($input['company_name'] ?? '');
+$contactName  = trim($input['contact_name']  ?? '');
+$companyName  = trim($input['company_name']  ?? '');
 $contactEmail = trim($input['contact_email'] ?? '');
-$chatbotName  = trim($input['name']         ?? '');
-$websiteUrl   = trim($input['website_url']  ?? '');
-$message      = trim($input['message']      ?? '');
+$chatbotName  = trim($input['name']          ?? '');
+$websiteUrl   = trim($input['website_url']   ?? '');
+$message      = trim($input['message']       ?? '');
 
 // ── Validation ───────────────────────────────────────────────────────────────
 $errors = [];
@@ -94,9 +94,12 @@ try {
             :id, :owner_user_id, :name, :website_url,
             'pending', NOW(), :access_note,
             0.00, 'free', 'USD',
-            0, 1
+            0, 0
         )
     ");
+    // NOTE: has_affiliate_program = 0 here intentionally.
+    // The affiliate_link CHECK constraint requires affiliate_link IS NOT NULL
+    // when has_affiliate_program = 1. Admin sets this manually after deal is agreed.
 
     $stmt->execute([
         'id'            => $chatbotId,

@@ -403,3 +403,149 @@ document.addEventListener('DOMContentLoaded', () => {
         loadAdminSettings();
     }
 });
+
+// ============================================
+// SUBMISSIONS — MARK REVIEWED (toggle, no email)
+// ============================================
+
+async function approveSubmission(id, clickedBtn) {
+    clickedBtn.disabled = true;
+
+    const card      = clickedBtn.closest('.admin-message-card');
+    const isActive  = clickedBtn.classList.contains('active');
+    const newStatus = isActive ? 'pending' : 'reviewed';
+
+    try {
+        const res    = await fetch('../app/adminSubmissionActions.php', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ action: 'approve', id, status: newStatus })
+        });
+        const result = await res.json();
+
+        if (result.success) {
+            // Toggle active state on button
+            clickedBtn.classList.toggle('active', newStatus === 'reviewed');
+
+            // Remove active from Reject button
+            card.querySelectorAll('.submission-action-btn').forEach(b => {
+                if (b !== clickedBtn) b.classList.remove('active');
+            });
+
+            // Update badge
+            const badge = card.querySelector('.admin-status-badge');
+            if (badge) {
+                badge.className   = `admin-status-badge submission-status-${newStatus}`;
+                badge.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+            }
+
+            showNotification(
+                newStatus === 'reviewed' ? 'Marked as reviewed' : 'Moved back to pending',
+                'success'
+            );
+
+            // Update pending count badge in tab
+            if (result.pendingCount !== undefined) {
+                updateMainTabBadge('submissions', result.pendingCount);
+            }
+        } else {
+            showNotification(result.message || 'Failed to update status', 'error');
+        }
+    } catch (err) {
+        showNotification('Something went wrong.', 'error');
+    } finally {
+        clickedBtn.disabled = false;
+    }
+}
+
+// ============================================
+// SUBMISSIONS — REJECT (sends email)
+// ============================================
+
+async function rejectSubmission(id, btn) {
+    const section  = document.getElementById(`sub-reject-${id}`);
+    const textarea = section.querySelector('textarea');
+    const reason   = textarea.value.trim();
+
+    if (!reason) {
+        showNotification('Please enter a rejection reason.', 'error');
+        return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = 'Sending...';
+
+    try {
+        const res    = await fetch('../app/adminSubmissionActions.php', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ action: 'reject', id, reason })
+        });
+        const result = await res.json();
+
+        if (result.success) {
+            const card = btn.closest('.admin-message-card');
+
+            // Update badge
+            const badge = card.querySelector('.admin-status-badge');
+            if (badge) {
+                badge.className   = 'admin-status-badge submission-status-rejected';
+                badge.textContent = 'Rejected';
+            }
+
+            // Update action buttons
+            card.querySelectorAll('.submission-action-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.status === 'rejected');
+            });
+
+            // Close reject section
+            section.style.display = 'none';
+            textarea.value = '';
+
+            showNotification('Rejection sent successfully.', 'success');
+
+            if (result.pendingCount !== undefined) {
+                updateMainTabBadge('submissions', result.pendingCount);
+            }
+        } else {
+            showNotification(result.message || 'Failed to reject submission', 'error');
+        }
+    } catch (err) {
+        showNotification('Something went wrong.', 'error');
+    } finally {
+        btn.disabled    = false;
+        btn.textContent = 'Send Rejection';
+    }
+}
+
+// ============================================
+// SUBMISSIONS — SAVE NOTES
+// ============================================
+
+async function saveSubmissionNotes(id, btn) {
+    const section  = document.getElementById(`sub-notes-${id}`);
+    const textarea = section.querySelector('textarea');
+    const notes    = textarea.value.trim();
+
+    btn.disabled    = true;
+    btn.textContent = 'Saving...';
+
+    try {
+        const res    = await fetch('../app/adminSubmissionActions.php', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ action: 'save_notes', id, notes })
+        });
+        const result = await res.json();
+
+        showNotification(
+            result.success ? 'Notes saved!' : (result.message || 'Failed'),
+            result.success ? 'success' : 'error'
+        );
+    } catch (err) {
+        showNotification('Something went wrong.', 'error');
+    } finally {
+        btn.disabled    = false;
+        btn.textContent = 'Save Notes';
+    }
+}
