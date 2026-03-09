@@ -14,7 +14,9 @@ sfunkcnit search
 
 prepojit db so social links
 
-peidat do filtra OR logika pre tym currency
+pridat do filtra OR logika pre tym currency
+
+fixnut bug keddy sa da v advertise kupit na chatbota ktory nie je na stranke este
 
 bezpecnost pre apis atd.
 if (!defined('BOOTSTRAP_LOADED')) {

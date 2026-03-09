@@ -82,10 +82,10 @@ require '../app/auth.php';
 
         <!-- Billing period toggle — Monthly / Yearly only -->
         <div class="adv-billing-toggle" id="billingToggle">
-            <button class="adv-billing-btn active" data-period="monthly">Monthly</button>
-            <button class="adv-billing-btn" data-period="yearly">
+            <button class="adv-billing-btn" data-period="monthly">Monthly</button>
+            <button class="adv-billing-btn active" data-period="yearly">
                 Yearly
-                <span class="adv-billing-badge" id="billingBadge">Save more</span>
+                <span class="adv-billing-badge" id="billingBadge">Save</span>
             </button>
         </div>
 

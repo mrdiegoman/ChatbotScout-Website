@@ -1,0 +1,134 @@
+/* ============================================
+   PAYMENT SUCCESS PAGE
+   ============================================ */
+
+* { box-sizing: border-box; }
+
+.success-page {
+    min-height: 100vh;
+    background: #f8f7ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    font-family: 'Outfit', system-ui, sans-serif;
+}
+
+.success-card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 8px 40px rgba(107,63,246,0.12);
+    padding: 56px 48px;
+    max-width: 520px;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.success-card__icon {
+    font-size: 4rem;
+    line-height: 1;
+}
+
+.success-card__title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin: 0;
+}
+
+.success-card__subtitle {
+    font-size: 1.05rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.success-card__details {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.success-card__detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 14px 20px;
+    font-size: 0.95rem;
+    color: #374151;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.success-card__detail-row:last-child {
+    border-bottom: none;
+}
+
+.success-card__detail-row span:first-child {
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.success-card__detail-row span:last-child {
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.success-card__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    margin-top: 8px;
+}
+
+.success-card__btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.success-card__btn--primary {
+    background: #6b3ff6;
+    color: #fff;
+}
+
+.success-card__btn--primary:hover {
+    background: #7c52f7;
+    transform: translateY(-1px);
+}
+
+.success-card__btn--secondary {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.success-card__btn--secondary:hover {
+    background: #e5e7eb;
+}
+
+.success-card__note {
+    font-size: 0.82rem;
+    color: #9ca3af;
+    line-height: 1.6;
+    margin: 0;
+}
+
+@media (max-width: 560px) {
+    .success-card {
+        padding: 40px 24px;
+    }
+
+    .success-card__title {
+        font-size: 1.6rem;
+    }
+}

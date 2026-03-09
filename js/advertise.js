@@ -7,7 +7,7 @@
 const state = {
     plans:          {},     // { slot_type: { period_type: [plan, ...] } }
     selectedSlot:   null,   // 'Homepage' | 'Chatbots_Page' | 'bundle'
-    selectedPeriod: 'monthly',
+    selectedPeriod: 'yearly',
     selectedPlanId: null,
     selectedPlanIdAlt: null, // for bundle (category_featured plan)
     chatbots:       [],
@@ -488,30 +488,36 @@ async function handleConfirm() {
         return;
     }
 
-    // Show loading
     confirmText.style.display   = 'none';
     confirmLoader.style.display = 'inline';
     confirmBtn.disabled         = true;
 
     try {
         if (state.selectedSlot === 'bundle') {
-            // Create two promotions sequentially
-            await createPromotion(botId, state.selectedPlanId);
-            await createPromotion(botId, state.selectedPlanIdAlt);
-            window.location.href = 'https://checkout.stripe.com/placeholder?bundle=1';
+            // Create both promotions, get first subscription_id for checkout
+            const result1 = await createPromotion(botId, state.selectedPlanId);
+            const result2 = await createPromotion(botId, state.selectedPlanIdAlt);
+
+            if (!result1.success) throw new Error(result1.message || 'Failed to create Homepage promotion');
+            if (!result2.success) throw new Error(result2.message || 'Failed to create Chatbots Page promotion');
+
+            // Redirect to checkout with first subscription (Homepage)
+            // Second subscription handled after payment via webhook
+            window.location.href = 'checkout.php?subscription_id=' + result1.subscription_id
+                                 + '&subscription_id_2=' + result2.subscription_id;
         } else {
             const result = await createPromotion(botId, state.selectedPlanId);
-            if (result.success) {
-                window.location.href = result.redirect_url;
-            } else {
-                throw new Error(result.message || 'Failed to create promotion');
-            }
+
+            if (!result.success) throw new Error(result.message || 'Failed to create promotion');
+
+            window.location.href = 'checkout.php?subscription_id=' + result.subscription_id;
         }
+
     } catch (e) {
-        modalError.textContent    = e.message || 'Something went wrong. Please try again.';
-        confirmText.style.display = 'inline';
+        modalError.textContent      = e.message || 'Something went wrong. Please try again.';
+        confirmText.style.display   = 'inline';
         confirmLoader.style.display = 'none';
-        confirmBtn.disabled       = false;
+        confirmBtn.disabled         = false;
     }
 }
 

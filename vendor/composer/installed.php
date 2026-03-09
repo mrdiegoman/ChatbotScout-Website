@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => '__root__',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => null,
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => 'aa258beb8e2e2b5faf521363e33e5afbb1419388',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         '__root__' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => null,
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => 'aa258beb8e2e2b5faf521363e33e5afbb1419388',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -25,6 +25,15 @@
             'reference' => 'ebf1655bd5b99b3f97e1a3ec0a69e5f4cd7ea088',
             'type' => 'library',
             'install_path' => __DIR__ . '/../phpmailer/phpmailer',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'stripe/stripe-php' => array(
+            'pretty_version' => 'v19.4.1',
+            'version' => '19.4.1.0',
+            'reference' => '095384404587d07de2ad1154c389c4051c5ed92f',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../stripe/stripe-php',
             'aliases' => array(),
             'dev_requirement' => false,
         ),

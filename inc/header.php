@@ -1,4 +1,5 @@
 <?php
+
 $authPages = ['login', 'signUp', 'forgotPassword', 'resetPassword', 'verifyEmail'];
 
 $bodyClasses = [

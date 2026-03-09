@@ -1,5 +1,10 @@
 <?php
 
+if (!defined('BOOTSTRAP_LOADED')) {
+    http_response_code(403);
+    exit;
+}
+
 function requireLogin(): void
 {
     if (!isset($_SESSION['user'])) {

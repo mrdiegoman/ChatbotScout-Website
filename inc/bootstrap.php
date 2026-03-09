@@ -5,6 +5,8 @@
  * Načíta sa pri každej requeste - inicializuje session, triedy, visitor tracking
  */
 
+define('BOOTSTRAP_LOADED', true);
+
 // Štart PHP session
 session_start();
 

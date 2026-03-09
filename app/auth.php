@@ -4,7 +4,10 @@
  * 
  * Pomocné funkcie pre prácu so session
  */
-
+if (!defined('BOOTSTRAP_LOADED')) {
+    http_response_code(403);
+    exit;
+}
 /**
  * Prihlásenie používateľa
  * 
