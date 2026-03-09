@@ -14,15 +14,13 @@ try {
     $stmt = $db->prepare("
         SELECT 
             p.id,
-            p.name,
             p.slot_type,
             p.price,
             p.discount_percentage,
             p.display_order,
             bp.id   AS billing_period_id,
-            bp.name AS billing_period_name,
             bp.type AS billing_period_type,
-            bp.duration AS billing_period_duration,
+            bp.duration_days AS billing_period_duration,
             c.id     AS currency_id,
             c.code   AS currency_code,
             c.symbol AS currency_symbol
@@ -35,6 +33,7 @@ try {
     ");
     $stmt->execute();
     $plans = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 
     // Group by billing period type
     $grouped = [];
