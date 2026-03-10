@@ -19,10 +19,13 @@ CREATE TABLE `users` (
   `google_id` VARCHAR(255) NULL UNIQUE COMMENT 'Google OAuth user ID',
   `terms_accepted` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'User accepted Terms of Service',
   `terms_accepted_at` TIMESTAMP NULL COMMENT 'When user accepted Terms of Service',
-  `username` VARCHAR(50) NULL UNIQUE COMMENT 'Unique username, e.g., "johndoe123", "maria_k", "tech_guru_2025"',
+#   `username` VARCHAR(50) NULL UNIQUE COMMENT 'Unique username, e.g., "johndoe123", "maria_k", "tech_guru_2025"',
   `first_name` VARCHAR(100) NULL COMMENT 'First name, e.g., "John", "Mária", "Peter"',
   `last_name` VARCHAR(100) NULL COMMENT 'Last name, e.g., "Doe", "Kováčová", "Novák"',
+  `verified_reviewer` BOOLEAN NOT NULL DEFAULT FALSE,
   `is_admin` BOOLEAN NOT NULL DEFAULT FALSE,
+  `stripe_customer_id` VARCHAR(255) NULL,
+
 
 
 #   -- Affiliate Program
@@ -58,7 +61,7 @@ CREATE TABLE `users` (
 
   PRIMARY KEY (`id`),
     UNIQUE KEY `idx_email` (`email`),
-    UNIQUE KEY `idx_username` (`username`),
+#     UNIQUE KEY `idx_username` (`username`),
     KEY `idx_status_active` (`status`, `is_email_verified`),
     KEY `idx_marketing` (`marketing_emails`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -604,7 +607,7 @@ CREATE TABLE `billing_periods` (
 
   PRIMARY KEY (`id`),
 #   UNIQUE KEY `idx_name` (`name`),
-  UNIQUE KEY `idx_type_duration` (`type`, `duration`)
+  UNIQUE KEY `idx_type_duration` (`type`, `duration_days`)
 #   CONSTRAINT `chk_discount` CHECK (`discount_percentage` BETWEEN 0.00 AND 100.00)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

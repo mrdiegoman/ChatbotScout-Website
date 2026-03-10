@@ -60,12 +60,10 @@ switch ($action) {
             $chatbotStmt = $db->prepare("
                 SELECT c.id
                 FROM chatbots c
-                JOIN subscriptions s ON s.chatbot_id = c.id
-                WHERE c.id                = :chatbot_id
-                  AND c.owner_user_id     = :user_id
-                  AND c.deleted_at        IS NULL
-                  AND s.subscription_type = 'listing'
-                  AND s.status            = 'active'
+                WHERE c.id            = :chatbot_id
+                AND c.owner_user_id = :user_id
+                AND c.deleted_at    IS NULL
+                AND c.status        = 'active'
                 LIMIT 1
             ");
             $chatbotStmt->execute([
@@ -83,7 +81,7 @@ switch ($action) {
 
             // ── Load promotion plan ──────────────────────────────────────────
             $promoStmt = $db->prepare("
-                SELECT p.*, bp.type AS period_type, bp.duration AS period_duration,
+                SELECT p.*, bp.type AS period_type, bp.duration_days AS period_duration,
                        c.id AS currency_id
                 FROM promotions p
                 JOIN billing_periods bp ON p.billing_period_id = bp.id
@@ -198,11 +196,13 @@ switch ($action) {
 
             } catch (Exception $e) {
                 $db->rollBack();
+                error_log('advertise inner error: ' . $e->getMessage());
                 throw $e;
             }
 
         } catch (Exception $e) {
             http_response_code(500);
+            error_log('advertise outer error: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Failed to create promotion']);
         }
         break;

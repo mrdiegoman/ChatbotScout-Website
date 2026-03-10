@@ -42,7 +42,7 @@
 }
 
 .checkout-summary__title {
-    font-size: 1.3rem;
+    font-size: 2.25rem;
     font-weight: 700;
     margin: 0;
 }
@@ -62,19 +62,19 @@
 }
 
 .checkout-summary__item-name {
-    font-size: 1.05rem;
+    font-size: 1.4rem;
     font-weight: 700;
     margin-bottom: 4px;
 }
 
 .checkout-summary__item-chatbot {
-    font-size: 0.9rem;
+    font-size: 1.4rem;
     opacity: 0.85;
     margin-bottom: 2px;
 }
 
 .checkout-summary__item-period {
-    font-size: 0.82rem;
+    font-size: 1.2rem;
     opacity: 0.7;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -89,7 +89,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 1rem;
+    font-size: 1.6rem;
     font-weight: 600;
 }
 
@@ -99,7 +99,7 @@
 }
 
 .checkout-summary__renewal {
-    font-size: 0.85rem;
+    font-size: 1.2rem;
     opacity: 0.75;
     background: rgba(255,255,255,0.1);
     padding: 10px 14px;
@@ -108,7 +108,7 @@
 
 .checkout-summary__cancel {
     color: rgba(255,255,255,0.7);
-    font-size: 0.88rem;
+    font-size: 1.6rem;
     text-decoration: none;
     margin-top: auto;
     transition: opacity 0.2s;
@@ -128,14 +128,14 @@
 }
 
 .checkout-payment__title {
-    font-size: 1.4rem;
+    font-size: 1.75rem;
     font-weight: 800;
     color: #1a1a2e;
     margin: 0;
 }
 
 .checkout-payment__subtitle {
-    font-size: 0.9rem;
+    font-size: 1.4rem;
     color: #6b7280;
     margin: 0;
 }
@@ -160,7 +160,7 @@
     color: #fff;
     border: none;
     border-radius: 12px;
-    font-size: 1.05rem;
+    font-size: 1.5rem;
     font-weight: 700;
     cursor: pointer;
     transition: background 0.2s, transform 0.15s;
@@ -179,7 +179,7 @@
 }
 
 .checkout-payment__terms {
-    font-size: 0.8rem;
+    font-size: 1.2rem;
     color: #9ca3af;
     margin: 0;
     line-height: 1.6;

@@ -24,6 +24,8 @@ if (!defined('BOOTSTRAP_LOADED')) {
     exit;
 }
 
+v stripe by mohol byt ten tociaci sa gif kym sa loaduje miesto pre kartu
+
 REDIS COMMANDY:
     redis-cli
     INFO keyspace

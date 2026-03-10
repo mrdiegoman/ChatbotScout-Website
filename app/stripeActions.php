@@ -4,11 +4,7 @@
  * Handles: create_payment_intent
  */
 
-if (!defined('BOOTSTRAP_LOADED')) {
-    http_response_code(403);
-    exit;
-}
-
+require '../inc/bootstrap.php';
 require_once __DIR__ . '/../vendor/autoload.php';
 
 $stripeConfig = require __DIR__ . '/../config/stripe.php';
@@ -79,6 +75,7 @@ if ($action === 'create_payment_intent') {
 
         // ── Get or create Stripe Customer ────────────────────────────────────
         $stripeCustomerId = $sub['stripe_customer_id'];
+;
 
         if (!$stripeCustomerId) {
             $customer = \Stripe\Customer::create([
