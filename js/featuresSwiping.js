@@ -11,13 +11,14 @@ function initializeScrollbars() {
 
         const scrollbar = container.parentElement.querySelector('.chatbot-page-main-content-chatbots-list-view-item-scrollbar, .favourites-page-main-content-chatbots-list-view-item-scrollbar');
         const thumb = scrollbar?.querySelector('.chatbot-page-main-content-chatbots-list-view-item-scrollbar-thumb, .favourites-page-main-content-chatbots-list-view-item-scrollbar-thumb');
-        
+        const DRAG_SPEED = 1.25;
+
         if (!scrollbar || !thumb) return;
 
         let isDown = false;
-        let startX;
-        let scrollLeft;
+        let lastX;
         let isDraggingThumb = false;
+        let thumbClickOffset = 0;
 
         function updateScrollbar() {
             // Počkaj na layout reflow
@@ -42,8 +43,7 @@ function initializeScrollbars() {
             isDown = true;
             container.style.cursor = 'grabbing';
             document.body.style.userSelect = 'none'; // Zakáž výber textu
-            startX = e.pageX - container.offsetLeft;
-            scrollLeft = container.scrollLeft;
+            lastX = e.pageX;
         });
 
         document.addEventListener('mouseup', () => {
@@ -61,9 +61,9 @@ function initializeScrollbars() {
         document.addEventListener('mousemove', (e) => {
             if (isDown) {
                 e.preventDefault();
-                const x = e.pageX - container.offsetLeft;
-                const walk = (x - startX) * 2;
-                container.scrollLeft = scrollLeft - walk;
+                const delta = e.pageX - lastX;
+                lastX = e.pageX;
+                container.scrollLeft -= delta * DRAG_SPEED;
             }
             
             if (isDraggingThumb) {
@@ -72,7 +72,7 @@ function initializeScrollbars() {
                 const mouseX = e.clientX - scrollbarRect.left;
                 const thumbWidth = thumb.clientWidth;
                 
-                const newThumbLeft = mouseX - (thumbWidth / 2);
+                const newThumbLeft = mouseX - thumbClickOffset;
                 const maxThumbLeft = scrollbar.clientWidth - thumbWidth;
                 const clampedThumbLeft = Math.max(0, Math.min(newThumbLeft, maxThumbLeft));
                 
@@ -87,6 +87,7 @@ function initializeScrollbars() {
             e.stopPropagation();
             e.preventDefault(); // Zabráň označeniu textu
             isDraggingThumb = true;
+            thumbClickOffset = e.clientX - thumb.getBoundingClientRect().left;
             document.body.style.userSelect = 'none'; // Zakáž výber textu
         });
 
@@ -106,6 +107,7 @@ function initializeScrollbars() {
                 const scrollPercentage = clampedThumbLeft / maxThumbLeft;
                 container.scrollLeft = scrollPercentage * (container.scrollWidth - container.clientWidth);
                 
+                thumbClickOffset = thumbWidth / 2;
                 isDraggingThumb = true;
             }
         });
