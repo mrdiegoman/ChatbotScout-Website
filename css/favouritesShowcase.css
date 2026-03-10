@@ -445,7 +445,8 @@ body {
 }
 
 .favourites-page-main-content-chatbots-list-view.active {
-    display: block;
+    display: flex;
+    flex-direction: column;
     gap: 2rem;
 }
 
@@ -930,21 +931,25 @@ body {
     right: 1rem;
     background: none;
     border: none;
+    border-radius: calc(25%);
     font-size: 4rem;
     line-height: 1;
     cursor: pointer;
     color: var(--black-color-light);
     padding: 0.5rem;
-    width: 4rem;
-    height: 4rem;
+    opacity: 0.45;
+    width: 3.25rem;
+    height: 3.25rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.15s ease, background-color 0.15s ease;
 }
 
 .favourites-page-main-content-chatbots-list-view-item-remove-btn:hover {
-    transform: scale(1.1);
+    /* transform: scale(1.1); */
+    opacity: 1;
+    background-color: var(--grey-hover-color);
 }
 
 .favourites-page-main-content-chatbots-list-view-item {
@@ -1366,37 +1371,26 @@ body {
 
 .favourites-page-main-content-chatbots-grid-view-item-top-remove-btn {
     position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
+    top: 1rem;
+    right: 1rem;
     background: none;
     border: none;
-    font-size: 2.5rem;
+    border-radius: calc(25%);
+    font-size: 4rem;
     line-height: 1;
     cursor: pointer;
     color: var(--black-color-light);
-    width: 3.5rem;
-    height: 3.5rem;
+    padding: 0.5rem;
+    opacity: 0.45;
+    width: 3.25rem;
+    height: 3.25rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    opacity: 0.45;
-    transition: opacity 0.15s ease, background-color 0.15s ease;
-    z-index: 2;
+    transition: transform 0.2s ease, opacity 0.15s ease, background-color 0.15s ease;
 }
 
 .favourites-page-main-content-chatbots-grid-view-item-top-remove-btn:hover {
-    opacity: 1;
-    background-color: var(--grey-hover-color);
-}
-
-/* ---- Remove button (list view) — CSS už existuje, len doplnok ---- */
-.favourites-page-main-content-chatbots-list-view-item-remove-btn {
-    opacity: 0.45;
-    transition: opacity 0.15s ease, background-color 0.15s ease;
-}
-
-.favourites-page-main-content-chatbots-list-view-item-remove-btn:hover {
     opacity: 1;
     background-color: var(--grey-hover-color);
 }

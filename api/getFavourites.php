@@ -34,7 +34,6 @@ $page = max(1, (int)($_GET['page'] ?? 1));
 
 $limit  = ($view === 'list') ? 12 : 20;
 $offset = ($page - 1) * $limit;
-
 $allowedSorts = ['popularity', 'price', 'alphabetical', 'rating', 'number-of-ratings', 'date-added'];
 if (!in_array($sort, $allowedSorts)) $sort = 'date-added';
 

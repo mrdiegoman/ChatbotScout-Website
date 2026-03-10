@@ -264,6 +264,7 @@
         const rating   = chatbot.rating_average ? Number(chatbot.rating_average).toFixed(1) : '—';
         const rCount   = chatbot.rating_count ? Number(chatbot.rating_count).toLocaleString() : '0';
         const favCount = chatbot.favorite_count ?? 0;
+        let badgeHtml = '';
         if (chatbot.is_sponsored) badgeHtml += `<span class="chatbot-tag-sponsored"><p>✦ Sponsored ✦</p></span>`;
         if (chatbot.is_popular)   badgeHtml += `<span class="chatbot-tag-popular"><p>✦ Popular ✦</p></span>`;
 
@@ -355,6 +356,7 @@
     // ============================================
 
     function renderChatbots(chatbots, append) {
+
         const container = currentContainer();
         if (!append) container.innerHTML = '';
 

@@ -186,6 +186,7 @@
         const intEmpty     = integrations.length === 0 ? ' platforms-btn--empty' : '';
         const rating  = chatbot.rating_average ? Number(chatbot.rating_average).toFixed(1) : '—';
         const rCount  = chatbot.rating_count ? Number(chatbot.rating_count).toLocaleString() : '0';
+        let badgeHtml = '';
         if (chatbot.is_sponsored) badgeHtml += `<span class="favourites-tag-sponsored"><p>✦ Sponsored ✦</p></span>`;
         if (chatbot.is_popular)   badgeHtml += `<span class="favourites-tag-popular"><p>✦ Popular ✦</p></span>`;
 
@@ -255,6 +256,7 @@
         const desc    = escapeHtml(chatbot.description || '');
         const rating  = chatbot.rating_average ? Number(chatbot.rating_average).toFixed(1) : '—';
         const rCount  = chatbot.rating_count ? Number(chatbot.rating_count).toLocaleString() : '0';
+        let badgeHtml = '';
         if (chatbot.is_sponsored) badgeHtml += `<span class="favourites-tag-sponsored"><p>✦ Sponsored ✦</p></span>`;
         if (chatbot.is_popular)   badgeHtml += `<span class="favourites-tag-popular"><p>✦ Popular ✦</p></span>`;
 
@@ -285,15 +287,7 @@
                     <div class="favourites-page-main-content-chatbots-list-view-item-description-container">
                         <div class="favourites-page-main-content-chatbots-grid-view-item-description-container-header">
                             <p class="favourites-page-main-content-chatbots-grid-view-item-description-container-subtitle">Description</p>
-                        </div>
-                        <p class="favourites-page-main-content-chatbots-list-view-item-description-container-text">${desc}</p>
-                    </div>
-                </div>
-                <div class="favourites-page-main-content-chatbots-list-view-item-features-container-right">
-                    <div class="favourites-page-main-content-chatbots-list-view-item-features-container">
-                        <div class="favourites-page-main-content-chatbots-list-view-item-features-container-1">
-                            <p class="favourites-page-main-content-chatbots-list-view-item-description-container-subtitle">Features</p>
-                            <button class="favourites-page-main-content-chatbots-list-view-item-features-container-1-imp-btn${intEmpty}"
+                            <button class="favourites-page-main-content-chatbots-grid-view-item-features-container-1-imp-btn${intEmpty}"
                                     data-integrations="${intJson}"
                                     data-chatbot-name="${escapeAttr(name)}"
                                     onclick="openPlatformsPopup(event, this)">
@@ -303,6 +297,14 @@
                                     <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/>
                                 </svg>
                             </button>
+                        </div>
+                        <p class="favourites-page-main-content-chatbots-list-view-item-description-container-text">${desc}</p>
+                    </div>
+                </div>
+                <div class="favourites-page-main-content-chatbots-list-view-item-features-container-right">
+                    <div class="favourites-page-main-content-chatbots-list-view-item-features-container">
+                        <div class="favourites-page-main-content-chatbots-list-view-item-features-container-1">
+                            <p class="favourites-page-main-content-chatbots-list-view-item-description-container-subtitle">Features</p>
                         </div>
                         <div class="favourites-page-main-content-chatbots-list-view-item-scroll-wrapper">
                             <div class="favourites-page-main-content-chatbots-list-view-item-scroll-container">
