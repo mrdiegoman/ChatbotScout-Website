@@ -30,7 +30,7 @@ try {
         FROM chatbots c
         WHERE c.owner_user_id = :user_id
           AND c.deleted_at    IS NULL
-          AND c.status        IN ('active', 'reviewed')
+          AND c.status        IN ('active')
         ORDER BY c.name ASC
     ");
     $stmt->execute(['user_id' => $user['id']]);

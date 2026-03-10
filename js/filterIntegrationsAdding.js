@@ -60,6 +60,9 @@
             if (typeof window.triggerPricingCountsRefresh === 'function') {
                 window.triggerPricingCountsRefresh();
             }
+            if (typeof window.triggerCurrencyCountsRefresh === 'function') {
+                window.triggerCurrencyCountsRefresh();
+            }
         });
 
         return span;
@@ -144,6 +147,8 @@
             favoritesEnd:         val('favoritesInputEnd'),
             priceStart:           val('priceInputStart'),
             priceEnd:             val('priceInputEnd'),
+            activeCurrencies: typeof window.getActiveCurrencies === 'function'
+                ? window.getActiveCurrencies() : [],
             activeFeatureIds:     [...document.querySelectorAll(
                 isFavourites
                     ? '.favourites-filters-modal-body-features-single.active'

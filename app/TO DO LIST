@@ -14,17 +14,11 @@ sfunkcnit search
 
 prepojit db so social links
 
-pridat do filtra OR logika pre tym currency
-
-fixnut bug keddy sa da v advertise kupit na chatbota ktory nie je na stranke este
-
 bezpecnost pre apis atd.
 if (!defined('BOOTSTRAP_LOADED')) {
     http_response_code(403);
     exit;
 }
-
-v stripe by mohol byt ten tociaci sa gif kym sa loaduje miesto pre kartu
 
 REDIS COMMANDY:
     redis-cli
@@ -33,7 +27,7 @@ REDIS COMMANDY:
     KEYS *
     GET chatbothub:ratelimit:login:::1:count   (Zobrazi count attemptov)
     FLUSHALL
-,
+
 Git Bash:
 cd C:/xampp/htdocs/MainWebsite
 git status   (ukaze modifikovane subory)

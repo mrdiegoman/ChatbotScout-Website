@@ -338,6 +338,17 @@ require '../app/auth.php';
     };
 </script>
 
+<!-- ═══════════════════════════════════════════════════════════
+     REDIRECT OVERLAY (shown while navigating to Stripe checkout)
+════════════════════════════════════════════════════════════ -->
+<div class="adv-redirect-overlay" id="stripeRedirectOverlay">
+    <div class="adv-redirect-overlay__box">
+        <div class="adv-redirect-overlay__spinner"></div>
+        <p class="adv-redirect-overlay__title">Redirecting to secure checkout</p>
+        <p class="adv-redirect-overlay__sub">Please wait, do not close this page...</p>
+    </div>
+</div>
+
 <?php require '../inc/footer.php'; ?>
 <script src="../js/advertise.js"></script>
 </body>

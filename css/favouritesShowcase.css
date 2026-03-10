@@ -1293,6 +1293,30 @@ body {
     transform: rotate(180deg);
 }
 
+.favourites-filters-modal-body-currency-single {
+    display: flex;
+    align-items: center;
+    border: 0.1rem solid var(--black-color-light);
+    border-radius: 2rem;
+    color: var(--black-color-light);
+    font-size: 1.2rem;
+    padding: 0.5rem 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.1s ease, color 0.1s ease;
+    user-select: none;
+}
+
+.favourites-filters-modal-body-currency-single.active {
+    border: 0.1rem solid var(--black-color-light);
+    border-radius: 2rem;
+    color: var(--white-color-dark);
+    background-color: var(--blue-color-2);
+    font-size: 1.2rem;
+    padding: 0.5rem 0.5rem;
+    cursor: pointer;
+    user-select: none;
+}
+
 
 /* Footer */
 .favourites-filters-modal-footer {

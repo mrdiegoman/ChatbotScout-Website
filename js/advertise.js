@@ -503,13 +503,15 @@ async function handleConfirm() {
 
             // Redirect to checkout with first subscription (Homepage)
             // Second subscription handled after payment via webhook
+            document.getElementById('stripeRedirectOverlay').classList.add('active');
             window.location.href = 'checkout.php?subscription_id=' + result1.subscription_id
-                                 + '&subscription_id_2=' + result2.subscription_id;
+                                + '&subscription_id_2=' + result2.subscription_id;
         } else {
             const result = await createPromotion(botId, state.selectedPlanId);
 
             if (!result.success) throw new Error(result.message || 'Failed to create promotion');
 
+            document.getElementById('stripeRedirectOverlay').classList.add('active');
             window.location.href = 'checkout.php?subscription_id=' + result.subscription_id;
         }
 

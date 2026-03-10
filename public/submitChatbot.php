@@ -206,9 +206,9 @@ if (!$isLoggedIn) {
 
                 <!-- Submit -->
                 <div class="sc-form__footer">
-                    <p class="sc-form__note">
+                    <!-- <p class="sc-form__note">
                         By submitting, you confirm that you have the rights to list this chatbot and agree to our <a href="affiliateDisclosure.php">Affiliate Terms</a>.
-                    </p>
+                    </p> -->
                     <button type="submit" class="sc-submit-btn" id="scSubmitBtn">
                         <span id="scSubmitText">Send Partnership Request</span>
                         <span id="scSubmitLoader" style="display:none;">Sending...</span>

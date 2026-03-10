@@ -153,7 +153,7 @@ $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User'
             </nav>
 
             <div class="header-mobile-promo">
-                <a href="submit.php" class="header-mobile-btn-submit">Submit Chatbot</a>
+                <a href="submitChatbot.php" class="header-mobile-btn-submit">Submit Chatbot</a>
                 <a href="advertise.php" class="header-mobile-btn-advertise">Advertise</a>
             </div>
 

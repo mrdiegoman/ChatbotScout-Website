@@ -64,6 +64,12 @@ $activePricingModels = array_values(array_filter(
 
 $isFavourites = !empty($data['isFavourites']) && $isLoggedIn;
 
+$allowedCurrencyCodes = ['USD', 'EUR', 'GBP'];
+$activeCurrencies = array_values(array_filter(
+    (array)($data['activeCurrencies'] ?? []),
+    fn($c) => in_array($c, $allowedCurrencyCodes, true)
+));
+
 try {
     $db = Database::getInstance()->getConnection();
 
@@ -101,6 +107,12 @@ try {
         $pmPh = implode(',', array_map(fn($i) => ":apm{$i}", range(0, count($activePricingModels) - 1)));
         $where[] = "c.pricing_model IN ({$pmPh})";
         foreach ($activePricingModels as $i => $m) { $params[":apm{$i}"] = $m; }
+    }
+
+    if (count($activeCurrencies) > 0) {
+        $cp = implode(',', array_map(fn($i) => ":cur{$i}", range(0, count($activeCurrencies) - 1)));
+        $where[] = "c.pricing_currency IN ({$cp})";
+        foreach ($activeCurrencies as $i => $c) { $params[":cur{$i}"] = $c; }
     }
 
     $whereStr = implode(' AND ', $where);

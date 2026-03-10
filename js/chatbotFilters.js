@@ -65,6 +65,11 @@ window.getActiveFilterParams = function () {
         }
     });
 
+    if (typeof window.getActiveCurrencies === 'function') {
+        const currencies = window.getActiveCurrencies();
+        if (currencies.length > 0) params['currency[]'] = currencies;
+    }
+
     // Integrations — OR filter
     if (typeof window.getActiveIntegrationIds === 'function') {
         const intIds = window.getActiveIntegrationIds();
@@ -95,7 +100,7 @@ if (applyFiltersBtn) {
 // CLEAR ALL FILTERS
 // ============================================
 
-function clearAllFilters() {
+function clearAllFilters () {
     ['ratingInputStart', 'ratingInputEnd', 'votesInputStart', 'votesInputEnd', 'favoritesInputStart', 'favoritesInputEnd', 'priceInputStart', 'priceInputEnd']
         .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
 
@@ -109,6 +114,7 @@ function clearAllFilters() {
     if (typeof window.applyFilters === 'function')                window.applyFilters();
     if (typeof window.clearIntegrationFilters === 'function')     window.clearIntegrationFilters();
     if (typeof window.clearPricingFilters === 'function')         window.clearPricingFilters();
+    if (typeof window.clearCurrencyFilters === 'function')        window.clearCurrencyFilters();
 }
 
 if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearAllFilters);

@@ -75,6 +75,12 @@
         });
 
         count += document.querySelectorAll(`.${spanClass}.active`).length;
+        
+        // Currency
+        const currSpanClass = isFavourites
+            ? 'favourites-filters-modal-body-currency-single'
+            : 'chatbot-filters-modal-body-currency-single';
+        count += document.querySelectorAll(`.${currSpanClass}.active`).length;
 
         // Rátaj aj aktívne integrácie
         const intSpanClass = isFavourites
@@ -112,6 +118,8 @@
             favoritesEnd:         val('favoritesInputEnd'),
             priceStart:           val('priceInputStart'),
             priceEnd:             val('priceInputEnd'),
+            activeCurrencies: typeof window.getActiveCurrencies === 'function'
+                ? window.getActiveCurrencies() : [],
             activeFeatureIds:     [...document.querySelectorAll(`.${spanClass}.active`)]
                 .map(s => s.dataset.featureId)
                 .filter(Boolean),
@@ -184,6 +192,9 @@
             }
             if (typeof window.triggerPricingCountsRefresh === 'function') {
                 window.triggerPricingCountsRefresh();
+            }
+            if (typeof window.triggerCurrencyCountsRefresh === 'function'){
+                window.triggerCurrencyCountsRefresh();
             }
         });
 

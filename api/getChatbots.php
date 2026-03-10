@@ -66,6 +66,13 @@ $pricingModels = array_values(array_filter(
 ));
 $pricingCount = count($pricingModels);
 
+$allowedCurrencyCodes = ['USD', 'EUR', 'GBP'];
+$currencyCodes = array_values(array_filter(
+    (array)($_GET['currency'] ?? []),
+    fn($c) => in_array($c, $allowedCurrencyCodes, true)
+));
+$currencyCount = count($currencyCodes);
+
 // ============================================
 // SORT LOGIC
 // ============================================
@@ -127,6 +134,12 @@ if ($pricingCount > 0) {
     $pp = implode(',', array_map(fn($i) => ":pm{$i}", range(0, $pricingCount - 1)));
     $where[] = "c.pricing_model IN ({$pp})";
     foreach ($pricingModels as $i => $m) { $params[":pm{$i}"] = $m; }
+}
+
+if ($currencyCount > 0) {
+    $cp = implode(',', array_map(fn($i) => ":cur{$i}", range(0, $currencyCount - 1)));
+    $where[] = "c.pricing_currency IN ({$cp})";
+    foreach ($currencyCodes as $i => $c) { $params[":cur{$i}"] = $c; }
 }
 
 $whereStr = implode(' AND ', $where);

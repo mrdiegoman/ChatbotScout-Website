@@ -71,6 +71,12 @@ $activePricingModels = array_values(array_filter(
 
 $isFavourites = !empty($data['isFavourites']) && $isLoggedIn && !empty($user['id']);
 
+$allowedCurrencyCodes = ['USD', 'EUR', 'GBP'];
+$activeCurrencies = array_values(array_filter(
+    (array)($data['activeCurrencies'] ?? []),
+    fn($c) => in_array($c, $allowedCurrencyCodes, true)
+));
+
 try {
     $db = Database::getInstance()->getConnection();
 
@@ -117,6 +123,12 @@ try {
               AND ci_pc.is_supported = 1
         )";
         foreach ($activeIntIds as $i => $id) { $params[":ai{$i}"] = $id; }
+    }
+
+    if (count($activeCurrencies) > 0) {
+        $cp = implode(',', array_map(fn($i) => ":cur{$i}", range(0, count($activeCurrencies) - 1)));
+        $where[] = "c.pricing_currency IN ({$cp})";
+        foreach ($activeCurrencies as $i => $c) { $params[":cur{$i}"] = $c; }
     }
 
     $whereStr = implode(' AND ', $where);

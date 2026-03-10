@@ -66,6 +66,8 @@
             favoritesEnd:        val('favoritesInputEnd'),
             priceStart:          val('priceInputStart'),
             priceEnd:            val('priceInputEnd'),
+            activeCurrencies: typeof window.getActiveCurrencies === 'function'
+                ? window.getActiveCurrencies() : [],
             activeFeatureIds:    [...document.querySelectorAll(`.${featSpanClass}.active`)]
                 .map(s => s.dataset.featureId).filter(Boolean),
             activeIntegrationIds: [...document.querySelectorAll(`.${intSpanClass}.active`)]
@@ -134,6 +136,9 @@
             }
             if (typeof window.triggerIntegrationCountsRefresh === 'function') {
                 window.triggerIntegrationCountsRefresh();
+            }
+            if (typeof window.triggerCurrencyCountsRefresh === 'function') {
+                window.triggerCurrencyCountsRefresh();
             }
         });
 
