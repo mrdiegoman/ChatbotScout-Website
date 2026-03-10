@@ -81,13 +81,14 @@ $dir = $direction === 'asc' ? 'ASC' : 'DESC';
 
 $orderBy = match($sort) {
     'popularity'        => "c.click_count $dir, c.rating_average $dir",
-    'alphabetical'      => "c.name $dir",
+    'alphabetical'      => "c.name " . ($direction === 'asc' ? 'DESC' : 'ASC'),
     'rating'            => "c.rating_average $dir, c.rating_count $dir",
     'number-of-ratings' => "c.rating_count $dir, c.rating_average $dir",
     'date-added'        => "fav.created_at $dir",
+    'price'             => "ISNULL(c.starting_price) ASC, c.starting_price $dir",
     default             => "fav.created_at $dir",
 };
-if ($sort === 'price') $orderBy = "ISNULL(c.starting_price) ASC, c.starting_price $dir";
+$orderBy = $orderBy . ", c.created_at DESC";
 
 // ============================================
 // BUILD WHERE + PARAMS
@@ -164,7 +165,8 @@ $stmt = $db->prepare("
         c.starting_price, c.pricing_currency,
         c.rating_average, c.rating_count,
         c.click_count, c.favorite_count,
-        fav.created_at AS favourited_at
+        fav.created_at AS favourited_at,
+        c.is_sponsored, c.created_at
     FROM `favorites` fav
     JOIN `chatbots` c ON c.id = fav.chatbot_id
     WHERE {$whereStr}
@@ -273,6 +275,13 @@ foreach ($chatbots as $chatbot) {
     $id   = $chatbot['id'];
     $link = ($chatbot['has_affiliate_program'] && !empty($chatbot['affiliate_link']))
         ? $chatbot['affiliate_link'] : $chatbot['website_url'];
+    
+    $isPopular   = false;
+    $isSponsored = false;
+    foreach ($tagMap[$id] ?? [] as $tag) {
+        if ($tag['name'] === 'Popular')   $isPopular   = true;
+        if ($tag['name'] === 'Sponsored') $isSponsored = true;
+    }
 
     $result[] = [
         'id'             => $id,
@@ -287,6 +296,8 @@ foreach ($chatbots as $chatbot) {
         'pricing'        => buildPricingDisplay($chatbot),
         'features'       => $featureMap[$id] ?? [],
         'tags'           => $tagMap[$id] ?? [],
+        'is_sponsored'   => $isSponsored || (bool)$chatbot['is_sponsored'],
+        'is_popular'     => $isPopular,
         'integrations'   => $integrationMap[$id] ?? [],
     ];
 }

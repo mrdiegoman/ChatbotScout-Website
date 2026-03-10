@@ -1768,6 +1768,28 @@ body {
     cursor: not-allowed;
 }
 
+/* .chatbot-card-badge {
+    display: inline-block;
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 0.3rem 0.9rem;
+    border-radius: 10rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.chatbot-card-badge--sponsored {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+}
+
+.chatbot-card-badge--popular {
+    background: #ede9fe;
+    color: #5b21b6;
+    border: 1px solid #c4b5fd;
+} */
+
 /* ---- Responsive ---- */
 
 @media (max-width: 768px) {

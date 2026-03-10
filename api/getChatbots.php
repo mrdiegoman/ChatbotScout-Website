@@ -80,13 +80,14 @@ $currencyCount = count($currencyCodes);
 $dir = $direction === 'asc' ? 'ASC' : 'DESC';
 
 $orderBy = match($sort) {
-    'popularity' => "(c.rating_average * LOG(c.click_count + 1)) $dir",
-    'alphabetical'      => "c.name $dir",
+    'popularity'        => "(c.rating_average * LOG(c.click_count + 1)) $dir, c.click_count $dir",
+    'alphabetical'      => "c.name " . ($direction === 'asc' ? 'DESC' : 'ASC'),
     'rating'            => "c.rating_average $dir, c.rating_count $dir",
     'number-of-ratings' => "c.rating_count $dir, c.rating_average $dir",
+    'price'             => "ISNULL(c.starting_price) ASC, c.starting_price $dir",
     default             => "c.click_count $dir",
 };
-if ($sort === 'price') $orderBy = "ISNULL(c.starting_price) ASC, c.starting_price $dir";
+$orderBy = "c.is_sponsored DESC, " . $orderBy . ", c.created_at DESC";
 
 // ============================================
 // BUILD WHERE + PARAMS
@@ -176,6 +177,7 @@ $sql = "
         c.starting_price, c.pricing_currency,
         c.rating_average, c.rating_count,
         c.click_count, c.favorite_count,
+        c.is_sponsored, c.created_at,
         {$selectFav}
     FROM `chatbots` c
     {$joinFav}
@@ -282,6 +284,13 @@ foreach ($chatbots as $chatbot) {
     $link = ($chatbot['has_affiliate_program'] && !empty($chatbot['affiliate_link']))
         ? $chatbot['affiliate_link'] : $chatbot['website_url'];
 
+    $isPopular    = false;
+    $isSponsored  = false;
+    foreach ($tagMap[$id] ?? [] as $tag) {
+        if ($tag['name'] === 'Popular')   $isPopular   = true;
+        if ($tag['name'] === 'Sponsored') $isSponsored = true;
+    }
+
     $result[] = [
         'id'             => $id,
         'name'           => $chatbot['name'],
@@ -295,6 +304,8 @@ foreach ($chatbots as $chatbot) {
         'is_favourited'  => (bool)$chatbot['is_favourited'],
         'pricing'        => buildPricingDisplay($chatbot),
         'features'       => $featureMap[$id] ?? [],
+        'is_sponsored'   => $isSponsored || (bool)$chatbot['is_sponsored'],
+        'is_popular'     => $isPopular,
         'tags'           => $tagMap[$id] ?? [],
         'integrations'   => $integrationMap[$id] ?? [],
     ];

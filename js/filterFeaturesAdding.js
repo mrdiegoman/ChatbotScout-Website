@@ -88,14 +88,15 @@
             : 'chatbot-filters-modal-body-integrations-single';
         count += document.querySelectorAll(`.${intSpanClass}.active`).length;
 
-        if (filtersCountBadge) filtersCountBadge.style.display = count > 0 ? 'flex' : 'none';
-        if (filtersCountNum)   filtersCountNum.textContent = count;
-
         // Rátaj aj aktívne pricing modely
         const pricingSpanClass = isFavourites
             ? 'favourites-filters-modal-body-pricing-single'
             : 'chatbot-filters-modal-body-pricing-single';
         count += document.querySelectorAll(`.${pricingSpanClass}.active`).length;
+
+        if (filtersCountBadge) filtersCountBadge.style.display = count > 0 ? 'flex' : 'none';
+        if (filtersCountNum)   filtersCountNum.textContent = count;
+
     }
 
     // ============================================

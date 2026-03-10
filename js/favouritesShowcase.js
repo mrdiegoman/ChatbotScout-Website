@@ -133,7 +133,11 @@
 
     function buildTags(tags) {
         if (!tags || tags.length === 0) return '';
-        return tags.map(t => `<span><p>✦ ${escapeHtml(t.name)} ✦</p></span>`).join('');
+        const systemTags = ['Popular', 'Sponsored'];
+        return tags
+            .filter(t => !systemTags.includes(t.name))
+            .map(t => `<span><p>✦ ${escapeHtml(t.name)} ✦</p></span>`)
+            .join('');
     }
 
     function buildFeatureCards(features) {
@@ -182,58 +186,60 @@
         const intEmpty     = integrations.length === 0 ? ' platforms-btn--empty' : '';
         const rating  = chatbot.rating_average ? Number(chatbot.rating_average).toFixed(1) : '—';
         const rCount  = chatbot.rating_count ? Number(chatbot.rating_count).toLocaleString() : '0';
+        if (chatbot.is_sponsored) badgeHtml += `<span class="favourites-tag-sponsored"><p>✦ Sponsored ✦</p></span>`;
+        if (chatbot.is_popular)   badgeHtml += `<span class="favourites-tag-popular"><p>✦ Popular ✦</p></span>`;
 
         return `
-<div class="favourites-page-main-content-chatbots-grid-view-item" data-chatbot-id="${escapeHtml(chatbot.id)}">
-    ${buildRemoveBtn(chatbot.id)}
-    <div class="favourites-page-main-content-chatbots-grid-view-item-tags">${tags}</div>
-    <div class="favourites-page-main-content-chatbots-grid-view-item-top">
-        <div class="favourites-page-main-content-chatbots-grid-view-item-top-img-wrapper">
-            ${logoHtml(chatbot)}
-        </div>
-        <div class="favourites-page-main-content-chatbots-grid-view-item-top-base">
-            <div class="favourites-page-main-content-chatbots-grid-view-item-top-base-1">
-                <p>${name}</p>
-                <div class="favourites-page-main-content-chatbots-grid-view-item-top-base-2">
-                    ${stars}
-                    <p>${rating}</p>
-                    <p>(${rCount})</p>
+        <div class="favourites-page-main-content-chatbots-grid-view-item" data-chatbot-id="${escapeHtml(chatbot.id)}">
+            ${buildRemoveBtn(chatbot.id)}
+            <div class="favourites-page-main-content-chatbots-grid-view-item-tags">${badgeHtml}${tags}</div>
+            <div class="favourites-page-main-content-chatbots-grid-view-item-top">
+                <div class="favourites-page-main-content-chatbots-grid-view-item-top-img-wrapper">
+                    ${logoHtml(chatbot)}
+                </div>
+                <div class="favourites-page-main-content-chatbots-grid-view-item-top-base">
+                    <div class="favourites-page-main-content-chatbots-grid-view-item-top-base-1">
+                        <p>${name}</p>
+                        <div class="favourites-page-main-content-chatbots-grid-view-item-top-base-2">
+                            ${stars}
+                            <p>${rating}</p>
+                            <p>(${rCount})</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-    <div class="favourites-page-main-content-chatbots-grid-view-item-description-container">
-        <div class="favourites-page-main-content-chatbots-grid-view-item-description-container-header">
-            <p class="favourites-page-main-content-chatbots-grid-view-item-description-container-subtitle">Description</p>
-            <button class="favourites-page-main-content-chatbots-grid-view-item-features-container-1-imp-btn${intEmpty}"
-                    data-integrations="${intJson}"
-                    data-chatbot-name="${escapeAttr(name)}"
-                    onclick="openPlatformsPopup(event, this)">
-                <p>Platforms</p>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/>
-                </svg>
-            </button>
-        </div>
-        <p class="favourites-page-main-content-chatbots-grid-view-item-description-container-text">${desc}</p>
-    </div>
-    <div class="favourites-page-main-content-chatbots-grid-view-item-btns-container">
-        <div class="favourites-page-main-content-chatbots-grid-view-item-btns-container-sipka">
-            <span class="favourites-page-main-content-chatbots-grid-view-item-btns-container-sipka-text">${pricing}</span>
-        </div>
-        <a href="${link}" target="_blank" rel="noopener noreferrer"
-           class="favourites-page-main-content-chatbots-grid-view-item-btns-container-go-to-website"
-           data-chatbot-id="${escapeHtml(chatbot.id)}">
-            <p>Go to Website</p>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M15 3h6v6"/><path d="M10 14 21 3"/>
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-            </svg>
-        </a>
-    </div>
-</div>`;
+            <div class="favourites-page-main-content-chatbots-grid-view-item-description-container">
+                <div class="favourites-page-main-content-chatbots-grid-view-item-description-container-header">
+                    <p class="favourites-page-main-content-chatbots-grid-view-item-description-container-subtitle">Description</p>
+                    <button class="favourites-page-main-content-chatbots-grid-view-item-features-container-1-imp-btn${intEmpty}"
+                            data-integrations="${intJson}"
+                            data-chatbot-name="${escapeAttr(name)}"
+                            onclick="openPlatformsPopup(event, this)">
+                        <p>Platforms</p>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/>
+                        </svg>
+                    </button>
+                </div>
+                <p class="favourites-page-main-content-chatbots-grid-view-item-description-container-text">${desc}</p>
+            </div>
+            <div class="favourites-page-main-content-chatbots-grid-view-item-btns-container">
+                <div class="favourites-page-main-content-chatbots-grid-view-item-btns-container-sipka">
+                    <span class="favourites-page-main-content-chatbots-grid-view-item-btns-container-sipka-text">${pricing}</span>
+                </div>
+                <a href="${link}" target="_blank" rel="noopener noreferrer"
+                class="favourites-page-main-content-chatbots-grid-view-item-btns-container-go-to-website"
+                data-chatbot-id="${escapeHtml(chatbot.id)}">
+                    <p>Go to Website</p>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 3h6v6"/><path d="M10 14 21 3"/>
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    </svg>
+                </a>
+            </div>
+        </div>`;
     }
 
     function buildListItem(chatbot) {
@@ -249,83 +255,85 @@
         const desc    = escapeHtml(chatbot.description || '');
         const rating  = chatbot.rating_average ? Number(chatbot.rating_average).toFixed(1) : '—';
         const rCount  = chatbot.rating_count ? Number(chatbot.rating_count).toLocaleString() : '0';
+        if (chatbot.is_sponsored) badgeHtml += `<span class="favourites-tag-sponsored"><p>✦ Sponsored ✦</p></span>`;
+        if (chatbot.is_popular)   badgeHtml += `<span class="favourites-tag-popular"><p>✦ Popular ✦</p></span>`;
 
         return `
-<div class="favourites-page-main-content-chatbots-list-view-item-containter" data-chatbot-id="${escapeHtml(chatbot.id)}">
-    <button class="favourites-page-main-content-chatbots-list-view-item-remove-btn fav-remove-btn"
-            data-chatbot-id="${escapeHtml(chatbot.id)}"
-            aria-label="Remove from favourites"
-            title="Remove from favourites">×</button>
-    <div class="favourites-page-main-content-chatbots-list-view-item-tags">${tags}</div>
-    <div class="favourites-page-main-content-chatbots-list-view-item">
-        <div class="favourites-page-main-content-chatbots-list-view-item-features-container-left">
-            <div class="favourites-page-main-content-chatbots-list-view-item-top">
-                <div class="favourites-page-main-content-chatbots-list-view-item-top-img-wrapper">
-                    ${logoHtml(chatbot)}
-                </div>
-                <div class="favourites-page-main-content-chatbots-list-view-item-top-base">
-                    <div class="favourites-page-main-content-chatbots-list-view-item-top-base-1">
-                        <p>${name}</p>
-                        <div class="favourites-page-main-content-chatbots-list-view-item-top-base-2">
-                            ${stars}
-                            <p>${rating}</p>
-                            <p>(${rCount})</p>
+        <div class="favourites-page-main-content-chatbots-list-view-item-containter" data-chatbot-id="${escapeHtml(chatbot.id)}">
+            <button class="favourites-page-main-content-chatbots-list-view-item-remove-btn fav-remove-btn"
+                    data-chatbot-id="${escapeHtml(chatbot.id)}"
+                    aria-label="Remove from favourites"
+                    title="Remove from favourites">×</button>
+            <div class="favourites-page-main-content-chatbots-list-view-item-tags">${badgeHtml}${tags}</div>
+            <div class="favourites-page-main-content-chatbots-list-view-item">
+                <div class="favourites-page-main-content-chatbots-list-view-item-features-container-left">
+                    <div class="favourites-page-main-content-chatbots-list-view-item-top">
+                        <div class="favourites-page-main-content-chatbots-list-view-item-top-img-wrapper">
+                            ${logoHtml(chatbot)}
+                        </div>
+                        <div class="favourites-page-main-content-chatbots-list-view-item-top-base">
+                            <div class="favourites-page-main-content-chatbots-list-view-item-top-base-1">
+                                <p>${name}</p>
+                                <div class="favourites-page-main-content-chatbots-list-view-item-top-base-2">
+                                    ${stars}
+                                    <p>${rating}</p>
+                                    <p>(${rCount})</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                    <div class="favourites-page-main-content-chatbots-list-view-item-description-container">
+                        <div class="favourites-page-main-content-chatbots-grid-view-item-description-container-header">
+                            <p class="favourites-page-main-content-chatbots-grid-view-item-description-container-subtitle">Description</p>
+                        </div>
+                        <p class="favourites-page-main-content-chatbots-list-view-item-description-container-text">${desc}</p>
+                    </div>
                 </div>
-            </div>
-            <div class="favourites-page-main-content-chatbots-list-view-item-description-container">
-                <div class="favourites-page-main-content-chatbots-grid-view-item-description-container-header">
-                    <p class="favourites-page-main-content-chatbots-grid-view-item-description-container-subtitle">Description</p>
-                </div>
-                <p class="favourites-page-main-content-chatbots-list-view-item-description-container-text">${desc}</p>
-            </div>
-        </div>
-        <div class="favourites-page-main-content-chatbots-list-view-item-features-container-right">
-            <div class="favourites-page-main-content-chatbots-list-view-item-features-container">
-                <div class="favourites-page-main-content-chatbots-list-view-item-features-container-1">
-                    <p class="favourites-page-main-content-chatbots-list-view-item-description-container-subtitle">Features</p>
-                    <button class="favourites-page-main-content-chatbots-list-view-item-features-container-1-imp-btn${intEmpty}"
-                            data-integrations="${intJson}"
-                            data-chatbot-name="${escapeAttr(name)}"
-                            onclick="openPlatformsPopup(event, this)">
-                        <p>Platforms</p>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/>
-                        </svg>
-                    </button>
-                </div>
-                <div class="favourites-page-main-content-chatbots-list-view-item-scroll-wrapper">
-                    <div class="favourites-page-main-content-chatbots-list-view-item-scroll-container">
-                        <div class="favourites-page-main-content-chatbots-list-view-item-cards-wrapper">
-                            ${cards}
+                <div class="favourites-page-main-content-chatbots-list-view-item-features-container-right">
+                    <div class="favourites-page-main-content-chatbots-list-view-item-features-container">
+                        <div class="favourites-page-main-content-chatbots-list-view-item-features-container-1">
+                            <p class="favourites-page-main-content-chatbots-list-view-item-description-container-subtitle">Features</p>
+                            <button class="favourites-page-main-content-chatbots-list-view-item-features-container-1-imp-btn${intEmpty}"
+                                    data-integrations="${intJson}"
+                                    data-chatbot-name="${escapeAttr(name)}"
+                                    onclick="openPlatformsPopup(event, this)">
+                                <p>Platforms</p>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="favourites-page-main-content-chatbots-list-view-item-scroll-wrapper">
+                            <div class="favourites-page-main-content-chatbots-list-view-item-scroll-container">
+                                <div class="favourites-page-main-content-chatbots-list-view-item-cards-wrapper">
+                                    ${cards}
+                                </div>
+                            </div>
+                            <div class="favourites-page-main-content-chatbots-list-view-item-scrollbar">
+                                <div class="favourites-page-main-content-chatbots-list-view-item-scrollbar-thumb"></div>
+                            </div>
                         </div>
                     </div>
-                    <div class="favourites-page-main-content-chatbots-list-view-item-scrollbar">
-                        <div class="favourites-page-main-content-chatbots-list-view-item-scrollbar-thumb"></div>
+                
+                    <div class="favourites-page-main-content-chatbots-list-view-item-btns-container">
+                        <div class="favourites-page-main-content-chatbots-grid-view-item-btns-container-sipka">
+                            <span class="favourites-page-main-content-chatbots-grid-view-item-btns-container-sipka-text">${pricing}</span>
+                        </div>
+                        <a href="${link}" target="_blank" rel="noopener noreferrer"
+                        class="favourites-page-main-content-chatbots-list-view-item-btns-container-go-to-website"
+                        data-chatbot-id="${escapeHtml(chatbot.id)}">
+                            <p>Go to Website</p>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M15 3h6v6"/><path d="M10 14 21 3"/>
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                            </svg>
+                        </a>
                     </div>
-                </div>
+                </div>    
             </div>
-        
-            <div class="favourites-page-main-content-chatbots-list-view-item-btns-container">
-                <div class="favourites-page-main-content-chatbots-grid-view-item-btns-container-sipka">
-                    <span class="favourites-page-main-content-chatbots-grid-view-item-btns-container-sipka-text">${pricing}</span>
-                </div>
-                <a href="${link}" target="_blank" rel="noopener noreferrer"
-                class="favourites-page-main-content-chatbots-list-view-item-btns-container-go-to-website"
-                data-chatbot-id="${escapeHtml(chatbot.id)}">
-                    <p>Go to Website</p>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M15 3h6v6"/><path d="M10 14 21 3"/>
-                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                    </svg>
-                </a>
-            </div>
-        </div>    
-    </div>
-</div>`;
+        </div>`;
     }
 
     // ============================================

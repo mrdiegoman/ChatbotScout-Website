@@ -173,3 +173,10 @@ zvycajne sa to spusta automaticky potom ako zaplati.
     Base.sql
 composer.json
 composer.lock
+
+windows:
+php cron/updatePopularTags.php
+```
+A na serveri nastav cron (linux):
+```
+0 0 * * * php /path/to/cron/updatePopularTags.php
