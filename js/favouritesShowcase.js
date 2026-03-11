@@ -25,6 +25,7 @@
         ratingChatbotId: null,
         ratingValue:     0,
         sortDirection:   'desc',
+        searchQuery: '',
     };
 
     const LOGIN_URL = '../public/login.php?redirect=favouritesShowcase.php';
@@ -346,7 +347,10 @@
         const container = currentContainer();
         container.innerHTML = '';
 
-        if (chatbots.length === 0) {
+        if (chatbots.length === 0 && !append) {
+            emptyState.innerHTML = state.searchQuery
+                ? `<p>There are no chatbots with the name "<strong>${escapeHtml(state.searchQuery)}</strong>".</p>`
+                : `<p>You have no favourites yet.</p>`;
             emptyState.style.display = 'block';
             return;
         }
@@ -639,6 +643,7 @@ function openRatingModal(chatbotId, chatbotName) {
             sort: state.currentSort,
             page: state.currentPage,
             direction: state.sortDirection,
+            search: state.searchQuery,
         });
 
         if (typeof window.getActiveFilterParams === 'function') {
@@ -900,6 +905,79 @@ function openRatingModal(chatbotId, chatbotName) {
         }
     } catch (_) {
         gridView.classList.add('active');
+    }
+
+    // ============================================
+    // SEARCH
+    // ============================================
+
+    const favDesktopSearch = document.querySelector('.favourites-page-main-content-topbar-search');
+    const favSearchInput   = document.getElementById('searchInput');
+    const favMobileInput   = document.getElementById('mobileSearchInput');
+    const favClearBtn      = document.getElementById('searchClearBtn');
+    const favClearIcon     = favClearBtn?.querySelector('.favourites-page-main-content-topbar-search-input-clear-icon');
+    const favSubmitBtn     = favDesktopSearch?.querySelector('.favourites-page-main-content-topbar-search-submit-btn');
+
+    let searchDebounce = null;
+
+    function handleSearchInput(value) {
+        state.searchQuery = value.trim();
+        state.currentPage = 1;
+        clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(() => loadFavourites(false), 350);
+    }
+
+    if (favSubmitBtn && favDesktopSearch) {
+        favSubmitBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const isActive = favDesktopSearch.classList.contains('active');
+            if (isActive && favSearchInput.value.trim() === '') {
+                favDesktopSearch.classList.remove('active');
+                favSearchInput.blur();
+            } else if (!isActive) {
+                favDesktopSearch.classList.add('active');
+                setTimeout(() => favSearchInput.focus(), 50);
+            }
+        });
+    }
+
+    if (favSearchInput) {
+        favSearchInput.addEventListener('input', function () {
+            favClearIcon?.classList.toggle('visible', this.value.length > 0);
+            handleSearchInput(this.value);
+        });
+
+        favSearchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && favSearchInput.value === '') {
+                favDesktopSearch?.classList.remove('active');
+                favSearchInput.blur();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (favDesktopSearch && !favDesktopSearch.contains(e.target)) {
+                if (favSearchInput.value.trim() === '') {
+                    favDesktopSearch.classList.remove('active');
+                }
+            }
+        });
+    }
+
+    if (favClearBtn && favSearchInput) {
+        favClearBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            favSearchInput.value = '';
+            favClearIcon?.classList.remove('visible');
+            handleSearchInput('');
+            favSearchInput.focus();
+        });
+    }
+
+    if (favMobileInput) {
+        favMobileInput.addEventListener('input', function () {
+            handleSearchInput(this.value);
+        });
     }
 
     loadFavourites();

@@ -55,7 +55,7 @@ body {
     cursor: text;
     align-items: center;
     flex-wrap: nowrap;
-    justify-content: flex-start;
+    justify-content: center;
     border: 0.1rem solid var(--grey-color-mid);
     border-radius: 1rem;
     font-size: 1.5rem;
@@ -64,7 +64,7 @@ body {
 
 .chatbot-page-main-content-topbar-search-input {
     height: 100%;
-    width: 20rem;
+    /* width: 20rem; */
     padding: 1rem 0 1rem 1rem;
 }
 
@@ -1790,6 +1790,47 @@ body {
     border: 1px solid #c4b5fd;
 } */
 
+/* Desktop search toggle */
+.chatbot-page-main-content-topbar-search-desktop {
+    cursor: pointer;
+    width: 4rem;               /* len šírka lupy */
+    overflow: hidden;
+    transition: width 0.3s ease;
+}
+
+.chatbot-page-main-content-topbar-search-desktop .chatbot-page-main-content-topbar-search-input {
+    width: 0;
+    opacity: 0;
+    padding: 0;
+    pointer-events: none;
+    transition: width 0.3s ease, opacity 0.2s ease, padding 0.3s ease;
+}
+
+.chatbot-page-main-content-topbar-search-desktop .chatbot-page-main-content-topbar-search-input-clear-btn {
+    width: 0;
+    overflow: hidden;
+    padding: 0;
+    transition: width 0.3s ease;
+}
+
+/* Desktop search — active/expanded stav */
+.chatbot-page-main-content-topbar-search-desktop.active {
+    width: 28rem;              /* roztiahne sa doľava */
+    cursor: text;
+}
+
+.chatbot-page-main-content-topbar-search-desktop.active .chatbot-page-main-content-topbar-search-input {
+    width: 20rem;
+    opacity: 1;
+    padding: 1rem 0 1rem 1rem;
+    pointer-events: auto;
+}
+
+.chatbot-page-main-content-topbar-search-desktop.active .chatbot-page-main-content-topbar-search-input-clear-btn {
+    width: auto;
+    padding: 0.5rem;
+}
+
 /* ---- Responsive ---- */
 
 @media (max-width: 768px) {
@@ -1975,6 +2016,14 @@ body {
         width: 100%;
         min-width: none;
     }
+    .chatbot-page-main-content-topbar-search.active {
+        width: 20rem;
+        cursor: text;
+    }
+    .chatbot-page-main-content-topbar-search.active .chatbot-page-main-content-topbar-search-input {
+        width: 12rem ;
+        padding: 1rem 0 1rem 1rem ;
+    }
 }
 
 @media (max-width: 1024px) {
@@ -1987,14 +2036,14 @@ body {
 /* Tablety (portrait) */
 @media (max-width: 1024px) {
     /* iPad, Android tablety */
-    .chatbot-page-main-content-topbar-search{
+    /* .chatbot-page-main-content-topbar-search{
         width: 26%;
         min-width: 20rem;
-    }
+    } */
 
-    .chatbot-page-main-content-topbar-search-input {
+    /* .chatbot-page-main-content-topbar-search-input {
         width: 100%;
-    }
+    } */
 }
 
 /* Desktop */

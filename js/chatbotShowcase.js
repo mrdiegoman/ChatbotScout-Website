@@ -25,6 +25,7 @@
         ratingChatbotId:  null,
         ratingValue:      0,
         sortDirection:    'desc',
+        searchQuery:     '', 
     };
 
     const LOGIN_URL = '../public/login.php?redirect=chatbotShowcase.php';
@@ -361,6 +362,9 @@
         if (!append) container.innerHTML = '';
 
         if (chatbots.length === 0 && !append) {
+            emptyState.innerHTML = state.searchQuery
+                ? `<p>There are no chatbots with the name "<strong>${escapeHtml(state.searchQuery)}</strong>".</p>`
+                : `<p>No chatbots found.</p>`;
             emptyState.style.display = 'block';
             return;
         }
@@ -453,6 +457,7 @@
             sort:      state.currentSort,
             page:      state.currentPage,
             direction: state.sortDirection,
+            search:    state.searchQuery,
         });
  
         // Pridaj aktívne filtre z modalu
@@ -881,6 +886,78 @@
     } else {
         gridView.classList.add('active');
         listView.classList.remove('active');
+    }
+    // ============================================
+    // SEARCH
+    // ============================================
+
+    const desktopSearchInput = document.getElementById('desktopSearchInput');
+    const mobileSearchInput  = document.getElementById('mobileSearchInput');
+    const desktopSearch      = document.querySelector('.chatbot-page-main-content-topbar-search-desktop');
+    const desktopClearBtn    = desktopSearch?.querySelector('.chatbot-page-main-content-topbar-search-input-clear-btn');
+    const desktopClearIcon   = desktopSearch?.querySelector('.chatbot-page-main-content-topbar-search-input-clear-icon');
+    const desktopSubmitBtn   = desktopSearch?.querySelector('.chatbot-page-main-content-topbar-search-submit-btn');
+
+    let searchDebounce = null;
+
+    function handleSearchInput(value) {
+        state.searchQuery = value.trim();
+        state.currentPage = 1;
+        clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(() => loadChatbots(false), 350);
+    }
+
+    if (desktopSubmitBtn && desktopSearch) {
+        desktopSubmitBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const isActive = desktopSearch.classList.contains('active');
+            if (isActive && desktopSearchInput.value.trim() === '') {
+                desktopSearch.classList.remove('active');
+                desktopSearchInput.blur();
+            } else if (!isActive) {
+                desktopSearch.classList.add('active');
+                setTimeout(() => desktopSearchInput.focus(), 50);
+            }
+        });
+    }
+
+    if (desktopSearchInput) {
+        desktopSearchInput.addEventListener('input', function () {
+            desktopClearIcon?.classList.toggle('visible', this.value.length > 0);
+            handleSearchInput(this.value);
+        });
+
+        desktopSearchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && desktopSearchInput.value === '') {
+                desktopSearch.classList.remove('active');
+                desktopSearchInput.blur();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (desktopSearch && !desktopSearch.contains(e.target)) {
+                if (desktopSearchInput.value.trim() === '') {
+                    desktopSearch.classList.remove('active');
+                }
+            }
+        });
+    }
+
+    if (desktopClearBtn && desktopSearchInput) {
+        desktopClearBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            desktopSearchInput.value = '';
+            desktopClearIcon?.classList.remove('visible');
+            handleSearchInput('');
+            desktopSearchInput.focus();
+        });
+    }
+
+    if (mobileSearchInput) {
+        mobileSearchInput.addEventListener('input', function () {
+            handleSearchInput(this.value);
+        });
     }
     loadChatbots(false);
 

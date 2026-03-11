@@ -72,6 +72,7 @@ $currencyCodes = array_values(array_filter(
     fn($c) => in_array($c, $allowedCurrencyCodes, true)
 ));
 $currencyCount = count($currencyCodes);
+$search = trim($_GET['search'] ?? '');
 
 // ============================================
 // SORT LOGIC
@@ -141,6 +142,11 @@ if ($currencyCount > 0) {
     $cp = implode(',', array_map(fn($i) => ":cur{$i}", range(0, $currencyCount - 1)));
     $where[] = "c.pricing_currency IN ({$cp})";
     foreach ($currencyCodes as $i => $c) { $params[":cur{$i}"] = $c; }
+}
+
+if ($search !== '') {
+    $where[] = 'c.name LIKE :search';
+    $params[':search'] = '%' . $search . '%';
 }
 
 $whereStr = implode(' AND ', $where);
