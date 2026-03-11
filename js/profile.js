@@ -318,6 +318,38 @@ if (marketingToggle) {
 }
 
 // ============================================
+// CUSTOM CONFIRM POPUP
+// ============================================
+
+function showConfirm(title, message) {
+    return new Promise((resolve) => {
+        const modal      = document.getElementById('confirm-modal');
+        const titleEl    = document.getElementById('confirm-modal-title');
+        const msgEl      = document.getElementById('confirm-modal-message');
+        const confirmBtn = document.getElementById('confirm-modal-confirm');
+        const cancelBtn  = document.getElementById('confirm-modal-cancel');
+
+        titleEl.textContent = title;
+        msgEl.textContent   = message;
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+
+        function cleanup(result) {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+            confirmBtn.removeEventListener('click', onConfirm);
+            cancelBtn.removeEventListener('click', onCancel);
+            resolve(result);
+        }
+        function onConfirm() { cleanup(true);  }
+        function onCancel()  { cleanup(false); }
+
+        confirmBtn.addEventListener('click', onConfirm);
+        cancelBtn.addEventListener('click',  onCancel);
+    });
+}
+
+// ============================================
 // BILLING FILTERS
 // ============================================
 
@@ -440,7 +472,7 @@ const changePlanBtn = document.getElementById('change-plan-btn');
 if (changePlanBtn) {
     changePlanBtn.addEventListener('click', () => {
         // Redirect to pricing/plans page
-        window.location.href = 'pricing.php?action=change';
+        window.location.href = 'advertise.php';
     });
 }
 
@@ -494,35 +526,49 @@ const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
 if (confirmCancelBtn) {
     confirmCancelBtn.addEventListener('click', async () => {
         const cancelType = document.querySelector('input[name="cancel-type"]:checked').value;
-        const reason = document.getElementById('cancel-reason').value;
-        
-        if (!confirm('Are you sure you want to cancel your subscription?')) {
-            return;
+        let reason = document.getElementById('cancel-reason').value;
+        if (reason === 'other') {
+            const otherText = document.getElementById('cancel-reason-other')?.value.trim();
+            if (otherText) reason = otherText;
         }
-        
+
+        const label = cancelType === 'immediately'
+            ? 'immediately — you will lose access now'
+            : 'at the end of your billing period';
+
+        const confirmed = await showConfirm(
+            'Cancel Subscription?',
+            `Your subscription will be cancelled ${label}.`
+        );
+        if (!confirmed) return;
+
         try {
             const response = await fetch('../app/profileActions.php?action=cancel_subscription', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ cancelType, reason })
             });
-            
             const result = await response.json();
-            
             if (result.success) {
                 showNotification('Subscription cancelled', 'success');
                 closeModal('cancel-subscription-modal');
-                
-                // Reload page after 2s
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
+                setTimeout(() => window.location.reload(), 2000);
             } else {
                 showNotification(result.message || 'Cancellation failed', 'error');
             }
         } catch (error) {
             showNotification('Cancellation failed. Please try again.', 'error');
-            console.error('Cancel error:', error);
+        }
+    });
+}
+
+const cancelReasonSelect = document.getElementById('cancel-reason');
+const cancelReasonOther  = document.getElementById('cancel-reason-other');
+if (cancelReasonSelect) {
+    cancelReasonSelect.addEventListener('change', () => {
+        if (cancelReasonOther) {
+            cancelReasonOther.style.display =
+                cancelReasonSelect.value === 'other' ? 'block' : 'none';
         }
     });
 }

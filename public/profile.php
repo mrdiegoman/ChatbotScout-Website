@@ -38,7 +38,7 @@ $subStmt = $db->prepare("
     JOIN currencies     c  ON p.currency_id        = c.id
     JOIN billing_periods bp ON p.billing_period_id = bp.id
     WHERE s.user_id          = :user_id
-      AND s.status           = 'active'
+      AND s.status           IN ('active', 'past_due', 'pending')
       AND s.subscription_type = 'promotion'
     ORDER BY s.created_at DESC
     LIMIT 1
@@ -48,9 +48,8 @@ $subscription = $subStmt->fetch();
 
 // Load billing history
 $payments = [];
-if ($activeTab === 'billing') {
     $paymentStmt = $db->prepare("
-        SELECT 
+        SELECT
             p.*,
             c.symbol AS currency_symbol,
             c.code AS currency_code
@@ -62,7 +61,6 @@ if ($activeTab === 'billing') {
     ");
     $paymentStmt->execute(['user_id' => $user['id']]);
     $payments = $paymentStmt->fetchAll();
-}
 
 require '../inc/header.php';
 ?>
@@ -265,22 +263,51 @@ require '../inc/header.php';
 
                     <!-- Active Subscription Card -->
                     <?php if ($subscription): ?>
-                    <div class="profile-card subscription-card active">
+                    <?php
+                        $subStatusClass = match($subscription['status']) {
+                            'past_due' => 'past-due',
+                            'pending'  => 'pending',
+                            default    => 'active',
+                        };
+                        $subStatusIcon = match($subscription['status']) {
+                            'past_due' => '⚠️',
+                            'pending'  => '⏳',
+                            default    => '',
+                        };
+                        $subStatusLabel = match($subscription['status']) {
+                            'past_due' => 'Payment Failed',
+                            'pending'  => 'Pending Payment',
+                            default    => 'Active Subscription',
+                        };
+                    ?>
+                    <div class="profile-card subscription-card <?php echo $subStatusClass; ?>">
                         <div class="subscription-header">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="20 6 9 17 4 12"/>
-                            </svg>
-                            <h3>Active Subscription</h3>
+                            <?php if ($subStatusIcon): ?>
+                                <span style="font-size:18px"><?php echo $subStatusIcon; ?></span>
+                            <?php else: ?>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                            <?php endif; ?>
+                            <h3><?php echo $subStatusLabel; ?></h3>
                         </div>
                         <div class="subscription-details">
                             <div class="sub-plan"><?php echo htmlspecialchars($subscription['plan_name']); ?></div>
                             <div class="sub-price">
-                                <?php echo $subscription['currency_symbol']; ?><?php echo number_format($subscription['price'], 2); ?> 
+                                <?php echo $subscription['currency_symbol']; ?><?php echo number_format($subscription['price'], 2); ?>
                                 / <?php echo strtolower($subscription['billing_period']); ?>
                             </div>
-                            <div class="sub-next-billing">
-                                Next billing: <strong><?php echo date('M d, Y', strtotime($subscription['end_date'])); ?></strong>
-                            </div>
+                            <?php if ($subscription['status'] === 'past_due'): ?>
+                                <div class="sub-next-billing" style="color:#b45309;background:#fef3c7;padding:8px;border-radius:6px;margin-top:8px;font-size:13px;">
+                                    ⚠️ Last payment failed — please update your payment method.
+                                </div>
+                            <?php elseif ($subscription['status'] === 'pending'): ?>
+                                <div class="sub-next-billing">Awaiting payment confirmation...</div>
+                            <?php else: ?>
+                                <div class="sub-next-billing">
+                                    Next billing: <strong><?php echo date('M d, Y', strtotime($subscription['end_date'])); ?></strong>
+                                </div>
+                            <?php endif; ?>
                         </div>
                         <button class="primary-btn" id="manage-subscription-btn">
                             Manage Subscription
@@ -603,10 +630,16 @@ require '../inc/header.php';
                     <option value="technical-issues">Technical issues</option>
                     <option value="other">Other</option>
                 </select>
-            </div>
+                <textarea id="cancel-reason-other"
+                    placeholder="Please tell us more..."
+                    style="display:none;margin-top:10px;width:100%;min-height:80px;
+                            padding:10px;border:1px solid var(--profile-border);
+                            border-radius:6px;font-size:14px;resize:vertical;">
+                </textarea>
+
 
             <div class="modal-actions">
-                <button class="cancel-btn modal-close">Keep Plan</button>
+                <button class="cancel-btn modal-close" id="keep-plan-btn">Keep Plan</button>
                 <button class="danger-btn" id="confirm-cancel-btn">Cancel Subscription</button>
             </div>
         </div>
@@ -634,6 +667,22 @@ require '../inc/header.php';
             <div class="modal-actions">
                 <button class="cancel-btn modal-close">Cancel</button>
                 <button class="danger-btn" id="confirm-delete-btn" disabled>Delete My Account</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Confirm Modal -->
+<div id="confirm-modal" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width:400px;">
+        <div class="modal-header">
+            <h2 id="confirm-modal-title">Are you sure?</h2>
+        </div>
+        <div class="modal-body">
+            <p id="confirm-modal-message" style="color:var(--profile-text);font-size:15px;margin:0 0 24px 0;"></p>
+            <div class="modal-actions" style="flex-direction:row;justify-content:flex-end;gap:12px;">
+                <button class="cancel-btn" id="confirm-modal-cancel">Go Back</button>
+                <button class="danger-btn" id="confirm-modal-confirm">Yes, Cancel</button>
             </div>
         </div>
     </div>

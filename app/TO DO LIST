@@ -1,20 +1,22 @@
-Nastavenie tabuliek v databaze
+Nastavenie tabuliek v databaze, cahtbot cards, promotion slots, audit log
 
-Captcha??
-
-Stripe -> nakup, visa, paypal, apple-pay (celkove zobrazenie tj. inputy)
-
-trigger ak user ma viac ako 5 reviews approved tak mu prida verified reviewer na true  ??
+otestovat Stripe cli -> nakup, visa, paypal, apple-pay (celkove zobrazenie tj. inputy)
 
 prepojit db so social links
 
 zvyraznit na mobilnej verzii ze som na chatbots a ze som vo favourites
 
-bezpecnost pre apis atd.
-if (!defined('BOOTSTRAP_LOADED')) {
-    http_response_code(403);
-    exit;
-}
+v advertise lepsie visuals toho co si kupuje user
+
+firemny mail, posielanie notifikacii na firemny mail
+
+
+
+
+
+
+
+
 
 REDIS COMMANDY:
     redis-cli

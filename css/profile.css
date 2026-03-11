@@ -995,6 +995,21 @@
     height: 20px;
 }
 
+/* Keep Plan / subscription card status variants */
+.subscription-card.past-due {
+    border-color: #f59e0b;
+    background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+}
+.subscription-card.pending {
+    border-color: #94a3b8;
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+}
+.status-past_due  { background: #FFF3E0; color: #E65100; }
+.status-cancelled { background: #f3f4f6; color: #6b7280; }
+.status-pending   { background: #EFF6FF; color: #1D4ED8; }
+.status-failed    { background: #FEE2E2; color: #991B1B; }
+.status-active    { background: #D1FAE5; color: #065F46; }
+
 /* ============================================
    RESPONSIVE
    ============================================ */
