@@ -10,12 +10,14 @@ v advertise lepsie visuals toho co si kupuje user
 
 firemny mail, posielanie notifikacii na firemny mail
 
+vytvaranie invoicov na platby
 
 
 
 
 
-
+stripe listen --forward-to localhost/mainwebsite/api/stripeWebhook.php
+php tools/seedTestData.php
 
 
 REDIS COMMANDY:

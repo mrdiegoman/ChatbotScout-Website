@@ -176,9 +176,9 @@ try {
 
                 $db->prepare("
                     UPDATE payments
-                    SET status     = 'completed',
-                        paid_at    = NOW(),
-                        updated_at = NOW()
+                    SET status          = 'succeeded',
+                        succeeded_at    = NOW(),
+                        updated_at      = NOW()
                     WHERE id = :id
                 ")->execute(['id' => $newPaymentId]);
 

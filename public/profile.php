@@ -630,16 +630,12 @@ require '../inc/header.php';
                     <option value="technical-issues">Technical issues</option>
                     <option value="other">Other</option>
                 </select>
-                <textarea id="cancel-reason-other"
-                    placeholder="Please tell us more..."
-                    style="display:none;margin-top:10px;width:100%;min-height:80px;
-                            padding:10px;border:1px solid var(--profile-border);
-                            border-radius:6px;font-size:14px;resize:vertical;">
-                </textarea>
+                <textarea id="cancel-reason-other" placeholder="Please tell us more..." style="display:none;margin-top:10px;width:100%;min-height:80px;padding:10px;border:1px solid var(--profile-border);border-radius:6px;font-size:14px;resize:vertical;"></textarea>
+            </div>
 
 
-            <div class="modal-actions">
-                <button class="cancel-btn modal-close" id="keep-plan-btn">Keep Plan</button>
+            <div class="modal-actions" style="flex-direction:row; justify-content:flex-end;">
+                <button class="cancel-btn" id="keep-plan-btn">Keep Plan</button>
                 <button class="danger-btn" id="confirm-cancel-btn">Cancel Subscription</button>
             </div>
         </div>

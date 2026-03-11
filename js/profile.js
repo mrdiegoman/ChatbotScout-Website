@@ -434,8 +434,8 @@ function closeModal(modalId) {
 
 // Close modal on X button or outside click
 document.querySelectorAll('.modal').forEach(modal => {
-    modal.querySelector('.modal-close')?.addEventListener('click', () => {
-        closeModal(modal.id);
+    modal.querySelectorAll('.modal-close').forEach(btn => {
+        btn.addEventListener('click', () => closeModal(modal.id));
     });
     
     modal.addEventListener('click', (e) => {
@@ -515,6 +515,14 @@ if (cancelSubModalBtn) {
     cancelSubModalBtn.addEventListener('click', () => {
         closeModal('manage-subscription-modal');
         openModal('cancel-subscription-modal');
+    });
+}
+
+const KeepPlanBtn = document.getElementById('keep-plan-btn');
+if (KeepPlanBtn) {
+    KeepPlanBtn.addEventListener('click', () => {
+        closeModal('cancel-subscription-modal');
+        openModal('manage-subscription-modal');
     });
 }
 
