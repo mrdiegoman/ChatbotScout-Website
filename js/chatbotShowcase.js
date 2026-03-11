@@ -71,9 +71,15 @@
 
     function isMobileView() { return window.innerWidth <= 768; }
 
-    function setLoading(on) {
+    function setLoading(on, isSearch = false) {
+        if (isSearch) {
+            const container = currentContainer();
+            container.style.opacity = on ? '0.35' : '1';
+            container.style.transition = 'opacity 0.15s ease';
+        } else {
+            loadingEl.style.display = on ? 'flex' : 'none';
+        }
         state.isLoading = on;
-        loadingEl.style.display = on ? 'flex' : 'none';
     }
 
     function escapeAttr(str) {
@@ -448,9 +454,9 @@
     // FETCH
     // ============================================
 
-    function loadChatbots(append) {
+    function loadChatbots(append, isSearch = false) {
         if (state.isLoading) return;
-        setLoading(true);
+        setLoading(true, isSearch);
  
         const params = new URLSearchParams({
             view:      state.currentView,
@@ -499,7 +505,7 @@
                 console.error('Failed to load chatbots:', err);
                 emptyState.style.display = 'block';
             })
-            .finally(() => setLoading(false));
+            .finally(() => setLoading(false, isSearch));
     }
 
     // Vystavené pre chatbotFilters.js (Apply + Clear button)
@@ -904,7 +910,7 @@
         state.searchQuery = value.trim();
         state.currentPage = 1;
         clearTimeout(searchDebounce);
-        searchDebounce = setTimeout(() => loadChatbots(false), 350);
+        searchDebounce = setTimeout(() => loadChatbots(false, true), 350);
     }
 
     if (desktopSubmitBtn && desktopSearch) {

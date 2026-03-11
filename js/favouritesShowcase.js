@@ -80,9 +80,15 @@
     // HELPERS
     // ============================================
 
-    function setLoading(on) {
+    function setLoading(on, isSearch = false) {
+        if (isSearch) {
+            const container = currentContainer();
+            container.style.opacity = on ? '0.35' : '1';
+            container.style.transition = 'opacity 0.15s ease';
+        } else {
+            loadingEl.style.display = on ? 'flex' : 'none';
+        }
         state.isLoading = on;
-        loadingEl.style.display = on ? 'flex' : 'none';
     }
 
     function escapeAttr(str) {
@@ -634,9 +640,9 @@ function openRatingModal(chatbotId, chatbotName) {
         return params;
     };
 
-    function loadFavourites() {
+    function loadFavourites(isSearch = false) {
         if (state.isLoading) return;
-        setLoading(true);
+        setLoading(true, isSearch);
 
         const params = new URLSearchParams({
             view: state.currentView,
@@ -676,7 +682,7 @@ function openRatingModal(chatbotId, chatbotName) {
                 console.error('Failed to load favourites:', err);
                 emptyState.style.display = 'block';
             })
-            .finally(() => setLoading(false));
+            .finally(() => setLoading(false, isSearch));
     }
 
     window.applyFilters = function () {
@@ -924,7 +930,7 @@ function openRatingModal(chatbotId, chatbotName) {
         state.searchQuery = value.trim();
         state.currentPage = 1;
         clearTimeout(searchDebounce);
-        searchDebounce = setTimeout(() => loadFavourites(false), 350);
+        searchDebounce = setTimeout(() => loadFavourites(true), 350);
     }
 
     if (favSubmitBtn && favDesktopSearch) {

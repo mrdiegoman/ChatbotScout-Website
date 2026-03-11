@@ -72,6 +72,7 @@ $pricingModels = array_values(array_filter(
 ));
 $pricingCount = count($pricingModels);
 
+$search = trim($_GET['search'] ?? '');
 // ============================================
 // SORT LOGIC
 // ============================================
@@ -134,6 +135,11 @@ if ($pricingCount > 0) {
     $pp = implode(',', array_map(fn($i) => ":pm{$i}", range(0, $pricingCount - 1)));
     $where[] = "c.pricing_model IN ({$pp})";
     foreach ($pricingModels as $i => $m) { $params[":pm{$i}"] = $m; }
+}
+
+if ($search !== '') {
+    $where[] = 'c.name LIKE :search';
+    $params[':search'] = '%' . $search . '%';
 }
 
 $whereStr = implode(' AND ', $where);

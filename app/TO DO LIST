@@ -8,6 +8,8 @@ trigger ak user ma viac ako 5 reviews approved tak mu prida verified reviewer na
 
 prepojit db so social links
 
+zvyraznit na mobilnej verzii ze som na chatbots a ze som vo favourites
+
 bezpecnost pre apis atd.
 if (!defined('BOOTSTRAP_LOADED')) {
     http_response_code(403);
