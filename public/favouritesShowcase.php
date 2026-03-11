@@ -31,8 +31,8 @@ require '../inc/header.php';
             <div class="favourites-page-main-content-topbar">
                 <div class="favourites-page-main-content-topbar-group">
 
-                    <!-- Search -->
-                    <label class="favourites-page-main-content-topbar-search">
+                    <!-- Desktop Search -->
+                    <label class="favourites-page-main-content-topbar-search favourites-page-main-content-topbar-search-desktop">
                         <input type="text" placeholder="Search" class="favourites-page-main-content-topbar-search-input" id="searchInput">
                         <button class="favourites-page-main-content-topbar-search-input-clear-btn" id="searchClearBtn">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -48,6 +48,14 @@ require '../inc/header.php';
                             </svg>
                         </button>
                     </label>
+
+                    <!-- Mobile search button -->
+                    <button class="favourites-page-main-content-topbar-mobile-search-btn" id="mobileSearchBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                            <path fill="#232127"
+                                d="M480 272C480 317.9 465.1 360.3 440 394.7L566.6 521.4C579.1 533.9 579.1 554.2 566.6 566.7C554.1 579.2 533.8 579.2 521.3 566.7L394.7 440C360.3 465.1 317.9 480 272 480C157.1 480 64 386.9 64 272C64 157.1 157.1 64 272 64C386.9 64 480 157.1 480 272zM272 416C351.5 416 416 351.5 416 272C416 192.5 351.5 128 272 128C192.5 128 128 192.5 128 272C128 351.5 192.5 416 272 416z" />
+                        </svg>
+                    </button>
 
                     <div class="favourites-page-main-content-topbar-group-in">
 
@@ -114,6 +122,28 @@ require '../inc/header.php';
                     </div>
 
                 </div>
+            </div>
+
+            <!-- Mobile search bar -->
+            <div class="favourites-page-main-content-mobile-search-bar" id="mobileSearchBar">
+                <label class="favourites-page-main-content-topbar-search">
+                    <input type="text" placeholder="Search" class="favourites-page-main-content-topbar-search-input" id="mobileSearchInput">
+                    <button class="favourites-page-main-content-topbar-search-input-clear-btn" id="mobileSearchClearBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                            class="favourites-page-main-content-topbar-search-input-clear-icon" fill="none"
+                            stroke="#232127" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="m15 9-6 6" />
+                            <path d="m9 9 6 6" />
+                        </svg>
+                    </button>
+                    <button class="favourites-page-main-content-topbar-search-submit-btn" id="mobileSearchSubmitBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                            <path fill="#232127"
+                                d="M480 272C480 317.9 465.1 360.3 440 394.7L566.6 521.4C579.1 533.9 579.1 554.2 566.6 566.7C554.1 579.2 533.8 579.2 521.3 566.7L394.7 440C360.3 465.1 317.9 480 272 480C157.1 480 64 386.9 64 272C64 157.1 157.1 64 272 64C386.9 64 480 157.1 480 272zM272 416C351.5 416 416 351.5 416 272C416 192.5 351.5 128 272 128C192.5 128 128 192.5 128 272C128 351.5 192.5 416 272 416z" />
+                        </svg>
+                    </button>
+                </label>
             </div>
 
             <!-- CHATBOT ITEMS -->
@@ -327,11 +357,13 @@ require '../inc/header.php';
 
 <script src="../js/featuresSwiping.js" defer></script>
 <script src="../js/layoutSwapping.js" defer></script>
+<script src="../js/clearButton.js" defer></script>
 <script src="../js/filterCurrencyAdding.js"></script>
 <script src="../js/filterFeaturesAdding.js" defer></script>
 <script src="../js/filterIntegrationsAdding.js" defer></script>
 <script src="../js/filterPricingAdding.js"></script>
 <script src="../js/showAdvancedFeatures.js" defer></script>
+<script src="../js/mobileSearch.js" defer></script>
 <script src="../js/favouritesShowcase.js" defer></script>
 <script src="../js/platformsPopup.js" defer></script>
 
