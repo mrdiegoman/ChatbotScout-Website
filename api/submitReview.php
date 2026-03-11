@@ -113,6 +113,11 @@ try {
         ':review_text' => $reviewText,
     ]);
 
+    AuditLog::log('review', $reviewId, 'created',
+        null,
+        ['chatbot_id' => $chatbotId, 'rating' => $rating, 'status' => 'pending']
+    );
+
     echo json_encode([
         'success' => true,
         'message' => 'Thank you! Your review has been submitted and is pending approval.',

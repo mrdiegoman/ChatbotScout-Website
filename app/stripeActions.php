@@ -133,6 +133,19 @@ if ($action === 'create_payment_intent') {
             'sid' => $subscriptionId
         ]);
 
+        AuditLog::log('payment', $sub['payment_id'], 'created',
+            null,
+            [
+                'subscription_id'  => $subscriptionId,
+                'amount'           => $sub['payment_amount'],
+                'currency'         => $sub['currency_code'],
+                'slot_type'        => $sub['slot_type'],
+                'billing_period'   => $sub['billing_period_type'],
+                'stripe_intent_id' => $paymentIntent->id,
+                'status'           => 'pending',
+            ]
+        );
+
         echo json_encode([
             'success'       => true,
             'client_secret' => $paymentIntent->client_secret,

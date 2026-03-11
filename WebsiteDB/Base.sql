@@ -736,29 +736,29 @@ CREATE TABLE `promotions` (
 -- PROMOTION SLOTS
 -- ============================================
 
-CREATE TABLE `promotion_slots` (
-  `id` CHAR(36) NOT NULL COMMENT 'Slot UUID, e.g., "850e8400-e29b-41d4-a716-446655440019", "7q8r9s0t-1u2v-3w4x-5y6z-7a8b9c0d1e2f"',
-  `name` VARCHAR(100) NOT NULL COMMENT 'Slot name, e.g., "Homepage Hero", "Category Top Banner", "Sidebar Featured"',
-  `subscription_id` CHAR(36) NOT NULL,
-#   `identifier` VARCHAR(150) NOT NULL UNIQUE COMMENT 'Unique identifier, e.g., "homepage_hero", "category_top", "sidebar_featured"',
-#   `page_location` VARCHAR(100) NULL COMMENT 'Page location, e.g., "homepage", "category_customer_support", "search_results"',
-  `position` INT NOT NULL COMMENT 'Display position (1 = top), e.g., 1, 2, 3',
-#   `max_concurrent` TINYINT NOT NULL DEFAULT 1 COMMENT 'Max concurrent promotions, e.g., 1, 3, 5',
-#   `description` TEXT NULL COMMENT 'Slot description, e.g., "Large hero banner at the top of homepage", "Featured position in category listing", "Sidebar widget visible on all pages"',
-#   `dimensions` VARCHAR(50) NULL COMMENT 'Recommended dimensions, e.g., "1200x300", "300x250", "728x90"',
-  `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
-
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-05 12:00:00", "2024-12-12 10:00:00"',
-  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 14:00:00", "2025-01-28 09:30:00"',
-
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_promotion_position` (`subscription_id`, `position`),
-  KEY `idx_type_active_position` (`is_active`, `position`),
-  KEY `idx_promotions` (`subscription_id`),
-  CONSTRAINT `chk_position` CHECK (`position` >= 1),
-  CONSTRAINT `fk_promotion_slots_promotion` FOREIGN KEY (`subscription_id`)
-    REFERENCES `promotions` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+# CREATE TABLE `promotion_slots` (
+#   `id` CHAR(36) NOT NULL COMMENT 'Slot UUID, e.g., "850e8400-e29b-41d4-a716-446655440019", "7q8r9s0t-1u2v-3w4x-5y6z-7a8b9c0d1e2f"',
+#   `name` VARCHAR(100) NOT NULL COMMENT 'Slot name, e.g., "Homepage Hero", "Category Top Banner", "Sidebar Featured"',
+#   `subscription_id` CHAR(36) NOT NULL,
+# #   `identifier` VARCHAR(150) NOT NULL UNIQUE COMMENT 'Unique identifier, e.g., "homepage_hero", "category_top", "sidebar_featured"',
+# #   `page_location` VARCHAR(100) NULL COMMENT 'Page location, e.g., "homepage", "category_customer_support", "search_results"',
+#   `position` INT NOT NULL COMMENT 'Display position (1 = top), e.g., 1, 2, 3',
+# #   `max_concurrent` TINYINT NOT NULL DEFAULT 1 COMMENT 'Max concurrent promotions, e.g., 1, 3, 5',
+# #   `description` TEXT NULL COMMENT 'Slot description, e.g., "Large hero banner at the top of homepage", "Featured position in category listing", "Sidebar widget visible on all pages"',
+# #   `dimensions` VARCHAR(50) NULL COMMENT 'Recommended dimensions, e.g., "1200x300", "300x250", "728x90"',
+#   `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
+#
+#   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-05 12:00:00", "2024-12-12 10:00:00"',
+#   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 14:00:00", "2025-01-28 09:30:00"',
+#
+#   PRIMARY KEY (`id`),
+#   UNIQUE KEY `idx_promotion_position` (`subscription_id`, `position`),
+#   KEY `idx_type_active_position` (`is_active`, `position`),
+#   KEY `idx_promotions` (`subscription_id`),
+#   CONSTRAINT `chk_position` CHECK (`position` >= 1),
+#   CONSTRAINT `fk_promotion_slots_promotion` FOREIGN KEY (`subscription_id`)
+#     REFERENCES `promotions` (`id`) ON DELETE CASCADE
+# ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
 -- SUBSCRIPTIONS (for both listings and promotions)
@@ -1151,10 +1151,27 @@ CREATE TABLE `audit_log` (
   -- Application must handle referential integrity
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 PARTITION BY RANGE (UNIX_TIMESTAMP(created_at)) (
-  PARTITION p_2025_01 VALUES LESS THAN (UNIX_TIMESTAMP('2025-02-01')) COMMENT 'January 2025 partition, e.g., logs from 2025-01-01 to 2025-01-31',
-  PARTITION p_2025_02 VALUES LESS THAN (UNIX_TIMESTAMP('2025-03-01')) COMMENT 'February 2025 partition, e.g., logs from 2025-02-01 to 2025-02-28',
+  PARTITION p_2026_01 VALUES LESS THAN (UNIX_TIMESTAMP('2026-02-01')) COMMENT 'January 2025 partition, e.g., logs from 2025-01-01 to 2025-01-31',
+  PARTITION p_2026_02 VALUES LESS THAN (UNIX_TIMESTAMP('2026-03-01')) COMMENT 'February 2025 partition, e.g., logs from 2025-02-01 to 2025-02-28',
+  PARTITION p_2026_03 VALUES LESS THAN (UNIX_TIMESTAMP('2026-04-01')),
+  PARTITION p_2026_04 VALUES LESS THAN (UNIX_TIMESTAMP('2026-05-01')),
+  PARTITION p_2026_05 VALUES LESS THAN (UNIX_TIMESTAMP('2026-06-01')),
+  PARTITION p_2026_06 VALUES LESS THAN (UNIX_TIMESTAMP('2026-07-01')),
+  PARTITION p_2026_07 VALUES LESS THAN (UNIX_TIMESTAMP('2026-08-01')),
+  PARTITION p_2026_08 VALUES LESS THAN (UNIX_TIMESTAMP('2026-09-01')),
+  PARTITION p_2026_09 VALUES LESS THAN (UNIX_TIMESTAMP('2026-10-01')),
+  PARTITION p_2026_10 VALUES LESS THAN (UNIX_TIMESTAMP('2026-11-01')),
+  PARTITION p_2026_11 VALUES LESS THAN (UNIX_TIMESTAMP('2026-12-01')),
+  PARTITION p_2026_12 VALUES LESS THAN (UNIX_TIMESTAMP('2027-01-01')),
+  PARTITION p_2027_01 VALUES LESS THAN (UNIX_TIMESTAMP('2027-02-01')),
   PARTITION p_future VALUES LESS THAN MAXVALUE COMMENT 'Future logs partition, e.g., logs from 2025-03-01 onwards'
 );
+
+-- Pridanie marca
+# ALTER TABLE audit_log REORGANIZE PARTITION p_future INTO (
+#   PARTITION p_2025_03 VALUES LESS THAN (UNIX_TIMESTAMP('2025-04-01')),
+#   PARTITION p_future VALUES LESS THAN MAXVALUE
+# );
 
 -- ============================================
 -- INITIAL DATA

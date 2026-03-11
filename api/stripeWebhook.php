@@ -121,6 +121,17 @@ switch ($event->type) {
             $db->commit();
             error_log("Stripe: succeeded — subscription {$subscriptionId} activated");
 
+            AuditLog::log('payment', $paymentId, 'updated',
+                ['status' => 'pending'],
+                ['status' => 'succeeded', 'stripe_payment_intent_id' => $pi->id],
+                $pi->metadata->user_id ?? null
+            );
+            AuditLog::log('subscription', $subscriptionId, 'updated',
+                ['status' => 'pending'],
+                ['status' => 'active'],
+                $pi->metadata->user_id ?? null
+            );
+
         } catch (Exception $e) {
             $db->rollBack();
             error_log("Stripe webhook DB error (succeeded): " . $e->getMessage());
@@ -169,6 +180,17 @@ switch ($event->type) {
 
             error_log("Stripe: payment_failed — subscription {$subscriptionId} set to past_due");
 
+            AuditLog::log('payment', $paymentId, 'updated',
+                ['status' => 'pending'],
+                ['status' => 'failed', 'failure_code' => $failureCode, 'failure_message' => $failureMessage],
+                $pi->metadata->user_id ?? null
+            );
+            AuditLog::log('subscription', $subscriptionId, 'updated',
+                ['status' => 'active'],
+                ['status' => 'past_due'],
+                $pi->metadata->user_id ?? null
+            );
+
         } catch (Exception $e) {
             error_log("Stripe webhook DB error (failed): " . $e->getMessage());
             http_response_code(500);
@@ -215,6 +237,17 @@ switch ($event->type) {
             ]);
 
             error_log("Stripe: canceled — subscription {$subscriptionId} cancelled");
+
+            AuditLog::log('payment', $paymentId, 'updated',
+                ['status' => 'pending'],
+                ['status' => 'cancelled', 'cancellation_reason' => $cancelReason],
+                $pi->metadata->user_id ?? null
+            );
+            AuditLog::log('subscription', $subscriptionId, 'updated',
+                ['status' => 'pending'],
+                ['status' => 'cancelled'],
+                $pi->metadata->user_id ?? null
+            );
 
         } catch (Exception $e) {
             error_log("Stripe webhook DB error (canceled): " . $e->getMessage());

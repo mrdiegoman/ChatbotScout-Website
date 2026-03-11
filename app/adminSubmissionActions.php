@@ -67,11 +67,21 @@ switch ($action) {
                 UPDATE chatbots SET status = 'reviewed', approved_at = NOW()
                 WHERE id = :id
             ")->execute(['id' => $id]);
+
+            AuditLog::log('chatbot', $id, 'approved',
+                ['status' => 'pending'],
+                ['status' => 'reviewed']
+            );
         } else {
             $db->prepare("
                 UPDATE chatbots SET status = 'pending', approved_at = NULL
                 WHERE id = :id
             ")->execute(['id' => $id]);
+
+            AuditLog::log('chatbot', $id, 'updated',
+                ['status' => 'reviewed'],
+                ['status' => 'pending']
+            );
         }
 
         echo json_encode([
@@ -99,6 +109,11 @@ switch ($action) {
             UPDATE chatbots SET status = 'rejected', rejected_at = NOW()
             WHERE id = :id
         ")->execute(['id' => $id]);
+
+        AuditLog::log('chatbot', $id, 'rejected',
+            ['status' => $chatbot['status']],
+            ['status' => 'rejected', 'rejection_reason' => $reason]
+        );
 
         $userName = trim($chatbot['first_name'] . ' ' . $chatbot['last_name']) ?: 'there';
 

@@ -182,6 +182,17 @@ try {
                     WHERE id = :id
                 ")->execute(['id' => $newPaymentId]);
 
+                AuditLog::log('subscription', $subscriptionId, 'updated',
+                    ['end_date' => $sub['end_date'], 'status' => 'active'],
+                    ['end_date' => $newEndDate, 'status' => 'active', 'renewal' => true],
+                    $sub['user_id']
+                );
+                AuditLog::log('payment', $newPaymentId, 'created',
+                    null,
+                    ['subscription_id' => $subscriptionId, 'status' => 'succeeded', 'renewal' => true],
+                    $sub['user_id']
+                );
+
                 echo "  SUCCESS: Subscription {$subscriptionId} renewed until {$newEndDate}\n";
             } else {
                 echo "  PENDING: PaymentIntent {$paymentIntent->id} created, awaiting webhook\n";
@@ -201,6 +212,13 @@ try {
             ")->execute(['id' => $newPaymentId ?? null]);
 
             error_log("renewSubscriptions: Card declined for subscription {$subscriptionId}: " . $e->getMessage());
+
+            AuditLog::log('subscription', $subscriptionId, 'updated',
+                ['status' => 'active'],
+                ['status' => 'past_due', 'renewal_failed' => true, 'reason' => 'card_declined'],
+                $sub['user_id']
+            );
+
             echo "  FAILED: Card declined for subscription {$subscriptionId}\n";
 
         } catch (Exception $e) {

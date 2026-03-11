@@ -179,7 +179,16 @@ class User
         // $rateLimiter->reset('registration', $clientIp, $email);
         
         // Zaloguj úspešnú registráciu
-        error_log("✅ New user registered: $email");
+        // error_log("✅ New user registered: $email");
+
+        // Audit log
+        AuditLog::log('user', $userId, 'created',
+            null,
+            ['email' => $email, 'first_name' => $firstName, 'last_name' => $lastName, 'status' => 'pending_verification'],
+            $userId
+        );
+
+
         
         // Vráť user data (bez password hashu!)
         return [
@@ -344,10 +353,13 @@ class User
         // ✅ Úspešný login - reset rate limiter
         $rateLimiter->resetByEmail('login', $email);
         
-        // Update last login
+       // Update last login
         $updateStmt = $this->db->prepare("UPDATE users SET last_login_at = NOW() WHERE id = :id");
         $updateStmt->execute(['id' => $user['id']]);
-        
+
+        // Audit log
+        AuditLog::log('user', $user['id'], 'login', null, null, $user['id']);
+
         // Vráť user data (bez password_hash)
         unset($user['password_hash']);
         $user['is_admin'] = (bool)($user['is_admin'] ?? false);

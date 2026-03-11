@@ -62,6 +62,18 @@ if ($action === 'update_status') {
             'id'       => $id,
         ]);
 
+        // Mapovanie statusu na audit akciu
+        $auditAction = match($status) {
+            'approved' => 'approved',
+            'rejected' => 'rejected',
+            default    => 'updated',
+        };
+
+        AuditLog::log('review', $id, $auditAction,
+            null,
+            ['status' => $status, 'moderated_by' => $user['id']]
+        );
+
         echo json_encode(['success' => true, 'status' => $status]);
 
     } catch (PDOException $e) {

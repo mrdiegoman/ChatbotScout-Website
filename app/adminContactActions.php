@@ -57,6 +57,12 @@ if ($action === 'update_status') {
         }
 
         $stmt->execute(['status' => $status, 'id' => $id]);
+
+        AuditLog::log('contact_message', $id, 'updated',
+            null,
+            ['status' => $status]
+        );
+
         echo json_encode(['success' => true, 'status' => $status]);
 
     } catch (PDOException $e) {
@@ -154,6 +160,11 @@ if ($action === 'send_reply') {
             WHERE id = :id
         ");
         $stmt->execute(['response' => $response, 'id' => $id]);
+
+        AuditLog::log('contact_message', $id, 'updated',
+            null,
+            ['status' => 'replied', 'response_sent' => true]
+        );
 
         echo json_encode(['success' => true, 'message' => 'Reply sent successfully!']);
 

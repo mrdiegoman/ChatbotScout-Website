@@ -21,6 +21,16 @@ return [
     'success_url' => 'http://localhost/mainwebsite/public/payment-success.php',
     'cancel_url'  => 'http://localhost/mainwebsite/public/advertise.php',
 
+
+    // TEST → LIVE treab zmenit pre live stripe
+    // 'publishable_key' => 'pk_live_...',   // z Stripe Dashboard
+    // 'secret_key'      => 'sk_live_...',   // z Stripe Dashboard
+    // 'webhook_secret'  => 'whsec_...',     // NOVÝ — po registrácii webhook URL
+
+    // A URL zmeniť z localhost na reálnu doménu
+    // 'success_url' => 'https://tvojadomena.com/public/payment-success.php',
+    // 'cancel_url'  => 'https://tvojadomena.com/public/advertise.php',
+
     // Stripe API version
     'api_version' => '2023-10-16',
 ];

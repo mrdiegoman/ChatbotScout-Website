@@ -220,7 +220,12 @@ if ($action === 'upload_avatar') {
         $stmt->execute(['url' => $newUrl, 'id' => $user['id']]);
         
         $_SESSION['user']['profile_picture_url'] = $newUrl;
-        
+
+        AuditLog::log('user', $user['id'], 'updated',
+            ['profile_picture_url' => $user['profile_picture_url']],
+            ['profile_picture_url' => $newUrl]
+        );
+
         echo json_encode(['success' => true, 'url' => $newUrl]);
         
     } catch (Exception $e) {
@@ -264,7 +269,12 @@ if ($action === 'update_name') {
     
     $_SESSION['user']['first_name'] = $firstName;
     $_SESSION['user']['last_name'] = $lastName;
-    
+
+    AuditLog::log('user', $user['id'], 'updated',
+        ['first_name' => $user['first_name'], 'last_name' => $user['last_name']],
+        ['first_name' => $firstName, 'last_name' => $lastName]
+    );
+
     echo json_encode(['success' => true, 'firstName' => $firstName, 'lastName' => $lastName]);
     exit;
 }
@@ -302,7 +312,12 @@ if ($action === 'change_password') {
     $newHash = password_hash($newPassword, PASSWORD_ARGON2ID);
     $stmt = $db->prepare("UPDATE users SET password_hash = :hash WHERE id = :id");
     $stmt->execute(['hash' => $newHash, 'id' => $user['id']]);
-    
+
+    AuditLog::log('user', $user['id'], 'updated',
+        ['password' => '***'],
+        ['password' => '***']
+    );
+
     echo json_encode(['success' => true]);
     exit;
 }
@@ -374,6 +389,14 @@ if ($action === 'cancel_subscription') {
     }
     
     $stmt->execute(['reason' => $reason, 'id' => $sub['id']]);
+
+    AuditLog::log('subscription', $sub['id'], 'updated',
+        ['status' => 'active', 'cancel_at_period_end' => false],
+        ['status' => $cancelType === 'immediately' ? 'cancelled' : 'active',
+         'cancel_at_period_end' => $cancelType !== 'immediately',
+         'cancellation_reason' => $reason]
+    );
+
     echo json_encode(['success' => true]);
     exit;
 }
