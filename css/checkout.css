@@ -194,6 +194,27 @@
     text-decoration: underline;
 }
 
+@keyframes shimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+
+.stripe-loading-line {
+    height: 45px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 400px 100%;
+    animation: shimmer 1.4s infinite;
+}
+
+.stripe-loading-line.short {
+    width: 60%;
+    height: 45px;
+    display: flex;
+    gap: 12px;
+}
+
 /* ── Responsive ───────────────────────────────────── */
 @media (max-width: 700px) {
     .checkout-container {

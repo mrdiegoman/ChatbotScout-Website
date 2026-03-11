@@ -2,6 +2,10 @@
 /**
  * Stripe Actions
  * Handles: create_payment_intent
+ *
+ * ZMENA: Neprijíma subscription_id.
+ * Prijíma chatbot_id + promotion_id, vytvorí PaymentIntent s metadatami.
+ * Subscription + payment sa vytvárajú AŽ v stripeWebhook.php po succeeded.
  */
 
 require '../inc/bootstrap.php';
@@ -23,137 +27,140 @@ if ($action === 'create_payment_intent') {
         exit;
     }
 
-    $input          = json_decode(file_get_contents('php://input'), true);
-    $subscriptionId = trim($input['subscription_id'] ?? '');
+    $input        = json_decode(file_get_contents('php://input'), true);
+    $chatbotId    = trim($input['chatbot_id']    ?? '');
+    $promotionId  = trim($input['promotion_id']  ?? '');
+    $promotionId2 = trim($input['promotion_id2'] ?? ''); // Bundle (optional)
 
-    if (!$subscriptionId) {
-        echo json_encode(['success' => false, 'message' => 'Missing subscription ID']);
+    if (!$chatbotId || !$promotionId) {
+        echo json_encode(['success' => false, 'message' => 'Missing chatbot_id or promotion_id']);
         exit;
     }
 
     try {
         $db = Database::getInstance()->getConnection();
 
-        // Load subscription + promotion + payment
-        $stmt = $db->prepare("
-            SELECT
-                s.id            AS subscription_id,
-                s.user_id,
-                s.chatbot_id,
-                p.price,
-                p.discount_percentage,
-                p.slot_type,
-                bp.type         AS billing_period_type,
-                c.code          AS currency_code,
-                pay.id          AS payment_id,
-                pay.amount      AS payment_amount,
-                u.email         AS user_email,
-                u.first_name,
-                u.last_name,
-                u.stripe_customer_id
-            FROM subscriptions s
-            JOIN promotions     p   ON p.id  = s.promotions_id
-            JOIN billing_periods bp ON bp.id = p.billing_period_id
-            JOIN currencies      c  ON c.id  = p.currency_id
-            JOIN payments        pay ON pay.subscription_id = s.id
-            JOIN users           u   ON u.id = s.user_id
-            WHERE s.id       = :subscription_id
-              AND s.user_id  = :user_id
-              AND s.status   = 'pending'
+        // ── Verify chatbot belongs to user ───────────────────────────────────
+        $chatbotStmt = $db->prepare("
+            SELECT id, name
+            FROM chatbots
+            WHERE id             = :chatbot_id
+            AND owner_user_id  = :user_id
+            AND deleted_at     IS NULL
             LIMIT 1
         ");
-        $stmt->execute([
-            'subscription_id' => $subscriptionId,
-            'user_id'         => $user['id']
+        $chatbotStmt->execute([
+            'chatbot_id' => $chatbotId,
+            'user_id'    => $user['id'],
         ]);
-        $sub = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$sub) {
-            echo json_encode(['success' => false, 'message' => 'Subscription not found or already processed']);
+        if (!$chatbotStmt->fetch()) {
+            echo json_encode(['success' => false, 'message' => 'Invalid chatbot']);
             exit;
         }
 
+        // Stripe customer je na users tabuľke
+        $userStmt = $db->prepare("
+            SELECT id, email, first_name, last_name, stripe_customer_id
+            FROM users
+            WHERE id = :user_id
+        ");
+        $userStmt->execute(['user_id' => $user['id']]);
+        $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$userData) {
+            echo json_encode(['success' => false, 'message' => 'User not found']);
+            exit;
+        }
+
+        // ── Load promotion 1 ─────────────────────────────────────────────────
+        $promoStmt = $db->prepare("
+            SELECT p.*, bp.type AS period_type, bp.duration_days,
+                   c.code AS currency_code, c.id AS currency_id
+            FROM promotions p
+            JOIN billing_periods bp ON p.billing_period_id = bp.id
+            JOIN currencies      c  ON p.currency_id       = c.id
+            WHERE p.id        = :promotion_id
+              AND p.is_active = 1
+              AND p.deleted_at IS NULL
+        ");
+        $promoStmt->execute(['promotion_id' => $promotionId]);
+        $promo = $promoStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$promo) {
+            echo json_encode(['success' => false, 'message' => 'Promotion plan not found']);
+            exit;
+        }
+
+        $finalPrice = floatval($promo['price']) * (1 - floatval($promo['discount_percentage']) / 100);
+        $totalPrice = $finalPrice;
+        $currency   = strtolower($promo['currency_code']);
+
+        // ── Load promotion 2 (bundle) ────────────────────────────────────────
+        $promo2     = null;
+        $finalPrice2 = 0;
+        if ($promotionId2) {
+            $promoStmt2 = $db->prepare("
+                SELECT p.*, bp.type AS period_type, bp.duration_days,
+                       c.code AS currency_code, c.id AS currency_id
+                FROM promotions p
+                JOIN billing_periods bp ON p.billing_period_id = bp.id
+                JOIN currencies      c  ON p.currency_id       = c.id
+                WHERE p.id        = :promotion_id
+                  AND p.is_active = 1
+                  AND p.deleted_at IS NULL
+            ");
+            $promoStmt2->execute(['promotion_id' => $promotionId2]);
+            $promo2 = $promoStmt2->fetch(PDO::FETCH_ASSOC);
+            if ($promo2) {
+                $finalPrice2 = floatval($promo2['price']) * (1 - floatval($promo2['discount_percentage']) / 100);
+                $totalPrice += $finalPrice2;
+            }
+        }
+
+        $amountCents = (int) round($totalPrice * 100);
+
         // ── Get or create Stripe Customer ────────────────────────────────────
-        $stripeCustomerId = $sub['stripe_customer_id'];
-;
+        $stripeCustomerId = $userData['stripe_customer_id'];
 
         if (!$stripeCustomerId) {
             $customer = \Stripe\Customer::create([
-                'email' => $sub['user_email'],
-                'name'  => trim(($sub['first_name'] ?? '') . ' ' . ($sub['last_name'] ?? '')),
-                'metadata' => [
-                    'user_id' => $sub['user_id']
-                ]
+                'email' => $userData['email'],
+                'name'  => trim(($userData['first_name'] ?? '') . ' ' . ($userData['last_name'] ?? '')),
+                'metadata' => ['user_id' => $userData['id']],
             ]);
             $stripeCustomerId = $customer->id;
 
-            // Save to users table
             $db->prepare("UPDATE users SET stripe_customer_id = :cid WHERE id = :uid")
-               ->execute(['cid' => $stripeCustomerId, 'uid' => $sub['user_id']]);
+               ->execute(['cid' => $stripeCustomerId, 'uid' => $userData['id']]);
         }
 
         // ── Create PaymentIntent ─────────────────────────────────────────────
-        $amountCents = (int) round(floatval($sub['payment_amount']) * 100);
-        $currency    = strtolower($sub['currency_code']);
-
+        // Všetky potrebné info ukladáme do metadata – webhook ich použije na vytvorenie subscription + payment
         $paymentIntent = \Stripe\PaymentIntent::create([
-            'amount'               => $amountCents,
-            'currency'             => $currency,
-            'customer'             => $stripeCustomerId,
-            'setup_future_usage'   => 'off_session', // pre auto-renewal
+            'amount'             => $amountCents,
+            'currency'           => $currency,
+            'customer'           => $stripeCustomerId,
+            'setup_future_usage' => 'off_session',
             'automatic_payment_methods' => ['enabled' => true],
-            'metadata' => [
-                'subscription_id' => $subscriptionId,
-                'payment_id'      => $sub['payment_id'],
-                'user_id'         => $sub['user_id'],
-                'slot_type'       => $sub['slot_type'],
-                'billing_period'  => $sub['billing_period_type'],
-            ]
+            'metadata'           => [
+                'user_id'         => $userData['id'],
+                'chatbot_id'      => $chatbotId,
+                'promotion_id'    => $promotionId,
+                'promotion_id2'   => $promotionId2 ?: '',
+                'amount'          => $finalPrice,
+                'amount2'         => $finalPrice2,
+                'period_type'     => $promo['period_type'],
+                'duration_days'   => $promo['duration_days'],
+                'currency_id'     => $promo['currency_id'],
+            ],
         ]);
-
-        // Save stripe_payment_intent_id to payments
-        $db->prepare("
-            UPDATE payments
-            SET stripe_payment_intent_id = :pi_id,
-                stripe_customer_id       = :cid
-            WHERE id = :payment_id
-        ")->execute([
-            'pi_id'      => $paymentIntent->id,
-            'cid'        => $stripeCustomerId,
-            'payment_id' => $sub['payment_id']
-        ]);
-
-        // Save stripe_customer_id to subscription
-        $db->prepare("
-            UPDATE subscriptions
-            SET stripe_customer_id = :cid
-            WHERE id = :sid
-        ")->execute([
-            'cid' => $stripeCustomerId,
-            'sid' => $subscriptionId
-        ]);
-
-        AuditLog::log('payment', $sub['payment_id'], 'created',
-            null,
-            [
-                'subscription_id'  => $subscriptionId,
-                'amount'           => $sub['payment_amount'],
-                'currency'         => $sub['currency_code'],
-                'slot_type'        => $sub['slot_type'],
-                'billing_period'   => $sub['billing_period_type'],
-                'stripe_intent_id' => $paymentIntent->id,
-                'status'           => 'pending',
-            ]
-        );
 
         echo json_encode([
             'success'       => true,
             'client_secret' => $paymentIntent->client_secret,
-            'payment_id'    => $sub['payment_id'],
-            'amount'        => $sub['payment_amount'],
-            'currency'      => $sub['currency_code'],
-            'slot_type'     => $sub['slot_type'],
-            'billing_period'=> $sub['billing_period_type'],
+            'amount'        => $totalPrice,
+            'currency'      => $promo['currency_code'],
         ]);
 
     } catch (\Stripe\Exception\ApiErrorException $e) {
@@ -165,9 +172,7 @@ if ($action === 'create_payment_intent') {
         http_response_code(500);
         echo json_encode(['success' => false, 'message' => 'Server error']);
     }
-
     exit;
 }
 
-http_response_code(400);
 echo json_encode(['success' => false, 'message' => 'Invalid action']);

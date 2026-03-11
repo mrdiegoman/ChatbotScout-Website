@@ -392,7 +392,14 @@ require '../inc/header.php';
                                         <td>
                                             <span class="status-badge status-<?php echo $payment['status']; ?>">
                                                 <?php 
-                                                    echo $payment['status'] === 'succeeded' ? 'Paid' : ucfirst($payment['status']); 
+                                                    echo match($payment['status']) {
+                                                        'succeeded' => 'Paid',
+                                                        'pending'   => 'Processing...',
+                                                        'failed'    => 'Failed',
+                                                        'refunded'  => 'Refunded',
+                                                        'cancelled' => 'Cancelled',
+                                                        default     => ucfirst($payment['status']),
+                                                    };
                                                 ?>
                                             </span>
                                         </td>

@@ -2,14 +2,13 @@
 /**
  * Stripe Webhook Handler
  *
- * Handles:
- *  - payment_intent.succeeded
- *  - payment_intent.payment_failed
- *  - payment_intent.canceled
+ * ZMENA: payment_intent.succeeded teraz vytvára payment + subscription naraz ako active.
+ * Subscription sa nevytvára vopred ako pending.
  *
- * Nastav webhook URL v Stripe dashboarde:
- * https://dashboard.stripe.com/webhooks
- * URL: https://yourdomain.com/api/stripeWebhook.php
+ * Handles:
+ *  - payment_intent.succeeded      → vytvorí payment (succeeded) + subscription (active)
+ *  - payment_intent.payment_failed → zaloguje chybu
+ *  - payment_intent.canceled       → zaloguje zrušenie
  */
 
 require '../inc/bootstrap.php';
@@ -37,44 +36,37 @@ try {
 
 $db = Database::getInstance()->getConnection();
 
-// ── Helper: resolve subscription_id + payment_id from metadata or DB ─────────
-function resolveIds(PDO $db, object $pi): array {
-    $subscriptionId = $pi->metadata->subscription_id ?? null;
-    $paymentId      = $pi->metadata->payment_id      ?? null;
-
-    if (!$subscriptionId || !$paymentId) {
-        $stmt = $db->prepare("
-            SELECT id AS payment_id, subscription_id
-            FROM payments
-            WHERE stripe_payment_intent_id = :pi_id
-              AND status = 'pending'
-            LIMIT 1
-        ");
-        $stmt->execute(['pi_id' => $pi->id]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($row) {
-            $subscriptionId = $row['subscription_id'];
-            $paymentId      = $row['payment_id'];
-        }
-    }
-
-    return [$subscriptionId, $paymentId];
+// ── Helper: generate UUID v4 ─────────────────────────────────────────────────
+function generateWebhookUuid(): string {
+    $data    = random_bytes(16);
+    $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+    $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 }
 
 // ── Handle events ─────────────────────────────────────────────────────────────
 switch ($event->type) {
 
-    // ── Payment succeeded ─────────────────────────────────────────────────────
+    // ── Payment succeeded → vytvor payment + subscription ────────────────────
     case 'payment_intent.succeeded':
         $pi = $event->data->object;
-        [$subscriptionId, $paymentId] = resolveIds($db, $pi);
 
-        if (!$subscriptionId || !$paymentId) {
-            error_log("Stripe webhook: payment_intent.succeeded missing IDs, pi={$pi->id}");
+        $userId       = $pi->metadata->user_id      ?? null;
+        $chatbotId    = $pi->metadata->chatbot_id    ?? null;
+        $promotionId  = $pi->metadata->promotion_id  ?? null;
+        $promotionId2 = $pi->metadata->promotion_id2 ?? null;
+        $amount       = $pi->metadata->amount        ?? null;
+        $amount2      = $pi->metadata->amount2       ?? null;
+        $periodType   = $pi->metadata->period_type   ?? 'monthly';
+        $durationDays = $pi->metadata->duration_days ?? 30;
+        $currencyId   = $pi->metadata->currency_id   ?? null;
+
+        if (!$userId || !$chatbotId || !$promotionId) {
+            error_log("Stripe webhook: payment_intent.succeeded missing metadata, pi={$pi->id}");
             break;
         }
 
-        // Get charge details (receipt_url, invoice_url) from latest charge
+        // Získaj receipt URL z charge
         $receiptUrl = null;
         $chargeId   = null;
         if (!empty($pi->latest_charge)) {
@@ -90,47 +82,140 @@ switch ($event->type) {
         try {
             $db->beginTransaction();
 
-            $db->prepare("
-                UPDATE subscriptions
-                SET status                 = 'active',
-                    stripe_subscription_id = :pi_id,
-                    updated_at             = NOW()
-                WHERE id     = :id
-                  AND status IN ('pending', 'past_due')
-            ")->execute(['pi_id' => $pi->id, 'id' => $subscriptionId]);
+            // ── Vypočítaj dátumy subscription ────────────────────────────────
+            $startDate = date('Y-m-d H:i:s');
+            $endDate   = match($periodType) {
+                'daily'   => date('Y-m-d H:i:s', strtotime("+{$durationDays} days")),
+                'weekly'  => date('Y-m-d H:i:s', strtotime('+1 week')),
+                'monthly' => date('Y-m-d H:i:s', strtotime('+1 month')),
+                'yearly'  => date('Y-m-d H:i:s', strtotime('+1 year')),
+                default   => date('Y-m-d H:i:s', strtotime('+1 month')),
+            };
 
+            // ── Vytvor subscription 1 (active) ───────────────────────────────
+            $subscriptionId = generateWebhookUuid();
             $db->prepare("
-                UPDATE payments
-                SET status                   = 'succeeded',
-                    succeeded_at             = NOW(),
-                    failed_at                = NULL,
-                    failure_code             = NULL,
-                    failure_message          = NULL,
-                    stripe_payment_intent_id = :pi_id,
-                    stripe_charge_id         = :charge_id,
-                    receipt_url              = :receipt_url,
-                    updated_at               = NOW()
-                WHERE id = :id
+                INSERT INTO subscriptions (
+                    id, user_id, chatbot_id, subscription_type,
+                    promotions_id, status, start_date, end_date, auto_renew,
+                    stripe_customer_id, created_at, updated_at
+                ) VALUES (
+                    :id, :user_id, :chatbot_id, 'promotion',
+                    :promotions_id, 'active', :start_date, :end_date, 1,
+                    :stripe_customer_id, NOW(), NOW()
+                )
             ")->execute([
-                'pi_id'       => $pi->id,
-                'charge_id'   => $chargeId,
-                'receipt_url' => $receiptUrl,
-                'id'          => $paymentId,
+                'id'                 => $subscriptionId,
+                'user_id'            => $userId,
+                'chatbot_id'         => $chatbotId,
+                'promotions_id'      => $promotionId,
+                'start_date'         => $startDate,
+                'end_date'           => $endDate,
+                'stripe_customer_id' => $pi->customer ?? null,
             ]);
 
-            $db->commit();
-            error_log("Stripe: succeeded — subscription {$subscriptionId} activated");
+            // ── Vytvor payment 1 (succeeded) ─────────────────────────────────
+            $paymentId = generateWebhookUuid();
+            $db->prepare("
+                INSERT INTO payments (
+                    id, user_id, subscription_id, chatbot_id,
+                    amount, currency_id, payment_method, status,
+                    stripe_payment_intent_id, stripe_charge_id, stripe_customer_id,
+                    receipt_url, succeeded_at, created_at, updated_at
+                ) VALUES (
+                    :id, :user_id, :subscription_id, :chatbot_id,
+                    :amount, :currency_id, 'stripe', 'succeeded',
+                    :pi_id, :charge_id, :stripe_customer_id,
+                    :receipt_url, NOW(), NOW(), NOW()
+                )
+            ")->execute([
+                'id'                 => $paymentId,
+                'user_id'            => $userId,
+                'subscription_id'    => $subscriptionId,
+                'chatbot_id'         => $chatbotId,
+                'amount'             => $amount,
+                'currency_id'        => $currencyId,
+                'pi_id'              => $pi->id,
+                'charge_id'          => $chargeId,
+                'stripe_customer_id' => $pi->customer ?? null,
+                'receipt_url'        => $receiptUrl,
+            ]);
 
-            AuditLog::log('payment', $paymentId, 'updated',
-                ['status' => 'pending'],
-                ['status' => 'succeeded', 'stripe_payment_intent_id' => $pi->id],
-                $pi->metadata->user_id ?? null
+            // Audit log
+            AuditLog::log('subscription', $subscriptionId, 'created',
+                null,
+                ['status' => 'active', 'chatbot_id' => $chatbotId, 'promotion_id' => $promotionId],
+                $userId
             );
-            AuditLog::log('subscription', $subscriptionId, 'updated',
-                ['status' => 'pending'],
-                ['status' => 'active'],
-                $pi->metadata->user_id ?? null
+            AuditLog::log('payment', $paymentId, 'created',
+                null,
+                ['status' => 'succeeded', 'amount' => $amount, 'stripe_payment_intent_id' => $pi->id],
+                $userId
             );
+
+            // ── Bundle: vytvor subscription 2 + payment 2 ────────────────────
+            if ($promotionId2) {
+                $subscriptionId2 = generateWebhookUuid();
+                $db->prepare("
+                    INSERT INTO subscriptions (
+                        id, user_id, chatbot_id, subscription_type,
+                        promotions_id, status, start_date, end_date, auto_renew,
+                        stripe_customer_id, created_at, updated_at
+                    ) VALUES (
+                        :id, :user_id, :chatbot_id, 'promotion',
+                        :promotions_id, 'active', :start_date, :end_date, 1,
+                        :stripe_customer_id, NOW(), NOW()
+                    )
+                ")->execute([
+                    'id'                 => $subscriptionId2,
+                    'user_id'            => $userId,
+                    'chatbot_id'         => $chatbotId,
+                    'promotions_id'      => $promotionId2,
+                    'start_date'         => $startDate,
+                    'end_date'           => $endDate,
+                    'stripe_customer_id' => $pi->customer ?? null,
+                ]);
+
+                $paymentId2 = generateWebhookUuid();
+                $db->prepare("
+                    INSERT INTO payments (
+                        id, user_id, subscription_id, chatbot_id,
+                        amount, currency_id, payment_method, status,
+                        stripe_payment_intent_id, stripe_charge_id, stripe_customer_id,
+                        receipt_url, succeeded_at, created_at, updated_at
+                    ) VALUES (
+                        :id, :user_id, :subscription_id, :chatbot_id,
+                        :amount, :currency_id, 'stripe', 'succeeded',
+                        :pi_id, :charge_id, :stripe_customer_id,
+                        :receipt_url, NOW(), NOW(), NOW()
+                    )
+                ")->execute([
+                    'id'                 => $paymentId2,
+                    'user_id'            => $userId,
+                    'subscription_id'    => $subscriptionId2,
+                    'chatbot_id'         => $chatbotId,
+                    'amount'             => $amount2,
+                    'currency_id'        => $currencyId,
+                    'pi_id'              => $pi->id,
+                    'charge_id'          => $chargeId,
+                    'stripe_customer_id' => $pi->customer ?? null,
+                    'receipt_url'        => $receiptUrl,
+                ]);
+
+                AuditLog::log('subscription', $subscriptionId2, 'created',
+                    null,
+                    ['status' => 'active', 'chatbot_id' => $chatbotId, 'promotion_id' => $promotionId2],
+                    $userId
+                );
+                AuditLog::log('payment', $paymentId2, 'created',
+                    null,
+                    ['status' => 'succeeded', 'amount' => $amount2, 'stripe_payment_intent_id' => $pi->id],
+                    $userId
+                );
+            }
+
+            $db->commit();
+            error_log("Stripe: succeeded — subscription {$subscriptionId} created as active for user {$userId}");
 
         } catch (Exception $e) {
             $db->rollBack();
@@ -143,116 +228,44 @@ switch ($event->type) {
     // ── Payment failed ────────────────────────────────────────────────────────
     case 'payment_intent.payment_failed':
         $pi = $event->data->object;
-        [$subscriptionId, $paymentId] = resolveIds($db, $pi);
 
-        if (!$subscriptionId || !$paymentId) {
-            error_log("Stripe webhook: payment_intent.payment_failed missing IDs, pi={$pi->id}");
-            break;
-        }
+        $userId      = $pi->metadata->user_id     ?? null;
+        $chatbotId   = $pi->metadata->chatbot_id  ?? null;
+        $promotionId = $pi->metadata->promotion_id ?? null;
 
         $failureCode    = $pi->last_payment_error->code    ?? 'unknown';
         $failureMessage = $pi->last_payment_error->message ?? 'Payment failed';
 
-        try {
-            $db->prepare("
-                UPDATE subscriptions
-                SET status     = 'past_due',
-                    updated_at = NOW()
-                WHERE id     = :id
-                  AND status IN ('pending', 'active')
-            ")->execute(['id' => $subscriptionId]);
+        error_log("Stripe: payment_failed — user={$userId}, chatbot={$chatbotId}, code={$failureCode}");
 
-            $db->prepare("
-                UPDATE payments
-                SET status                   = 'failed',
-                    failed_at                = NOW(),
-                    failure_code             = :failure_code,
-                    failure_message          = :failure_message,
-                    stripe_payment_intent_id = :pi_id,
-                    updated_at               = NOW()
-                WHERE id = :id
-            ")->execute([
-                'failure_code'    => $failureCode,
-                'failure_message' => $failureMessage,
-                'pi_id'           => $pi->id,
-                'id'              => $paymentId,
-            ]);
-
-            error_log("Stripe: payment_failed — subscription {$subscriptionId} set to past_due");
-
-            AuditLog::log('payment', $paymentId, 'updated',
+        // Subscription sa nevytvorila (správne správanie)
+        // Zalogujeme len do audit_log pre prehľad
+        if ($userId && $promotionId) {
+            AuditLog::log('payment', $pi->id, 'updated',
                 ['status' => 'pending'],
                 ['status' => 'failed', 'failure_code' => $failureCode, 'failure_message' => $failureMessage],
-                $pi->metadata->user_id ?? null
+                $userId
             );
-            AuditLog::log('subscription', $subscriptionId, 'updated',
-                ['status' => 'active'],
-                ['status' => 'past_due'],
-                $pi->metadata->user_id ?? null
-            );
-
-        } catch (Exception $e) {
-            error_log("Stripe webhook DB error (failed): " . $e->getMessage());
-            http_response_code(500);
-            exit;
         }
         break;
 
     // ── Payment canceled ──────────────────────────────────────────────────────
     case 'payment_intent.canceled':
         $pi = $event->data->object;
-        [$subscriptionId, $paymentId] = resolveIds($db, $pi);
 
-        if (!$subscriptionId || !$paymentId) {
-            error_log("Stripe webhook: payment_intent.canceled missing IDs, pi={$pi->id}");
-            break;
-        }
+        $userId      = $pi->metadata->user_id     ?? null;
+        $promotionId = $pi->metadata->promotion_id ?? null;
 
         $cancelReason = $pi->cancellation_reason ?? 'Payment canceled';
 
-        try {
-            $db->prepare("
-                UPDATE subscriptions
-                SET status              = 'cancelled',
-                    cancelled_at        = NOW(),
-                    cancellation_reason = :reason,
-                    updated_at          = NOW()
-                WHERE id     = :id
-                  AND status = 'pending'
-            ")->execute(['reason' => $cancelReason, 'id' => $subscriptionId]);
+        error_log("Stripe: canceled — pi={$pi->id}, reason={$cancelReason}");
 
-            $db->prepare("
-                UPDATE payments
-                SET status                   = 'cancelled',
-                    failed_at                = NOW(),
-                    failure_code             = 'payment_canceled',
-                    failure_message          = :reason,
-                    stripe_payment_intent_id = :pi_id,
-                    updated_at               = NOW()
-                WHERE id = :id
-            ")->execute([
-                'reason' => $cancelReason,
-                'pi_id'  => $pi->id,
-                'id'     => $paymentId,
-            ]);
-
-            error_log("Stripe: canceled — subscription {$subscriptionId} cancelled");
-
-            AuditLog::log('payment', $paymentId, 'updated',
+        if ($userId && $promotionId) {
+            AuditLog::log('payment', $pi->id, 'updated',
                 ['status' => 'pending'],
                 ['status' => 'cancelled', 'cancellation_reason' => $cancelReason],
-                $pi->metadata->user_id ?? null
+                $userId
             );
-            AuditLog::log('subscription', $subscriptionId, 'updated',
-                ['status' => 'pending'],
-                ['status' => 'cancelled'],
-                $pi->metadata->user_id ?? null
-            );
-
-        } catch (Exception $e) {
-            error_log("Stripe webhook DB error (canceled): " . $e->getMessage());
-            http_response_code(500);
-            exit;
         }
         break;
 }

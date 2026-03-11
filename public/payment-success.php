@@ -11,33 +11,34 @@ if (!$isLoggedIn) {
     exit;
 }
 
-$subscriptionId = trim($_GET['subscription_id'] ?? '');
+// Stripe redirectuje s ?payment_intent=pi_xxx
+$paymentIntentId = trim($_GET['payment_intent'] ?? '');
 
-// Load subscription details
+// Load order details podľa payment_intent_id
 $orderDetails = null;
-if ($subscriptionId) {
+if ($paymentIntentId) {
     $db   = Database::getInstance()->getConnection();
     $stmt = $db->prepare("
         SELECT
-            p.slot_type,
+            pr.slot_type,
             bp.type         AS billing_period_type,
             c.symbol        AS currency_symbol,
             pay.amount      AS payment_amount,
             ch.name         AS chatbot_name,
             s.status        AS subscription_status
-        FROM subscriptions s
-        JOIN promotions      p   ON p.id  = s.promotions_id
-        JOIN billing_periods bp  ON bp.id = p.billing_period_id
-        JOIN currencies      c   ON c.id  = p.currency_id
-        JOIN payments        pay ON pay.subscription_id = s.id
-        JOIN chatbots        ch  ON ch.id = s.chatbot_id
-        WHERE s.id      = :subscription_id
-          AND s.user_id = :user_id
+        FROM payments pay
+        JOIN subscriptions   s   ON s.id  = pay.subscription_id
+        JOIN promotions      pr  ON pr.id = s.promotions_id
+        JOIN billing_periods bp  ON bp.id = pr.billing_period_id
+        JOIN currencies      c   ON c.id  = pr.currency_id
+        JOIN chatbots        ch  ON ch.id = pay.chatbot_id
+        WHERE pay.stripe_payment_intent_id = :pi_id
+          AND pay.user_id                  = :user_id
         LIMIT 1
     ");
     $stmt->execute([
-        'subscription_id' => $subscriptionId,
-        'user_id'         => $user['id']
+        'pi_id'   => $paymentIntentId,
+        'user_id' => $user['id'],
     ]);
     $orderDetails = $stmt->fetch(PDO::FETCH_ASSOC);
 }

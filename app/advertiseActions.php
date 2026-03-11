@@ -1,7 +1,10 @@
 <?php
 /**
  * Advertise Actions
- * Handles promotion subscription creation and Stripe redirect
+ * Handles promotion validation and Stripe redirect
+ *
+ * ZMENA: Subscription + payment sa vytvárajú AŽ po úspešnej platbe (webhook).
+ * Tu len validujeme a vrátime promotion details pre checkout.
  */
 
 require '../inc/bootstrap.php';
@@ -41,12 +44,11 @@ switch ($action) {
         }
         break;
 
-    // ─── Create promotion subscription ──────────────────────────────────────
+    // ─── Validate promotion + return details for checkout ───────────────────
     case 'create_promotion':
-        $input = json_decode(file_get_contents('php://input'), true);
-
-        $chatbotId    = trim($input['chatbot_id']    ?? '');
-        $promotionId  = trim($input['promotion_id']  ?? '');
+        $input       = json_decode(file_get_contents('php://input'), true);
+        $chatbotId   = trim($input['chatbot_id']   ?? '');
+        $promotionId = trim($input['promotion_id'] ?? '');
 
         if (!$chatbotId || !$promotionId) {
             echo json_encode(['success' => false, 'message' => 'Missing required fields']);
@@ -56,25 +58,25 @@ switch ($action) {
         try {
             $db = Database::getInstance()->getConnection();
 
-            // ── Verify chatbot belongs to user and has active listing ────────
+            // ── Verify chatbot belongs to user and is active ─────────────────
             $chatbotStmt = $db->prepare("
                 SELECT c.id
                 FROM chatbots c
-                WHERE c.id            = :chatbot_id
-                AND c.owner_user_id = :user_id
-                AND c.deleted_at    IS NULL
-                AND c.status        = 'active'
+                WHERE c.id           = :chatbot_id
+                  AND c.owner_user_id = :user_id
+                  AND c.deleted_at   IS NULL
+                  AND c.status       = 'active'
                 LIMIT 1
             ");
             $chatbotStmt->execute([
                 'chatbot_id' => $chatbotId,
-                'user_id'    => $user['id']
+                'user_id'    => $user['id'],
             ]);
 
             if (!$chatbotStmt->fetch()) {
                 echo json_encode([
                     'success' => false,
-                    'message' => 'Invalid chatbot or no active listing subscription'
+                    'message' => 'Invalid chatbot or no active listing subscription',
                 ]);
                 exit;
             }
@@ -103,123 +105,43 @@ switch ($action) {
                 SELECT s.id
                 FROM subscriptions s
                 JOIN promotions pr ON s.promotions_id = pr.id
-                WHERE s.user_id            = :user_id
-                  AND s.chatbot_id         = :chatbot_id
-                  AND s.subscription_type  = 'promotion'
-                  AND s.status             = 'active'
-                  AND pr.slot_type         = :slot_type
+                WHERE s.user_id           = :user_id
+                  AND s.chatbot_id        = :chatbot_id
+                  AND s.subscription_type = 'promotion'
+                  AND s.status            = 'active'
+                  AND pr.slot_type        = :slot_type
                 LIMIT 1
             ");
             $existingStmt->execute([
-                'user_id'   => $user['id'],
-                'chatbot_id'=> $chatbotId,
-                'slot_type' => $promo['slot_type']
+                'user_id'    => $user['id'],
+                'chatbot_id' => $chatbotId,
+                'slot_type'  => $promo['slot_type'],
             ]);
 
             if ($existingStmt->fetch()) {
                 echo json_encode([
                     'success' => false,
-                    'message' => 'You already have an active promotion for this slot'
+                    'message' => 'You already have an active promotion for this slot',
                 ]);
                 exit;
             }
 
-            // ── Calculate dates ──────────────────────────────────────────────
-            $startDate = date('Y-m-d H:i:s');
-            $endDate   = match($promo['period_type']) {
-                'daily'   => date('Y-m-d H:i:s', strtotime("+{$promo['period_duration']} days")),
-                'weekly'  => date('Y-m-d H:i:s', strtotime("+{$promo['period_duration']} weeks")),
-                'monthly' => date('Y-m-d H:i:s', strtotime("+{$promo['period_duration']} months")),
-                'yearly'  => date('Y-m-d H:i:s', strtotime("+{$promo['period_duration']} years")),
-                default   => date('Y-m-d H:i:s', strtotime('+1 month'))
-            };
-
-            $db->beginTransaction();
-
-            try {
-                // ── Create subscription ──────────────────────────────────────
-                $subscriptionId = generateUUID();
-                $subStmt = $db->prepare("
-                    INSERT INTO subscriptions (
-                        id, user_id, chatbot_id, subscription_type,
-                        promotions_id, status, start_date, end_date, auto_renew
-                    ) VALUES (
-                        :id, :user_id, :chatbot_id, 'promotion',
-                        :promotions_id, 'pending', :start_date, :end_date, 1
-                    )
-                ");
-                $subStmt->execute([
-                    'id'            => $subscriptionId,
-                    'user_id'       => $user['id'],
-                    'chatbot_id'    => $chatbotId,
-                    'promotions_id' => $promotionId,
-                    'start_date'    => $startDate,
-                    'end_date'      => $endDate
-                ]);
-
-                // ── Create payment record ────────────────────────────────────
-                $finalPrice = $promo['price'] * (1 - ($promo['discount_percentage'] / 100));
-                $paymentId  = generateUUID();
-                $payStmt = $db->prepare("
-                    INSERT INTO payments (
-                        id, user_id, subscription_id, chatbot_id,
-                        amount, currency_id, payment_method, status
-                    ) VALUES (
-                        :id, :user_id, :subscription_id, :chatbot_id,
-                        :amount, :currency_id, 'stripe', 'pending'
-                    )
-                ");
-                $payStmt->execute([
-                    'id'              => $paymentId,
-                    'user_id'         => $user['id'],
-                    'subscription_id' => $subscriptionId,
-                    'chatbot_id'      => $chatbotId,
-                    'amount'          => $finalPrice,
-                    'currency_id'     => $promo['currency_id']
-                ]);
-
-                $db->commit();
-
-                // ── TODO: Replace with real Stripe Checkout Session ──────────
-                // $stripe = new \Stripe\StripeClient(STRIPE_SECRET_KEY);
-                // $session = $stripe->checkout->sessions->create([...]);
-                // $stripeUrl = $session->url;
-
-                $stripeUrl = 'https://checkout.stripe.com/placeholder?subscription_id=' . $subscriptionId;
-
-                echo json_encode([
-                    'success'         => true,
-                    'subscription_id' => $subscriptionId,
-                    'payment_id'      => $paymentId,
-                    'redirect_url'    => $stripeUrl
-                ]);
-
-            } catch (Exception $e) {
-                $db->rollBack();
-                error_log('advertise inner error: ' . $e->getMessage());
-                throw $e;
-            }
+            // ── Všetko OK – vráť len IDs pre checkout ────────────────────────
+            // Subscription + payment sa vytvoria až po úspešnej platbe (webhook)
+            echo json_encode([
+                'success'      => true,
+                'chatbot_id'   => $chatbotId,
+                'promotion_id' => $promotionId,
+            ]);
 
         } catch (Exception $e) {
             http_response_code(500);
-            error_log('advertise outer error: ' . $e->getMessage());
-            echo json_encode(['success' => false, 'message' => 'Failed to create promotion']);
+            error_log('advertise error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Failed to validate promotion']);
         }
         break;
 
     default:
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Invalid action']);
-}
-
-// ── Helper: generate UUID v4 ────────────────────────────────────────────────
-function generateUUID(): string {
-    return sprintf(
-        '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-        mt_rand(0, 0xffff), mt_rand(0, 0xffff),
-        mt_rand(0, 0xffff),
-        mt_rand(0, 0x0fff) | 0x4000,
-        mt_rand(0, 0x3fff) | 0x8000,
-        mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
-    );
 }

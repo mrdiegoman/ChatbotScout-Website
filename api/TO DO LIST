@@ -14,6 +14,11 @@ vytvaranie invoicov na platby
 
 Skontrolovat ratelimiter
 
+rozdelit checkout php a tam ten js do dvoch suborov
+
+
+
+
 
 
 stripe listen --forward-to localhost/mainwebsite/api/stripeWebhook.php

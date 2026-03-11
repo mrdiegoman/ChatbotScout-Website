@@ -501,18 +501,19 @@ async function handleConfirm() {
             if (!result1.success) throw new Error(result1.message || 'Failed to create Homepage promotion');
             if (!result2.success) throw new Error(result2.message || 'Failed to create Chatbots Page promotion');
 
-            // Redirect to checkout with first subscription (Homepage)
-            // Second subscription handled after payment via webhook
+            // Redirect to checkout with chatbot_id + promotion_ids
             document.getElementById('stripeRedirectOverlay').classList.add('active');
-            window.location.href = 'checkout.php?subscription_id=' + result1.subscription_id
-                                + '&subscription_id_2=' + result2.subscription_id;
+            window.location.href = 'checkout.php?chatbot_id=' + result1.chatbot_id
+                                + '&promotion_id='  + result1.promotion_id
+                                + '&promotion_id_2=' + result2.promotion_id;
         } else {
             const result = await createPromotion(botId, state.selectedPlanId);
 
             if (!result.success) throw new Error(result.message || 'Failed to create promotion');
 
             document.getElementById('stripeRedirectOverlay').classList.add('active');
-            window.location.href = 'checkout.php?subscription_id=' + result.subscription_id;
+            window.location.href = 'checkout.php?chatbot_id=' + result.chatbot_id
+                                + '&promotion_id=' + result.promotion_id;
         }
 
     } catch (e) {
