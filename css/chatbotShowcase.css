@@ -2025,28 +2025,3 @@ body {
         padding: 1rem 0 1rem 1rem ;
     }
 }
-
-@media (max-width: 1024px) {
-    /*grid Layout adjustments*/
-    /* .chatbot-page-main-content-chatbots-grid-view {
-        grid-template-columns: 1fr;
-    } */
-}
-
-/* Tablety (portrait) */
-@media (max-width: 1024px) {
-    /* iPad, Android tablety */
-    /* .chatbot-page-main-content-topbar-search{
-        width: 26%;
-        min-width: 20rem;
-    } */
-
-    /* .chatbot-page-main-content-topbar-search-input {
-        width: 100%;
-    } */
-}
-
-/* Desktop */
-@media (min-width: 1025px) {
-    /* Počítače, notebooky */
-}

@@ -126,7 +126,7 @@ require '../inc/header.php';
 
             <!-- Mobile search bar -->
             <div class="favourites-page-main-content-mobile-search-bar" id="mobileSearchBar">
-                <label class="favourites-page-main-content-topbar-search">
+                <label class="favourites-page-main-content-topbar-search active">
                     <input type="text" placeholder="Search" class="favourites-page-main-content-topbar-search-input" id="mobileSearchInput">
                     <button class="favourites-page-main-content-topbar-search-input-clear-btn" id="mobileSearchClearBtn">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
@@ -357,13 +357,11 @@ require '../inc/header.php';
 
 <script src="../js/featuresSwiping.js" defer></script>
 <script src="../js/layoutSwapping.js" defer></script>
-<script src="../js/clearButton.js" defer></script>
 <script src="../js/filterCurrencyAdding.js"></script>
 <script src="../js/filterFeaturesAdding.js" defer></script>
 <script src="../js/filterIntegrationsAdding.js" defer></script>
 <script src="../js/filterPricingAdding.js"></script>
 <script src="../js/showAdvancedFeatures.js" defer></script>
-<script src="../js/mobileSearch.js" defer></script>
 <script src="../js/favouritesShowcase.js" defer></script>
 <script src="../js/platformsPopup.js" defer></script>
 

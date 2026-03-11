@@ -6,8 +6,6 @@ Stripe -> nakup, visa, paypal, apple-pay (celkove zobrazenie tj. inputy)
 
 trigger ak user ma viac ako 5 reviews approved tak mu prida verified reviewer na true  ??
 
-sfunkcnit search
-
 prepojit db so social links
 
 bezpecnost pre apis atd.
