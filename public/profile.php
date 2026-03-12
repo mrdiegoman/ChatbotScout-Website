@@ -32,11 +32,13 @@ $subStmt = $db->prepare("
         p.price,
         c.symbol      AS currency_symbol,
         c.code        AS currency_code,
-        bp.type       AS billing_period
+        bp.type       AS billing_period,
+        ch.name       AS chatbot_name
     FROM subscriptions s
     JOIN promotions     p  ON s.promotions_id     = p.id
     JOIN currencies     c  ON p.currency_id        = c.id
     JOIN billing_periods bp ON p.billing_period_id = bp.id
+    JOIN chatbots       ch ON s.chatbot_id         = ch.id
     WHERE s.user_id          = :user_id
       AND s.status           IN ('active', 'past_due', 'pending')
       AND s.subscription_type = 'promotion'
@@ -293,6 +295,7 @@ require '../inc/header.php';
                         </div>
                         <div class="subscription-details">
                             <div class="sub-plan"><?php echo htmlspecialchars($subscription['plan_name']); ?></div>
+                            <div class="sub-chatbot">🤖 <?php echo htmlspecialchars($subscription['chatbot_name']); ?></div>
                             <div class="sub-price">
                                 <?php echo $subscription['currency_symbol']; ?><?php echo number_format($subscription['price'], 2); ?>
                                 / <?php echo strtolower($subscription['billing_period']); ?>

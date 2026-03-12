@@ -64,7 +64,7 @@ body {
     display: flex;
     flex-direction: row;
     align-items: center;
-    padding: 0 2rem;
+    padding: 0 4rem;
     flex-wrap: nowrap;
     justify-content: space-between;
     gap: 1.5rem;
@@ -443,7 +443,6 @@ body {
 .favourites-page-main-content-chatbots {
     /* margin-top: 2rem; */
     padding: 2rem;
-    gap: 2rem
 }
 
 .favourites-page-main-content-chatbots-grid-view, 

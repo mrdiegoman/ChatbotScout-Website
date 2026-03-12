@@ -188,7 +188,6 @@ require '../inc/header.php';
                 <div class="hp-pop-track" id="hp-pop-track">
 
                     <?php
-                    // Tag color cycle — keďže chatboty nemajú priamu kategóriu, použijeme cyklus farieb
                     $tagColors = ['hp-tag-blue', 'hp-tag-green', 'hp-tag-purple', 'hp-tag-orange'];
 
                     $popularChatbots = [];
@@ -204,11 +203,13 @@ require '../inc/header.php';
                                 c.logo_url,
                                 c.rating_average,
                                 c.rating_count,
-                                c.favorite_count
+                                c.favorite_count,
+                                c.is_sponsored,
+                                c.click_count
                             FROM chatbots c
                             WHERE c.status     = 'active'
                             AND c.deleted_at IS NULL
-                            ORDER BY (c.rating_average * LOG(c.click_count + 1)) DESC,c.rating_count DESC, c.click_count DESC, c.created_at DESC
+                            ORDER BY c.is_sponsored DESC, (c.rating_average * LOG(c.click_count + 1)) DESC, c.click_count DESC, c.rating_count DESC, c.created_at DESC
                             LIMIT 8
                         ");
                         $popularChatbots = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -222,11 +223,18 @@ require '../inc/header.php';
                                 FROM chatbot_tags ct
                                 JOIN tags t ON ct.tag_id = t.id
                                 WHERE ct.chatbot_id IN ({$placeholders})
-                                LIMIT 1
+                                ORDER BY ct.chatbot_id,
+                                         CASE WHEN t.name = 'Sponsored' THEN 0 ELSE 1 END,
+                                         t.name ASC
                             ");
                             $tagStmt->execute($ids);
                             foreach ($tagStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-                                $tagNames[$row['chatbot_id']] = $row['name'];
+                                if (!isset($tagNames[$row['chatbot_id']])) {
+                                    $tagNames[$row['chatbot_id']] = [];
+                                }
+                                if (count($tagNames[$row['chatbot_id']]) < 2) {
+                                    $tagNames[$row['chatbot_id']][] = $row['name'];
+                                }
                             }
                         }
                     } catch (Exception $e) {
@@ -239,14 +247,20 @@ require '../inc/header.php';
                         $fullStars  = (int) floor($rating);
                         $emptyStars = 5 - $fullStars;
                         $tagColor   = $tagColors[$i % count($tagColors)];
-                        $tagLabel   = $tagNames[$bot['id']] ?? 'Popular';
+                        $botTags    = $tagNames[$bot['id']] ?? [];
                         $logoUrl    = !empty($bot['logo_url']) ? '../' . htmlspecialchars($bot['logo_url']) : null;
                     ?>
                     <a href="chatbotShowcase.php" class="hp-pop-card">
                         <div class="hp-pop-tags">
-                            <span class="hp-tag <?= $tagColor ?>">
-                                <?= htmlspecialchars($tagLabel) ?>
-                            </span>
+                            <?php if (!empty($botTags)): ?>
+                                <?php foreach ($botTags as $tag): ?>
+                                    <span class="hp-tag <?= $tagColor ?>">
+                                        <?= htmlspecialchars($tag) ?>
+                                    </span>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <span class="hp-tag" style="visibility:hidden;">placeholder</span>
+                            <?php endif; ?>
                         </div>
                         <div class="hp-pop-name">
                             <?= htmlspecialchars($bot['name']) ?>
@@ -407,7 +421,7 @@ require '../inc/header.php';
             <div class="hp-filter-badge">
                 <i class="fa-solid fa-sliders"></i> Smart Filtering
             </div>
-            <h2>Filter Chatbots by actual Features,<br>Pricing, Integrations and more</h2>
+            <h2>Filter Chatbots by actual up-to-date <br> Features, Pricing, Integrations and more</h2>
             <div class="hp-filter-features">
                 <div class="hp-filter-feature">
                     <div class="hp-filter-feature-icon">

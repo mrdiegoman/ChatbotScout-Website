@@ -1,9 +1,14 @@
 <?php
 /**
- * TEST SEED: Create test subscription + PaymentIntent for Stripe testing
+ * TEST SEED: Create payment (pending) + PaymentIntent pre Stripe testovanie
  *
  * Spusti z koreňového adresára projektu:
  *   php tools/seedTestData.php
+ *
+ * Flow:
+ *  - Seed vytvorí payment (pending) v DB + PaymentIntent na Stripe
+ *  - stripe trigger pošle webhook s metadata (payment_id, promotion_id atď.)
+ *  - Webhook: UPDATE payment → succeeded + INSERT subscription → active
  *
  * !! LEN NA LOKÁLNE TESTOVANIE - NIKDY NA PRODUKCII !!
  */
@@ -19,26 +24,24 @@ $db = Database::getInstance()->getConnection();
 
 // ── Helper: UUID ─────────────────────────────────────────────────────────────
 function seedUUID(): string {
-    return sprintf(
-        '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-        mt_rand(0, 0xffff), mt_rand(0, 0xffff),
-        mt_rand(0, 0xffff),
-        mt_rand(0, 0x0fff) | 0x4000,
-        mt_rand(0, 0x3fff) | 0x8000,
-        mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
-    );
+    $data    = random_bytes(16);
+    $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+    $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 }
 
 // ── Helper: run stripe trigger ────────────────────────────────────────────────
-// Stripe CLI override format: --override "fixtureName:field[key]=value"
-// This sets the metadata on the PaymentIntent fixture Stripe creates internally.
-// The webhook handler will receive these metadata values in the event.
-function runTrigger(string $event, string $piId, string $subscriptionId, string $paymentId): void {
-    $cmd = "stripe trigger {$event}"
-         . " --override \"payment_intent:metadata[subscription_id]={$subscriptionId}\""
-         . " --override \"payment_intent:metadata[payment_id]={$paymentId}\"";
+// stripe trigger vytvára NOVÝ PaymentIntent – id sa nedá overridovať.
+// Preto odovzdávame všetky potrebné hodnoty cez metadata override.
+function runTrigger(string $event, array $metadata): void {
+    $overrides = '';
+    foreach ($metadata as $key => $value) {
+        $overrides .= " --override \"payment_intent:metadata[{$key}]={$value}\"";
+    }
 
-    echo "\nRunning: {$cmd}\n";
+    $cmd = "stripe trigger {$event}{$overrides}";
+
+    echo "\nRunning: stripe trigger {$event} (s metadata overrides)\n";
     echo str_repeat("-", 50) . "\n";
 
     exec($cmd, $output, $exitCode);
@@ -46,54 +49,74 @@ function runTrigger(string $event, string $piId, string $subscriptionId, string 
         echo $line . "\n";
     }
 
-    if ($exitCode === 0) {
-        echo "\n✅ Trigger sent!\n";
-    } else {
-        echo "\n❌ Trigger failed (exit code: {$exitCode})\n";
-    }
+    echo $exitCode === 0 ? "\n✅ Trigger sent!\n" : "\n❌ Trigger failed (exit code: {$exitCode})\n";
 }
 
 // ── Helper: check DB result ───────────────────────────────────────────────────
-function checkDB(PDO $db, string $subscriptionId, string $paymentId): void {
+function checkDB(PDO $db, string $paymentId): void {
     echo "\n--- DB Result ---\n";
 
-    $sub = $db->prepare("SELECT status, cancelled_at FROM subscriptions WHERE id = :id");
-    $sub->execute(['id' => $subscriptionId]);
-    $subRow = $sub->fetch(PDO::FETCH_ASSOC);
-    echo "subscriptions.status       = " . ($subRow['status']       ?? 'NOT FOUND') . "\n";
-    echo "subscriptions.cancelled_at = " . ($subRow['cancelled_at'] ?? 'NULL') . "\n";
-
     $pay = $db->prepare("
-        SELECT status, succeeded_at, failed_at, failure_code, failure_message, receipt_url, stripe_charge_id
+        SELECT status, succeeded_at, failed_at, failure_code,
+               failure_message, receipt_url, stripe_charge_id, subscription_id
         FROM payments WHERE id = :id
     ");
     $pay->execute(['id' => $paymentId]);
     $payRow = $pay->fetch(PDO::FETCH_ASSOC);
-    echo "payments.status            = " . ($payRow['status']          ?? 'NOT FOUND') . "\n";
-    echo "payments.succeeded_at      = " . ($payRow['succeeded_at']    ?? 'NULL') . "\n";
-    echo "payments.failed_at         = " . ($payRow['failed_at']       ?? 'NULL') . "\n";
-    echo "payments.failure_code      = " . ($payRow['failure_code']    ?? 'NULL') . "\n";
-    echo "payments.failure_message   = " . ($payRow['failure_message'] ?? 'NULL') . "\n";
-    echo "payments.receipt_url       = " . ($payRow['receipt_url']     ?? 'NULL') . "\n";
+
+    if (!$payRow) {
+        echo "payments: NOT FOUND\n";
+        echo str_repeat("-", 50) . "\n";
+        return;
+    }
+
+    echo "payments.status            = " . $payRow['status'] . "\n";
+    echo "payments.succeeded_at      = " . ($payRow['succeeded_at']     ?? 'NULL') . "\n";
+    echo "payments.failed_at         = " . ($payRow['failed_at']        ?? 'NULL') . "\n";
+    echo "payments.failure_code      = " . ($payRow['failure_code']     ?? 'NULL') . "\n";
+    echo "payments.failure_message   = " . ($payRow['failure_message']  ?? 'NULL') . "\n";
+    echo "payments.receipt_url       = " . ($payRow['receipt_url']      ?? 'NULL') . "\n";
     echo "payments.stripe_charge_id  = " . ($payRow['stripe_charge_id'] ?? 'NULL') . "\n";
+
+    if ($payRow['subscription_id']) {
+        $sub = $db->prepare("SELECT status, cancelled_at FROM subscriptions WHERE id = :id");
+        $sub->execute(['id' => $payRow['subscription_id']]);
+        $subRow = $sub->fetch(PDO::FETCH_ASSOC);
+        echo "subscriptions.status       = " . ($subRow['status']       ?? 'NOT FOUND') . "\n";
+        echo "subscriptions.cancelled_at = " . ($subRow['cancelled_at'] ?? 'NULL') . "\n";
+    } else {
+        echo "subscriptions: NOT CREATED YET\n";
+    }
+
     echo str_repeat("-", 50) . "\n";
 }
 
-// ── Helper: reset DB to pending ───────────────────────────────────────────────
-function resetDB(PDO $db, string $subscriptionId, string $paymentId): void {
-    $db->prepare("
-        UPDATE subscriptions
-        SET status = 'pending', cancelled_at = NULL
-        WHERE id = :id
-    ")->execute(['id' => $subscriptionId]);
+// ── Helper: reset DB ──────────────────────────────────────────────────────────
+function resetDB(PDO $db, string $paymentId): void {
+    $pay = $db->prepare("SELECT subscription_id FROM payments WHERE id = :id");
+    $pay->execute(['id' => $paymentId]);
+    $payRow = $pay->fetch(PDO::FETCH_ASSOC);
+
+    if (!empty($payRow['subscription_id'])) {
+        $db->prepare("DELETE FROM subscriptions WHERE id = :id")
+           ->execute(['id' => $payRow['subscription_id']]);
+    }
 
     $db->prepare("
         UPDATE payments
-        SET status = 'pending', succeeded_at = NULL, failed_at = NULL, failure_code = NULL
+        SET status           = 'pending',
+            subscription_id  = NULL,
+            succeeded_at     = NULL,
+            failed_at        = NULL,
+            failure_code     = NULL,
+            failure_message  = NULL,
+            receipt_url      = NULL,
+            stripe_charge_id = NULL,
+            updated_at       = NOW()
         WHERE id = :id
     ")->execute(['id' => $paymentId]);
 
-    echo "DB reset to 'pending'.\n";
+    echo "✅ DB reset – payment → pending, subscription vymazaná.\n";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -108,7 +131,7 @@ if (!$user) die("ERROR: No users found in DB.\n");
 echo "User:    {$user['email']} ({$user['id']})\n";
 
 // ── Load test chatbot ─────────────────────────────────────────────────────────
-$chatbot = $db->query("SELECT id, name FROM chatbots LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+$chatbot = $db->query("SELECT id, name FROM chatbots WHERE deleted_at IS NULL LIMIT 1")->fetch(PDO::FETCH_ASSOC);
 if (!$chatbot) die("ERROR: No chatbots found in DB.\n");
 echo "Chatbot: {$chatbot['name']} ({$chatbot['id']})\n";
 
@@ -142,84 +165,77 @@ if (!$stripeCustomerId) {
     echo "Stripe Customer: {$stripeCustomerId}\n";
 }
 
-// ── Create subscription in DB ─────────────────────────────────────────────────
-$subscriptionId = seedUUID();
-$startDate      = date('Y-m-d H:i:s');
-$endDate        = match($promotion['billing_period_type']) {
-    'daily'   => date('Y-m-d H:i:s', strtotime("+{$promotion['duration_days']} days")),
-    'weekly'  => date('Y-m-d H:i:s', strtotime("+{$promotion['duration_days']} days")),
-    'monthly' => date('Y-m-d H:i:s', strtotime('+1 month')),
-    'yearly'  => date('Y-m-d H:i:s', strtotime('+1 year')),
-    default   => date('Y-m-d H:i:s', strtotime('+1 month')),
-};
-
-$db->prepare("
-    INSERT INTO subscriptions (
-        id, user_id, chatbot_id, subscription_type,
-        promotions_id, status, start_date, end_date,
-        stripe_customer_id, auto_renew
-    ) VALUES (
-        :id, :user_id, :chatbot_id, 'promotion',
-        :promotions_id, 'pending', :start_date, :end_date,
-        :stripe_customer_id, 1
-    )
-")->execute([
-    'id'                 => $subscriptionId,
-    'user_id'            => $user['id'],
-    'chatbot_id'         => $chatbot['id'],
-    'promotions_id'      => $promotion['id'],
-    'start_date'         => $startDate,
-    'end_date'           => $endDate,
-    'stripe_customer_id' => $stripeCustomerId,
-]);
-
-// ── Create payment in DB ──────────────────────────────────────────────────────
+// ── Vytvor payment (pending) v DB ─────────────────────────────────────────────
 $paymentId  = seedUUID();
-$finalPrice = floatval($promotion['price']) * (1 - (floatval($promotion['discount_percentage']) / 100));
+$finalPrice = floatval($promotion['price']) * (1 - floatval($promotion['discount_percentage']) / 100);
 
 $db->prepare("
     INSERT INTO payments (
-        id, user_id, subscription_id, chatbot_id,
-        amount, currency_id, payment_method, status, stripe_customer_id
+        id, user_id, chatbot_id,
+        amount, currency_id, payment_method, status,
+        stripe_customer_id, created_at, updated_at
     ) VALUES (
-        :id, :user_id, :subscription_id, :chatbot_id,
-        :amount, :currency_id, 'stripe', 'pending', :stripe_customer_id
+        :id, :user_id, :chatbot_id,
+        :amount, :currency_id, 'stripe', 'pending',
+        :stripe_customer_id, NOW(), NOW()
     )
 ")->execute([
     'id'                 => $paymentId,
     'user_id'            => $user['id'],
-    'subscription_id'    => $subscriptionId,
     'chatbot_id'         => $chatbot['id'],
     'amount'             => $finalPrice,
     'currency_id'        => $promotion['currency_id'],
     'stripe_customer_id' => $stripeCustomerId,
 ]);
 
-// ── Create Stripe PaymentIntent ───────────────────────────────────────────────
-$amountCents   = (int) round($finalPrice * 100);
-$currency      = strtolower($promotion['currency_code']);
+// ── Vytvor Stripe PaymentIntent ───────────────────────────────────────────────
+$amountCents = (int) round($finalPrice * 100);
+$currency    = strtolower($promotion['currency_code']);
+
 $paymentIntent = \Stripe\PaymentIntent::create([
     'amount'                    => $amountCents,
     'currency'                  => $currency,
     'customer'                  => $stripeCustomerId,
     'setup_future_usage'        => 'off_session',
     'automatic_payment_methods' => ['enabled' => true],
-    'metadata' => [
-        'subscription_id' => $subscriptionId,
-        'payment_id'      => $paymentId,
-        'user_id'         => $user['id'],
-        'slot_type'       => $promotion['slot_type'],
-        'billing_period'  => $promotion['billing_period_type'],
-        'test_seed'       => 'true',
+    'metadata'                  => [
+        'user_id'       => $user['id'],
+        'chatbot_id'    => $chatbot['id'],
+        'promotion_id'  => $promotion['id'],
+        'promotion_id2' => '',
+        'payment_id'    => $paymentId,
+        'payment_id2'   => '',
+        'amount'        => $finalPrice,
+        'amount2'       => 0,
+        'period_type'   => $promotion['billing_period_type'],
+        'duration_days' => $promotion['duration_days'],
+        'currency_id'   => $promotion['currency_id'],
+        'test_seed'     => 'true',
     ],
 ]);
 
-$db->prepare("UPDATE payments SET stripe_payment_intent_id = :pi_id WHERE id = :pid")
-   ->execute(['pi_id' => $paymentIntent->id, 'pid' => $paymentId]);
+// Ulož stripe_payment_intent_id do payment záznamu
+$db->prepare("UPDATE payments SET stripe_payment_intent_id = :pi_id WHERE id = :id")
+   ->execute(['pi_id' => $paymentIntent->id, 'id' => $paymentId]);
 
-echo "\nCreated subscription:  {$subscriptionId}\n";
-echo "Created payment:       {$paymentId}\n";
-echo "Created PaymentIntent: {$paymentIntent->id}\n";
+echo "\n✅ Payment (pending): {$paymentId}\n";
+echo "✅ PaymentIntent:     {$paymentIntent->id}\n";
+echo "   (Subscription sa vytvorí až po succeeded webhookU)\n";
+
+// Metadata pre stripe trigger overrides
+$triggerMetadata = [
+    'user_id'       => $user['id'],
+    'chatbot_id'    => $chatbot['id'],
+    'promotion_id'  => $promotion['id'],
+    'promotion_id2' => '',
+    'payment_id'    => $paymentId,
+    'payment_id2'   => '',
+    'amount'        => $finalPrice,
+    'amount2'       => 0,
+    'period_type'   => $promotion['billing_period_type'],
+    'duration_days' => $promotion['duration_days'],
+    'currency_id'   => $promotion['currency_id'],
+];
 
 // ── Interactive menu ──────────────────────────────────────────────────────────
 while (true) {
@@ -233,7 +249,7 @@ while (true) {
     echo "  5) Cron - cancelAtPeriodEnd\n";
     echo "  6) Cron - expireSubscriptions\n";
     echo "  7) Cron - renewSubscriptions\n";
-    echo "  r) Reset DB na 'pending'\n";
+    echo "  r) Reset DB (payment → pending, subscription vymazaná)\n";
     echo "  0) Koniec\n";
     echo "=================================================\n";
     echo "Vyber (0-7, r): ";
@@ -242,44 +258,44 @@ while (true) {
 
     switch ($choice) {
         case '1':
-            runTrigger('payment_intent.succeeded', $paymentIntent->id, $subscriptionId, $paymentId);
-            sleep(1);
-            checkDB($db, $subscriptionId, $paymentId);
+            runTrigger('payment_intent.succeeded', $triggerMetadata);
+            sleep(2);
+            checkDB($db, $paymentId);
             break;
 
         case '2':
-            runTrigger('payment_intent.payment_failed', $paymentIntent->id, $subscriptionId, $paymentId);
-            sleep(1);
-            checkDB($db, $subscriptionId, $paymentId);
+            runTrigger('payment_intent.payment_failed', $triggerMetadata);
+            sleep(2);
+            checkDB($db, $paymentId);
             break;
 
         case '3':
-            runTrigger('payment_intent.canceled', $paymentIntent->id, $subscriptionId, $paymentId);
-            sleep(1);
-            checkDB($db, $subscriptionId, $paymentId);
+            runTrigger('payment_intent.canceled', $triggerMetadata);
+            sleep(2);
+            checkDB($db, $paymentId);
             break;
 
         case '4':
             echo "\n>>> Test 1/3: Successful payment\n";
-            runTrigger('payment_intent.succeeded', $paymentIntent->id, $subscriptionId, $paymentId);
-            sleep(1);
-            checkDB($db, $subscriptionId, $paymentId);
+            runTrigger('payment_intent.succeeded', $triggerMetadata);
+            sleep(2);
+            checkDB($db, $paymentId);
 
             echo "\nResetting DB...\n";
-            resetDB($db, $subscriptionId, $paymentId);
+            resetDB($db, $paymentId);
 
             echo "\n>>> Test 2/3: Failed payment\n";
-            runTrigger('payment_intent.payment_failed', $paymentIntent->id, $subscriptionId, $paymentId);
-            sleep(1);
-            checkDB($db, $subscriptionId, $paymentId);
+            runTrigger('payment_intent.payment_failed', $triggerMetadata);
+            sleep(2);
+            checkDB($db, $paymentId);
 
             echo "\nResetting DB...\n";
-            resetDB($db, $subscriptionId, $paymentId);
+            resetDB($db, $paymentId);
 
             echo "\n>>> Test 3/3: Canceled payment\n";
-            runTrigger('payment_intent.canceled', $paymentIntent->id, $subscriptionId, $paymentId);
-            sleep(1);
-            checkDB($db, $subscriptionId, $paymentId);
+            runTrigger('payment_intent.canceled', $triggerMetadata);
+            sleep(2);
+            checkDB($db, $paymentId);
             break;
 
         case '5':
@@ -304,16 +320,15 @@ while (true) {
             break;
 
         case 'r':
-            resetDB($db, $subscriptionId, $paymentId);
+            resetDB($db, $paymentId);
             break;
 
         case '0':
             echo "\n=================================================\n";
-            echo " IDs pre kontrolu v DB\n";
+            echo " IDs pre kontrolu\n";
             echo "=================================================\n";
-            echo " subscription_id: {$subscriptionId}\n";
-            echo " payment_id:      {$paymentId}\n";
-            echo " stripe_pi_id:    {$paymentIntent->id}\n";
+            echo " payment_id:   {$paymentId}\n";
+            echo " stripe_pi_id: {$paymentIntent->id}\n";
             echo "=================================================\n";
             exit(0);
 

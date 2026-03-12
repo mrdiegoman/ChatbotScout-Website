@@ -414,6 +414,12 @@
     margin-bottom: 12px;
 }
 
+.sub-chatbot {
+    font-size: 13px;
+    color: var(--profile-text-muted);
+    margin-top: 4px;
+}
+
 .sub-next-billing {
     font-size: 14px;
     color: var(--profile-text-muted);

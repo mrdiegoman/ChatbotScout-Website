@@ -41,7 +41,7 @@ body {
     display: flex;
     flex-direction: row;
     align-items: center;
-    padding: 0 2rem;
+    padding: 0 4rem;
     flex-wrap: nowrap;
     justify-content: space-between;
     gap: 1.5rem;
@@ -409,7 +409,7 @@ body {
 /* main content */
 .chatbot-page-main-content-chatbots {
     /* margin-top: 2rem; */
-    padding: 2rem;
+    padding: 2rem 4rem;
 }
 
 .chatbot-page-main-content-chatbots-grid-view, 
@@ -427,7 +427,7 @@ body {
 .chatbot-page-main-content-chatbots-grid-view.active {
     display: grid;
     /* grid-template-columns: repeat(auto-fill, minmax(36rem, 1fr));*/
-    grid-template-columns: repeat(auto-fill, minmax(36.5rem, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(36rem, 1fr));
     gap: 2rem;
 }
 

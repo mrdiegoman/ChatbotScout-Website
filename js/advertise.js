@@ -11,7 +11,8 @@ const state = {
     selectedPlanId: null,
     selectedPlanIdAlt: null, // for bundle (category_featured plan)
     chatbots:       [],
-    hasListing:     false
+    hasListing:     false,
+    activeSlots:    [],     // slot_types ktoré má vybraný chatbot aktívne
 };
 
 // ── DOM ──────────────────────────────────────────────────────────────────────
@@ -297,7 +298,17 @@ function setupModal() {
     });
 
     // Chatbot select
-    chatbotSelect.addEventListener('change', updateSummary);
+    chatbotSelect.addEventListener('change', async () => {
+        const botId = chatbotSelect.value;
+        state.activeSlots = [];
+ 
+        if (botId) {
+            await checkActivePromotions(botId);
+        }
+ 
+        applySlotRestrictions();
+        updateSummary();
+    });
 
     // Confirm
     confirmBtn.addEventListener('click', handleConfirm);
@@ -423,6 +434,72 @@ function populatePeriodOptions(slot) {
 
         periodGrid.appendChild(div);
     });
+}
+
+// ── Check active promotions pre vybraný chatbot ──────────────────────────────
+async function checkActivePromotions(chatbotId) {
+    try {
+        const res  = await fetch(`../app/advertiseActions.php?action=check_active_promotions&chatbot_id=${chatbotId}`);
+        const data = await res.json();
+        if (data.success) {
+            state.activeSlots = data.active_slots || [];
+        }
+    } catch (e) {
+        state.activeSlots = [];
+    }
+}
+ 
+// ── Skryť/zobraziť sloty podľa aktívnych subscriptions ──────────────────────
+function applySlotRestrictions() {
+    const slot        = state.selectedSlot;
+    const hasHomepage = state.activeSlots.includes('Homepage');
+    const hasChatbots = state.activeSlots.includes('Chatbots page');
+    const hasBoth     = hasHomepage && hasChatbots;
+ 
+    // Reset
+    modalError.textContent = '';
+    confirmBtn.disabled    = false;
+ 
+    // Obe aktívne → zablokovať
+    if (hasBoth) {
+        modalError.textContent = 'This chatbot already has all promotions active.';
+        confirmBtn.disabled    = true;
+        return;
+    }
+ 
+    // Homepage modal + Homepage aktívna
+    if (slot === 'Homepage' && hasHomepage) {
+        modalError.textContent = 'This chatbot already has Homepage Visibility active.';
+        confirmBtn.disabled    = true;
+        return;
+    }
+ 
+    // Chatbots Page modal + Chatbots Page aktívna
+    if (slot === 'Chatbots_Page' && hasChatbots) {
+        modalError.textContent = 'This chatbot already has Chatbots Page Visibility active.';
+        confirmBtn.disabled    = true;
+        return;
+    }
+ 
+    // Bundle + má Homepage → prepnúť na Chatbots Page
+    if (slot === 'bundle' && hasHomepage && !hasChatbots) {
+        state.selectedSlot = 'Chatbots_Page';
+        $('modalTitle').textContent    = 'Get Chatbots Page Visibility';
+        $('modalSubtitle').textContent = 'Homepage Visibility is already active for this chatbot';
+        modalError.textContent         = 'Homepage is already active — showing Chatbots Page only.';
+        populatePeriodOptions('Chatbots_Page');
+        return;
+    }
+ 
+    // Bundle + má Chatbots Page → prepnúť na Homepage
+    if (slot === 'bundle' && hasChatbots && !hasHomepage) {
+        state.selectedSlot = 'Homepage';
+        $('modalTitle').textContent    = 'Get Homepage Visibility';
+        $('modalSubtitle').textContent = 'Chatbots Page Visibility is already active for this chatbot';
+        modalError.textContent         = 'Chatbots Page is already active — showing Homepage only.';
+        populatePeriodOptions('Homepage');
+        return;
+    }
 }
 
 function updateSummary() {

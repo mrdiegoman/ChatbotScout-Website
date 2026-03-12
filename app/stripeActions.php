@@ -3,9 +3,10 @@
  * Stripe Actions
  * Handles: create_payment_intent
  *
- * ZMENA: Neprijíma subscription_id.
- * Prijíma chatbot_id + promotion_id, vytvorí PaymentIntent s metadatami.
- * Subscription + payment sa vytvárajú AŽ v stripeWebhook.php po succeeded.
+ * Flow:
+ *  1. Vytvorí payment (pending) v DB
+ *  2. Vytvorí PaymentIntent na Stripe s payment_id v metadata
+ *  3. Webhook payment_intent.succeeded: updatuje payment → succeeded + vytvorí subscription → active
  */
 
 require '../inc/bootstrap.php';
@@ -42,11 +43,11 @@ if ($action === 'create_payment_intent') {
 
         // ── Verify chatbot belongs to user ───────────────────────────────────
         $chatbotStmt = $db->prepare("
-            SELECT id, name
+            SELECT id
             FROM chatbots
             WHERE id             = :chatbot_id
-            AND owner_user_id  = :user_id
-            AND deleted_at     IS NULL
+              AND owner_user_id  = :user_id
+              AND deleted_at     IS NULL
             LIMIT 1
         ");
         $chatbotStmt->execute([
@@ -59,7 +60,7 @@ if ($action === 'create_payment_intent') {
             exit;
         }
 
-        // Stripe customer je na users tabuľke
+        // ── Load user data ───────────────────────────────────────────────────
         $userStmt = $db->prepare("
             SELECT id, email, first_name, last_name, stripe_customer_id
             FROM users
@@ -92,12 +93,12 @@ if ($action === 'create_payment_intent') {
             exit;
         }
 
-        $finalPrice = floatval($promo['price']) * (1 - floatval($promo['discount_percentage']) / 100);
-        $totalPrice = $finalPrice;
-        $currency   = strtolower($promo['currency_code']);
+        $finalPrice  = floatval($promo['price']) * (1 - floatval($promo['discount_percentage']) / 100);
+        $totalPrice  = $finalPrice;
+        $currency    = strtolower($promo['currency_code']);
 
         // ── Load promotion 2 (bundle) ────────────────────────────────────────
-        $promo2     = null;
+        $promo2      = null;
         $finalPrice2 = 0;
         if ($promotionId2) {
             $promoStmt2 = $db->prepare("
@@ -135,8 +136,53 @@ if ($action === 'create_payment_intent') {
                ->execute(['cid' => $stripeCustomerId, 'uid' => $userData['id']]);
         }
 
-        // ── Create PaymentIntent ─────────────────────────────────────────────
-        // Všetky potrebné info ukladáme do metadata – webhook ich použije na vytvorenie subscription + payment
+        // ── Vytvor payment 1 (pending) v DB ──────────────────────────────────
+        $paymentId = generateStripeUUID();
+        $db->prepare("
+            INSERT INTO payments (
+                id, user_id, chatbot_id,
+                amount, currency_id, payment_method, status,
+                stripe_customer_id, created_at, updated_at
+            ) VALUES (
+                :id, :user_id, :chatbot_id,
+                :amount, :currency_id, 'stripe', 'pending',
+                :stripe_customer_id, NOW(), NOW()
+            )
+        ")->execute([
+            'id'                 => $paymentId,
+            'user_id'            => $userData['id'],
+            'chatbot_id'         => $chatbotId,
+            'amount'             => $totalPrice,
+            'currency_id'        => $promo['currency_id'],
+            'stripe_customer_id' => $stripeCustomerId,
+        ]);
+
+        // ── Bundle: vytvor payment 2 (pending) v DB ──────────────────────────
+        $paymentId2 = null;
+        if ($promo2) {
+            $paymentId2 = generateStripeUUID();
+            $db->prepare("
+                INSERT INTO payments (
+                    id, user_id, chatbot_id,
+                    amount, currency_id, payment_method, status,
+                    stripe_customer_id, created_at, updated_at
+                ) VALUES (
+                    :id, :user_id, :chatbot_id,
+                    :amount, :currency_id, 'stripe', 'pending',
+                    :stripe_customer_id, NOW(), NOW()
+                )
+            ")->execute([
+                'id'                 => $paymentId2,
+                'user_id'            => $userData['id'],
+                'chatbot_id'         => $chatbotId,
+                'amount'             => $finalPrice2,
+                'currency_id'        => $promo2['currency_id'],
+                'stripe_customer_id' => $stripeCustomerId,
+            ]);
+        }
+
+        // ── Vytvor PaymentIntent na Stripe ───────────────────────────────────
+        // payment_id ukladáme do metadata – webhook ho použije na UPDATE
         $paymentIntent = \Stripe\PaymentIntent::create([
             'amount'             => $amountCents,
             'currency'           => $currency,
@@ -144,17 +190,39 @@ if ($action === 'create_payment_intent') {
             'setup_future_usage' => 'off_session',
             'automatic_payment_methods' => ['enabled' => true],
             'metadata'           => [
-                'user_id'         => $userData['id'],
-                'chatbot_id'      => $chatbotId,
-                'promotion_id'    => $promotionId,
-                'promotion_id2'   => $promotionId2 ?: '',
-                'amount'          => $finalPrice,
-                'amount2'         => $finalPrice2,
-                'period_type'     => $promo['period_type'],
-                'duration_days'   => $promo['duration_days'],
-                'currency_id'     => $promo['currency_id'],
+                'user_id'       => $userData['id'],
+                'chatbot_id'    => $chatbotId,
+                'promotion_id'  => $promotionId,
+                'promotion_id2' => $promotionId2 ?: '',
+                'payment_id'    => $paymentId,
+                'payment_id2'   => $paymentId2 ?: '',
+                'amount'        => $finalPrice,
+                'amount2'       => $finalPrice2,
+                'period_type'   => $promo['period_type'],
+                'duration_days' => $promo['duration_days'],
+                'currency_id'   => $promo['currency_id'],
             ],
         ]);
+
+        // ── Ulož stripe_payment_intent_id do payment záznamu ─────────────────
+        $db->prepare("
+            UPDATE payments
+            SET stripe_payment_intent_id = :pi_id, updated_at = NOW()
+            WHERE id = :id
+        ")->execute(['pi_id' => $paymentIntent->id, 'id' => $paymentId]);
+
+        if ($paymentId2) {
+            $db->prepare("
+                UPDATE payments
+                SET stripe_payment_intent_id = :pi_id, updated_at = NOW()
+                WHERE id = :id
+            ")->execute(['pi_id' => $paymentIntent->id, 'id' => $paymentId2]);
+        }
+
+        AuditLog::log('payment', $paymentId, 'created',
+            null,
+            ['status' => 'pending', 'amount' => $totalPrice, 'stripe_payment_intent_id' => $paymentIntent->id]
+        );
 
         echo json_encode([
             'success'       => true,
@@ -176,3 +244,11 @@ if ($action === 'create_payment_intent') {
 }
 
 echo json_encode(['success' => false, 'message' => 'Invalid action']);
+
+// ── Helper: UUID v4 ──────────────────────────────────────────────────────────
+function generateStripeUUID(): string {
+    $data    = random_bytes(16);
+    $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+    $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+}

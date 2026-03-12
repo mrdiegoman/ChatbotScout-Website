@@ -2,13 +2,10 @@
 /**
  * Stripe Webhook Handler
  *
- * ZMENA: payment_intent.succeeded teraz vytvára payment + subscription naraz ako active.
- * Subscription sa nevytvára vopred ako pending.
- *
- * Handles:
- *  - payment_intent.succeeded      → vytvorí payment (succeeded) + subscription (active)
- *  - payment_intent.payment_failed → zaloguje chybu
- *  - payment_intent.canceled       → zaloguje zrušenie
+ * Flow:
+ *  payment_intent.succeeded  → UPDATE payment (pending → succeeded) + INSERT subscription (active)
+ *  payment_intent.failed     → UPDATE payment (pending → failed)
+ *  payment_intent.canceled   → UPDATE payment (pending → cancelled)
  */
 
 require '../inc/bootstrap.php';
@@ -36,7 +33,7 @@ try {
 
 $db = Database::getInstance()->getConnection();
 
-// ── Helper: generate UUID v4 ─────────────────────────────────────────────────
+// ── Helper: UUID v4 ──────────────────────────────────────────────────────────
 function generateWebhookUuid(): string {
     $data    = random_bytes(16);
     $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
@@ -47,7 +44,7 @@ function generateWebhookUuid(): string {
 // ── Handle events ─────────────────────────────────────────────────────────────
 switch ($event->type) {
 
-    // ── Payment succeeded → vytvor payment + subscription ────────────────────
+    // ── Payment succeeded → update payment + vytvor subscription ─────────────
     case 'payment_intent.succeeded':
         $pi = $event->data->object;
 
@@ -55,18 +52,20 @@ switch ($event->type) {
         $chatbotId    = $pi->metadata->chatbot_id    ?? null;
         $promotionId  = $pi->metadata->promotion_id  ?? null;
         $promotionId2 = $pi->metadata->promotion_id2 ?? null;
+        $paymentId    = $pi->metadata->payment_id    ?? null;
+        $paymentId2   = $pi->metadata->payment_id2   ?? null;
         $amount       = $pi->metadata->amount        ?? null;
         $amount2      = $pi->metadata->amount2       ?? null;
         $periodType   = $pi->metadata->period_type   ?? 'monthly';
         $durationDays = $pi->metadata->duration_days ?? 30;
         $currencyId   = $pi->metadata->currency_id   ?? null;
 
-        if (!$userId || !$chatbotId || !$promotionId) {
+        if (!$userId || !$chatbotId || !$promotionId || !$paymentId) {
             error_log("Stripe webhook: payment_intent.succeeded missing metadata, pi={$pi->id}");
             break;
         }
 
-        // Získaj receipt URL z charge
+        // ── Získaj receipt URL z charge ──────────────────────────────────────
         $receiptUrl = null;
         $chargeId   = null;
         if (!empty($pi->latest_charge)) {
@@ -114,47 +113,36 @@ switch ($event->type) {
                 'stripe_customer_id' => $pi->customer ?? null,
             ]);
 
-            // ── Vytvor payment 1 (succeeded) ─────────────────────────────────
-            $paymentId = generateWebhookUuid();
+            // ── Update payment 1 (pending → succeeded) ───────────────────────
             $db->prepare("
-                INSERT INTO payments (
-                    id, user_id, subscription_id, chatbot_id,
-                    amount, currency_id, payment_method, status,
-                    stripe_payment_intent_id, stripe_charge_id, stripe_customer_id,
-                    receipt_url, succeeded_at, created_at, updated_at
-                ) VALUES (
-                    :id, :user_id, :subscription_id, :chatbot_id,
-                    :amount, :currency_id, 'stripe', 'succeeded',
-                    :pi_id, :charge_id, :stripe_customer_id,
-                    :receipt_url, NOW(), NOW(), NOW()
-                )
+                UPDATE payments
+                SET status                   = 'succeeded',
+                    subscription_id          = :subscription_id,
+                    stripe_charge_id         = :charge_id,
+                    receipt_url              = :receipt_url,
+                    succeeded_at             = NOW(),
+                    updated_at               = NOW()
+                WHERE id = :id
             ")->execute([
-                'id'                 => $paymentId,
-                'user_id'            => $userId,
-                'subscription_id'    => $subscriptionId,
-                'chatbot_id'         => $chatbotId,
-                'amount'             => $amount,
-                'currency_id'        => $currencyId,
-                'pi_id'              => $pi->id,
-                'charge_id'          => $chargeId,
-                'stripe_customer_id' => $pi->customer ?? null,
-                'receipt_url'        => $receiptUrl,
+                'subscription_id' => $subscriptionId,
+                'charge_id'       => $chargeId,
+                'receipt_url'     => $receiptUrl,
+                'id'              => $paymentId,
             ]);
 
-            // Audit log
             AuditLog::log('subscription', $subscriptionId, 'created',
                 null,
                 ['status' => 'active', 'chatbot_id' => $chatbotId, 'promotion_id' => $promotionId],
                 $userId
             );
-            AuditLog::log('payment', $paymentId, 'created',
-                null,
-                ['status' => 'succeeded', 'amount' => $amount, 'stripe_payment_intent_id' => $pi->id],
+            AuditLog::log('payment', $paymentId, 'updated',
+                ['status' => 'pending'],
+                ['status' => 'succeeded', 'stripe_charge_id' => $chargeId],
                 $userId
             );
 
-            // ── Bundle: vytvor subscription 2 + payment 2 ────────────────────
-            if ($promotionId2) {
+            // ── Bundle: vytvor subscription 2 + update payment 2 ─────────────
+            if ($promotionId2 && $paymentId2) {
                 $subscriptionId2 = generateWebhookUuid();
                 $db->prepare("
                     INSERT INTO subscriptions (
@@ -176,30 +164,20 @@ switch ($event->type) {
                     'stripe_customer_id' => $pi->customer ?? null,
                 ]);
 
-                $paymentId2 = generateWebhookUuid();
                 $db->prepare("
-                    INSERT INTO payments (
-                        id, user_id, subscription_id, chatbot_id,
-                        amount, currency_id, payment_method, status,
-                        stripe_payment_intent_id, stripe_charge_id, stripe_customer_id,
-                        receipt_url, succeeded_at, created_at, updated_at
-                    ) VALUES (
-                        :id, :user_id, :subscription_id, :chatbot_id,
-                        :amount, :currency_id, 'stripe', 'succeeded',
-                        :pi_id, :charge_id, :stripe_customer_id,
-                        :receipt_url, NOW(), NOW(), NOW()
-                    )
+                    UPDATE payments
+                    SET status          = 'succeeded',
+                        subscription_id = :subscription_id,
+                        stripe_charge_id = :charge_id,
+                        receipt_url     = :receipt_url,
+                        succeeded_at    = NOW(),
+                        updated_at      = NOW()
+                    WHERE id = :id
                 ")->execute([
-                    'id'                 => $paymentId2,
-                    'user_id'            => $userId,
-                    'subscription_id'    => $subscriptionId2,
-                    'chatbot_id'         => $chatbotId,
-                    'amount'             => $amount2,
-                    'currency_id'        => $currencyId,
-                    'pi_id'              => $pi->id,
-                    'charge_id'          => $chargeId,
-                    'stripe_customer_id' => $pi->customer ?? null,
-                    'receipt_url'        => $receiptUrl,
+                    'subscription_id' => $subscriptionId2,
+                    'charge_id'       => $chargeId,
+                    'receipt_url'     => $receiptUrl,
+                    'id'              => $paymentId2,
                 ]);
 
                 AuditLog::log('subscription', $subscriptionId2, 'created',
@@ -207,15 +185,15 @@ switch ($event->type) {
                     ['status' => 'active', 'chatbot_id' => $chatbotId, 'promotion_id' => $promotionId2],
                     $userId
                 );
-                AuditLog::log('payment', $paymentId2, 'created',
-                    null,
-                    ['status' => 'succeeded', 'amount' => $amount2, 'stripe_payment_intent_id' => $pi->id],
+                AuditLog::log('payment', $paymentId2, 'updated',
+                    ['status' => 'pending'],
+                    ['status' => 'succeeded'],
                     $userId
                 );
             }
 
             $db->commit();
-            error_log("Stripe: succeeded — subscription {$subscriptionId} created as active for user {$userId}");
+            error_log("Stripe: succeeded — subscription {$subscriptionId} created (active), payment {$paymentId} updated (succeeded)");
 
         } catch (Exception $e) {
             $db->rollBack();
@@ -225,48 +203,115 @@ switch ($event->type) {
         }
         break;
 
-    // ── Payment failed ────────────────────────────────────────────────────────
+    // ── Payment failed → update payment pending → failed ─────────────────────
     case 'payment_intent.payment_failed':
         $pi = $event->data->object;
 
+        $paymentId   = $pi->metadata->payment_id  ?? null;
+        $paymentId2  = $pi->metadata->payment_id2 ?? null;
         $userId      = $pi->metadata->user_id     ?? null;
-        $chatbotId   = $pi->metadata->chatbot_id  ?? null;
-        $promotionId = $pi->metadata->promotion_id ?? null;
 
         $failureCode    = $pi->last_payment_error->code    ?? 'unknown';
         $failureMessage = $pi->last_payment_error->message ?? 'Payment failed';
 
-        error_log("Stripe: payment_failed — user={$userId}, chatbot={$chatbotId}, code={$failureCode}");
+        // Fallback: nájdi podľa stripe_payment_intent_id
+        if (!$paymentId) {
+            $row = $db->prepare("SELECT id FROM payments WHERE stripe_payment_intent_id = :pi_id AND status = 'pending' LIMIT 1");
+            $row->execute(['pi_id' => $pi->id]);
+            $found = $row->fetch(PDO::FETCH_ASSOC);
+            $paymentId = $found['id'] ?? null;
+        }
 
-        // Subscription sa nevytvorila (správne správanie)
-        // Zalogujeme len do audit_log pre prehľad
-        if ($userId && $promotionId) {
-            AuditLog::log('payment', $pi->id, 'updated',
+        if ($paymentId) {
+            $db->prepare("
+                UPDATE payments
+                SET status          = 'failed',
+                    failed_at       = NOW(),
+                    failure_code    = :code,
+                    failure_message = :message,
+                    updated_at      = NOW()
+                WHERE id = :id
+            ")->execute([
+                'code'    => $failureCode,
+                'message' => $failureMessage,
+                'id'      => $paymentId,
+            ]);
+
+            AuditLog::log('payment', $paymentId, 'updated',
                 ['status' => 'pending'],
-                ['status' => 'failed', 'failure_code' => $failureCode, 'failure_message' => $failureMessage],
+                ['status' => 'failed', 'failure_code' => $failureCode],
                 $userId
             );
         }
+
+        if ($paymentId2) {
+            $db->prepare("
+                UPDATE payments
+                SET status          = 'failed',
+                    failed_at       = NOW(),
+                    failure_code    = :code,
+                    failure_message = :message,
+                    updated_at      = NOW()
+                WHERE id = :id
+            ")->execute([
+                'code'    => $failureCode,
+                'message' => $failureMessage,
+                'id'      => $paymentId2,
+            ]);
+        }
+
+        error_log("Stripe: payment_failed — payment {$paymentId}, code={$failureCode}");
         break;
 
-    // ── Payment canceled ──────────────────────────────────────────────────────
+    // ── Payment canceled → update payment pending → cancelled ────────────────
     case 'payment_intent.canceled':
         $pi = $event->data->object;
 
-        $userId      = $pi->metadata->user_id     ?? null;
-        $promotionId = $pi->metadata->promotion_id ?? null;
+        $paymentId  = $pi->metadata->payment_id  ?? null;
+        $paymentId2 = $pi->metadata->payment_id2 ?? null;
+        $userId     = $pi->metadata->user_id     ?? null;
 
-        $cancelReason = $pi->cancellation_reason ?? 'Payment canceled';
+        $cancelReason = $pi->cancellation_reason ?? 'canceled';
 
-        error_log("Stripe: canceled — pi={$pi->id}, reason={$cancelReason}");
+        // Fallback: nájdi podľa stripe_payment_intent_id
+        if (!$paymentId) {
+            $row = $db->prepare("SELECT id FROM payments WHERE stripe_payment_intent_id = :pi_id AND status = 'pending' LIMIT 1");
+            $row->execute(['pi_id' => $pi->id]);
+            $found = $row->fetch(PDO::FETCH_ASSOC);
+            $paymentId = $found['id'] ?? null;
+        }
 
-        if ($userId && $promotionId) {
-            AuditLog::log('payment', $pi->id, 'updated',
+        if ($paymentId) {
+            $db->prepare("
+                UPDATE payments
+                SET status          = 'cancelled',
+                    failed_at       = NOW(),
+                    failure_code    = 'payment_canceled',
+                    failure_message = :reason,
+                    updated_at      = NOW()
+                WHERE id = :id
+            ")->execute(['reason' => $cancelReason, 'id' => $paymentId]);
+
+            AuditLog::log('payment', $paymentId, 'updated',
                 ['status' => 'pending'],
                 ['status' => 'cancelled', 'cancellation_reason' => $cancelReason],
                 $userId
             );
         }
+
+        if ($paymentId2) {
+            $db->prepare("
+                UPDATE payments
+                SET status          = 'cancelled',
+                    failed_at       = NOW(),
+                    failure_code    = 'payment_canceled',
+                    failure_message = :reason,
+                    updated_at      = NOW()
+                WHERE id = :id
+            ")->execute(['reason' => $cancelReason, 'id' => $paymentId2]);
+        }
+
+        error_log("Stripe: canceled — payment {$paymentId}, reason={$cancelReason}");
         break;
 }
 

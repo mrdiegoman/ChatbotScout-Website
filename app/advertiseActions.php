@@ -140,7 +140,46 @@ switch ($action) {
             echo json_encode(['success' => false, 'message' => 'Failed to validate promotion']);
         }
         break;
-
+    
+    // ─── Check active promotions for chatbot ────────────────────────────────
+    case 'check_active_promotions':
+        $chatbotId = trim($_GET['chatbot_id'] ?? '');
+ 
+        if (!$chatbotId) {
+            echo json_encode(['success' => false, 'message' => 'Missing chatbot_id']);
+            break;
+        }
+ 
+        try {
+            $db = Database::getInstance()->getConnection();
+ 
+            $stmt = $db->prepare("
+                SELECT pr.slot_type
+                FROM subscriptions s
+                JOIN promotions pr ON s.promotions_id = pr.id
+                WHERE s.user_id           = :user_id
+                  AND s.chatbot_id        = :chatbot_id
+                  AND s.subscription_type = 'promotion'
+                  AND s.status            = 'active'
+            ");
+            $stmt->execute([
+                'user_id'    => $user['id'],
+                'chatbot_id' => $chatbotId,
+            ]);
+ 
+            $activeSlots = $stmt->fetchAll(PDO::FETCH_COLUMN);
+ 
+            echo json_encode([
+                'success'      => true,
+                'active_slots' => $activeSlots, // napr. ["Homepage"] alebo ["Homepage", "Chatbots page"]
+            ]);
+ 
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Error checking promotions']);
+        }
+        break;
+    
     default:
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Invalid action']);
