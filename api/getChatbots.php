@@ -81,7 +81,7 @@ $search = trim($_GET['search'] ?? '');
 $dir = $direction === 'asc' ? 'ASC' : 'DESC';
 
 $orderBy = match($sort) {
-    'popularity'        => "(c.rating_average * LOG(c.click_count + 1)) $dir, c.click_count $dir",
+    'popularity'        => "(c.rating_average * LOG(c.click_count + 1)) $dir, c.click_count $dir, c.rating_count $dir, c.rating_average $dir",
     'alphabetical'      => "c.name " . ($direction === 'asc' ? 'DESC' : 'ASC'),
     'rating'            => "c.rating_average $dir, c.rating_count $dir",
     'number-of-ratings' => "c.rating_count $dir, c.rating_average $dir",

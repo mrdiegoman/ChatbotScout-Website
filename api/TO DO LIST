@@ -1,19 +1,14 @@
-Nastavenie tabuliek v databaze, cahtbot cards, promotion slots, audit log
-
-otestovat Stripe cli -> nakup, visa, paypal, apple-pay (celkove zobrazenie tj. inputy)
-
-v advertise lepsie visuals toho co si kupuje user
-
+Terms of service, privacy policy
 firemny mail, posielanie notifikacii na firemny mail
 
-vytvaranie invoicov na platby
+pridanie do ddb unique users clicked on chatbot
 
 Skontrolovat ratelimiter
 
-
-
-
-
+POSIBLY NESKOR:
+    vytvaranie invoicov na platby
+    v advertise lepsie visuals toho co si kupuje user
+    testovat Stripe cli -> nakup, visa, paypal, apple-pay (celkove zobrazenie tj. inputy)
 
 stripe listen --forward-to localhost/mainwebsite/api/stripeWebhook.php
 php tools/seedTestData.php

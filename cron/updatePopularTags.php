@@ -28,11 +28,9 @@ try {
         FROM chatbots
         WHERE status = 'active'
         AND deleted_at IS NULL
-        AND rating_average > 0
+        AND rating_count > 0
         AND click_count > 0
-        ORDER BY (rating_average * LOG(click_count + 1)) DESC,
-                rating_count DESC,
-                click_count DESC
+        ORDER BY (rating_average * LOG(click_count + 1)) DESC, click_count DESC, rating_count DESC, rating_average DESC
         LIMIT 5
     ");
     $top5Ids = $top5Stmt->fetchAll(PDO::FETCH_COLUMN);

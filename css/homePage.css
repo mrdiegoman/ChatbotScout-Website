@@ -43,7 +43,7 @@
     align-items: center;
     position: relative;
     overflow: hidden;
-    min-height: 86vh;
+    min-height: min(86vh, 650px);
 }
 
 .hp-hero::before {
@@ -1107,6 +1107,7 @@
    RESPONSIVE
    ============================================================ */
 @media (max-width: 960px) {
+    .hp-hero { min-height: 86vh }
     .hp-hero-inner { grid-template-columns: 1fr; }
     .hp-carousel-wrap { height: 380px; }
 
