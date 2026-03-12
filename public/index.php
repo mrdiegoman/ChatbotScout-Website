@@ -44,7 +44,7 @@ require '../inc/header.php';
                         <div class="hp-card-avatar"><i class="fa-solid fa-scale-balanced"></i></div>
                         <div class="hp-card-info">
                             <div class="hp-card-name">LegalAI Assistant</div>
-                            <div class="hp-card-status">Ready to help</div>
+                            <div class="hp-card-status">Here for you</div>
                         </div>
                     </div>
                     <div class="hp-card-body">
@@ -55,7 +55,11 @@ require '../inc/header.php';
                     </div>
                     <div class="hp-card-input">
                         <span>Type your message...</span>
-                        <div class="hp-card-send"><i class="fa-solid fa-paper-plane"></i></div>
+                        <div class="hp-card-send">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="fa-solid fa-paper-plane" viewBox="0 0 640 640" width="14" height="14">
+                                <path fill="white" d="M568.4 37.7C578.2 34.2 589 36.7 596.4 44C603.8 51.3 606.2 62.2 602.7 72L424.7 568.9C419.7 582.8 406.6 592 391.9 592C377.7 592 364.9 583.4 359.6 570.3L295.4 412.3C290.9 401.3 292.9 388.7 300.6 379.7L395.1 267.3C400.2 261.2 399.8 252.3 394.2 246.7C388.6 241.1 379.6 240.7 373.6 245.8L261.2 340.1C252.1 347.7 239.6 349.7 228.6 345.3L70.1 280.8C57 275.5 48.4 262.7 48.4 248.5C48.4 233.8 57.6 220.7 71.5 215.7L568.4 37.7z"/>
+                            </svg>
+                        </div>
                     </div>
                 </div>
 
@@ -65,7 +69,7 @@ require '../inc/header.php';
                         <div class="hp-card-avatar"><i class="fa-solid fa-utensils"></i></div>
                         <div class="hp-card-info">
                             <div class="hp-card-name">RestoBot</div>
-                            <div class="hp-card-status">Online</div>
+                            <div class="hp-card-status">Live</div>
                         </div>
                     </div>
                     <div class="hp-card-body">
@@ -76,7 +80,11 @@ require '../inc/header.php';
                     </div>
                     <div class="hp-card-input">
                         <span>Type your message...</span>
-                        <div class="hp-card-send"><i class="fa-solid fa-paper-plane"></i></div>
+                        <div class="hp-card-send">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="fa-solid fa-paper-plane" viewBox="0 0 640 640" width="14" height="14">
+                                <path fill="white" d="M568.4 37.7C578.2 34.2 589 36.7 596.4 44C603.8 51.3 606.2 62.2 602.7 72L424.7 568.9C419.7 582.8 406.6 592 391.9 592C377.7 592 364.9 583.4 359.6 570.3L295.4 412.3C290.9 401.3 292.9 388.7 300.6 379.7L395.1 267.3C400.2 261.2 399.8 252.3 394.2 246.7C388.6 241.1 379.6 240.7 373.6 245.8L261.2 340.1C252.1 347.7 239.6 349.7 228.6 345.3L70.1 280.8C57 275.5 48.4 262.7 48.4 248.5C48.4 233.8 57.6 220.7 71.5 215.7L568.4 37.7z"/>
+                            </svg>
+                        </div>
                     </div>
                 </div>
 
@@ -98,7 +106,11 @@ require '../inc/header.php';
                     </div>
                     <div class="hp-card-input">
                         <span>Type your message...</span>
-                        <div class="hp-card-send"><i class="fa-solid fa-paper-plane"></i></div>
+                        <div class="hp-card-send">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="fa-solid fa-paper-plane" viewBox="0 0 640 640" width="14" height="14">
+                                <path fill="white" d="M568.4 37.7C578.2 34.2 589 36.7 596.4 44C603.8 51.3 606.2 62.2 602.7 72L424.7 568.9C419.7 582.8 406.6 592 391.9 592C377.7 592 364.9 583.4 359.6 570.3L295.4 412.3C290.9 401.3 292.9 388.7 300.6 379.7L395.1 267.3C400.2 261.2 399.8 252.3 394.2 246.7C388.6 241.1 379.6 240.7 373.6 245.8L261.2 340.1C252.1 347.7 239.6 349.7 228.6 345.3L70.1 280.8C57 275.5 48.4 262.7 48.4 248.5C48.4 233.8 57.6 220.7 71.5 215.7L568.4 37.7z"/>
+                            </svg>
+                        </div>
                     </div>
                 </div>
 
@@ -119,7 +131,11 @@ require '../inc/header.php';
                     </div>
                     <div class="hp-card-input">
                         <span>Type your message...</span>
-                        <div class="hp-card-send"><i class="fa-solid fa-paper-plane"></i></div>
+                        <div class="hp-card-send">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="fa-solid fa-paper-plane" viewBox="0 0 640 640" width="14" height="14">
+                                <path fill="white" d="M568.4 37.7C578.2 34.2 589 36.7 596.4 44C603.8 51.3 606.2 62.2 602.7 72L424.7 568.9C419.7 582.8 406.6 592 391.9 592C377.7 592 364.9 583.4 359.6 570.3L295.4 412.3C290.9 401.3 292.9 388.7 300.6 379.7L395.1 267.3C400.2 261.2 399.8 252.3 394.2 246.7C388.6 241.1 379.6 240.7 373.6 245.8L261.2 340.1C252.1 347.7 239.6 349.7 228.6 345.3L70.1 280.8C57 275.5 48.4 262.7 48.4 248.5C48.4 233.8 57.6 220.7 71.5 215.7L568.4 37.7z"/>
+                            </svg>
+                        </div>
                     </div>
                 </div>
 
@@ -140,7 +156,11 @@ require '../inc/header.php';
                     </div>
                     <div class="hp-card-input">
                         <span>Type your message...</span>
-                        <div class="hp-card-send"><i class="fa-solid fa-paper-plane"></i></div>
+                        <div class="hp-card-send">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="fa-solid fa-paper-plane" viewBox="0 0 640 640" width="14" height="14">
+                                <path fill="white" d="M568.4 37.7C578.2 34.2 589 36.7 596.4 44C603.8 51.3 606.2 62.2 602.7 72L424.7 568.9C419.7 582.8 406.6 592 391.9 592C377.7 592 364.9 583.4 359.6 570.3L295.4 412.3C290.9 401.3 292.9 388.7 300.6 379.7L395.1 267.3C400.2 261.2 399.8 252.3 394.2 246.7C388.6 241.1 379.6 240.7 373.6 245.8L261.2 340.1C252.1 347.7 239.6 349.7 228.6 345.3L70.1 280.8C57 275.5 48.4 262.7 48.4 248.5C48.4 233.8 57.6 220.7 71.5 215.7L568.4 37.7z"/>
+                            </svg>
+                        </div>
                     </div>
                 </div>
 
@@ -338,7 +358,7 @@ require '../inc/header.php';
                     <p>
                         Explore detailed listings that highlight key features, pricing models,
                         and real user feedback. Our side-by-side comparison tool helps you
-                        make the best decision in minutes — not hours.
+                        make the best decision in minutes - not hours.
                     </p>
                     <a href="chatbotShowcase.php" class="hp-link-green" style="margin-top:16px;display:inline-flex">
                         Start comparing <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
@@ -429,7 +449,7 @@ require '../inc/header.php';
                     </div>
                     <div class="hp-filter-feature-text">
                         <strong>Pricing that fits your budget</strong>
-                        <span>Filter by free, freemium, recurring, or usage-based plans — find what works for your business in any industry.</span>
+                        <span>Filter by free, freemium, recurring, or usage-based plans - find what works for your business in any industry.</span>
                     </div>
                 </div>
                 <div class="hp-filter-feature">
@@ -438,7 +458,7 @@ require '../inc/header.php';
                     </div>
                     <div class="hp-filter-feature-text">
                         <strong>Filter by specific features</strong>
-                        <span>Live agent support, multilingual, AI agent, dashboard, file uploads and more — pick exactly what you need.</span>
+                        <span>Live agent support, multilingual, AI agent, dashboard, file uploads and more - pick exactly what you need.</span>
                     </div>
                 </div>
                 <div class="hp-filter-feature">
@@ -476,7 +496,7 @@ require '../inc/header.php';
                 <span>AI Chatbots</span> for Your Website or Business
             </h2>
             <p>
-                Save your favourite AI chatbots to your wishlist and access them anytime —
+                Save your favourite AI chatbots to your wishlist and access them anytime -
                 compare, revisit, and decide at your own pace.
             </p>
             <p>

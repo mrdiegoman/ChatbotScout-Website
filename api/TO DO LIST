@@ -2,10 +2,6 @@ Nastavenie tabuliek v databaze, cahtbot cards, promotion slots, audit log
 
 otestovat Stripe cli -> nakup, visa, paypal, apple-pay (celkove zobrazenie tj. inputy)
 
-prepojit db so social links
-
-zvyraznit na mobilnej verzii ze som na chatbots a ze som vo favourites
-
 v advertise lepsie visuals toho co si kupuje user
 
 firemny mail, posielanie notifikacii na firemny mail
@@ -13,8 +9,6 @@ firemny mail, posielanie notifikacii na firemny mail
 vytvaranie invoicov na platby
 
 Skontrolovat ratelimiter
-
-rozdelit checkout php a tam ten js do dvoch suborov
 
 
 

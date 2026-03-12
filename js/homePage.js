@@ -67,11 +67,19 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         /* Clicking a side card centres it */
+        let isAnimating = false;
         cards.forEach((card, i) => {
-            card.addEventListener('click', () => {
+            card.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (isAnimating) return;
                 const pos = getPositionClass(i);
-                if (pos === 'pos-left')  goTo(current - 1);
-                if (pos === 'pos-right') goTo(current + 1);
+                if (pos === 'pos-left' || pos === 'pos-right') {
+                    isAnimating = true;
+                    if (pos === 'pos-left')  goTo(current - 1);
+                    if (pos === 'pos-right') goTo(current + 1);
+                    resetAutoPlay();
+                    setTimeout(() => { isAnimating = false; }, 450);
+                }
             });
         });
 
