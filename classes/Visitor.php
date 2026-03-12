@@ -107,16 +107,26 @@ class Visitor
      */
     public function convertToUser(string $visitorId, string $userId): void
     {
-        $stmt = $this->db->prepare("
-            UPDATE visitors 
-            SET user_id = :user_id,
-                converted_at = NOW()
-            WHERE id = :visitor_id AND user_id IS NULL
+        // Skontroluj či spojenie už neexistuje
+        $check = $this->db->prepare("
+            SELECT COUNT(*) FROM visitor_user_links 
+            WHERE visitor_id = :visitor_id AND user_id = :user_id
         ");
+        $check->execute(['visitor_id' => $visitorId, 'user_id' => $userId]);
         
+        if ($check->fetchColumn() > 0) {
+            return; // Spojenie už existuje
+        }
+
+        $stmt = $this->db->prepare("
+            INSERT INTO visitor_user_links (id, visitor_id, user_id, converted_at)
+            VALUES (:id, :visitor_id, :user_id, NOW())
+        ");
+
         $stmt->execute([
+            'id'         => $this->generateUuid(),
             'visitor_id' => $visitorId,
-            'user_id' => $userId,
+            'user_id'    => $userId,
         ]);
     }
     

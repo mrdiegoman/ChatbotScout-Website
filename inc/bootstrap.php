@@ -57,6 +57,9 @@ if (isset($_COOKIE[$appConfig['session']['cookie_name']])) {
 // VISITOR TRACKING
 // ============================================
 
+$userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+$isBotOrApi = empty($userAgent) || preg_match('/(Stripe|curl|wget|bot|crawler)/i', $userAgent);
+
 if (!$isLoggedIn) {
     $visitor = new Visitor();
 

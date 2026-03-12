@@ -110,8 +110,8 @@ CREATE TABLE `visitors` (
   `utm_term` VARCHAR(255) NULL COMMENT 'Paid keywords, e.g., "ai chatbot", "customer support bot", "live chat widget"',
   `utm_content` VARCHAR(255) NULL COMMENT 'Ad variation, e.g., "banner_blue", "text_ad_v2", "sidebar_widget"',
 
-  `user_id` CHAR(36) NULL COMMENT 'Set when visitor registers, e.g., "550e8400-e29b-41d4-a716-446655440000", "7c9e6679-7425-40de-944b-e07fc1f90ae7"',
-  `converted_at` TIMESTAMP NULL COMMENT 'Registration time, e.g., "2025-01-29 14:30:00", "2025-01-28 10:15:00"',
+#   `user_id` CHAR(36) NULL COMMENT 'Set when visitor registers, e.g., "550e8400-e29b-41d4-a716-446655440000", "7c9e6679-7425-40de-944b-e07fc1f90ae7"',
+#   `converted_at` TIMESTAMP NULL COMMENT 'Registration time, e.g., "2025-01-29 14:30:00", "2025-01-28 10:15:00"',
 
   `first_seen` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'First visit, e.g., "2025-01-20 08:00:00", "2025-01-15 12:30:00"',
   `last_seen` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last visit, e.g., "2025-01-29 12:45:00", "2025-01-29 09:20:00"',
@@ -119,18 +119,56 @@ CREATE TABLE `visitors` (
 
   PRIMARY KEY (`id`),
   KEY `idx_fingerprint` (`fingerprint`),
-  KEY `idx_user_id` (`user_id`),
+#   KEY `idx_user_id` (`user_id`),
   KEY `idx_last_seen` (`last_seen`),
   KEY `idx_utm_source_campaign` (`utm_source`, `utm_campaign`),
 
-  CONSTRAINT `fk_visitors_user`
-    FOREIGN KEY (`user_id`)
-    REFERENCES `users` (`id`)
-    ON DELETE SET NULL
+#   CONSTRAINT `fk_visitors_user`
+#     FOREIGN KEY (`user_id`)
+#     REFERENCES `users` (`id`)
+#     ON DELETE SET NULL
 
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci;
+
+-- Väzobná tabuľka visitors a user ucty
+CREATE TABLE `visitor_user_links` (
+  `id` CHAR(36) NOT NULL,
+  `visitor_id` CHAR(36) NOT NULL,
+  `user_id` CHAR(36) NOT NULL,
+  `converted_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_visitor_user` (`visitor_id`, `user_id`),
+  KEY `idx_visitor` (`visitor_id`),
+  KEY `idx_user` (`user_id`),
+
+  CONSTRAINT `fk_vul_visitor` FOREIGN KEY (`visitor_id`)
+    REFERENCES `visitors` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_vul_user` FOREIGN KEY (`user_id`)
+    REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- recording unique visitors clicks on chatbot
+CREATE TABLE `chatbot_clicks` (
+  `id` CHAR(36) NOT NULL,
+  `chatbot_id` CHAR(36) NOT NULL,
+  `visitor_id` CHAR(36) NOT NULL,
+  `source_page` VARCHAR(1000) NULL COMMENT 'Stránka odkiaľ user klikol, e.g., "/MainWebsite/public/index.php"',
+  `clicked_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  KEY `idx_chatbot` (`chatbot_id`),
+  KEY `idx_visitor` (`visitor_id`),
+  KEY `idx_clicked_at` (`clicked_at`),
+
+  CONSTRAINT `fk_clicks_chatbot` FOREIGN KEY (`chatbot_id`)
+    REFERENCES `chatbots` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_clicks_visitor` FOREIGN KEY (`visitor_id`)
+    REFERENCES `visitors` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- ============================================
 -- Settings table
@@ -330,22 +368,22 @@ INSERT IGNORE INTO `tags` (`id`, `name`) VALUES
 
 -- ============================================
 
-CREATE TABLE `chatbot_cards` (
-  `id` CHAR(36) NOT NULL COMMENT 'Card UUID, e.g., "b50e8400-e29b-41d4-a716-446655440006", "4d5e6f7g-8h9i-0j1k-2l3m-4n5o6p7q8r9s"',
-  `chatbot_id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
-  `image_url` VARCHAR(500) NOT NULL COMMENT 'Screenshot/card image, e.g., "https://cdn.chatbotdir.com/screens/intercom-chat-1.jpg", "https://storage.googleapis.com/chatbots/drift-demo-screen.png", "https://assets.tidio.com/gallery/widget-preview.jpg"',
-  `caption` VARCHAR(255) NULL COMMENT 'Image caption, e.g., "Live chat interface with AI responses", "Dashboard analytics view", "Mobile widget customization"',
-  `alt_text` VARCHAR(255) NULL COMMENT 'Alt text for accessibility, e.g., "Intercom live chat widget showing conversation", "Drift analytics dashboard screenshot", "Tidio mobile chat interface"',
-  `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
-  `is_primary` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Primary image?, e.g., TRUE, FALSE',
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Uploaded at, e.g., "2025-01-15 12:00:00", "2024-12-10 10:30:00"',
-
-  PRIMARY KEY (`id`),
-  KEY `idx_chatbot_order` (`chatbot_id`, `display_order`),
-
-  CONSTRAINT `fk_cards_chatbot` FOREIGN KEY (`chatbot_id`)
-    REFERENCES `chatbots` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+# CREATE TABLE `chatbot_cards` (
+#   `id` CHAR(36) NOT NULL COMMENT 'Card UUID, e.g., "b50e8400-e29b-41d4-a716-446655440006", "4d5e6f7g-8h9i-0j1k-2l3m-4n5o6p7q8r9s"',
+#   `chatbot_id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
+#   `image_url` VARCHAR(500) NOT NULL COMMENT 'Screenshot/card image, e.g., "https://cdn.chatbotdir.com/screens/intercom-chat-1.jpg", "https://storage.googleapis.com/chatbots/drift-demo-screen.png", "https://assets.tidio.com/gallery/widget-preview.jpg"',
+#   `caption` VARCHAR(255) NULL COMMENT 'Image caption, e.g., "Live chat interface with AI responses", "Dashboard analytics view", "Mobile widget customization"',
+#   `alt_text` VARCHAR(255) NULL COMMENT 'Alt text for accessibility, e.g., "Intercom live chat widget showing conversation", "Drift analytics dashboard screenshot", "Tidio mobile chat interface"',
+#   `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
+#   `is_primary` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Primary image?, e.g., TRUE, FALSE',
+#   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Uploaded at, e.g., "2025-01-15 12:00:00", "2024-12-10 10:30:00"',
+#
+#   PRIMARY KEY (`id`),
+#   KEY `idx_chatbot_order` (`chatbot_id`, `display_order`),
+#
+#   CONSTRAINT `fk_cards_chatbot` FOREIGN KEY (`chatbot_id`)
+#     REFERENCES `chatbots` (`id`) ON DELETE CASCADE
+# ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
 

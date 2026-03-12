@@ -532,7 +532,10 @@
         fetch('../api/recordVisit.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chatbot_id: chatbotId }),
+            body: JSON.stringify({ 
+                chatbot_id: chatbotId,
+                source_page: window.location.pathname
+            }),
         }).catch(() => {});
     });
 

@@ -1,46 +1,60 @@
 <?php
 /**
  * AJAX Endpoint - Track Click
- *
- * Increments click_count on a chatbot when user clicks "Go to Website".
  */
-
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
-ini_set('log_errors', 1);
 
 require '../inc/bootstrap.php';
 
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+    echo json_encode(['success' => false]);
     exit;
 }
 
-$data       = json_decode(file_get_contents('php://input'), true);
-$chatbotId  = $data['chatbot_id'] ?? '';
+$data      = json_decode(file_get_contents('php://input'), true);
+$chatbotId = $data['chatbot_id'] ?? '';
+$sourcePage = $data['source_page'] ?? null;
 
 if (empty($chatbotId)) {
-    echo json_encode(['success' => false, 'message' => 'Missing chatbot_id']);
+    echo json_encode(['success' => false]);
     exit;
 }
 
 try {
     $db = Database::getInstance()->getConnection();
 
-    $stmt = $db->prepare("
-        UPDATE `chatbots`
-        SET `click_count` = `click_count` + 1,
-            `updated_at`  = CURRENT_TIMESTAMP
-        WHERE `id` = :id
-          AND `status` = 'active'
-          AND `deleted_at` IS NULL
-    ");
-    $stmt->execute([':id' => $chatbotId]);
+    // Update click_count
+    $db->prepare("
+        UPDATE chatbots
+        SET click_count = click_count + 1, updated_at = CURRENT_TIMESTAMP
+        WHERE id = :id AND status = 'active' AND deleted_at IS NULL
+    ")->execute([':id' => $chatbotId]);
+
+    // Zaznamenaj do chatbot_clicks ak má visitor
+    if (!empty($visitorId)) {
+        $clickId = sprintf('%s-%s-%s-%s-%s',
+            bin2hex(random_bytes(4)),
+            bin2hex(random_bytes(2)),
+            bin2hex(random_bytes(2)),
+            bin2hex(random_bytes(2)),
+            bin2hex(random_bytes(6))
+        );
+
+        $db->prepare("
+            INSERT INTO chatbot_clicks (id, chatbot_id, visitor_id, source_page, clicked_at)
+            VALUES (:id, :chatbot_id, :visitor_id, :source_page, NOW())
+        ")->execute([
+            'id'          => $clickId,
+            'chatbot_id'  => $chatbotId,
+            'visitor_id'  => $visitorId,
+            'source_page' => $sourcePage,
+        ]);
+    }
 
     echo json_encode(['success' => true]);
+
 } catch (Exception $e) {
-    error_log('trackClick error: ' . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Server error']);
+    error_log('recordVisit error: ' . $e->getMessage());
+    echo json_encode(['success' => false]);
 }
