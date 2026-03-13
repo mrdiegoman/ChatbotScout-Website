@@ -34,6 +34,24 @@ try {
     $appConfig       = require __DIR__ . '/../config/app.php';
     $cookieVisitorId = $_COOKIE[$appConfig['visitor']['cookie_name']] ?? null;
 
+    // Fallback pre prihlásených userov bez visitor cookie:
+    // Nájdi visitor_id cez visitor_user_links podľa user_id zo session
+    if (empty($cookieVisitorId) && !empty($_SESSION['user']['id'])) {
+        $stmt = $db->prepare("
+            SELECT visitor_id
+            FROM visitor_user_links
+            WHERE user_id = :user_id
+            ORDER BY converted_at DESC
+            LIMIT 1
+        ");
+        $stmt->execute(['user_id' => $_SESSION['user']['id']]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($row) {
+            $cookieVisitorId = $row['visitor_id'];
+        }
+    }
+
     if (!empty($cookieVisitorId)) {
 
         // Check if a record exists for this visitor+chatbot within the last 30 days

@@ -48,7 +48,7 @@ try {
 
         if ($cookieVisitorId === $fingerprintVisitorId) {
             // Visitor sa zhoduje s cookie aj fingerprintom - všetko OK
-            echo json_encode(['success' => true, 'action' => 'match']);
+            echo json_encode(['success' => true, 'action' => 'match', 'visitor_id' => $cookieVisitorId]);
 
         } else {
             // Fingerprint patrí inému (staršiemu) visitoru.
@@ -56,15 +56,20 @@ try {
             // Potom obnovíme cookie na pôvodného visitora.
             $visitor->deleteIfEmpty($cookieVisitorId);
             $visitor->setCookie($fingerprintVisitorId);
-            echo json_encode(['success' => true, 'action' => 'restored']);
+            // Vrátime správne visitor_id aby JS mohol okamžite aktualizovať cookie
+            echo json_encode(['success' => true, 'action' => 'restored', 'visitor_id' => $fingerprintVisitorId]);
         }
 
     } else {
         // Fingerprint nebol nájdený v DB - aktualizuj fingerprint na aktuálnom visitorovi.
-        // (Server-side fingerprint z create() sa nahradí presnejším FingerprintJS hodnotou)
+        // (Server-side fingerprint z create() sa nahradí presnejším hodnotou)
         $visitor->updateFingerprint($cookieVisitorId, $fingerprint);
-        echo json_encode(['success' => true, 'action' => 'updated']);
+        echo json_encode(['success' => true, 'action' => 'updated', 'visitor_id' => $cookieVisitorId]);
     }
+
+    // Cleanup orphaned visitorov s prázdnym fingerprintom staršších ako 5 minút
+    // Beží pri každom volaní identify.php aby sa DB udržala čistá
+    $visitor->deleteOrphanedEmpty($cookieVisitorId);
 
 } catch (Exception $e) {
     error_log('identify error: ' . $e->getMessage());

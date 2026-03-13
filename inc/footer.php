@@ -91,9 +91,8 @@
 
 <script src="../js/footerVertical.js" defer></script>
 
-<?php if (!$isLoggedIn): ?>
+<!-- Visitor fingerprinting - pre všetkých userov -->
 <script src="../js/visitor.js"></script>
-<?php endif; ?>
 
 </body>
 </html>

@@ -90,6 +90,25 @@ class Visitor
     }
 
     /**
+     * Vymaž orphaned visitorov s prázdnym fingerprintom okrem zadaného ID.
+     * Maže IBA tých čo sú staršie ako 5 minút (aby sme nedali čas visitor.js dobehnúť)
+     * a nemajú žiadne aktivity.
+     *
+     * @param string $excludeVisitorId Tento visitor sa nevymaže (aktuálny)
+     */
+    public function deleteOrphanedEmpty(string $excludeVisitorId): void
+    {
+        $this->db->prepare("
+            DELETE FROM visitors
+            WHERE (fingerprint = '' OR fingerprint IS NULL)
+              AND id != :exclude_id
+              AND first_seen < NOW() - INTERVAL 5 MINUTE
+              AND id NOT IN (SELECT DISTINCT visitor_id FROM chatbot_clicks)
+              AND id NOT IN (SELECT DISTINCT visitor_id FROM visitor_user_links)
+        ")->execute(['exclude_id' => $excludeVisitorId]);
+    }
+
+    /**
      * Vymaž visitora ak nemá žiadne aktivity (chatbot_clicks, visitor_user_links)
      * Používa sa na vymazanie orphaned visitorov ktorých vytvoril bootstrap
      * keď fingerprint neskôr nájde pôvodného visitora.
@@ -123,6 +142,11 @@ class Visitor
      */
     public function findByFingerprint(string $fingerprint): ?string
     {
+        // Prázdny fingerprint ignorujeme - ešte nebol nastavený cez visitor.js
+        if (empty($fingerprint)) {
+            return null;
+        }
+
         $stmt = $this->db->prepare("
             SELECT id
             FROM visitors
@@ -229,20 +253,12 @@ class Visitor
     }
 
     /**
-     * Generovanie server-side browser fingerprintu
-     * Pozn: Tento fingerprint sa používa iba pri vytvorení visitora.
-     * FingerprintJS (client-side) ho neskôr prepíše presnejšou hodnotou cez identify.php
+     * Fingerprint sa nastavuje cez visitor.js (client-side) po načítaní stránky.
+     * Pri vytvorení visitora je prázdny - identify.php ho neskôr nastaví.
      */
     private function generateFingerprint(): string
     {
-        $components = [
-            $_SERVER['REMOTE_ADDR']          ?? '',
-            $_SERVER['HTTP_USER_AGENT']       ?? '',
-            $_SERVER['HTTP_ACCEPT_LANGUAGE']  ?? '',
-            $_SERVER['HTTP_ACCEPT_ENCODING']  ?? '',
-        ];
-
-        return hash('sha256', implode('|', $components));
+        return '';
     }
 
     /**

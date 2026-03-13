@@ -92,7 +92,7 @@ CREATE TABLE `user_sessions` (
 
 CREATE TABLE `visitors` (
   `id` CHAR(36) NOT NULL COMMENT 'Visitor UUID, e.g., "750e8400-e29b-41d4-a716-446655440002", "9e2f3b4c-5d6e-7f8g-9h0i-1j2k3l4m5n6o"',
-  `fingerprint` CHAR(64) NOT NULL COMMENT 'SHA-256 browser fingerprint hash, e.g., "ec523d037249f514096cff40a45559b7cd4f3e68eed204c3f4c312bf491cecbf"',
+  `fingerprint` VARCHAR(64) NULL DEFAULT NULL COMMENT 'SHA-256 browser fingerprint hash, e.g., "ec523d037249f514096cff40a45559b7cd4f3e68eed204c3f4c312bf491cecbf"',
   `ip_address` VARCHAR(45) NULL COMMENT 'IP address, e.g., "88.212.34.56", "2001:718:1c01:1111::2", "195.113.20.150"',
   `user_agent` VARCHAR(500) NULL COMMENT 'Browser string, e.g., "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0", "Mozilla/5.0 (Android 14; Mobile) Chrome/120.0.0.0"',
 

@@ -40,10 +40,8 @@ if (isset($_COOKIE[$appConfig['session']['cookie_name']])) {
         $isLoggedIn = true;
         $user       = $userData;
 
-        // ✅ Derive role from is_admin flag (set by Session::validate)
         $userRole = !empty($userData['is_admin']) ? 'admin' : 'user';
 
-        // Ulož do PHP session pre spätnú kompatibilitu
         $_SESSION['user'] = $userData;
 
     } else {
@@ -54,25 +52,22 @@ if (isset($_COOKIE[$appConfig['session']['cookie_name']])) {
 }
 
 // ============================================
-// VISITOR TRACKING
+// VISITOR TRACKING (pre všetkých - prihlásených aj neprihlásených)
 // ============================================
 
-$userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+$userAgent  = $_SERVER['HTTP_USER_AGENT'] ?? '';
 $isBotOrApi = empty($userAgent) || preg_match('/(Stripe|curl|wget|bot|crawler)/i', $userAgent);
 
-if (!$isLoggedIn) {
-    $visitor = new Visitor();
+$visitor   = new Visitor();
+$utmParams = [
+    'utm_source'   => $_GET['utm_source']   ?? null,
+    'utm_medium'   => $_GET['utm_medium']   ?? null,
+    'utm_campaign' => $_GET['utm_campaign'] ?? null,
+    'utm_term'     => $_GET['utm_term']     ?? null,
+    'utm_content'  => $_GET['utm_content']  ?? null,
+];
 
-    $utmParams = [
-        'utm_source'   => $_GET['utm_source']   ?? null,
-        'utm_medium'   => $_GET['utm_medium']   ?? null,
-        'utm_campaign' => $_GET['utm_campaign'] ?? null,
-        'utm_term'     => $_GET['utm_term']     ?? null,
-        'utm_content'  => $_GET['utm_content']  ?? null,
-    ];
-
-    $visitorId = $visitor->getOrCreate($utmParams);
-}
+$visitorId = $visitor->getOrCreate($utmParams);
 
 // ============================================
 // SESSION CLEANUP (1% šanca)

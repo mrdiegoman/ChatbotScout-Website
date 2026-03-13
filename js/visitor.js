@@ -195,7 +195,20 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ fingerprint: fingerprint })
-        }).catch(function () {});
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            // Ak server vrátil iné visitor_id (restored), okamžite aktualizuj cookie
+            // aby ďalšie AJAX volania (napr. recordVisit) použili správne ID
+            if (data && data.visitor_id) {
+                var expires = new Date();
+                expires.setFullYear(expires.getFullYear() + 1);
+                document.cookie = 'visitor_id=' + data.visitor_id
+                    + '; path=/'
+                    + '; expires=' + expires.toUTCString();
+            }
+        })
+        .catch(function () {});
     }
 
     // Spusti po načítaní stránky
