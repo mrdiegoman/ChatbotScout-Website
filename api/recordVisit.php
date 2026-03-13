@@ -31,8 +31,11 @@ try {
         WHERE id = :id AND status = 'active' AND deleted_at IS NULL
     ")->execute([':id' => $chatbotId]);
 
-    // Zaznamenaj do chatbot_clicks ak má visitor
-    if (!empty($visitorId)) {
+
+    $appConfig = require __DIR__ . '/../config/app.php';
+    $cookieVisitorId = $_COOKIE[$appConfig['visitor']['cookie_name']] ?? null;
+
+    if (!empty($cookieVisitorId)) {
         $clickId = sprintf('%s-%s-%s-%s-%s',
             bin2hex(random_bytes(4)),
             bin2hex(random_bytes(2)),
@@ -47,7 +50,7 @@ try {
         ")->execute([
             'id'          => $clickId,
             'chatbot_id'  => $chatbotId,
-            'visitor_id'  => $visitorId,
+            'visitor_id'  => $cookieVisitorId,
             'source_page' => $sourcePage,
         ]);
     }
