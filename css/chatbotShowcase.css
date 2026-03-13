@@ -1933,6 +1933,15 @@ body {
         flex-wrap: wrap;
         row-gap: 0.25rem;
     }
+
+    .chatbot-page-main-banner {
+        padding: 2rem 1.5rem 1.5rem 1.5rem !important;
+    }
+
+    .chatbot-page-main-content-chatbots-list-view.active,
+    .chatbot-page-main-content-chatbots-grid-view.active{
+        gap: 2.5rem;
+    }
 }
 
 @media (max-width: 520px) {

@@ -20,6 +20,7 @@
 .sc-page {
     display: flex;
     min-height: 100vh;
+    font-family: outfit, sans-serif;
 }
 
 /* ── Sidebar ──────────────────────────────────────────────── */
@@ -31,6 +32,28 @@
     top: 0;
     height: 100vh;
     overflow-y: auto;
+}
+
+.sc-label {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--sc-text);
+    display: flex;
+    flex-direction: row;
+    /* gap: 3px; */
+    cursor: default;
+}
+
+.sc-label-hint {
+    font-weight: 400;
+    font-size: 1.175rem;
+    color: var(--sc-text-muted);
+    line-height: 1.5;
+}
+
+.sc-label-cont {
+    display: flex;
+    flex-direction: column;
 }
 
 .sc-sidebar__inner {
@@ -108,14 +131,14 @@
 
 .sc-steps__item strong {
     display: block;
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: #fff;
     margin-bottom: 3px;
 }
 
 .sc-steps__item span {
-    font-size: 1.0rem;
+    font-size: 1.1rem;
     color: rgba(255,255,255,0.6);
     line-height: 1.4;
 }
@@ -137,7 +160,7 @@
 }
 
 .sc-sidebar__note p {
-    font-size: 1.0rem;
+    font-size: 1.15rem;
     color: rgba(255,255,255,0.7);
     line-height: 1.65;
     margin: 0;
@@ -156,6 +179,7 @@
     align-items: flex-start;
     justify-content: center;
     margin-top: 60px;
+    margin-bottom: 0;
     padding: 2rem 2rem 8rem;
 }
 
@@ -170,7 +194,7 @@
 }
 
 .sc-form-header h1 {
-    font-size: 2.3rem;
+    font-size: 2.5rem;
     font-weight: 800;
     color: var(--sc-text);
     margin-bottom: 8px;
@@ -202,14 +226,14 @@
 
 .sc-affiliate-banner strong {
     display: block;
-    font-size: 1.1rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: #065F46;
     margin-bottom: 4px;
 }
 
 .sc-affiliate-banner span {
-    font-size: 1.05rem;
+    font-size: 1.15rem;
     color: #047857;
     line-height: 1.5;
 }
@@ -238,12 +262,12 @@
     .sc-row { grid-template-columns: 1fr; }
 }
 
-.sc-label {
+/* .sc-label {
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--sc-text);
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 3px;
     cursor: default;
 }
@@ -253,12 +277,13 @@
     font-size: 1.0rem;
     color: var(--sc-text-muted);
     line-height: 1.5;
-}
+} */
 
 .sc-required {
     color: var(--sc-red);
     font-weight: 700;
     margin-left: 2px;
+    margin-right: 5px;
 }
 
 /* Inputs */

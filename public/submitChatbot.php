@@ -108,7 +108,7 @@ if (!$isLoggedIn) {
 
                 <!-- Contact name -->
                 <div class="sc-field" id="field-contact-name">
-                    <label class="sc-label" for="contactName">Your Name <span class="sc-required">*</span></label>
+                    <label class="sc-label" for="contactName">Your Name<span class="sc-required">*</span></label>
                     <input
                         type="text"
                         id="contactName"
@@ -123,7 +123,7 @@ if (!$isLoggedIn) {
 
                 <!-- Company name -->
                 <div class="sc-field" id="field-company">
-                    <label class="sc-label" for="companyName">Company / Product Name <span class="sc-required">*</span></label>
+                    <label class="sc-label" for="companyName">Company / Product Name<span class="sc-required">*</span></label>
                     <input
                         type="text"
                         id="companyName"
@@ -138,7 +138,7 @@ if (!$isLoggedIn) {
                 <!-- Email -->
                 <div class="sc-field" id="field-email">
                     <label class="sc-label" for="contactEmail">
-                        Contact Email <span class="sc-required">*</span>
+                        Contact Email<span class="sc-required">*</span>
                         <span class="sc-label-hint">We'll use this to get in touch about the partnership</span>
                     </label>
                     <input
@@ -156,7 +156,7 @@ if (!$isLoggedIn) {
                 <!-- Two-column row: chatbot name + URL -->
                 <div class="sc-row">
                     <div class="sc-field" id="field-name">
-                        <label class="sc-label" for="chatbotName">Chatbot Name <span class="sc-required">*</span></label>
+                        <label class="sc-label" for="chatbotName">Chatbot Name<span class="sc-required">*</span></label>
                         <input
                             type="text"
                             id="chatbotName"
@@ -168,7 +168,7 @@ if (!$isLoggedIn) {
                         <span class="sc-error" id="error-name"></span>
                     </div>
                     <div class="sc-field" id="field-url">
-                        <label class="sc-label" for="websiteUrl">Chatbot Website URL <span class="sc-required">*</span></label>
+                        <label class="sc-label" for="websiteUrl">Chatbot Website URL<span class="sc-required">*</span></label>
                         <div class="sc-input-wrap">
                             <span class="sc-input-icon">🌐</span>
                             <input
@@ -187,7 +187,7 @@ if (!$isLoggedIn) {
                 <!-- Message -->
                 <div class="sc-field" id="field-message">
                     <label class="sc-label" for="message">
-                        Tell us about your chatbot <span class="sc-required">*</span>
+                        Tell us about your chatbot<span class="sc-required">*</span>
                         <span class="sc-label-hint">Briefly describe what it does, who it's for, and your current pricing model or affiliate structure if you have one</span>
                     </label>
                     <textarea
