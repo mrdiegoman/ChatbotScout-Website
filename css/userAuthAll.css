@@ -54,10 +54,10 @@ body {
 /* Page title (Sign In / Create an account) */
 .auth-title {
     text-align: center;
-    font-size: 1.75rem;
-    line-height: 1.5rem;
-    margin-bottom: 2.5rem;
-    font-family: outfit;
+    font-size: 2rem;
+    line-height: 2rem;
+    margin-bottom: 4rem;
+    font-family: outfit-medium;
 }
 
 /* Google sign in/up button */
@@ -97,6 +97,7 @@ body {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+    margin: 1rem 0;
 }
 
 .auth-divider {
@@ -336,7 +337,7 @@ body {
 /* Footer text with link */
 .auth-footer {
     text-align: center;
-    margin-top: 2rem;
+    margin-top: 1.5rem;
     font-size: 1.4rem;
     color: #5f6368;
 }
@@ -404,7 +405,7 @@ textarea.error:focus {
     text-align: center;
     font-size: 1.2rem;
     color: #6b7280;
-    margin-top: 0.6rem;
+    margin-top: 1rem;
     margin-bottom: 0;
     line-height: 1.5;
 }

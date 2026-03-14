@@ -132,12 +132,21 @@ document.addEventListener('DOMContentLoaded', function () {
         const btnNext = document.getElementById('hp-pop-next');
         if (!track || !btnPrev || !btnNext) return;
 
-        const CARD_W  = 212; // card width (196) + gap (16)
-        const STEP    = CARD_W * 2;
-        let   offset  = 0;
+        const CARD_W = 212; // card width (196) + gap (16)
+        let offset = 0;
+
+        function getVisibleStep() {
+            const wrapWidth = track.parentElement.clientWidth;
+            const visibleCards = Math.max(1, Math.floor(wrapWidth / CARD_W));
+            return visibleCards * CARD_W;
+        }
 
         function getMax() {
             return Math.max(0, track.scrollWidth - track.parentElement.clientWidth);
+        }
+
+        function snapToCard(raw) {
+            return Math.round(raw / CARD_W) * CARD_W;
         }
 
         function updateButtons() {
@@ -146,13 +155,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         btnNext.addEventListener('click', () => {
-            offset = Math.min(offset + STEP, getMax());
+            const target = offset + getVisibleStep();
+            offset = target >= getMax() ? getMax() : snapToCard(target);
             track.style.transform = `translateX(-${offset}px)`;
             updateButtons();
         });
 
         btnPrev.addEventListener('click', () => {
-            offset = Math.max(offset - STEP, 0);
+            offset = snapToCard(Math.max(offset - getVisibleStep(), 0));
             track.style.transform = `translateX(-${offset}px)`;
             updateButtons();
         });

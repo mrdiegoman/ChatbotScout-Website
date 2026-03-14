@@ -81,10 +81,10 @@ require '../inc/header.php';
 <div class="auth-page-wrapper">
     <div class="auth-container">
         <!-- Logo and Brand -->
-        <div class="auth-header">
+        <!-- <div class="auth-header">
             <img src="../img/chatbothub_logo.png" alt="ChatbotHub Logo">
             <h1>ChatbotHub</h1>
-        </div>
+        </div> -->
         
         <!-- Page Title -->
         <h2 class="auth-title">Create an account</h2>

@@ -166,7 +166,7 @@
     gap: 7px;
     padding: 13px 26px;
     border-radius: 12px;
-    font-size: 1.25rem;
+    font-size: 1.31rem;
     font-weight: 600;
     cursor: pointer;
     border: none;
@@ -717,7 +717,7 @@
 }
 
 .hp-chat-avatar-bot {
-    background: linear-gradient(135deg, var(--hp-blue), #3B82F6);
+    background: linear-gradient(135deg, var(--hp-blue), #61a2df);
     color: #fff;
     box-shadow: 0 4px 12px rgba(0,87,255,.3);
 }

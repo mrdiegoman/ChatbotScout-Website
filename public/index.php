@@ -333,9 +333,9 @@ require '../inc/header.php';
 
             <!-- User message 1 -->
             <div class="hp-chat-row hp-chat-row-user hp-chat-animate">
-                <div class="hp-chat-avatar-user">
+                <!-- <div class="hp-chat-avatar-user">
                     <i class="fa-solid fa-user"></i>
-                </div>
+                </div> -->
                 <div class="hp-chat-msg hp-chat-msg-user">
                     How do I find the right AI chatbot for my website?
                 </div>
@@ -344,7 +344,7 @@ require '../inc/header.php';
             <!-- Bot response 1 -->
             <div class="hp-chat-row hp-chat-row-bot hp-chat-animate">
                 <div class="hp-chat-avatar-bot">
-                    <i class="fa-solid fa-robot"></i>
+                    <!-- <img src="../img/chatbothub_logo.png" alt="ChatbotHub" style="width:70%;object-fit:contain;"> -->
                 </div>
                 <div class="hp-chat-msg hp-chat-msg-bot">
                     <h3>Search, Filter & Sort - Find Your Perfect Chatbot</h3>
@@ -365,9 +365,9 @@ require '../inc/header.php';
 
             <!-- User message 2 -->
             <div class="hp-chat-row hp-chat-row-user hp-chat-animate">
-                 <div class="hp-chat-avatar-user">
+                 <!-- <div class="hp-chat-avatar-user">
                     <i class="fa-solid fa-user"></i>
-                </div>
+                </div> -->
                 <div class="hp-chat-msg hp-chat-msg-user">
                     Can I see whether I can use the chatbot on my website?
                 </div>
@@ -376,7 +376,7 @@ require '../inc/header.php';
             <!-- Bot response 2 -->
             <div class="hp-chat-row hp-chat-row-bot hp-chat-animate">
                 <div class="hp-chat-avatar-bot">
-                    <i class="fa-solid fa-robot"></i>
+                    <!-- <img src="../img/chatbothub_logo.png" alt="ChatbotHub" style="width:100%;height:100%;object-fit:contain;border-radius:50%;"> -->
                 </div>
                 <div class="hp-chat-msg hp-chat-msg-bot">
                     <h3>Full Feature & Integration Details - All in One Place</h3>
