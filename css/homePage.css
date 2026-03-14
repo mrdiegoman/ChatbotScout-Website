@@ -696,11 +696,11 @@
 
 .hp-chat-row-user {
     flex-direction: row-reverse;
-    padding-left: 5rem;
+    padding-left: 8rem;
 }
 
 .hp-chat-row-bot {
-    padding-right: 5rem;
+    padding-right: 8rem;
 }
 
 /* Avatars */

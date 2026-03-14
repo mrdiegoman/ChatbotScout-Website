@@ -337,7 +337,7 @@ require '../inc/header.php';
                     <i class="fa-solid fa-user"></i>
                 </div>
                 <div class="hp-chat-msg hp-chat-msg-user">
-                    Which AI chatbots do businesses trust the most?
+                    How do I find the right AI chatbot for my website?
                 </div>
             </div>
 
@@ -347,14 +347,15 @@ require '../inc/header.php';
                     <i class="fa-solid fa-robot"></i>
                 </div>
                 <div class="hp-chat-msg hp-chat-msg-bot">
-                    <h3>🏆 Top-Rated Chatbots Chosen by Businesses from any Industry.</h3>
+                    <h3>Search, Filter & Sort - Find Your Perfect Chatbot</h3>
                     <p>
-                        See which chatbots companies trust the most, based on real user feedback
-                        and verified performance data. Our ranking factors in response quality,
-                        uptime, and customer satisfaction.
+                        Use our search, filters and sorting to narrow down chatbots by pricing, 
+                        features, and ratings. Whether you need a free plan or live agent 
+                        support - find exactly what fits your business in seconds.
+
                     </p>
                     <a href="chatbotShowcase.php" class="hp-link-green" style="margin-top:16px;display:inline-flex;align-items:center;gap:4px;">
-                        Explore top rated
+                        Start searching
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                             stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
@@ -368,7 +369,7 @@ require '../inc/header.php';
                     <i class="fa-solid fa-user"></i>
                 </div>
                 <div class="hp-chat-msg hp-chat-msg-user">
-                    How can I compare them side by side?
+                    Can I see whether I can use the chatbot on my website?
                 </div>
             </div>
 
@@ -377,15 +378,15 @@ require '../inc/header.php';
                 <div class="hp-chat-avatar-bot">
                     <i class="fa-solid fa-robot"></i>
                 </div>
-                <div class="hp-chat-msg hp-chat-msg-bot hp-chat-msg-bot-green">
-                    <h3>📊 Explore AI Chatbots by Features, Pricing, Reviews and more</h3>
+                <div class="hp-chat-msg hp-chat-msg-bot">
+                    <h3>Full Feature & Integration Details - All in One Place</h3>
                     <p>
-                        Explore detailed listings that highlight key features, pricing models,
-                        and real user feedback. Our side-by-side comparison tool helps you
-                        make the best decision in minutes - not hours.
+                        Every chatbot listing includes a complete breakdown of supported platforms like 
+                        WordPress, Shopify, Slack and more. Check features and integrations at a glance - 
+                        so you know instantly if chatbot works for your website.
                     </p>
                     <a href="chatbotShowcase.php" class="hp-link-green" style="margin-top:16px;display:inline-flex;align-items:center;gap:4px;">
-                        Start comparing
+                        Explore listings
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                             stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
@@ -490,7 +491,10 @@ require '../inc/header.php';
                 </div>
             </div>
             <a href="chatbotShowcase.php" class="hp-filter-cta">
-                Browse All Chatbots <i class="fa-solid fa-arrow-right"></i>
+                Browse All Chatbots 
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
             </a>
         </div>
 
