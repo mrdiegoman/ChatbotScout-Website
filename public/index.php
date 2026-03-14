@@ -318,64 +318,82 @@ require '../inc/header.php';
 
 
 <!-- ═══════════════════════════════════════
-     FEATURES — SPEECH BUBBLES
+     FEATURES — CHAT UI
 ═══════════════════════════════════════ -->
 <section class="hp-features-section">
     <div class="hp-features-inner">
 
-        <!-- Row 1: photo left, bubble right -->
-        <div class="hp-feature-row">
-            <div class="hp-feature-photo hp-fade-up">
-                <div class="hp-feature-photo-ring"></div>
-                <img
-                    src="../img/assets/cda7e0ea-29e8-4c16-85cf-6aa3f5f6ca89.png"
-                    alt="Business professional"
-                    class="hp-feature-photo-img"
-                />
+        <!-- Section label -->
+        <div class="hp-chat-label hp-fade-up">
+            <span>✦ Why ChatbotHub?</span>
+        </div>
+
+        <!-- Messages -->
+        <div class="hp-chat-messages">
+
+            <!-- User message 1 -->
+            <div class="hp-chat-row hp-chat-row-user hp-chat-animate">
+                <div class="hp-chat-avatar-user">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div class="hp-chat-msg hp-chat-msg-user">
+                    Which AI chatbots do businesses trust the most?
+                </div>
             </div>
-            <div class="hp-feature-bubble-col">
-                <div class="hp-bubble from-right">
+
+            <!-- Bot response 1 -->
+            <div class="hp-chat-row hp-chat-row-bot hp-chat-animate">
+                <div class="hp-chat-avatar-bot">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div class="hp-chat-msg hp-chat-msg-bot">
                     <h3>🏆 Top-Rated Chatbots Chosen by Businesses from any Industry.</h3>
                     <p>
                         See which chatbots companies trust the most, based on real user feedback
                         and verified performance data. Our ranking factors in response quality,
                         uptime, and customer satisfaction.
                     </p>
-                    <a href="chatbotShowcase.php" class="hp-link-green" style="margin-top:16px;display:inline-flex">
-                        Explore top rated <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="m9 18 6-6-6-6"/></svg>
+                    <a href="chatbotShowcase.php" class="hp-link-green" style="margin-top:16px;display:inline-flex;align-items:center;gap:4px;">
+                        Explore top rated
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                     </a>
                 </div>
             </div>
-        </div>
 
-        <!-- Row 2: bubble left, photo right -->
-        <div class="hp-feature-row hp-reverse">
-            <div class="hp-feature-bubble-col">
-                <div class="hp-bubble hp-bubble-green">
-                    <h3>📊 Compare AI Chatbots by Features, Pricing, Reviews and more</h3>
+            <!-- User message 2 -->
+            <div class="hp-chat-row hp-chat-row-user hp-chat-animate">
+                 <div class="hp-chat-avatar-user">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div class="hp-chat-msg hp-chat-msg-user">
+                    How can I compare them side by side?
+                </div>
+            </div>
+
+            <!-- Bot response 2 -->
+            <div class="hp-chat-row hp-chat-row-bot hp-chat-animate">
+                <div class="hp-chat-avatar-bot">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div class="hp-chat-msg hp-chat-msg-bot hp-chat-msg-bot-green">
+                    <h3>📊 Explore AI Chatbots by Features, Pricing, Reviews and more</h3>
                     <p>
                         Explore detailed listings that highlight key features, pricing models,
                         and real user feedback. Our side-by-side comparison tool helps you
                         make the best decision in minutes - not hours.
                     </p>
-                    <a href="chatbotShowcase.php" class="hp-link-green" style="margin-top:16px;display:inline-flex">
-                        Start comparing <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="m9 18 6-6-6-6"/></svg>
+                    <a href="chatbotShowcase.php" class="hp-link-green" style="margin-top:16px;display:inline-flex;align-items:center;gap:4px;">
+                        Start comparing
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                     </a>
                 </div>
             </div>
-            <div class="hp-feature-photo hp-fade-up">
-                <div class="hp-feature-photo-ring"></div>
-                <img
-                    src="../img/assets/c29d67d0-6e6c-4e60-ae4b-1b8419a1371e.png"
-                    alt="Business professional"
-                    class="hp-feature-photo-img"
-                />
-            </div>
-        </div>
+
+        </div><!-- /hp-chat-messages -->
 
     </div>
 </section>

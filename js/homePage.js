@@ -132,17 +132,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const btnNext = document.getElementById('hp-pop-next');
         if (!track || !btnPrev || !btnNext) return;
 
-        const CARD_SLOT = 212; // card width (196) + gap (16)
-        let   offset    = 0;
-
-        function getCardsPerPage() {
-            const wrapperWidth = track.parentElement.clientWidth;
-            return Math.max(1, Math.floor((wrapperWidth + 16) / CARD_SLOT));
-        }
-
-        function getStep() {
-            return getCardsPerPage() * CARD_SLOT;
-        }
+        const CARD_W  = 212; // card width (196) + gap (16)
+        const STEP    = CARD_W * 2;
+        let   offset  = 0;
 
         function getMax() {
             return Math.max(0, track.scrollWidth - track.parentElement.clientWidth);
@@ -154,20 +146,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         btnNext.addEventListener('click', () => {
-            offset = Math.min(offset + getStep(), getMax());
+            offset = Math.min(offset + STEP, getMax());
             track.style.transform = `translateX(-${offset}px)`;
             updateButtons();
         });
 
         btnPrev.addEventListener('click', () => {
-            offset = Math.max(offset - getStep(), 0);
+            offset = Math.max(offset - STEP, 0);
             track.style.transform = `translateX(-${offset}px)`;
-            updateButtons();
-        });
-
-        window.addEventListener('resize', () => {
-            offset = 0;
-            track.style.transform = 'translateX(0)';
             updateButtons();
         });
 
@@ -205,7 +191,7 @@ document.addEventListener('DOMContentLoaded', function () {
         rootMargin: '0px 0px -40px 0px'
     });
 
-    document.querySelectorAll('.hp-fade-up, .hp-bubble').forEach(el => {
+    document.querySelectorAll('.hp-fade-up, .hp-bubble, .hp-chat-animate').forEach(el => {
         scrollObserver.observe(el);
     });
 
