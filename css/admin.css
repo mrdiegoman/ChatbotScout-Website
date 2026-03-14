@@ -28,11 +28,20 @@
    MAIN TABS (Messages / Reviews) — like profile
    ============================================ */
 
+/* PO */
 .admin-main-tabs {
     display: flex;
     gap: 8px;
     margin-bottom: 2.8rem;
     border-bottom: 2px solid #e5e7eb;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.admin-main-tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .admin-main-tab-btn {

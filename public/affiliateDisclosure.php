@@ -9,8 +9,8 @@ require '../inc/header.php';
             <h1>Affiliate Disclosure</h1>
             <p>
                 Transparency is important to us, and we want to make sure our 
-                visitors clearly understand how this website operates. Some of the 
-                links you will find on our pages are affiliate links. This means that 
+                visitors clearly understand how this website operates. Links you will 
+                find on our pages are affiliate links. This means that 
                 if you click on one of these links and make a purchase or sign up 
                 for a service, we may receive a small commission <span>- at no extra cost 
                 for you.</span>

@@ -60,14 +60,21 @@
    TABS NAVIGATION
    ============================================ */
 
+/* PO */
 .profile-tabs {
     display: flex;
     gap: 8px;
     margin-bottom: 32px;
     border-bottom: 2px solid var(--profile-border);
-    /* overflow-x: auto;
-    overflow-y: hidden; */
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
     height: fit-content;
+}
+
+.profile-tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .tab-btn {

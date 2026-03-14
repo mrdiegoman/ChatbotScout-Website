@@ -1347,6 +1347,9 @@ body {
     border-radius: 0.4rem;
     cursor: pointer;
     transition: background-color 0.2s ease;
+    text-align: center;
+    /* justify-content: center;
+    align-items: center; */
 }
 
 .chatbot-filters-modal-apply-btn:hover {
@@ -1550,6 +1553,7 @@ body {
     font-size: 1.5rem;
     letter-spacing: 0.05rem;
     cursor: pointer;
+    text-align: center;
     color: var(--black-color-light);
     transition: background-color 0.15s ease, border-color 0.15s ease;
 }

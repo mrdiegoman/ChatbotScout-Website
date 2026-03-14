@@ -9,9 +9,9 @@ require '../inc/header.php';
             <h1>About Us</h1>
             <p>
                 Our goal is to help website owners find the best chatbot for their 
-                needs without spending hours comparing tools or reading confusing 
-                reviews. Simply use our filters to select the features you want 
-                and discover the options that fit your website.
+                website without spending hours comparing tools or reading confusing 
+                reviews. By using our filter function you will discover chatbot 
+                products that will fit your website by selecting the features you want.
             </p>
             <p>
                 We started this project after realizing how overwhelming it can 
@@ -19,9 +19,9 @@ require '../inc/header.php';
                 is to make that process simpler, clearer, and more transparent.
             </p>
             <p>
-                Our website collects, compares, and organizes information about 
+                Our website provides up-to-date information about 
                 different chatbot providers so you can easily understand their 
-                features, pricing, and suitability for your business.
+                features, pricing, and suitability.
             </p>
             <p>
                 We are committed to providing accurate, unbiased, and up-to-date 
