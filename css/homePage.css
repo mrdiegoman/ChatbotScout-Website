@@ -511,7 +511,7 @@
 
 .hp-pop-track-wrap {
     overflow: hidden;
-    margin: 0 -8px;
+    /* margin: 0 -8px; */
     padding: 8px 8px 16px;
 }
 
@@ -1149,4 +1149,5 @@
     .hp-discover-bot { display: none; }
     .hp-discover-visual { display: none; }
     .hp-discover-card { grid-template-columns: 1fr; padding: 45px 35px; }
+    /* .hp-pop-card { width: 80%; } */
 }
