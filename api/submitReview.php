@@ -25,6 +25,15 @@ if (!$isLoggedIn || empty($user['id'])) {
     exit;
 }
 
+// ============================================
+// KONTROLA BLOKÁCIE
+// ============================================
+
+if (!empty($user['is_review_blocked'])) {
+    echo json_encode(['success' => false, 'message' => 'You are blocked from submitting reviews.', 'blocked' => true]);
+    exit;
+}
+
 $data       = json_decode(file_get_contents('php://input'), true);
 $chatbotId  = trim($data['chatbot_id'] ?? '');
 $rating     = (int)($data['rating'] ?? 0);

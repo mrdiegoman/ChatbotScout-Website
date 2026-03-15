@@ -461,6 +461,21 @@
 .pr-delete-confirm-btn:hover:not(:disabled) { background: #dc2626; }
 .pr-delete-confirm-btn:disabled { background: #9ca3af; cursor: not-allowed; }
 
+.pr-edit-btn.pr-btn-blocked,
+.pr-edit-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+ /* ============================================
+   DOPLNOK: Blocked edit button */
+   
+.pr-edit-btn:disabled {
+    background: #f3f4f6;
+    border-color: #e5e7eb;
+    color: #9ca3af;
+}
+
 /* ============================================
    RESPONSIVE
    ============================================ */

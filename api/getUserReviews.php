@@ -2,7 +2,7 @@
 /**
  * AJAX Endpoint - Get User Reviews
  *
- * Vracia všetky reviews prihláseného usera.
+ * Vracia všetky reviews prihláseného usera + is_review_blocked flag.
  */
 
 error_reporting(E_ALL);
@@ -48,14 +48,18 @@ try {
     $reviews = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($reviews as &$review) {
-        $review['rating']              = (int)$review['rating'];
-        $review['created_at_formatted'] = date('d M Y', strtotime($review['created_at']));
-        $review['moderated_at_formatted'] = $review['moderated_at']
+        $review['rating']                   = (int)$review['rating'];
+        $review['created_at_formatted']     = date('d M Y', strtotime($review['created_at']));
+        $review['moderated_at_formatted']   = $review['moderated_at']
             ? date('d M Y', strtotime($review['moderated_at'])) : null;
     }
     unset($review);
 
-    echo json_encode(['success' => true, 'reviews' => $reviews]);
+    echo json_encode([
+        'success'            => true,
+        'reviews'            => $reviews,
+        'is_review_blocked'  => (bool)($user['is_review_blocked'] ?? false),
+    ]);
 
 } catch (Exception $e) {
     error_log('getUserReviews error: ' . $e->getMessage());

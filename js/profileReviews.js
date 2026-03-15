@@ -5,6 +5,7 @@
  * - Načítanie reviews usera
  * - Edit (pre-filled modal, submit → updateReview.php?action=edit)
  * - Delete (confirm dialog → updateReview.php?action=delete)
+ * - Ak je user is_review_blocked → edit tlačidlá sú disabled/greyed out
  */
 
 (function () {
@@ -14,8 +15,9 @@
     // STATE
     // ============================================
 
-    let editingReviewId = null;
-    let currentRating   = 0;
+    let editingReviewId  = null;
+    let currentRating    = 0;
+    let isReviewBlocked  = false;   // nastavené po načítaní z API
 
     const starLabels = {
         1: 'Poor',
@@ -68,6 +70,10 @@
                     showEmpty();
                     return;
                 }
+
+                // Ulož blocked flag
+                isReviewBlocked = !!data.is_review_blocked;
+
                 if (data.reviews.length === 0) {
                     showEmpty();
                     return;
@@ -83,8 +89,8 @@
     }
 
     function showEmpty() {
-        if (reviewsEmpty)    reviewsEmpty.style.display    = 'block';
-        if (reviewsContainer) reviewsContainer.innerHTML    = '';
+        if (reviewsEmpty)     reviewsEmpty.style.display     = 'block';
+        if (reviewsContainer) reviewsContainer.innerHTML     = '';
     }
 
     // ============================================
@@ -120,7 +126,11 @@
                    ${escHtml(r.moderation_notes)}
                </div>` : '';
 
-        // Delete disabled pre removed status (admin ho uz riesil)
+        // Edit disabled ak je user blokovaný
+        const editDisabled  = isReviewBlocked ? ' disabled title="You are blocked from editing reviews."' : '';
+        const editExtraClass = isReviewBlocked ? ' pr-btn-blocked' : '';
+
+        // Delete disabled pre removed status
         const deleteDisabled = r.status === 'removed' ? ' disabled' : '';
 
         return `
@@ -146,7 +156,7 @@
             ${notesBlock}
 
             <div class="pr-card-actions">
-                <button class="pr-edit-btn" onclick="openEditReviewModal('${escHtml(r.id)}', this)">
+                <button class="pr-edit-btn${editExtraClass}"${editDisabled} onclick="openEditReviewModal('${escHtml(r.id)}', this)">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
                          fill="none" stroke="currentColor" stroke-width="2.2"
                          stroke-linecap="round" stroke-linejoin="round">
@@ -175,6 +185,9 @@
     // ============================================
 
     window.openEditReviewModal = function (reviewId, btn) {
+        // Ak je user blokovaný, neotvori modal
+        if (isReviewBlocked) return;
+
         const card = btn.closest('.pr-card');
         if (!card) return;
 
@@ -190,14 +203,14 @@
         editTitleInput.value       = titleEl ? titleEl.textContent.replace(/^"|"$/g, '') : '';
         editTextInput.value        = textEl  ? textEl.innerText : '';
 
-        updateEditStars(ratingNum);
+        // Reset error/success
+        if (editErrorEl)   { editErrorEl.textContent   = ''; editErrorEl.style.display   = 'none'; }
+        if (editSuccessEl) { editSuccessEl.textContent = ''; editSuccessEl.style.display = 'none'; }
+        if (editSubmitBtn) { editSubmitBtn.disabled = false; editSubmitBtn.textContent = 'Save Changes'; }
 
-        editErrorEl.textContent   = '';
-        editErrorEl.style.display = 'none';
-        editSuccessEl.textContent = '';
-        editSuccessEl.style.display = 'none';
-        editSubmitBtn.disabled    = false;
-        editSubmitBtn.textContent = 'Save Changes';
+        // Nastav hviezdy
+        currentRating = ratingNum || 0;
+        updatePickerStars(currentRating);
 
         editOverlay.classList.add('active');
         document.body.style.overflow = 'hidden';
@@ -209,100 +222,95 @@
         editingReviewId = null;
     }
 
-    function updateEditStars(value) {
-        currentRating = value;
-        editStarsPicker.querySelectorAll('.pr-modal-star').forEach(s => {
-            s.classList.toggle('active', parseInt(s.dataset.value) <= value);
+    if (editCloseBtn)  editCloseBtn.addEventListener('click', closeEditModal);
+    if (editCancelBtn) editCancelBtn.addEventListener('click', closeEditModal);
+    if (editOverlay)   editOverlay.addEventListener('click', (e) => { if (e.target === editOverlay) closeEditModal(); });
+
+    // Stars picker
+    if (editStarsPicker) {
+        editStarsPicker.querySelectorAll('.pr-modal-star').forEach(star => {
+            star.addEventListener('click', () => {
+                currentRating = parseInt(star.dataset.value);
+                updatePickerStars(currentRating);
+            });
+            star.addEventListener('mouseenter', () => updatePickerStars(parseInt(star.dataset.value)));
         });
-        editStarsLabel.textContent = value > 0 ? starLabels[value] : 'Select a rating';
+        editStarsPicker.addEventListener('mouseleave', () => updatePickerStars(currentRating));
     }
 
-    // Star picker events
-    editStarsPicker.addEventListener('mouseover', (e) => {
-        const star = e.target.closest('.pr-modal-star');
-        if (!star) return;
-        const hoverVal = parseInt(star.dataset.value);
+    function updatePickerStars(value) {
+        if (!editStarsPicker) return;
         editStarsPicker.querySelectorAll('.pr-modal-star').forEach(s => {
-            s.classList.toggle('hover', parseInt(s.dataset.value) <= hoverVal);
+            const v = parseInt(s.dataset.value);
+            s.style.color = v <= value ? '#f59e0b' : '#d1d5db';
         });
-    });
-
-    editStarsPicker.addEventListener('mouseleave', () => {
-        editStarsPicker.querySelectorAll('.pr-modal-star').forEach(s => s.classList.remove('hover'));
-    });
-
-    editStarsPicker.addEventListener('click', (e) => {
-        const star = e.target.closest('.pr-modal-star');
-        if (star) updateEditStars(parseInt(star.dataset.value));
-    });
-
-    editCloseBtn.addEventListener('click', closeEditModal);
-    editCancelBtn.addEventListener('click', closeEditModal);
-    editOverlay.addEventListener('click', (e) => { if (e.target === editOverlay) closeEditModal(); });
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && editOverlay.classList.contains('active')) closeEditModal();
-    });
+        if (editStarsLabel) {
+            editStarsLabel.textContent = starLabels[value] || 'Select a rating';
+        }
+    }
 
     // Submit edit
-    editSubmitBtn.addEventListener('click', async () => {
-        editErrorEl.style.display   = 'none';
-        editSuccessEl.style.display = 'none';
+    if (editSubmitBtn) {
+        editSubmitBtn.addEventListener('click', async () => {
+            if (!editingReviewId) return;
 
-        if (currentRating === 0) {
-            editErrorEl.textContent   = 'Please select a star rating.';
-            editErrorEl.style.display = 'block';
-            return;
-        }
-        if (!editTextInput.value.trim()) {
-            editErrorEl.textContent   = 'Review text cannot be empty.';
-            editErrorEl.style.display = 'block';
-            return;
-        }
+            if (editErrorEl) { editErrorEl.textContent = ''; editErrorEl.style.display = 'none'; }
 
-        editSubmitBtn.disabled    = true;
-        editSubmitBtn.textContent = 'Saving...';
+            if (!currentRating) {
+                editErrorEl.textContent   = 'Please select a rating.';
+                editErrorEl.style.display = 'block';
+                return;
+            }
+            if (!editTextInput.value.trim()) {
+                editErrorEl.textContent   = 'Review text cannot be empty.';
+                editErrorEl.style.display = 'block';
+                return;
+            }
 
-        try {
-            const res  = await fetch('../api/updateReview.php', {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action:      'edit',
-                    id:          editingReviewId,
-                    rating:      currentRating,
-                    title:       editTitleInput.value.trim(),
-                    review_text: editTextInput.value.trim(),
-                }),
-            });
-            const data = await res.json();
+            editSubmitBtn.disabled    = true;
+            editSubmitBtn.textContent = 'Saving...';
 
-            if (data.success) {
-                editSuccessEl.textContent   = data.message;
-                editSuccessEl.style.display = 'block';
-                editSubmitBtn.textContent   = 'Saved!';
-
-                // Aktualizuj kartu v DOM
-                updateCardAfterEdit(editingReviewId, {
-                    rating:      currentRating,
-                    title:       editTitleInput.value.trim(),
-                    review_text: editTextInput.value.trim(),
-                    status:      'pending',
+            try {
+                const res  = await fetch('../api/updateReview.php', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action:      'edit',
+                        id:          editingReviewId,
+                        rating:      currentRating,
+                        title:       editTitleInput.value.trim(),
+                        review_text: editTextInput.value.trim(),
+                    }),
                 });
+                const data = await res.json();
 
-                setTimeout(closeEditModal, 1500);
-            } else {
-                editErrorEl.textContent   = data.message || 'Something went wrong.';
+                if (data.success) {
+                    editSuccessEl.textContent   = data.message;
+                    editSuccessEl.style.display = 'block';
+                    editSubmitBtn.textContent   = 'Saved!';
+
+                    updateCardAfterEdit(editingReviewId, {
+                        rating:      currentRating,
+                        title:       editTitleInput.value.trim(),
+                        review_text: editTextInput.value.trim(),
+                        status:      'pending',
+                    });
+
+                    setTimeout(closeEditModal, 1500);
+                } else {
+                    editErrorEl.textContent   = data.message || 'Something went wrong.';
+                    editErrorEl.style.display = 'block';
+                    editSubmitBtn.disabled    = false;
+                    editSubmitBtn.textContent = 'Save Changes';
+                }
+            } catch (err) {
+                editErrorEl.textContent   = 'Something went wrong.';
                 editErrorEl.style.display = 'block';
                 editSubmitBtn.disabled    = false;
                 editSubmitBtn.textContent = 'Save Changes';
             }
-        } catch (err) {
-            editErrorEl.textContent   = 'Something went wrong.';
-            editErrorEl.style.display = 'block';
-            editSubmitBtn.disabled    = false;
-            editSubmitBtn.textContent = 'Save Changes';
-        }
-    });
+        });
+    }
 
     function updateCardAfterEdit(id, updates) {
         const card = reviewsContainer.querySelector(`.pr-card[data-id="${id}"]`);
@@ -362,47 +370,48 @@
         pendingDeleteId = null;
     }
 
-    deleteCloseBtn.addEventListener('click', closeDeleteModal);
-    deleteCancelBtn.addEventListener('click', closeDeleteModal);
-    deleteOverlay.addEventListener('click', (e) => { if (e.target === deleteOverlay) closeDeleteModal(); });
+    if (deleteCloseBtn)  deleteCloseBtn.addEventListener('click', closeDeleteModal);
+    if (deleteCancelBtn) deleteCancelBtn.addEventListener('click', closeDeleteModal);
+    if (deleteOverlay)   deleteOverlay.addEventListener('click', (e) => { if (e.target === deleteOverlay) closeDeleteModal(); });
 
-    deleteConfirmBtn.addEventListener('click', async () => {
-        if (!pendingDeleteId) return;
+    if (deleteConfirmBtn) {
+        deleteConfirmBtn.addEventListener('click', async () => {
+            if (!pendingDeleteId) return;
 
-        deleteConfirmBtn.disabled    = true;
-        deleteConfirmBtn.textContent = 'Deleting...';
+            deleteConfirmBtn.disabled    = true;
+            deleteConfirmBtn.textContent = 'Deleting...';
 
-        try {
-            const res  = await fetch('../api/updateReview.php', {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'delete', id: pendingDeleteId }),
-            });
-            const data = await res.json();
+            try {
+                const res  = await fetch('../api/updateReview.php', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id: pendingDeleteId }),
+                });
+                const data = await res.json();
 
-            if (data.success) {
-                // Animovane zmaz kartu
-                const card = reviewsContainer.querySelector(`.pr-card[data-id="${pendingDeleteId}"]`);
-                if (card) {
-                    card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                    card.style.opacity    = '0';
-                    card.style.transform  = 'translateY(-8px)';
-                    setTimeout(() => {
-                        card.remove();
-                        if (!reviewsContainer.querySelector('.pr-card')) showEmpty();
-                    }, 300);
+                if (data.success) {
+                    const card = reviewsContainer.querySelector(`.pr-card[data-id="${pendingDeleteId}"]`);
+                    if (card) {
+                        card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                        card.style.opacity    = '0';
+                        card.style.transform  = 'translateY(-8px)';
+                        setTimeout(() => {
+                            card.remove();
+                            if (!reviewsContainer.querySelector('.pr-card')) showEmpty();
+                        }, 300);
+                    }
+                    closeDeleteModal();
+                } else {
+                    deleteConfirmBtn.disabled    = false;
+                    deleteConfirmBtn.textContent = 'Yes, delete';
+                    alert(data.message || 'Failed to delete review');
                 }
-                closeDeleteModal();
-            } else {
+            } catch (err) {
                 deleteConfirmBtn.disabled    = false;
                 deleteConfirmBtn.textContent = 'Yes, delete';
-                alert(data.message || 'Failed to delete review');
             }
-        } catch (err) {
-            deleteConfirmBtn.disabled    = false;
-            deleteConfirmBtn.textContent = 'Yes, delete';
-        }
-    });
+        });
+    }
 
     // ============================================
     // HELPERS
@@ -426,7 +435,6 @@
     // INIT — načítaj keď sa otvorí tab
     // ============================================
 
-    // Trigger pri kliknutí na My Reviews tab
     const reviewsTabBtn = document.querySelector('.tab-btn[data-tab="reviews"]');
     if (reviewsTabBtn) {
         reviewsTabBtn.addEventListener('click', () => {
@@ -437,7 +445,6 @@
         });
     }
 
-    // Ak je reviews tab aktívny pri načítaní stránky
     if (document.getElementById('reviews-tab')?.classList.contains('active')) {
         reviewsContainer.dataset.loaded = '1';
         loadReviews();

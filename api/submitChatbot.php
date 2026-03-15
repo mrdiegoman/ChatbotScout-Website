@@ -21,6 +21,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// ============================================
+// KONTROLA BLOKÁCIE
+// ============================================
+
+if (!empty($user['is_submission_blocked'])) {
+    echo json_encode(['success' => false, 'message' => 'You are blocked from submitting chatbots.', 'blocked' => true]);
+    exit;
+}
+
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
 
 // ── Input ────────────────────────────────────────────────────────────────────
@@ -97,9 +106,6 @@ try {
             0, 0
         )
     ");
-    // NOTE: has_affiliate_program = 0 here intentionally.
-    // The affiliate_link CHECK constraint requires affiliate_link IS NOT NULL
-    // when has_affiliate_program = 1. Admin sets this manually after deal is agreed.
 
     $stmt->execute([
         'id'            => $chatbotId,

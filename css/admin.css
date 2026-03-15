@@ -724,3 +724,37 @@
 .submission-action-btn.active.btn-reviewed { background: #2563EB; color: #fff; border-color: #2563EB; }
 .submission-action-btn.active.btn-reject   { background: #DC2626; color: #fff; border-color: #DC2626; }
 .submission-action-btn.active.btn-remove   { background: #6B7280; color: #fff; border-color: #6B7280; }
+
+/* ============================================
+   Block button — admin panel */
+
+.admin-block-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 1.1rem;
+    border-radius: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+    border: 1.5px solid #fca5a5;
+    background: #fff5f5;
+    color: #dc2626;
+}
+ 
+.admin-block-btn:hover:not(:disabled) {
+    background: #fee2e2;
+    border-color: #ef4444;
+}
+ 
+/* Stav: už zablokovaný */
+.admin-block-btn--blocked,
+.admin-block-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f3f4f6;
+    border-color: #d1d5db;
+    color: #6b7280;
+    pointer-events: none;
+}

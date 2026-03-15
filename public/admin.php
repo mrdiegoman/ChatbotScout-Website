@@ -97,7 +97,7 @@ $reviewParams = $filterReviewStatus !== 'all' ? ['status' => $filterReviewStatus
             r.id, r.rating, r.title, r.review_text,
             r.status, r.moderation_notes,
             r.created_at, r.moderated_at,
-            u.first_name, u.last_name, u.email,
+            u.first_name, u.last_name, u.email, u.is_review_blocked,
             c.name AS chatbot_name
         FROM reviews r
         JOIN users u    ON r.user_id    = u.id
@@ -155,7 +155,8 @@ $subStmt = $db->prepare("
         c.status, c.is_verified,
         c.submitted_at, c.approved_at, c.rejected_at, c.deleted_at, c.verified_at,
         c.access_note, c.admin_notes,
-        u.first_name, u.last_name, u.email AS user_email
+        u.first_name, u.last_name, u.email AS user_email,
+        u.is_submission_blocked
     FROM chatbots c
     LEFT JOIN users u ON c.owner_user_id = u.id
     $subWhere
@@ -537,6 +538,11 @@ require '../inc/header.php';
                                 <button class="admin-toggle-btn" onclick="toggleSection(this, 'review-notes-<?= $reviewId ?>')">
                                     📝 Notes
                                 </button>
+                                <button class="admin-block-btn <?= !empty($review['is_review_blocked']) ? 'admin-block-btn--blocked' : '' ?>"
+                                        <?= !empty($review['is_review_blocked']) ? 'disabled' : '' ?>
+                                        onclick="blockUser('<?= $review['user_id'] ?>', 'review', this)">
+                                    🚫 <?= !empty($review['is_review_blocked']) ? 'Blocked' : 'Block Reviews' ?>
+                                </button>
                             </div>
                         </div>
 
@@ -698,6 +704,11 @@ require '../inc/header.php';
                                 <button class="admin-toggle-btn"
                                         onclick="toggleSection(this, 'sub-notes-<?= $subId ?>')">
                                     📝 Notes
+                                </button>
+                                <button class="admin-block-btn <?= !empty($sub['is_submission_blocked']) ? 'admin-block-btn--blocked' : '' ?>"
+                                        <?= !empty($sub['is_submission_blocked']) ? 'disabled' : '' ?>
+                                        onclick="blockUser('<?= $sub['owner_user_id'] ?? $sub['user_id'] ?? '' ?>', 'submission', this)">
+                                    🚫 <?= !empty($sub['is_submission_blocked']) ? 'Blocked' : 'Block Submissions' ?>
                                 </button>
                             </div>
                         </div>

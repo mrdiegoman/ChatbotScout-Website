@@ -34,6 +34,15 @@ if (empty($id)) {
     exit;
 }
 
+// ============================================
+// KONTROLA BLOKÁCIE (iba pri edit akcii)
+// ============================================
+
+if ($action === 'edit' && !empty($user['is_review_blocked'])) {
+    echo json_encode(['success' => false, 'message' => 'You are blocked from editing reviews.', 'blocked' => true]);
+    exit;
+}
+
 try {
     $db = Database::getInstance()->getConnection();
 
@@ -93,11 +102,12 @@ try {
             ':user_id'     => $user['id'],
         ]);
 
-        echo json_encode([
-            'success' => true,
-            'message' => 'Review updated — it is now pending approval.',
-            'new_status' => 'pending',
-        ]);
+        AuditLog::log('review', $id, 'updated',
+            ['status' => $existing['status']],
+            ['rating' => $rating, 'status' => 'pending']
+        );
+
+        echo json_encode(['success' => true, 'message' => 'Review updated successfully.']);
         exit;
     }
 
@@ -109,7 +119,9 @@ try {
         $stmt = $db->prepare("DELETE FROM reviews WHERE id = :id AND user_id = :user_id");
         $stmt->execute([':id' => $id, ':user_id' => $user['id']]);
 
-        echo json_encode(['success' => true, 'message' => 'Review deleted']);
+        AuditLog::log('review', $id, 'deleted', ['status' => $existing['status']], null);
+
+        echo json_encode(['success' => true, 'message' => 'Review deleted successfully.']);
         exit;
     }
 
@@ -117,5 +129,5 @@ try {
 
 } catch (Exception $e) {
     error_log('updateReview error: ' . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Server error']);
+    echo json_encode(['success' => false, 'message' => 'Server error. Please try again.']);
 }

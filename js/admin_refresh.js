@@ -122,28 +122,32 @@ function buildReviewCard(review) {
     const status      = escHtml(review.status);
     const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
     const rating      = parseInt(review.rating, 10);
-
+ 
     let stars = '';
     for (let i = 1; i <= 5; i++) {
         stars += `<span class="${i <= rating ? 'star-filled' : 'star-empty'}">★</span>`;
     }
-
+ 
     const titleBlock = review.title
         ? `<div class="admin-review-title">"${escHtml(review.title)}"</div>` : '';
     const notesBlock = review.moderation_notes
         ? `<div class="admin-existing-response"><strong>Moderation notes:</strong><p>${nlToBr(review.moderation_notes)}</p></div>` : '';
-
+ 
     const reviewStatusBtns = { approved: 'Approve', rejected: 'Reject', flagged: 'Flag', removed: 'Remove' };
     const statusBtns = Object.entries(reviewStatusBtns).map(([s, label]) => {
         const active = review.status === s ? ' active' : '';
         return `<button class="admin-status-btn review-status-action-btn${active}" data-status="${s}"
                     onclick="updateReviewStatus('${id}', '${s}', this)">${label}</button>`;
     }).join('');
-
+ 
     const moderatedBlock = review.moderated_at_formatted
         ? `<div class="admin-message-meta"><span>Moderated: ${escHtml(review.moderated_at_formatted)}</span></div>` : '';
-
-    // FIX #2: data-status pridaný na kartu
+ 
+    const isReviewBlocked  = !!review.is_review_blocked;
+    const blockBtnClass    = isReviewBlocked ? ' admin-block-btn--blocked' : '';
+    const blockBtnDisabled = isReviewBlocked ? ' disabled' : '';
+    const blockBtnLabel    = isReviewBlocked ? '🚫 Blocked' : '🚫 Block Reviews';
+ 
     return `
     <div class="admin-message-card admin-review-card" data-id="${id}" data-status="${status}">
         <div class="admin-message-card-header">
@@ -162,29 +166,33 @@ function buildReviewCard(review) {
                 <span class="admin-message-date">${escHtml(review.created_at_formatted)}</span>
             </div>
         </div>
-
+ 
         <div class="admin-message-subject">🤖 ${escHtml(review.chatbot_name)}</div>
-
+ 
         ${titleBlock}
-
+ 
         <div class="admin-message-body">${nlToBr(review.review_text)}</div>
-
+ 
         ${notesBlock}
-
+ 
         <div class="admin-message-actions">
             <div class="admin-status-actions">${statusBtns}</div>
             <div class="admin-toggle-actions">
                 <button class="admin-toggle-btn" onclick="toggleSection(this, 'review-notes-${id}')">📝 Notes</button>
+                <button class="admin-block-btn${blockBtnClass}"${blockBtnDisabled}
+                        onclick="blockUser('${escHtml(review.user_id)}', 'review', this)">
+                    ${blockBtnLabel}
+                </button>
             </div>
         </div>
-
+ 
         <div class="admin-notes-section" id="review-notes-${id}" style="display:none;">
             <label>Moderation Notes <span class="admin-reply-hint">(internal only)</span></label>
             <textarea class="admin-textarea"
                       placeholder="e.g. Rejected — contains spam links...">${escHtml(review.moderation_notes || '')}</textarea>
             <button class="admin-save-btn" onclick="saveReviewNotes('${id}', this)">Save Notes</button>
         </div>
-
+ 
         ${moderatedBlock}
     </div>`;
 }
@@ -198,18 +206,16 @@ function buildSubmissionCard(sub) {
     const name        = escHtml(sub.name);
     const status      = escHtml(sub.status);
     const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
-
+ 
     const logoHtml = sub.logo_url
-        ? `<img src="../${escHtml(sub.logo_url)}" alt="logo" class="admin-submission-logo">`
-        : `<div class="admin-submission-logo admin-submission-logo--placeholder">🤖</div>`;
-
+        ? `<img src="${escHtml(sub.logo_url)}" alt="${escHtml(sub.name)}" class="admin-submission-logo">`
+        : `<span class="admin-submission-logo admin-submission-logo--placeholder">🤖</span>`;
+ 
     const accessNoteBlock = sub.access_note
-        ? `<div class="admin-message-body"><strong>Access note:</strong><br>${nlToBr(sub.access_note)}</div>` : '';
-
+        ? `<div class="admin-existing-response"><strong>Access note:</strong><p>${nlToBr(sub.access_note)}</p></div>` : '';
     const adminNotesBlock = sub.admin_notes
         ? `<div class="admin-existing-response"><strong>Admin notes:</strong><p>${nlToBr(sub.admin_notes)}</p></div>` : '';
-
-    // 4 action buttons: Accept / Reviewed / Reject / Remove
+ 
     const actionButtons = `
         <button class="admin-status-btn submission-action-btn ${status === 'active'   ? 'active btn-accept'   : 'btn-accept'}"
                 data-action="active"
@@ -231,7 +237,13 @@ function buildSubmissionCard(sub) {
                 onclick="removeSubmission('${id}', this)">
             🗑 Remove
         </button>`;
-
+ 
+    const isSubBlocked     = !!sub.is_submission_blocked;
+    const blockBtnClass    = isSubBlocked ? ' admin-block-btn--blocked' : '';
+    const blockBtnDisabled = isSubBlocked ? ' disabled' : '';
+    const blockBtnLabel    = isSubBlocked ? '🚫 Blocked' : '🚫 Block Submissions';
+    const ownerId          = escHtml(sub.owner_user_id || '');
+ 
     return `
     <div class="admin-message-card admin-submission-card" data-id="${id}" data-status="${status}">
         <div class="admin-message-card-header">
@@ -250,39 +262,40 @@ function buildSubmissionCard(sub) {
                 <span class="admin-message-date">${escHtml(sub.submitted_at_formatted || '')}</span>
             </div>
         </div>
-
+ 
         <div class="admin-message-subject">
             🌐 <a href="${escHtml(sub.website_url)}" target="_blank" rel="noopener">${escHtml(sub.website_url)}</a>
         </div>
-
+ 
         ${accessNoteBlock}
         ${adminNotesBlock}
-
+ 
         <div class="admin-message-actions">
             <div class="admin-status-actions">${actionButtons}</div>
             <div class="admin-toggle-actions">
                 <button class="admin-toggle-btn" onclick="toggleSection(this, 'sub-notes-${id}')">📝 Notes</button>
+                <button class="admin-block-btn${blockBtnClass}"${blockBtnDisabled}
+                        onclick="blockUser('${ownerId}', 'submission', this)">
+                    ${blockBtnLabel}
+                </button>
             </div>
         </div>
-
+ 
         <!-- Reject section -->
         <div class="admin-reply-section" id="sub-reject-${id}" style="display:none;">
             <label>Rejection reason
                 <span class="admin-reply-hint">(will be sent to user via email)</span>
             </label>
             <textarea class="admin-textarea"
-                      placeholder="e.g. The chatbot is not publicly accessible, the website appears to be inactive..."></textarea>
-            <button class="admin-save-btn admin-reject-btn"
-                    onclick="rejectSubmission('${id}', this)">
-                Send Rejection
-            </button>
+                      placeholder="e.g. Does not meet our listing requirements..."></textarea>
+            <button class="admin-save-btn" onclick="rejectSubmission('${id}', this)">📨 Send & Reject</button>
         </div>
-
-        <!-- Admin notes section -->
+ 
+        <!-- Notes section -->
         <div class="admin-notes-section" id="sub-notes-${id}" style="display:none;">
-            <label>Admin Notes <span class="admin-reply-hint">(internal only, not sent to user)</span></label>
+            <label>Admin Notes <span class="admin-reply-hint">(internal only)</span></label>
             <textarea class="admin-textarea"
-                      placeholder="e.g. Tested on 12.3, working fine. Missing pricing page...">${escHtml(sub.admin_notes || '')}</textarea>
+                      placeholder="Add internal notes here...">${escHtml(sub.admin_notes || '')}</textarea>
             <button class="admin-save-btn" onclick="saveSubmissionNotes('${id}', this)">Save Notes</button>
         </div>
     </div>`;
@@ -879,3 +892,42 @@ document.addEventListener('DOMContentLoaded', () => {
         updateLoadMoreBar(section);
     });
 });
+
+// ============================================
+// BLOCK USER
+// ============================================
+ 
+async function blockUser(userId, type, btn) {
+    if (!userId) return;
+ 
+    const label = type === 'review' ? 'reviews' : 'submissions';
+    if (!confirm(`Block this user from submitting ${label}? All their pending ${label} will be set to removed.`)) return;
+ 
+    btn.disabled = true;
+    btn.textContent = '⏳ Blocking...';
+ 
+    try {
+        const res  = await fetch('../api/blockUser.php', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId, type }),
+        });
+        const data = await res.json();
+ 
+        if (data.success) {
+            btn.textContent = '🚫 Blocked';
+            btn.classList.add('admin-block-btn--blocked');
+            btn.disabled = true;
+            showNotification(`User blocked from ${label}`, 'success');
+        } else {
+            btn.disabled = false;
+            btn.textContent = `🚫 Block ${label.charAt(0).toUpperCase() + label.slice(1)}`;
+            showNotification(data.message || 'Block failed', 'error');
+        }
+    } catch (err) {
+        console.error(err);
+        btn.disabled = false;
+        btn.textContent = `🚫 Block ${label.charAt(0).toUpperCase() + label.slice(1)}`;
+        showNotification('Block failed', 'error');
+    }
+}

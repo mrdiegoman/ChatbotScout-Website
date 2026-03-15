@@ -24,6 +24,8 @@ CREATE TABLE `users` (
   `last_name` VARCHAR(100) NULL COMMENT 'Last name, e.g., "Doe", "Kováčová", "Novák"',
   `verified_reviewer` BOOLEAN NOT NULL DEFAULT FALSE,
   `is_admin` BOOLEAN NOT NULL DEFAULT FALSE,
+  `is_review_blocked` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'User is blocked from submitting/editing reviews',
+  `is_submission_blocked` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'User is blocked from submitting chatbots',
   `stripe_customer_id` VARCHAR(255) NULL,
 
 
