@@ -1,11 +1,12 @@
 Terms of service, privacy policy
 
+
 firemny mail, posielanie notifikacii na firemny mail a nastavenie emailu kde maju dojst notifications
+a testovanie
 
 
-
-
-
+refresh token google:
+1//03IKjAO-DspkfCgYIARAAGAMSNwF-L9IrU5XMeGipEDXN4-qgl6NqOrBB5_hGDAUztUiUU3QmCtaZ4dzvPrcWgeunpqHLF-hj3Io
 
 POSIBLY NESKOR:
     vytvaranie invoicov na platby
@@ -15,6 +16,10 @@ POSIBLY NESKOR:
 stripe listen --forward-to localhost/mainwebsite/api/stripeWebhook.php
 php tools/seedTestData.php
 
+
+—  –
+
+Zmazat getToken.php ked sa pojde na server
 
 REDIS COMMANDY:
     redis-cli
