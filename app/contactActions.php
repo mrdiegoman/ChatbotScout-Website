@@ -6,7 +6,6 @@
  * - Rate limiting (5 messages per IP)
  * - Server-side validation
  * - DB insert into contact_messages
- * - Confirmation email to user
  * - PRG redirect with session flash message
  */
 
@@ -159,11 +158,22 @@ try {
     ]);
 
     // ============================================
-    // CONFIRMATION EMAIL TO USER
+    // ADMIN NOTIFICATION EMAIL
     // ============================================
-
+ 
     $emailService = new Email();
-    $emailService->sendContactConfirmation($email, $firstName, $subjectLabel);
+    $appConfig    = require __DIR__ . '/../config/app.php';
+    $adminEmail   = $appConfig['admin']['email'] ?? 'admin@chatbothub.com';
+ 
+    $emailService->sendContactAdminNotification(
+        $adminEmail,
+        $firstName,
+        $lastName,
+        $email,
+        $subjectLabel,
+        $message,
+        $ipAddress
+    );
 
     // ============================================
     // SUCCESS

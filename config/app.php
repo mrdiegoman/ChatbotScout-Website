@@ -88,6 +88,6 @@ return [
 
     // Admin
     'admin' => [
-        'email' => 'rafaj.jakub@gmail.com.com', // ← zmeň na svoj reálny email
+        'email' => 'rafaj.jakub@gmail.com', // ← zmeň na svoj reálny email
     ],
 ];

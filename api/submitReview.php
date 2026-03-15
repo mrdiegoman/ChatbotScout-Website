@@ -126,7 +126,37 @@ try {
         null,
         ['chatbot_id' => $chatbotId, 'rating' => $rating, 'status' => 'pending']
     );
-
+ 
+    // ============================================
+    // ADMIN NOTIFICATION EMAIL
+    // ============================================
+ 
+    try {
+        // Načítaj názov chatbota pre email
+        $chatbotStmt = $db->prepare("SELECT name FROM chatbots WHERE id = :id");
+        $chatbotStmt->execute([':id' => $chatbotId]);
+        $chatbotRow  = $chatbotStmt->fetch();
+        $chatbotName = $chatbotRow['name'] ?? 'Unknown chatbot';
+ 
+        $appConfig  = require __DIR__ . '/../config/app.php';
+        $adminEmail = $appConfig['admin']['email'] ?? 'admin@chatbothub.com';
+ 
+        $emailService = new Email();
+        $emailService->sendReviewAdminNotification(
+            $adminEmail,
+            $user['first_name'] . ' ' . $user['last_name'],
+            $user['email'],
+            $chatbotName,
+            $rating,
+            $title,
+            $reviewText,
+            $reviewId
+        );
+    } catch (Exception $emailEx) {
+        // Email failure nesmie zrušiť úspešný submit
+        error_log('sendReviewAdminNotification failed: ' . $emailEx->getMessage());
+    }
+ 
     echo json_encode([
         'success' => true,
         'message' => 'Thank you! Your review has been submitted and is pending approval.',

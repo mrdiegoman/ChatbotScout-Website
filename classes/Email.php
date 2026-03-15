@@ -60,6 +60,27 @@ class Email
         return $this->send($toEmail, $toName, $emailSubject, $htmlBody, $textBody);
     }
 
+    public function sendContactAdminNotification(
+        string $adminEmail,
+        string $firstName,
+        string $lastName,
+        string $senderEmail,
+        string $subject,
+        string $message,
+        string $ipAddress = ''
+    ): bool {
+        $fullName    = $firstName . ' ' . $lastName;
+        $emailSubject = 'New contact message: ' . $subject;
+        $htmlBody     = $this->getContactAdminNotificationTemplate(
+            $fullName, $senderEmail, $subject, $message, $ipAddress
+        );
+        $textBody = "New contact message received.\n\nFrom: $fullName ($senderEmail)\nSubject: $subject\nIP: $ipAddress\n\nMessage:\n$message";
+ 
+        return $this->send($adminEmail, 'Admin', $emailSubject, $htmlBody, $textBody);
+    }
+
+
+
     public function sendAdminReply(
         string $toEmail,
         string $toName,
@@ -88,6 +109,26 @@ class Email
         $textBody = "Hi $toName,\n\nThank you for submitting \"$chatbotName\" to ChatbotHub!\n\nWe have received your partnership request and will review your chatbot shortly. Our team will contact you to discuss the affiliate revenue deal.\n\nBest regards,\nThe ChatbotHub Team";
 
         return $this->send($toEmail, $toName, $subject, $htmlBody, $textBody);
+    }
+
+    public function sendReviewAdminNotification(
+        string $adminEmail,
+        string $userName,
+        string $userEmail,
+        string $chatbotName,
+        int    $rating,
+        string $title,
+        string $reviewText,
+        string $reviewId
+    ): bool {
+        $stars        = str_repeat('★', $rating) . str_repeat('☆', 5 - $rating);
+        $subject      = 'New review pending approval: ' . $chatbotName;
+        $htmlBody     = $this->getReviewAdminNotificationTemplate(
+            $userName, $userEmail, $chatbotName, $rating, $stars, $title, $reviewText, $reviewId
+        );
+        $textBody = "New review pending approval.\n\nChatbot: $chatbotName\nRating: $stars ($rating/5)\nSubmitted by: $userName ($userEmail)\nTitle: $title\n\nReview:\n$reviewText\n\nReview ID: $reviewId";
+ 
+        return $this->send($adminEmail, 'Admin', $subject, $htmlBody, $textBody);
     }
 
     public function sendChatbotSubmissionAdminNotification(
@@ -450,6 +491,9 @@ class Email
     ): string {
         $accessNoteHtml = nl2br(htmlspecialchars($accessNote));
         $companyDisplay = $companyName ? $companyName : '<em style="color:#9CA3AF;">Not provided</em>';
+
+        $adminUrl     = $this->config['base_url'] . '/admin.php';
+
         $content        = <<<HTML
         <div class="header">
             <h1>New Chatbot Submission 🚀</h1>
@@ -470,6 +514,7 @@ class Email
             </div>
             <div class="label">Access / Notes</div>
             <div style="background:#fff;padding:16px;border:1px solid #e0e0e0;border-radius:6px;margin-top:6px;">$accessNoteHtml</div>
+            <a href="$adminUrl" class="button" style="margin-top:24px;">Open Admin Panel</a>
         </div>
         HTML;
         return $this->baseTemplate($content);
@@ -533,6 +578,82 @@ class Email
             </div>
             <p>If you have any questions or would like to discuss this further, please don't hesitate to contact us.</p>
             <p>Best regards,<br><strong>The ChatbotHub Team</strong></p>
+        </div>
+        HTML;
+        return $this->baseTemplate($content);
+    }
+
+    private function getContactAdminNotificationTemplate(
+        string $fullName,
+        string $senderEmail,
+        string $subject,
+        string $message,
+        string $ipAddress = ''
+    ): string {
+        $messageHtml  = nl2br(htmlspecialchars($message));
+        $ipBlock      = $ipAddress
+            ? "<div class=\"label\" style=\"margin-top:12px;\">IP Address</div><div class=\"value\" style=\"font-size:13px;color:#6B7280;\">$ipAddress</div>"
+            : '';
+        $adminUrl     = $this->config['base_url'] . '/admin.php';
+ 
+        $content = <<<HTML
+        <div class="header">
+            <h1>New Contact Message 📬</h1>
+            <p>Someone submitted a message via the contact form</p>
+        </div>
+        <div class="body">
+            <div class="info-box">
+                <div class="label">From</div>
+                <div class="value">$fullName</div>
+                <div class="label" style="margin-top:12px;">Email</div>
+                <div class="value"><a href="mailto:$senderEmail" style="color:#6B3FF6;">$senderEmail</a></div>
+                <div class="label" style="margin-top:12px;">Subject</div>
+                <div class="value">$subject</div>
+                $ipBlock
+            </div>
+            <div class="label" style="margin-top:18px;">Message</div>
+            <div style="background:#fff;padding:16px;border:1px solid #e0e0e0;border-radius:6px;margin-top:6px;">$messageHtml</div>
+            <a href="$adminUrl" class="button" style="margin-top:24px;">Open Admin Panel</a>
+        </div>
+        HTML;
+        return $this->baseTemplate($content);
+    }
+ 
+    private function getReviewAdminNotificationTemplate(
+        string $userName,
+        string $userEmail,
+        string $chatbotName,
+        int    $rating,
+        string $stars,
+        string $title,
+        string $reviewText,
+        string $reviewId
+    ): string {
+        $reviewHtml   = nl2br(htmlspecialchars($reviewText));
+        $titleDisplay = $title ?: '<em style="color:#9CA3AF;">No title</em>';
+        $adminUrl     = $this->config['base_url'] . '/admin.php';
+ 
+        $content = <<<HTML
+        <div class="header">
+            <h1>New Review Pending ⭐</h1>
+            <p>A new review is waiting for your approval</p>
+        </div>
+        <div class="body">
+            <div class="info-box">
+                <div class="label">Chatbot</div>
+                <div class="value">$chatbotName</div>
+                <div class="label" style="margin-top:12px;">Rating</div>
+                <div class="value" style="font-size:18px;letter-spacing:2px;">$stars <span style="font-size:13px;color:#6B7280;">($rating / 5)</span></div>
+                <div class="label" style="margin-top:12px;">Submitted By</div>
+                <div class="value">$userName (<a href="mailto:$userEmail" style="color:#6B3FF6;">$userEmail</a>)</div>
+                <div class="label" style="margin-top:12px;">Title</div>
+                <div class="value">$titleDisplay</div>
+                <div class="label" style="margin-top:12px;">Review ID</div>
+                <div class="value" style="font-size:13px;color:#6B7280;">$reviewId</div>
+            </div>
+            <div class="label" style="margin-top:18px;">Review Text</div>
+            <div style="background:#fff;padding:16px;border:1px solid #e0e0e0;border-radius:6px;margin-top:6px;">$reviewHtml</div>
+            <a href="$adminUrl" class="button" style="margin-top:24px;">Review in Admin Panel</a>
         </div>
         HTML;
         return $this->baseTemplate($content);
