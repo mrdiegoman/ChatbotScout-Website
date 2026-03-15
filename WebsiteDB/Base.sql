@@ -225,7 +225,7 @@ CREATE TABLE `chatbots` (
   `pricing_url` VARCHAR(500) NULL COMMENT 'Pricing page, e.g., "https://www.intercom.com/pricing", "https://drift.com/plans", "https://tidio.com/pricing"',
 
   -- Listing Status
-  `status` ENUM('pending', 'active', 'reviewed', 'suspended', 'rejected', 'archived') NOT NULL DEFAULT 'pending' COMMENT 'Listing status, e.g., "active", "pending", "suspended"',
+  `status` ENUM('pending','active','reviewed','suspended','rejected','archived','removed') NOT NULL DEFAULT 'pending' COMMENT 'Listing status',
   `is_verified` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Manually verified by admin, e.g., TRUE, FALSE',
   `is_featured` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Featured globally, e.g., TRUE, FALSE',
   `is_sponsored` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Paid promotion, e.g., TRUE, FALSE',
@@ -250,6 +250,7 @@ CREATE TABLE `chatbots` (
   `submitted_at` TIMESTAMP NULL COMMENT 'Submitted for review, e.g., "2025-01-15 10:30:00", "2024-12-01 09:00:00"',
   `approved_at` TIMESTAMP NULL COMMENT 'Approved by admin, e.g., "2025-01-16 14:00:00", "2024-12-02 11:30:00"',
   `last_verified_at` TIMESTAMP NULL COMMENT 'Last verification, e.g., "2025-01-20 16:00:00", "2025-01-10 10:00:00"',
+  `verified_at` TIMESTAMP NULL DEFAULT NULL COMMENT 'When admin accepted chatbot via Accept action',
   `deleted_at` TIMESTAMP NULL COMMENT 'Soft delete time, e.g., "2025-01-25 18:00:00", NULL',
 
   PRIMARY KEY (`id`),

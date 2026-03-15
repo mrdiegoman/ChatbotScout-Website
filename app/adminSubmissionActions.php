@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin Submission Actions
- * Actions: approve | reject | save_notes
+ * Actions: validate_chatbot | accept | review | reject | remove | save_notes
  */
 
 require '../inc/bootstrap.php';
@@ -37,9 +37,90 @@ function getPendingCount(PDO $db): int {
     ")->fetchColumn();
 }
 
+// ── Helper: validate chatbot readiness ────────────────────────────────────────
+function validateChatbot(PDO $db, string $id): array {
+    // Fetch chatbot data
+    $stmt = $db->prepare("
+        SELECT c.description, c.logo_url, c.affiliate_link,
+               c.starting_price, c.pricing_model
+        FROM chatbots c
+        WHERE c.id = :id
+    ");
+    $stmt->execute(['id' => $id]);
+    $chatbot = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$chatbot) {
+        return ['valid' => false, 'rules' => [], 'error' => 'Chatbot not found.'];
+    }
+
+    // Features count
+    $featStmt = $db->prepare("
+        SELECT COUNT(*) FROM chatbot_features
+        WHERE chatbot_id = :id
+          AND (boolean_value = 1 OR text_value IS NOT NULL)
+    ");
+    $featStmt->execute(['id' => $id]);
+    $featureCount = (int)$featStmt->fetchColumn();
+
+    // Integrations count
+    $intStmt = $db->prepare("
+        SELECT COUNT(*) FROM chatbot_integrations
+        WHERE chatbot_id = :id AND is_supported = 1
+    ");
+    $intStmt->execute(['id' => $id]);
+    $integrationCount = (int)$intStmt->fetchColumn();
+
+    $isFree = $chatbot['pricing_model'] === 'free';
+
+    // Validate starting_price: if not free, must be > 0
+    $priceOk = $isFree
+        ? true
+        : ($chatbot['starting_price'] !== null && (float)$chatbot['starting_price'] > 0.00);
+
+    $rules = [
+        [
+            'label' => 'Description is set',
+            'ok'    => !empty($chatbot['description']),
+        ],
+        [
+            'label' => 'Logo is uploaded',
+            'ok'    => !empty($chatbot['logo_url']),
+        ],
+        [
+            'label' => 'Affiliate link is set',
+            'ok'    => !empty($chatbot['affiliate_link']),
+        ],
+        [
+            'label' => $isFree
+                ? 'Starting price (free — skipped)'
+                : 'Starting price is set (> 0.00)',
+            'ok'    => $priceOk,
+            'skip'  => $isFree,
+        ],
+        [
+            'label' => 'At least 1 feature',
+            'ok'    => $featureCount >= 1,
+        ],
+        [
+            'label' => 'At least 1 integration',
+            'ok'    => $integrationCount >= 1,
+        ],
+    ];
+
+    $allPassed = array_reduce($rules, function (bool $carry, array $rule): bool {
+        return $carry && ($rule['ok'] || ($rule['skip'] ?? false));
+    }, true);
+
+    return [
+        'valid' => $allPassed,
+        'rules' => $rules,
+    ];
+}
+
 // ── Fetch chatbot + owner ──────────────────────────────────────────────────────
 $stmt = $db->prepare("
-    SELECT c.id, c.name, c.website_url, c.status,
+    SELECT c.id, c.name, c.website_url, c.status, c.is_verified,
+           c.approved_at, c.rejected_at, c.deleted_at, c.last_verified_at, c.verified_at,
            u.email AS user_email, u.first_name, u.last_name
     FROM chatbots c
     JOIN users u ON c.owner_user_id = u.id
@@ -57,41 +138,93 @@ if (!$chatbot) {
 
 switch ($action) {
 
-    // ── APPROVE (toggle: pending ↔ reviewed, no email) ───────────────────────
-    case 'approve':
-        // Accept optional target status from JS (for toggle support)
-        $newStatus = ($input['status'] ?? '') === 'pending' ? 'pending' : 'reviewed';
+    // ── VALIDATE CHATBOT (pre-accept check, no DB change) ─────────────────────
+    case 'validate_chatbot':
+        $result = validateChatbot($db, $id);
+        echo json_encode([
+            'success'    => true,
+            'valid'      => $result['valid'],
+            'rules'      => $result['rules'],
+            'chatbot'    => [
+                'id'   => $chatbot['id'],
+                'name' => $chatbot['name'],
+            ],
+        ]);
+        break;
 
-        if ($newStatus === 'reviewed') {
-            $db->prepare("
-                UPDATE chatbots SET status = 'reviewed', approved_at = NOW()
-                WHERE id = :id
-            ")->execute(['id' => $id]);
+    // ── ACCEPT → status=active, is_verified=1, approved_at, verified_at, email ─
+    case 'accept':
+        $validation = validateChatbot($db, $id);
+        if (!$validation['valid']) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Chatbot does not meet all requirements.',
+                'rules'   => $validation['rules'],
+            ]);
+            break;
+        }
 
-            AuditLog::log('chatbot', $id, 'approved',
-                ['status' => 'pending'],
-                ['status' => 'reviewed']
+        $db->prepare("
+            UPDATE chatbots SET
+                status           = 'active',
+                is_verified      = 1,
+                approved_at      = NOW(),
+                verified_at      = NOW(),
+                last_verified_at = NOW(),
+                rejected_at      = NULL,
+                deleted_at       = NULL
+            WHERE id = :id
+        ")->execute(['id' => $id]);
+
+        AuditLog::log('chatbot', $id, 'approved',
+            ['status' => $chatbot['status'], 'is_verified' => (bool)$chatbot['is_verified']],
+            ['status' => 'active', 'is_verified' => true]
+        );
+
+        $userName = trim($chatbot['first_name'] . ' ' . $chatbot['last_name']) ?: 'there';
+        try {
+            $email = new Email();
+            $email->sendChatbotApproved(
+                $chatbot['user_email'],
+                $userName,
+                $chatbot['name']
             );
-        } else {
-            $db->prepare("
-                UPDATE chatbots SET status = 'pending', approved_at = NULL
-                WHERE id = :id
-            ")->execute(['id' => $id]);
-
-            AuditLog::log('chatbot', $id, 'updated',
-                ['status' => 'reviewed'],
-                ['status' => 'pending']
-            );
+        } catch (Exception $e) {
+            error_log('Accept email error: ' . $e->getMessage());
         }
 
         echo json_encode([
             'success'      => true,
-            'message'      => $newStatus === 'reviewed' ? 'Marked as reviewed.' : 'Moved back to pending.',
-            'pendingCount' => getPendingCount($db)
+            'message'      => 'Chatbot accepted and is now active.',
+            'pendingCount' => getPendingCount($db),
         ]);
         break;
 
-    // ── REJECT ────────────────────────────────────────────────────────────────
+    // ── REVIEW → status=reviewed, is_verified=1, approved_at ─────────────────
+    case 'review':
+        $db->prepare("
+            UPDATE chatbots SET
+                status      = 'reviewed',
+                is_verified = 1,
+                approved_at = NOW(),
+                rejected_at = NULL,
+                deleted_at  = NULL
+            WHERE id = :id
+        ")->execute(['id' => $id]);
+
+        AuditLog::log('chatbot', $id, 'approved',
+            ['status' => $chatbot['status'], 'is_verified' => (bool)$chatbot['is_verified']],
+            ['status' => 'reviewed', 'is_verified' => true]
+        );
+
+        echo json_encode([
+            'success'      => true,
+            'message'      => 'Chatbot marked as reviewed.',
+            'pendingCount' => getPendingCount($db),
+        ]);
+        break;
+
+    // ── REJECT → is_verified=0, rejected_at, clears approved/deleted/verified ──
     case 'reject':
         $reason = trim($input['reason'] ?? '');
 
@@ -106,17 +239,23 @@ switch ($action) {
         }
 
         $db->prepare("
-            UPDATE chatbots SET status = 'rejected', rejected_at = NOW()
+            UPDATE chatbots SET
+                status      = 'rejected',
+                is_verified = 0,
+                rejected_at = NOW(),
+                approved_at = NULL,
+                verified_at = NULL,
+                deleted_at  = NULL,
+                rejection_reason = :reason
             WHERE id = :id
-        ")->execute(['id' => $id]);
+        ")->execute(['id' => $id, 'reason' => $reason]);
 
         AuditLog::log('chatbot', $id, 'rejected',
-            ['status' => $chatbot['status']],
-            ['status' => 'rejected', 'rejection_reason' => $reason]
+            ['status' => $chatbot['status'], 'is_verified' => (bool)$chatbot['is_verified']],
+            ['status' => 'rejected', 'is_verified' => false, 'rejection_reason' => $reason]
         );
 
         $userName = trim($chatbot['first_name'] . ' ' . $chatbot['last_name']) ?: 'there';
-
         try {
             $email = new Email();
             $email->sendChatbotRejected(
@@ -132,7 +271,32 @@ switch ($action) {
         echo json_encode([
             'success'      => true,
             'message'      => 'Chatbot rejected.',
-            'pendingCount' => getPendingCount($db)
+            'pendingCount' => getPendingCount($db),
+        ]);
+        break;
+
+    // ── REMOVE → status=removed, is_verified=0, deleted_at, clears others ─────
+    case 'remove':
+        $db->prepare("
+            UPDATE chatbots SET
+                status      = 'removed',
+                is_verified = 0,
+                deleted_at  = NOW(),
+                approved_at = NULL,
+                verified_at = NULL,
+                rejected_at = NULL
+            WHERE id = :id
+        ")->execute(['id' => $id]);
+
+        AuditLog::log('chatbot', $id, 'deleted',
+            ['status' => $chatbot['status'], 'is_verified' => (bool)$chatbot['is_verified']],
+            ['status' => 'removed', 'is_verified' => false]
+        );
+
+        echo json_encode([
+            'success'      => true,
+            'message'      => 'Chatbot removed.',
+            'pendingCount' => getPendingCount($db),
         ]);
         break;
 

@@ -549,3 +549,394 @@ async function saveSubmissionNotes(id, btn) {
         btn.textContent = 'Save Notes';
     }
 }
+
+// ============================================
+// SUBMISSIONS — ACCEPT (validate → popup → confirm)
+// ============================================
+
+async function acceptSubmission(id) {
+    // Step 1: check "change of mind" if already in a final state
+    const card          = document.querySelector(`#submissions-tab .admin-message-card[data-id="${id}"]`);
+    const currentStatus = card ? card.dataset.status : '';
+
+    if (['rejected', 'removed'].includes(currentStatus)) {
+        const chatbotName = card.querySelector('.admin-message-sender')?.textContent?.trim() || 'this chatbot';
+        const clearedField = currentStatus === 'rejected' ? 'rejected_at' : 'deleted_at';
+        const confirmed = await showChangeOfMindPopup(chatbotName, clearedField);
+        if (!confirmed) return;
+    }
+
+    // Step 2: validate chatbot params
+    let validationData;
+    try {
+        const res  = await fetch('../app/adminSubmissionActions.php', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ action: 'validate_chatbot', id }),
+        });
+        validationData = await res.json();
+    } catch (err) {
+        showNotification('Validation request failed.', 'error');
+        return;
+    }
+
+    if (!validationData.success) {
+        showNotification(validationData.message || 'Validation error.', 'error');
+        return;
+    }
+
+    // Step 3: show accept popup with validation results
+    showAcceptPopup(id, validationData.chatbot.name, validationData.rules, validationData.valid);
+}
+
+function showAcceptPopup(id, chatbotName, rules, allPassed) {
+    // Remove existing popup
+    document.getElementById('sub-accept-popup')?.remove();
+
+    const rulesHtml = rules.map(rule => {
+        const icon   = rule.skip  ? '⏭️' : (rule.ok ? '✅' : '❌');
+        const cls    = rule.skip  ? 'accept-rule-skip' : (rule.ok ? 'accept-rule-ok' : 'accept-rule-fail');
+        return `<div class="accept-rule-item ${cls}">${icon} ${rule.label}</div>`;
+    }).join('');
+
+    const confirmDisabled = allPassed ? '' : ' disabled';
+    const statusMsg = allPassed
+        ? `<p class="accept-status-ok">✅ All requirements met. Ready to accept.</p>`
+        : `<p class="accept-status-fail">❌ Some requirements are not met. Fix them before accepting.</p>`;
+
+    const popup = document.createElement('div');
+    popup.id    = 'sub-accept-popup';
+    popup.className = 'sub-popup-overlay';
+    popup.innerHTML = `
+        <div class="sub-popup-box">
+            <div class="sub-popup-header">
+                <h3>Accept Chatbot</h3>
+                <button class="sub-popup-close" onclick="closeAcceptPopup()">✕</button>
+            </div>
+            <div class="sub-popup-body">
+                <p>Reviewing <strong>${escHtml(chatbotName)}</strong> for activation.</p>
+                <div class="accept-rules-list">${rulesHtml}</div>
+                ${statusMsg}
+                <p class="accept-info-note">Accepting will set status to <strong>active</strong>, mark as verified, and send a confirmation email to the owner.</p>
+            </div>
+            <div class="sub-popup-footer">
+                <button class="admin-cancel-btn" onclick="closeAcceptPopup()">Cancel</button>
+                <button class="admin-accept-confirm-btn"${confirmDisabled}
+                        onclick="confirmAccept('${id}', this)">
+                    ✅ Confirm Accept
+                </button>
+            </div>
+        </div>`;
+
+    document.body.appendChild(popup);
+    requestAnimationFrame(() => popup.classList.add('visible'));
+}
+
+function closeAcceptPopup() {
+    const popup = document.getElementById('sub-accept-popup');
+    if (popup) {
+        popup.classList.remove('visible');
+        setTimeout(() => popup.remove(), 200);
+    }
+}
+
+async function confirmAccept(id, btn) {
+    btn.disabled    = true;
+    btn.textContent = 'Accepting...';
+
+    try {
+        const res    = await fetch('../app/adminSubmissionActions.php', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ action: 'accept', id }),
+        });
+        const result = await res.json();
+
+        if (result.success) {
+            closeAcceptPopup();
+            updateCardStatus(id, 'active');
+            showNotification('Chatbot accepted and email sent!', 'success');
+            if (result.pendingCount !== undefined) {
+                updateMainTabBadge('submissions', result.pendingCount);
+            }
+        } else {
+            showNotification(result.message || 'Failed to accept chatbot.', 'error');
+            btn.disabled    = false;
+            btn.textContent = '✅ Confirm Accept';
+        }
+    } catch (err) {
+        showNotification('Something went wrong.', 'error');
+        btn.disabled    = false;
+        btn.textContent = '✅ Confirm Accept';
+    }
+}
+
+// ============================================
+// SUBMISSIONS — REVIEW
+// ============================================
+
+async function reviewSubmission(id, clickedBtn) {
+    const card          = document.querySelector(`#submissions-tab .admin-message-card[data-id="${id}"]`);
+    const currentStatus = card ? card.dataset.status : '';
+
+    // "Change of mind" check for final states
+    if (['active', 'rejected', 'removed'].includes(currentStatus)) {
+        const chatbotName   = card.querySelector('.admin-message-sender')?.textContent?.trim() || 'this chatbot';
+        const clearedFields = currentStatus === 'active'   ? 'approved_at, verified_at, last_verified_at'
+                            : currentStatus === 'rejected' ? 'rejected_at'
+                            : 'deleted_at';
+        const confirmed = await showChangeOfMindPopup(chatbotName, clearedFields);
+        if (!confirmed) return;
+    }
+
+    clickedBtn.disabled = true;
+
+    try {
+        const res    = await fetch('../app/adminSubmissionActions.php', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ action: 'review', id }),
+        });
+        const result = await res.json();
+
+        if (result.success) {
+            updateCardStatus(id, 'reviewed');
+            showNotification('Marked as reviewed.', 'success');
+            if (result.pendingCount !== undefined) {
+                updateMainTabBadge('submissions', result.pendingCount);
+            }
+        } else {
+            showNotification(result.message || 'Failed to update status.', 'error');
+        }
+    } catch (err) {
+        showNotification('Something went wrong.', 'error');
+    } finally {
+        clickedBtn.disabled = false;
+    }
+}
+
+// ============================================
+// SUBMISSIONS — REJECT (sends email)
+// ============================================
+
+async function rejectSubmission(id, btn) {
+    const card          = document.querySelector(`#submissions-tab .admin-message-card[data-id="${id}"]`);
+    const currentStatus = card ? card.dataset.status : '';
+
+    // "Change of mind" check for final states
+    if (['active', 'removed'].includes(currentStatus)) {
+        const chatbotName   = card.querySelector('.admin-message-sender')?.textContent?.trim() || 'this chatbot';
+        const clearedFields = currentStatus === 'active' ? 'approved_at, verified_at, last_verified_at' : 'deleted_at';
+        const confirmed = await showChangeOfMindPopup(chatbotName, clearedFields);
+        if (!confirmed) return;
+    }
+
+    const section  = document.getElementById(`sub-reject-${id}`);
+    const textarea = section.querySelector('textarea');
+    const reason   = textarea.value.trim();
+
+    if (!reason) {
+        showNotification('Please enter a rejection reason.', 'error');
+        return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = 'Sending...';
+
+    try {
+        const res    = await fetch('../app/adminSubmissionActions.php', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ action: 'reject', id, reason }),
+        });
+        const result = await res.json();
+
+        if (result.success) {
+            updateCardStatus(id, 'rejected');
+            section.style.display = 'none';
+            textarea.value        = '';
+            showNotification('Rejection sent successfully.', 'success');
+            if (result.pendingCount !== undefined) {
+                updateMainTabBadge('submissions', result.pendingCount);
+            }
+        } else {
+            showNotification(result.message || 'Failed to reject submission.', 'error');
+        }
+    } catch (err) {
+        showNotification('Something went wrong.', 'error');
+    } finally {
+        btn.disabled    = false;
+        btn.textContent = 'Send Rejection';
+    }
+}
+
+// ============================================
+// SUBMISSIONS — REMOVE
+// ============================================
+
+async function removeSubmission(id, clickedBtn) {
+    const card          = document.querySelector(`#submissions-tab .admin-message-card[data-id="${id}"]`);
+    const currentStatus = card ? card.dataset.status : '';
+    const chatbotName   = card?.querySelector('.admin-message-sender')?.textContent?.trim() || 'this chatbot';
+
+    // "Change of mind" check for final states
+    if (['active', 'rejected'].includes(currentStatus)) {
+        const clearedFields = currentStatus === 'active'   ? 'approved_at, verified_at, last_verified_at'
+                            : 'rejected_at';
+        const confirmed = await showChangeOfMindPopup(chatbotName, clearedFields);
+        if (!confirmed) return;
+    } else {
+        // For pending/reviewed → still confirm remove (it's destructive)
+        const confirmed = await showChangeOfMindPopup(chatbotName, null, true);
+        if (!confirmed) return;
+    }
+
+    clickedBtn.disabled = true;
+
+    try {
+        const res    = await fetch('../app/adminSubmissionActions.php', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ action: 'remove', id }),
+        });
+        const result = await res.json();
+
+        if (result.success) {
+            updateCardStatus(id, 'removed');
+            showNotification('Chatbot removed.', 'success');
+            if (result.pendingCount !== undefined) {
+                updateMainTabBadge('submissions', result.pendingCount);
+            }
+        } else {
+            showNotification(result.message || 'Failed to remove chatbot.', 'error');
+        }
+    } catch (err) {
+        showNotification('Something went wrong.', 'error');
+    } finally {
+        clickedBtn.disabled = false;
+    }
+}
+
+// ============================================
+// SUBMISSIONS — SAVE NOTES
+// ============================================
+
+async function saveSubmissionNotes(id, btn) {
+    const section  = document.getElementById(`sub-notes-${id}`);
+    const textarea = section.querySelector('textarea');
+    const notes    = textarea.value.trim();
+
+    btn.disabled    = true;
+    btn.textContent = 'Saving...';
+
+    try {
+        const res    = await fetch('../app/adminSubmissionActions.php', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ action: 'save_notes', id, notes }),
+        });
+        const result = await res.json();
+
+        showNotification(
+            result.success ? 'Notes saved!' : (result.message || 'Failed'),
+            result.success ? 'success' : 'error'
+        );
+    } catch (err) {
+        showNotification('Something went wrong.', 'error');
+    } finally {
+        btn.disabled    = false;
+        btn.textContent = 'Save Notes';
+    }
+}
+
+// ============================================
+// HELPER: "Change of mind" confirmation popup
+// ============================================
+
+function showChangeOfMindPopup(chatbotName, clearedFields, isRemove = false) {
+    return new Promise((resolve) => {
+        document.getElementById('sub-change-popup')?.remove();
+
+        let fieldsNote = '';
+        if (clearedFields) {
+            fieldsNote = `<p class="change-popup-fields">The following timestamps will be cleared: <strong>${clearedFields}</strong></p>`;
+        }
+
+        const actionText = isRemove
+            ? `Are you sure you want to <strong>remove</strong>`
+            : `Are you sure you want to change the status of`;
+
+        const popup = document.createElement('div');
+        popup.id    = 'sub-change-popup';
+        popup.className = 'sub-popup-overlay';
+        popup.innerHTML = `
+            <div class="sub-popup-box sub-popup-box--warning">
+                <div class="sub-popup-header">
+                    <h3>Confirm Status Change</h3>
+                    <button class="sub-popup-close" onclick="resolveChangePopup(false)">✕</button>
+                </div>
+                <div class="sub-popup-body">
+                    <p>${actionText} <strong>${escHtml(chatbotName)}</strong>?</p>
+                    ${fieldsNote}
+                </div>
+                <div class="sub-popup-footer">
+                    <button class="admin-cancel-btn" onclick="resolveChangePopup(false)">Cancel</button>
+                    <button class="admin-confirm-change-btn" onclick="resolveChangePopup(true)">
+                        Confirm
+                    </button>
+                </div>
+            </div>`;
+
+        popup._resolve = resolve;
+        document.body.appendChild(popup);
+        requestAnimationFrame(() => popup.classList.add('visible'));
+    });
+}
+
+function resolveChangePopup(confirmed) {
+    const popup = document.getElementById('sub-change-popup');
+    if (!popup) return;
+    const resolve = popup._resolve;
+    popup.classList.remove('visible');
+    setTimeout(() => popup.remove(), 200);
+    if (resolve) resolve(confirmed);
+}
+
+// ============================================
+// HELPER: Update card status in DOM
+// ============================================
+
+function updateCardStatus(id, newStatus) {
+    const card = document.querySelector(`#submissions-tab .admin-message-card[data-id="${id}"]`);
+    if (!card) return;
+
+    card.dataset.status = newStatus;
+
+    // Update badge
+    const badge = card.querySelector('.admin-status-badge');
+    if (badge) {
+        badge.className   = `admin-status-badge submission-status-${newStatus}`;
+        badge.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+    }
+
+    // Update active state on buttons
+    card.querySelectorAll('.submission-action-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.action === newStatus);
+    });
+}
+
+// ============================================
+// HELPER: escHtml (fallback if not defined globally)
+// ============================================
+
+if (typeof escHtml === 'undefined') {
+    function escHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+}

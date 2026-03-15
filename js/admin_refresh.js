@@ -209,14 +209,29 @@ function buildSubmissionCard(sub) {
     const adminNotesBlock = sub.admin_notes
         ? `<div class="admin-existing-response"><strong>Admin notes:</strong><p>${nlToBr(sub.admin_notes)}</p></div>` : '';
 
-    const submissionStatusBtns = { reviewed: 'Approve', rejected: 'Reject' };
-    const statusBtns = Object.entries(submissionStatusBtns).map(([s, label]) => {
-        const active = sub.status === s ? ' active' : '';
-        return `<button class="admin-status-btn${active}" data-status="${s}"
-                    onclick="updateSubmissionStatus('${id}', '${s}', this)">${label}</button>`;
-    }).join('');
+    // 4 action buttons: Accept / Reviewed / Reject / Remove
+    const actionButtons = `
+        <button class="admin-status-btn submission-action-btn ${status === 'active'   ? 'active btn-accept'   : 'btn-accept'}"
+                data-action="active"
+                onclick="acceptSubmission('${id}')">
+            ✅ Accept
+        </button>
+        <button class="admin-status-btn submission-action-btn ${status === 'reviewed' ? 'active btn-reviewed' : 'btn-reviewed'}"
+                data-action="reviewed"
+                onclick="reviewSubmission('${id}', this)">
+            👁 Reviewed
+        </button>
+        <button class="admin-status-btn submission-action-btn ${status === 'rejected' ? 'active btn-reject'   : 'btn-reject'}"
+                data-action="rejected"
+                onclick="toggleSection(this, 'sub-reject-${id}')">
+            ❌ Reject
+        </button>
+        <button class="admin-status-btn submission-action-btn ${status === 'removed'  ? 'active btn-remove'   : 'btn-remove'}"
+                data-action="removed"
+                onclick="removeSubmission('${id}', this)">
+            🗑 Remove
+        </button>`;
 
-    // FIX #2: data-status pridaný na kartu
     return `
     <div class="admin-message-card admin-submission-card" data-id="${id}" data-status="${status}">
         <div class="admin-message-card-header">
@@ -226,12 +241,13 @@ function buildSubmissionCard(sub) {
                     <span class="admin-message-sender">${name}</span>
                 </div>
                 <span class="admin-message-email">
-                    Submitted by ${escHtml(sub.first_name + ' ' + sub.last_name)} (${escHtml(sub.user_email)})
+                    Submitted by ${escHtml(sub.first_name + ' ' + sub.last_name)}
+                    · <a href="mailto:${escHtml(sub.user_email)}">${escHtml(sub.user_email)}</a>
                 </span>
             </div>
             <div class="admin-message-card-header-right">
                 <span class="admin-status-badge submission-status-${status}">${statusLabel}</span>
-                <span class="admin-message-date">${escHtml(sub.submitted_at_formatted)}</span>
+                <span class="admin-message-date">${escHtml(sub.submitted_at_formatted || '')}</span>
             </div>
         </div>
 
@@ -243,15 +259,30 @@ function buildSubmissionCard(sub) {
         ${adminNotesBlock}
 
         <div class="admin-message-actions">
-            <div class="admin-status-actions">${statusBtns}</div>
+            <div class="admin-status-actions">${actionButtons}</div>
             <div class="admin-toggle-actions">
                 <button class="admin-toggle-btn" onclick="toggleSection(this, 'sub-notes-${id}')">📝 Notes</button>
             </div>
         </div>
 
+        <!-- Reject section -->
+        <div class="admin-reply-section" id="sub-reject-${id}" style="display:none;">
+            <label>Rejection reason
+                <span class="admin-reply-hint">(will be sent to user via email)</span>
+            </label>
+            <textarea class="admin-textarea"
+                      placeholder="e.g. The chatbot is not publicly accessible, the website appears to be inactive..."></textarea>
+            <button class="admin-save-btn admin-reject-btn"
+                    onclick="rejectSubmission('${id}', this)">
+                Send Rejection
+            </button>
+        </div>
+
+        <!-- Admin notes section -->
         <div class="admin-notes-section" id="sub-notes-${id}" style="display:none;">
-            <label>Admin Notes <span class="admin-reply-hint">(internal only)</span></label>
-            <textarea class="admin-textarea" placeholder="Add notes about this submission...">${escHtml(sub.admin_notes || '')}</textarea>
+            <label>Admin Notes <span class="admin-reply-hint">(internal only, not sent to user)</span></label>
+            <textarea class="admin-textarea"
+                      placeholder="e.g. Tested on 12.3, working fine. Missing pricing page...">${escHtml(sub.admin_notes || '')}</textarea>
             <button class="admin-save-btn" onclick="saveSubmissionNotes('${id}', this)">Save Notes</button>
         </div>
     </div>`;

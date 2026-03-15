@@ -86,7 +86,7 @@ function old(string $key, array $old): string {
                             id="email"
                             name="email"
                             placeholder="Please enter your email"
-                            value="<?= old('email', $oldInput) ?>"
+                            value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>"
                             maxlength="255"
                             autocomplete="email"
                             required>
