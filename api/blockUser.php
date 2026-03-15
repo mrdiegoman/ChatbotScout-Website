@@ -1,14 +1,18 @@
 <?php
 /**
- * AJAX Endpoint - Block User
+ * AJAX Endpoint - Block / Unblock User
  *
- * Admin akcia: zablokuje usera od posielania reviews alebo submissions.
- * - Nastaví is_review_blocked alebo is_submission_blocked flag na userovi
- * - Zmení VŠETKY pending reviews / pending submissions daného usera na 'removed'
+ * Block:
+ * - Nastaví is_review_blocked alebo is_submission_blocked = TRUE
+ * - Zmení VŠETKY pending reviews / submissions daného usera na 'removed'
+ *
+ * Unblock:
+ * - Nastaví is_review_blocked alebo is_submission_blocked = FALSE
  *
  * POST JSON: {
- *   user_id: "uuid",
- *   type: "review" | "submission"
+ *   user_id:  "uuid",
+ *   type:     "review" | "submission",
+ *   unblock:  true   // voliteľné — ak chýba alebo false → block
  * }
  */
 
@@ -32,9 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$data   = json_decode(file_get_contents('php://input'), true) ?? [];
-$userId = trim($data['user_id'] ?? '');
-$type   = trim($data['type']    ?? '');
+$data    = json_decode(file_get_contents('php://input'), true) ?? [];
+$userId  = trim($data['user_id'] ?? '');
+$type    = trim($data['type']    ?? '');
+$unblock = !empty($data['unblock']);
 
 if (empty($userId) || !in_array($type, ['review', 'submission'], true)) {
     echo json_encode(['success' => false, 'message' => 'Invalid parameters']);
@@ -45,11 +50,9 @@ try {
     $db = Database::getInstance()->getConnection();
 
     // Overiť že user existuje
-    $userStmt = $db->prepare("SELECT id, is_review_blocked, is_submission_blocked FROM users WHERE id = :id");
+    $userStmt = $db->prepare("SELECT id FROM users WHERE id = :id");
     $userStmt->execute([':id' => $userId]);
-    $targetUser = $userStmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$targetUser) {
+    if (!$userStmt->fetch()) {
         echo json_encode(['success' => false, 'message' => 'User not found']);
         exit;
     }
@@ -57,39 +60,45 @@ try {
     $db->beginTransaction();
 
     if ($type === 'review') {
-        // Nastav flag
-        $db->prepare("UPDATE users SET is_review_blocked = TRUE WHERE id = :id")
-           ->execute([':id' => $userId]);
-
-        // Všetky pending reviews → removed
-        $db->prepare("
-            UPDATE reviews
-            SET status = 'removed', moderated_at = NOW(), moderated_by_user_id = :admin_id
-            WHERE user_id = :user_id AND status = 'pending'
-        ")->execute([':admin_id' => $user['id'], ':user_id' => $userId]);
-
         $flag = 'is_review_blocked';
 
+        if ($unblock) {
+            $db->prepare("UPDATE users SET is_review_blocked = FALSE WHERE id = :id")
+               ->execute([':id' => $userId]);
+        } else {
+            $db->prepare("UPDATE users SET is_review_blocked = TRUE WHERE id = :id")
+               ->execute([':id' => $userId]);
+
+            $db->prepare("
+                UPDATE reviews
+                SET status = 'removed', moderated_at = NOW(), moderated_by_user_id = :admin_id
+                WHERE user_id = :user_id AND status = 'pending'
+            ")->execute([':admin_id' => $user['id'], ':user_id' => $userId]);
+        }
+
     } else {
-        // Nastav flag
-        $db->prepare("UPDATE users SET is_submission_blocked = TRUE WHERE id = :id")
-           ->execute([':id' => $userId]);
-
-        // Všetky pending submissions → removed
-        $db->prepare("
-            UPDATE chatbots
-            SET status = 'removed', deleted_at = NOW()
-            WHERE owner_user_id = :user_id AND status = 'pending'
-        ")->execute([':user_id' => $userId]);
-
         $flag = 'is_submission_blocked';
+
+        if ($unblock) {
+            $db->prepare("UPDATE users SET is_submission_blocked = FALSE WHERE id = :id")
+               ->execute([':id' => $userId]);
+        } else {
+            $db->prepare("UPDATE users SET is_submission_blocked = TRUE WHERE id = :id")
+               ->execute([':id' => $userId]);
+
+            $db->prepare("
+                UPDATE chatbots
+                SET status = 'removed', deleted_at = NOW()
+                WHERE owner_user_id = :user_id AND status = 'pending'
+            ")->execute([':user_id' => $userId]);
+        }
     }
 
     $db->commit();
 
     AuditLog::log('user', $userId, 'updated',
-        [$flag => false],
-        [$flag => true]
+        [$flag => $unblock],
+        [$flag => !$unblock]
     );
 
     echo json_encode(['success' => true]);

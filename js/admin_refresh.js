@@ -929,9 +929,7 @@ async function blockUser(userId, type, btn) {
         const data = await res.json();
  
         if (data.success) {
-            btn.className   = 'admin-block-btn admin-block-btn--blocked';
-            btn.textContent = '🔓 Unblock ' + (type === 'review' ? 'Reviews' : 'Submissions');
-            btn.onclick     = function() { unblockUser(userId, type, this); };
+            updateAllBlockButtons(userId, type, true);
             showNotification(`User blocked from ${label}`, 'success');
         } else {
             btn.disabled    = false;
@@ -973,9 +971,7 @@ async function unblockUser(userId, type, btn) {
         const data = await res.json();
  
         if (data.success) {
-            btn.className   = 'admin-block-btn';
-            btn.textContent = '🚫 Block ' + (type === 'review' ? 'Reviews' : 'Submissions');
-            btn.onclick     = function() { blockUser(userId, type, this); };
+            updateAllBlockButtons(userId, type, false);
             showNotification(`User unblocked from ${label}`, 'success');
         } else {
             btn.disabled    = false;
@@ -1030,4 +1026,34 @@ function resolveBlockPopup(confirmed) {
     popup.classList.remove('visible');
     setTimeout(() => popup.remove(), 200);
     if (resolve) resolve(confirmed);
+}
+
+// ============================================
+// HELPER — aktualizuje všetky block tlačidlá
+// pre daného usera naraz (review alebo submission)
+// ============================================
+ 
+function updateAllBlockButtons(userId, type, isNowBlocked) {
+    const label     = type === 'review' ? 'Reviews' : 'Submissions';
+    const selector  = type === 'review'
+        ? '#reviews-tab .admin-block-btn'
+        : '#submissions-tab .admin-block-btn';
+ 
+    document.querySelectorAll(selector).forEach(btn => {
+        // Zisti userId z onclick atributu
+        const onclickAttr = btn.getAttribute('onclick') || '';
+        if (!onclickAttr.includes(userId)) return;
+ 
+        if (isNowBlocked) {
+            btn.disabled    = false;
+            btn.className   = 'admin-block-btn admin-block-btn--blocked';
+            btn.textContent = `🔓 Unblock ${label}`;
+            btn.onclick     = function() { unblockUser(userId, type, this); };
+        } else {
+            btn.disabled    = false;
+            btn.className   = 'admin-block-btn';
+            btn.textContent = `🚫 Block ${label}`;
+            btn.onclick     = function() { blockUser(userId, type, this); };
+        }
+    });
 }

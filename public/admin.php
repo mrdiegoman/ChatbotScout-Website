@@ -538,11 +538,17 @@ require '../inc/header.php';
                                 <button class="admin-toggle-btn" onclick="toggleSection(this, 'review-notes-<?= $reviewId ?>')">
                                     📝 Notes
                                 </button>
-                                <button class="admin-block-btn <?= !empty($review['is_review_blocked']) ? 'admin-block-btn--blocked' : '' ?>"
-                                        <?= !empty($review['is_review_blocked']) ? 'disabled' : '' ?>
-                                        onclick="blockUser('<?= $review['user_id'] ?>', 'review', this)">
-                                    🚫 <?= !empty($review['is_review_blocked']) ? 'Blocked' : 'Block Reviews' ?>
-                                </button>
+                                <?php if (!empty($review['is_review_blocked'])): ?>
+                                    <button class="admin-block-btn admin-block-btn--blocked"
+                                            onclick="unblockUser('<?= $review['user_id'] ?>', 'review', this)">
+                                        🔓 Unblock Reviews
+                                    </button>
+                                <?php else: ?>
+                                    <button class="admin-block-btn"
+                                            onclick="blockUser('<?= $review['user_id'] ?>', 'review', this)">
+                                        🚫 Block Reviews
+                                    </button>
+                                <?php endif; ?>
                             </div>
                         </div>
 
@@ -705,11 +711,17 @@ require '../inc/header.php';
                                         onclick="toggleSection(this, 'sub-notes-<?= $subId ?>')">
                                     📝 Notes
                                 </button>
-                                <button class="admin-block-btn <?= !empty($sub['is_submission_blocked']) ? 'admin-block-btn--blocked' : '' ?>"
-                                        <?= !empty($sub['is_submission_blocked']) ? 'disabled' : '' ?>
-                                        onclick="blockUser('<?= $sub['owner_user_id'] ?? $sub['user_id'] ?? '' ?>', 'submission', this)">
-                                    🚫 <?= !empty($sub['is_submission_blocked']) ? 'Blocked' : 'Block Submissions' ?>
-                                </button>
+                                <?php if (!empty($sub['is_submission_blocked'])): ?>
+                                    <button class="admin-block-btn admin-block-btn--blocked"
+                                            onclick="unblockUser('<?= $sub['owner_user_id'] ?? '' ?>', 'submission', this)">
+                                        🔓 Unblock Submissions
+                                    </button>
+                                <?php else: ?>
+                                    <button class="admin-block-btn"
+                                            onclick="blockUser('<?= $sub['owner_user_id'] ?? '' ?>', 'submission', this)">
+                                        🚫 Block Submissions
+                                    </button>
+                                <?php endif; ?>
                             </div>
                         </div>
 
