@@ -117,10 +117,6 @@ try {
 
     // ── Send emails ───────────────────────────────────────────────────────────
     $emailService = new Email();
-    $appConfig    = require '../config/app.php';
-    $adminEmail   = $appConfig['admin']['email'] ?? 'admin@chatbothub.com';
-
-    $emailService = new Email();
  
     $settingsStmt = $db->query("
         SELECT `key`, `value` FROM settings

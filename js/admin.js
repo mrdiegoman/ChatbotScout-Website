@@ -708,8 +708,8 @@ async function reviewSubmission(id, clickedBtn) {
     // If chatbot is currently active → delist flow with popup
     if (currentStatus === 'active') {
         const chatbotName = card.querySelector('.admin-message-sender')?.textContent?.trim() || 'this chatbot';
-        const reason      = await showDelistPopup(chatbotName);
-        if (!reason) return; // Cancelled
+        const reason = await showDelistPopup(chatbotName);
+        if (reason === null) return; // null = cancelled, '' = no reason given (ok)
  
         clickedBtn.disabled = true;
  
@@ -855,7 +855,7 @@ async function removeSubmission(id, clickedBtn) {
     // If currently active → delist popup with required reason
     if (currentStatus === 'active') {
         const reason = await showDelistPopup(chatbotName);
-        if (!reason) return; // Cancelled
+        if (reason === null) return; // null = cancelled, '' = no reason given (ok)
  
         clickedBtn.disabled = true;
  
@@ -1025,8 +1025,7 @@ function showDelistPopup(chatbotName) {
                     <p>You are about to delist <strong>${escHtml(chatbotName)}</strong> from ChatbotHub.</p>
                     <p>The owner will receive a <strong>Chatbot Delisted</strong> email with your reason.</p>
                     <label style="display:block;margin-top:1rem;font-size:1.3rem;font-weight:600;color:#374151;">
-                        Reason <span style="color:#DC2626;">*</span>
-                        <span style="font-weight:400;color:#6B7280;">(will be sent to the user)</span>
+                        Reason <span style="font-weight:400;color:#6B7280;">(optional — will be sent to the user)</span>
                     </label>
                     <textarea
                         id="sub-delist-reason"
@@ -1036,9 +1035,6 @@ function showDelistPopup(chatbotName) {
                         rows="4"
                         maxlength="2000"
                     ></textarea>
-                    <p id="sub-delist-error" style="color:#DC2626;font-size:1.2rem;display:none;margin-top:0.25rem;">
-                        Please enter a reason before confirming.
-                    </p>
                 </div>
                 <div class="sub-popup-footer">
                     <button class="admin-cancel-btn" onclick="resolveDelistPopup(false)">Cancel</button>
@@ -1061,23 +1057,17 @@ function resolveDelistPopup(confirmed) {
     const popup = document.getElementById('sub-delist-popup');
     if (!popup) return;
  
-    if (confirmed) {
-        const reason = document.getElementById('sub-delist-reason')?.value?.trim();
-        if (!reason) {
-            document.getElementById('sub-delist-error').style.display = 'block';
-            return; // Keep popup open
-        }
-    }
- 
     const resolve = popup._resolve;
     popup.classList.remove('visible');
     setTimeout(() => popup.remove(), 200);
+ 
     if (resolve) {
         if (confirmed) {
+            // reason je teraz voliteľný — posielame aj prázdny string
             const reason = document.getElementById('sub-delist-reason')?.value?.trim() ?? '';
-            resolve(reason); // Resolves with the reason string
+            resolve(reason !== undefined ? reason : '');
         } else {
-            resolve(null); // Cancelled
+            resolve(null); // null = cancelled
         }
     }
 }

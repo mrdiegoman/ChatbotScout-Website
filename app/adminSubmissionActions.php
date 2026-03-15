@@ -206,11 +206,6 @@ switch ($action) {
         if ($chatbot['status'] === 'active') {
             $reason = trim($input['reason'] ?? '');
  
-            if (empty($reason)) {
-                echo json_encode(['success' => false, 'message' => 'Delist reason is required when moving an active chatbot to reviewed.']);
-                exit;
-            }
- 
             if (mb_strlen($reason) > 2000) {
                 echo json_encode(['success' => false, 'message' => 'Reason is too long (max 2000 characters).']);
                 exit;
@@ -340,11 +335,6 @@ switch ($action) {
  
         if ($wasActive) {
             $reason = trim($input['reason'] ?? '');
- 
-            if (empty($reason)) {
-                echo json_encode(['success' => false, 'message' => 'Delist reason is required when removing an active chatbot.']);
-                exit;
-            }
  
             if (mb_strlen($reason) > 2000) {
                 echo json_encode(['success' => false, 'message' => 'Reason is too long (max 2000 characters).']);

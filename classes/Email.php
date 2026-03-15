@@ -600,10 +600,20 @@ class Email
         return $this->baseTemplate($content);
     }
 
-    private function getChatbotDelistedTemplate(string $name, string $chatbotName, string $reason): string
+    private function getChatbotDelistedTemplate(string $name, string $chatbotName, string $reason = ''): string
     {
-        $reasonHtml = nl2br(htmlspecialchars($reason));
-        $content    = <<<HTML
+        $reasonBlock = '';
+        if (!empty(trim($reason))) {
+            $reasonHtml  = nl2br(htmlspecialchars($reason));
+            $reasonBlock = <<<HTML
+            <div class="info-box">
+                <div class="label">Reason</div>
+                <div class="value">$reasonHtml</div>
+            </div>
+            HTML;
+        }
+ 
+        $content = <<<HTML
         <div class="header">
             <h1>Chatbot Delisted</h1>
             <p>An update regarding your listing on ChatbotHub</p>
@@ -611,10 +621,7 @@ class Email
         <div class="body">
             <p>Hi <strong>$name</strong>,</p>
             <p>We're writing to let you know that <strong>$chatbotName</strong> has been delisted from ChatbotHub.</p>
-            <div class="info-box">
-                <div class="label">Reason</div>
-                <div class="value">$reasonHtml</div>
-            </div>
+            $reasonBlock
             <p>If you have any questions or would like to discuss this further, please don't hesitate to contact us.</p>
             <p>Best regards,<br><strong>The ChatbotHub Team</strong></p>
         </div>
