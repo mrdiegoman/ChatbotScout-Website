@@ -42,10 +42,12 @@ $fetchParams['off']   = $offset;
 $stmt = $db->prepare("
     SELECT
         c.id, c.name, c.website_url, c.logo_url,
+        c.owner_user_id,
         c.status, c.is_verified,
         c.submitted_at, c.approved_at, c.rejected_at, c.deleted_at, c.verified_at,
         c.access_note, c.admin_notes,
-        u.first_name, u.last_name, u.email AS user_email
+        u.first_name, u.last_name, u.email AS user_email,
+        u.is_submission_blocked
     FROM chatbots c
     LEFT JOIN users u ON c.owner_user_id = u.id
     $where
@@ -69,7 +71,8 @@ foreach ($rows as &$row) {
         ? date('d M Y, H:i', strtotime($row['deleted_at'])) : null;
     $row['verified_at_formatted']  = $row['verified_at']
         ? date('d M Y, H:i', strtotime($row['verified_at'])) : null;
-    $row['is_verified'] = (bool)$row['is_verified'];
+    $row['is_verified']            = (bool)$row['is_verified'];
+    $row['is_submission_blocked']  = (bool)$row['is_submission_blocked'];
 }
 unset($row);
 

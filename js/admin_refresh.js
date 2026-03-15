@@ -143,10 +143,18 @@ function buildReviewCard(review) {
     const moderatedBlock = review.moderated_at_formatted
         ? `<div class="admin-message-meta"><span>Moderated: ${escHtml(review.moderated_at_formatted)}</span></div>` : '';
  
-    const isReviewBlocked  = !!review.is_review_blocked;
-    const blockBtnClass    = isReviewBlocked ? ' admin-block-btn--blocked' : '';
-    const blockBtnDisabled = isReviewBlocked ? ' disabled' : '';
-    const blockBtnLabel    = isReviewBlocked ? '🚫 Blocked' : '🚫 Block Reviews';
+    const isBlocked = !!review.is_review_blocked;
+    const userId    = escHtml(review.user_id);
+ 
+    const blockBtn = isBlocked
+        ? `<button class="admin-block-btn admin-block-btn--blocked"
+                   onclick="unblockUser('${userId}', 'review', this)">
+               🔓 Unblock Reviews
+           </button>`
+        : `<button class="admin-block-btn"
+                   onclick="blockUser('${userId}', 'review', this)">
+               🚫 Block Reviews
+           </button>`;
  
     return `
     <div class="admin-message-card admin-review-card" data-id="${id}" data-status="${status}">
@@ -179,10 +187,7 @@ function buildReviewCard(review) {
             <div class="admin-status-actions">${statusBtns}</div>
             <div class="admin-toggle-actions">
                 <button class="admin-toggle-btn" onclick="toggleSection(this, 'review-notes-${id}')">📝 Notes</button>
-                <button class="admin-block-btn${blockBtnClass}"${blockBtnDisabled}
-                        onclick="blockUser('${escHtml(review.user_id)}', 'review', this)">
-                    ${blockBtnLabel}
-                </button>
+                ${blockBtn}
             </div>
         </div>
  
@@ -208,11 +213,11 @@ function buildSubmissionCard(sub) {
     const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
  
     const logoHtml = sub.logo_url
-        ? `<img src="${escHtml(sub.logo_url)}" alt="${escHtml(sub.name)}" class="admin-submission-logo">`
-        : `<span class="admin-submission-logo admin-submission-logo--placeholder">🤖</span>`;
+        ? `<img src="../${escHtml(sub.logo_url)}" alt="logo" class="admin-submission-logo">`
+        : `<div class="admin-submission-logo admin-submission-logo--placeholder">🤖</div>`;
  
     const accessNoteBlock = sub.access_note
-        ? `<div class="admin-existing-response"><strong>Access note:</strong><p>${nlToBr(sub.access_note)}</p></div>` : '';
+        ? `<div class="admin-message-body"><strong>Access note:</strong><br>${nlToBr(sub.access_note)}</div>` : '';
     const adminNotesBlock = sub.admin_notes
         ? `<div class="admin-existing-response"><strong>Admin notes:</strong><p>${nlToBr(sub.admin_notes)}</p></div>` : '';
  
@@ -238,11 +243,18 @@ function buildSubmissionCard(sub) {
             🗑 Remove
         </button>`;
  
-    const isSubBlocked     = !!sub.is_submission_blocked;
-    const blockBtnClass    = isSubBlocked ? ' admin-block-btn--blocked' : '';
-    const blockBtnDisabled = isSubBlocked ? ' disabled' : '';
-    const blockBtnLabel    = isSubBlocked ? '🚫 Blocked' : '🚫 Block Submissions';
-    const ownerId          = escHtml(sub.owner_user_id || '');
+    const isBlocked = !!sub.is_submission_blocked;
+    const ownerId   = escHtml(sub.owner_user_id || '');
+ 
+    const blockBtn = isBlocked
+        ? `<button class="admin-block-btn admin-block-btn--blocked"
+                   onclick="unblockUser('${ownerId}', 'submission', this)">
+               🔓 Unblock Submissions
+           </button>`
+        : `<button class="admin-block-btn"
+                   onclick="blockUser('${ownerId}', 'submission', this)">
+               🚫 Block Submissions
+           </button>`;
  
     return `
     <div class="admin-message-card admin-submission-card" data-id="${id}" data-status="${status}">
@@ -274,10 +286,7 @@ function buildSubmissionCard(sub) {
             <div class="admin-status-actions">${actionButtons}</div>
             <div class="admin-toggle-actions">
                 <button class="admin-toggle-btn" onclick="toggleSection(this, 'sub-notes-${id}')">📝 Notes</button>
-                <button class="admin-block-btn${blockBtnClass}"${blockBtnDisabled}
-                        onclick="blockUser('${ownerId}', 'submission', this)">
-                    ${blockBtnLabel}
-                </button>
+                ${blockBtn}
             </div>
         </div>
  
@@ -901,9 +910,14 @@ async function blockUser(userId, type, btn) {
     if (!userId) return;
  
     const label = type === 'review' ? 'reviews' : 'submissions';
-    if (!confirm(`Block this user from submitting ${label}? All their pending ${label} will be set to removed.`)) return;
  
-    btn.disabled = true;
+    const confirmed = await showBlockConfirmPopup(
+        `Block user from ${label}?`,
+        `All their pending ${label} will be set to <strong>removed</strong>. This can be undone later.`
+    );
+    if (!confirmed) return;
+ 
+    btn.disabled    = true;
     btn.textContent = '⏳ Blocking...';
  
     try {
@@ -915,19 +929,105 @@ async function blockUser(userId, type, btn) {
         const data = await res.json();
  
         if (data.success) {
-            btn.textContent = '🚫 Blocked';
-            btn.classList.add('admin-block-btn--blocked');
-            btn.disabled = true;
+            btn.className   = 'admin-block-btn admin-block-btn--blocked';
+            btn.textContent = '🔓 Unblock ' + (type === 'review' ? 'Reviews' : 'Submissions');
+            btn.onclick     = function() { unblockUser(userId, type, this); };
             showNotification(`User blocked from ${label}`, 'success');
         } else {
-            btn.disabled = false;
-            btn.textContent = `🚫 Block ${label.charAt(0).toUpperCase() + label.slice(1)}`;
+            btn.disabled    = false;
+            btn.textContent = '🚫 Block ' + (type === 'review' ? 'Reviews' : 'Submissions');
             showNotification(data.message || 'Block failed', 'error');
         }
     } catch (err) {
         console.error(err);
-        btn.disabled = false;
-        btn.textContent = `🚫 Block ${label.charAt(0).toUpperCase() + label.slice(1)}`;
+        btn.disabled    = false;
+        btn.textContent = '🚫 Block ' + (type === 'review' ? 'Reviews' : 'Submissions');
         showNotification('Block failed', 'error');
     }
+}
+
+// ============================================
+// UNBLOCK USER 
+// ============================================
+ 
+async function unblockUser(userId, type, btn) {
+    if (!userId) return;
+ 
+    const label = type === 'review' ? 'reviews' : 'submissions';
+ 
+    const confirmed = await showBlockConfirmPopup(
+        `Unblock user from ${label}?`,
+        `The user will be able to submit ${label} again.`
+    );
+    if (!confirmed) return;
+ 
+    btn.disabled    = true;
+    btn.textContent = '⏳ Unblocking...';
+ 
+    try {
+        const res  = await fetch('../api/blockUser.php', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId, type, unblock: true }),
+        });
+        const data = await res.json();
+ 
+        if (data.success) {
+            btn.className   = 'admin-block-btn';
+            btn.textContent = '🚫 Block ' + (type === 'review' ? 'Reviews' : 'Submissions');
+            btn.onclick     = function() { blockUser(userId, type, this); };
+            showNotification(`User unblocked from ${label}`, 'success');
+        } else {
+            btn.disabled    = false;
+            btn.textContent = '🔓 Unblock ' + (type === 'review' ? 'Reviews' : 'Submissions');
+            showNotification(data.message || 'Unblock failed', 'error');
+        }
+    } catch (err) {
+        console.error(err);
+        btn.disabled    = false;
+        btn.textContent = '🔓 Unblock ' + (type === 'review' ? 'Reviews' : 'Submissions');
+        showNotification('Unblock failed', 'error');
+    }
+}
+
+// ============================================
+// BLOCK CONFIRM POPUP 
+// Rovnaký štýl ako showChangeOfMindPopup
+// ============================================
+ 
+function showBlockConfirmPopup(title, message) {
+    return new Promise((resolve) => {
+        document.getElementById('sub-block-popup')?.remove();
+ 
+        const popup = document.createElement('div');
+        popup.id        = 'sub-block-popup';
+        popup.className = 'sub-popup-overlay';
+        popup.innerHTML = `
+            <div class="sub-popup-box sub-popup-box--warning">
+                <div class="sub-popup-header">
+                    <h3>${title}</h3>
+                    <button class="sub-popup-close" onclick="resolveBlockPopup(false)">✕</button>
+                </div>
+                <div class="sub-popup-body">
+                    <p>${message}</p>
+                </div>
+                <div class="sub-popup-footer">
+                    <button class="admin-cancel-btn" onclick="resolveBlockPopup(false)">Cancel</button>
+                    <button class="admin-confirm-change-btn" onclick="resolveBlockPopup(true)">Confirm</button>
+                </div>
+            </div>`;
+ 
+        popup._resolve = resolve;
+        document.body.appendChild(popup);
+        requestAnimationFrame(() => popup.classList.add('visible'));
+    });
+}
+ 
+function resolveBlockPopup(confirmed) {
+    const popup = document.getElementById('sub-block-popup');
+    if (!popup) return;
+    const resolve = popup._resolve;
+    popup.classList.remove('visible');
+    setTimeout(() => popup.remove(), 200);
+    if (resolve) resolve(confirmed);
 }

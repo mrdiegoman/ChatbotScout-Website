@@ -758,3 +758,48 @@
     color: #6b7280;
     pointer-events: none;
 }
+
+/* ============================================
+   Block / Unblock button — admin panel
+   Pridaj na koniec css/admin.css alebo css/admin_refresh.css
+   ============================================ */
+
+.admin-block-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 1.1rem;
+    border-radius: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+    border: 1.5px solid #fca5a5;
+    background: #fff5f5;
+    color: #dc2626;
+}
+
+.admin-block-btn:hover:not(:disabled) {
+    background: #fee2e2;
+    border-color: #ef4444;
+}
+
+/* Stav: už zablokovaný → Unblock tlačidlo (klikateľné!) */
+.admin-block-btn--blocked {
+    border-color: #d1d5db;
+    background: #f3f4f6;
+    color: #374151;
+    cursor: pointer;
+}
+
+.admin-block-btn--blocked:hover {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+}
+
+/* Disabled stav (počas načítavania) */
+.admin-block-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}

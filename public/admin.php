@@ -96,7 +96,7 @@ $reviewParams = $filterReviewStatus !== 'all' ? ['status' => $filterReviewStatus
         SELECT
             r.id, r.rating, r.title, r.review_text,
             r.status, r.moderation_notes,
-            r.created_at, r.moderated_at,
+            r.created_at, r.moderated_at, r.user_id,
             u.first_name, u.last_name, u.email, u.is_review_blocked,
             c.name AS chatbot_name
         FROM reviews r
@@ -154,7 +154,7 @@ $subStmt = $db->prepare("
         c.id, c.name, c.website_url, c.logo_url,
         c.status, c.is_verified,
         c.submitted_at, c.approved_at, c.rejected_at, c.deleted_at, c.verified_at,
-        c.access_note, c.admin_notes,
+        c.access_note, c.admin_notes, c.owner_user_id,
         u.first_name, u.last_name, u.email AS user_email,
         u.is_submission_blocked
     FROM chatbots c

@@ -150,8 +150,8 @@ if ($type === 'reviews') {
         SELECT
             r.id, r.rating, r.title, r.review_text,
             r.status, r.moderation_notes,
-            r.created_at, r.moderated_at,
-            u.first_name, u.last_name, u.email,
+            r.created_at, r.moderated_at, r.user_id,
+            u.first_name, u.last_name, u.email, u.is_review_blocked,
             c.name AS chatbot_name
         FROM reviews r
         JOIN users u    ON r.user_id    = u.id
