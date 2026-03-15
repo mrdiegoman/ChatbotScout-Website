@@ -202,6 +202,58 @@ switch ($action) {
 
     // ── REVIEW → status=reviewed, is_verified=1, approved_at ─────────────────
     case 'review':
+        // Block: if currently active, require a delist reason
+        if ($chatbot['status'] === 'active') {
+            $reason = trim($input['reason'] ?? '');
+ 
+            if (empty($reason)) {
+                echo json_encode(['success' => false, 'message' => 'Delist reason is required when moving an active chatbot to reviewed.']);
+                exit;
+            }
+ 
+            if (mb_strlen($reason) > 2000) {
+                echo json_encode(['success' => false, 'message' => 'Reason is too long (max 2000 characters).']);
+                exit;
+            }
+ 
+            $db->prepare("
+                UPDATE chatbots SET
+                    status      = 'reviewed',
+                    is_verified = 0,
+                    approved_at = NULL,
+                    verified_at = NULL,
+                    rejected_at = NULL,
+                    deleted_at  = NULL
+                WHERE id = :id
+            ")->execute(['id' => $id]);
+ 
+            AuditLog::log('chatbot', $id, 'updated',
+                ['status' => $chatbot['status'], 'is_verified' => (bool)$chatbot['is_verified']],
+                ['status' => 'reviewed', 'is_verified' => false, 'delist_reason' => $reason]
+            );
+ 
+            $userName = trim($chatbot['first_name'] . ' ' . $chatbot['last_name']) ?: 'there';
+            try {
+                $email = new Email();
+                $email->sendChatbotDelisted(
+                    $chatbot['user_email'],
+                    $userName,
+                    $chatbot['name'],
+                    $reason
+                );
+            } catch (Exception $e) {
+                error_log('Delist email error (review): ' . $e->getMessage());
+            }
+ 
+            echo json_encode([
+                'success'      => true,
+                'message'      => 'Chatbot delisted and moved to reviewed.',
+                'pendingCount' => getPendingCount($db),
+            ]);
+            break;
+        }
+ 
+        // Normal flow (not active)
         $db->prepare("
             UPDATE chatbots SET
                 status      = 'reviewed',
@@ -212,12 +264,12 @@ switch ($action) {
                 deleted_at  = NULL
             WHERE id = :id
         ")->execute(['id' => $id]);
-
+ 
         AuditLog::log('chatbot', $id, 'approved',
             ['status' => $chatbot['status'], 'is_verified' => (bool)$chatbot['is_verified']],
             ['status' => 'reviewed', 'is_verified' => true]
         );
-
+ 
         echo json_encode([
             'success'      => true,
             'message'      => 'Chatbot marked as reviewed.',
@@ -227,18 +279,24 @@ switch ($action) {
 
     // ── REJECT → is_verified=0, rejected_at, clears approved/deleted/verified ──
     case 'reject':
+        // Block: cannot reject an active chatbot directly
+        if ($chatbot['status'] === 'active') {
+            echo json_encode(['success' => false, 'message' => 'Cannot reject an active chatbot. Use "Reviewed" or "Remove" to delist it first.']);
+            exit;
+        }
+ 
         $reason = trim($input['reason'] ?? '');
-
+ 
         if (empty($reason)) {
             echo json_encode(['success' => false, 'message' => 'Rejection reason is required.']);
             exit;
         }
-
+ 
         if (mb_strlen($reason) > 2000) {
             echo json_encode(['success' => false, 'message' => 'Reason is too long (max 2000 characters).']);
             exit;
         }
-
+ 
         $db->prepare("
             UPDATE chatbots SET
                 status      = 'rejected',
@@ -250,12 +308,12 @@ switch ($action) {
                 rejection_reason = :reason
             WHERE id = :id
         ")->execute(['id' => $id, 'reason' => $reason]);
-
+ 
         AuditLog::log('chatbot', $id, 'rejected',
             ['status' => $chatbot['status'], 'is_verified' => (bool)$chatbot['is_verified']],
             ['status' => 'rejected', 'is_verified' => false, 'rejection_reason' => $reason]
         );
-
+ 
         $userName = trim($chatbot['first_name'] . ' ' . $chatbot['last_name']) ?: 'there';
         try {
             $email = new Email();
@@ -268,7 +326,7 @@ switch ($action) {
         } catch (Exception $e) {
             error_log('Reject email error: ' . $e->getMessage());
         }
-
+ 
         echo json_encode([
             'success'      => true,
             'message'      => 'Chatbot rejected.',
@@ -278,6 +336,22 @@ switch ($action) {
 
     // ── REMOVE → status=removed, is_verified=0, deleted_at, clears others ─────
     case 'remove':
+        $wasActive = $chatbot['status'] === 'active';
+ 
+        if ($wasActive) {
+            $reason = trim($input['reason'] ?? '');
+ 
+            if (empty($reason)) {
+                echo json_encode(['success' => false, 'message' => 'Delist reason is required when removing an active chatbot.']);
+                exit;
+            }
+ 
+            if (mb_strlen($reason) > 2000) {
+                echo json_encode(['success' => false, 'message' => 'Reason is too long (max 2000 characters).']);
+                exit;
+            }
+        }
+ 
         $db->prepare("
             UPDATE chatbots SET
                 status      = 'removed',
@@ -288,15 +362,30 @@ switch ($action) {
                 rejected_at = NULL
             WHERE id = :id
         ")->execute(['id' => $id]);
-
+ 
         AuditLog::log('chatbot', $id, 'deleted',
             ['status' => $chatbot['status'], 'is_verified' => (bool)$chatbot['is_verified']],
             ['status' => 'removed', 'is_verified' => false]
         );
-
+ 
+        if ($wasActive) {
+            $userName = trim($chatbot['first_name'] . ' ' . $chatbot['last_name']) ?: 'there';
+            try {
+                $email = new Email();
+                $email->sendChatbotDelisted(
+                    $chatbot['user_email'],
+                    $userName,
+                    $chatbot['name'],
+                    $reason
+                );
+            } catch (Exception $e) {
+                error_log('Delist email error (remove): ' . $e->getMessage());
+            }
+        }
+ 
         echo json_encode([
             'success'      => true,
-            'message'      => 'Chatbot removed.',
+            'message'      => 'Chatbot removed.' . ($wasActive ? ' Delist email sent.' : ''),
             'pendingCount' => getPendingCount($db),
         ]);
         break;

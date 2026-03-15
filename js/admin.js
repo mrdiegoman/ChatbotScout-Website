@@ -678,35 +678,75 @@ async function confirmAccept(id, btn) {
 async function reviewSubmission(id, clickedBtn) {
     const card          = document.querySelector(`#submissions-tab .admin-message-card[data-id="${id}"]`);
     const currentStatus = card ? card.dataset.status : '';
-
-    // "Change of mind" check for final states
-    if (['active', 'rejected', 'removed'].includes(currentStatus)) {
-        const chatbotName   = card.querySelector('.admin-message-sender')?.textContent?.trim() || 'this chatbot';
-        // const clearedFields = currentStatus === 'active'   ? 'approved_at, verified_at, last_verified_at'
-        //                     : currentStatus === 'rejected' ? 'rejected_at'
-        //                     : 'deleted_at';
-        const confirmed = await showChangeOfMindPopup(chatbotName);
-        if (!confirmed) return;
+    const newStatus     = currentStatus === 'reviewed' ? 'pending' : 'reviewed';
+ 
+    // If chatbot is currently active → delist flow with popup
+    if (currentStatus === 'active') {
+        const chatbotName = card.querySelector('.admin-message-sender')?.textContent?.trim() || 'this chatbot';
+        const reason      = await showDelistPopup(chatbotName);
+        if (!reason) return; // Cancelled
+ 
+        clickedBtn.disabled = true;
+ 
+        try {
+            const res    = await fetch('../app/adminSubmissionActions.php', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ action: 'review', id, reason }),
+            });
+            const result = await res.json();
+ 
+            if (result.success) {
+                updateCardStatus(id, 'reviewed');
+                showNotification('Chatbot delisted and marked as reviewed. Email sent.', 'success');
+                if (result.pendingCount !== undefined) {
+                    updateMainTabBadge('submissions', result.pendingCount);
+                }
+            } else {
+                showNotification(result.message || 'Failed to delist chatbot.', 'error');
+            }
+        } catch (err) {
+            showNotification('Something went wrong.', 'error');
+        } finally {
+            clickedBtn.disabled = false;
+        }
+        return;
     }
-
+ 
+    // Normal flow (not active)
     clickedBtn.disabled = true;
-
+ 
     try {
         const res    = await fetch('../app/adminSubmissionActions.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ action: 'review', id }),
+            body:    JSON.stringify({ action: 'review', id, status: newStatus }),
         });
         const result = await res.json();
-
+ 
         if (result.success) {
-            updateCardStatus(id, 'reviewed');
-            showNotification('Marked as reviewed.', 'success');
+            clickedBtn.classList.toggle('active', newStatus === 'reviewed');
+ 
+            card.querySelectorAll('.submission-action-btn').forEach(b => {
+                if (b !== clickedBtn) b.classList.remove('active');
+            });
+ 
+            const badge = card.querySelector('.admin-status-badge');
+            if (badge) {
+                badge.className   = `admin-status-badge submission-status-${newStatus}`;
+                badge.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+            }
+ 
+            showNotification(
+                newStatus === 'reviewed' ? 'Marked as reviewed' : 'Moved back to pending',
+                'success'
+            );
+ 
             if (result.pendingCount !== undefined) {
                 updateMainTabBadge('submissions', result.pendingCount);
             }
         } else {
-            showNotification(result.message || 'Failed to update status.', 'error');
+            showNotification(result.message || 'Failed to update status', 'error');
         }
     } catch (err) {
         showNotification('Something went wrong.', 'error');
@@ -722,27 +762,35 @@ async function reviewSubmission(id, clickedBtn) {
 async function rejectSubmission(id, btn) {
     const card          = document.querySelector(`#submissions-tab .admin-message-card[data-id="${id}"]`);
     const currentStatus = card ? card.dataset.status : '';
-
+ 
+    // Block: cannot reject an active chatbot
+    if (currentStatus === 'active') {
+        showNotification('Cannot reject an active chatbot. Use "Reviewed" or "Remove" to delist it first.', 'error');
+        // Close the reject section
+        const section = document.getElementById(`sub-reject-${id}`);
+        if (section) section.style.display = 'none';
+        return;
+    }
+ 
     // "Change of mind" check for final states
-    if (['active', 'removed'].includes(currentStatus)) {
-        const chatbotName   = card.querySelector('.admin-message-sender')?.textContent?.trim() || 'this chatbot';
-        // const clearedFields = currentStatus === 'active' ? 'approved_at, verified_at, last_verified_at' : 'deleted_at';
-        const confirmed = await showChangeOfMindPopup(chatbotName);
+    if (['removed'].includes(currentStatus)) {
+        const chatbotName = card?.querySelector('.admin-message-sender')?.textContent?.trim() || 'this chatbot';
+        const confirmed   = await showChangeOfMindPopup(chatbotName);
         if (!confirmed) return;
     }
-
+ 
     const section  = document.getElementById(`sub-reject-${id}`);
     const textarea = section.querySelector('textarea');
     const reason   = textarea.value.trim();
-
+ 
     if (!reason) {
         showNotification('Please enter a rejection reason.', 'error');
         return;
     }
-
+ 
     btn.disabled    = true;
     btn.textContent = 'Sending...';
-
+ 
     try {
         const res    = await fetch('../app/adminSubmissionActions.php', {
             method:  'POST',
@@ -750,7 +798,7 @@ async function rejectSubmission(id, btn) {
             body:    JSON.stringify({ action: 'reject', id, reason }),
         });
         const result = await res.json();
-
+ 
         if (result.success) {
             updateCardStatus(id, 'rejected');
             section.style.display = 'none';
@@ -778,21 +826,50 @@ async function removeSubmission(id, clickedBtn) {
     const card          = document.querySelector(`#submissions-tab .admin-message-card[data-id="${id}"]`);
     const currentStatus = card ? card.dataset.status : '';
     const chatbotName   = card?.querySelector('.admin-message-sender')?.textContent?.trim() || 'this chatbot';
-
-    // "Change of mind" check for final states
+ 
+    // If currently active → delist popup with required reason
+    if (currentStatus === 'active') {
+        const reason = await showDelistPopup(chatbotName);
+        if (!reason) return; // Cancelled
+ 
+        clickedBtn.disabled = true;
+ 
+        try {
+            const res    = await fetch('../app/adminSubmissionActions.php', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ action: 'remove', id, reason }),
+            });
+            const result = await res.json();
+ 
+            if (result.success) {
+                updateCardStatus(id, 'removed');
+                showNotification('Chatbot removed and delisted. Email sent.', 'success');
+                if (result.pendingCount !== undefined) {
+                    updateMainTabBadge('submissions', result.pendingCount);
+                }
+            } else {
+                showNotification(result.message || 'Failed to remove chatbot.', 'error');
+            }
+        } catch (err) {
+            showNotification('Something went wrong.', 'error');
+        } finally {
+            clickedBtn.disabled = false;
+        }
+        return;
+    }
+ 
+    // For non-active states → standard "change of mind" confirm popup
     if (['active', 'rejected'].includes(currentStatus)) {
-        // const clearedFields = currentStatus === 'active'   ? 'approved_at, verified_at, last_verified_at'
-        //                     : 'rejected_at';
         const confirmed = await showChangeOfMindPopup(chatbotName);
         if (!confirmed) return;
     } else {
-        // For pending/reviewed → still confirm remove (it's destructive)
         const confirmed = await showChangeOfMindPopup(chatbotName, true);
         if (!confirmed) return;
     }
-
+ 
     clickedBtn.disabled = true;
-
+ 
     try {
         const res    = await fetch('../app/adminSubmissionActions.php', {
             method:  'POST',
@@ -800,7 +877,7 @@ async function removeSubmission(id, clickedBtn) {
             body:    JSON.stringify({ action: 'remove', id }),
         });
         const result = await res.json();
-
+ 
         if (result.success) {
             updateCardStatus(id, 'removed');
             showNotification('Chatbot removed.', 'success');
@@ -900,6 +977,84 @@ function resolveChangePopup(confirmed) {
     popup.classList.remove('visible');
     setTimeout(() => popup.remove(), 200);
     if (resolve) resolve(confirmed);
+}
+
+// ============================================
+// HELPER: delist 
+// ============================================
+
+function showDelistPopup(chatbotName) {
+    return new Promise((resolve) => {
+        document.getElementById('sub-delist-popup')?.remove();
+ 
+        const popup = document.createElement('div');
+        popup.id        = 'sub-delist-popup';
+        popup.className = 'sub-popup-overlay';
+        popup.innerHTML = `
+            <div class="sub-popup-box sub-popup-box--warning">
+                <div class="sub-popup-header">
+                    <h3>Delist Chatbot</h3>
+                    <button class="sub-popup-close" onclick="resolveDelistPopup(false)">✕</button>
+                </div>
+                <div class="sub-popup-body">
+                    <p>You are about to delist <strong>${escHtml(chatbotName)}</strong> from ChatbotHub.</p>
+                    <p>The owner will receive a <strong>Chatbot Delisted</strong> email with your reason.</p>
+                    <label style="display:block;margin-top:1rem;font-size:1.3rem;font-weight:600;color:#374151;">
+                        Reason <span style="color:#DC2626;">*</span>
+                        <span style="font-weight:400;color:#6B7280;">(will be sent to the user)</span>
+                    </label>
+                    <textarea
+                        id="sub-delist-reason"
+                        class="admin-textarea"
+                        placeholder="e.g. The chatbot is no longer publicly accessible..."
+                        style="margin-top:0.5rem;"
+                        rows="4"
+                        maxlength="2000"
+                    ></textarea>
+                    <p id="sub-delist-error" style="color:#DC2626;font-size:1.2rem;display:none;margin-top:0.25rem;">
+                        Please enter a reason before confirming.
+                    </p>
+                </div>
+                <div class="sub-popup-footer">
+                    <button class="admin-cancel-btn" onclick="resolveDelistPopup(false)">Cancel</button>
+                    <button class="admin-confirm-change-btn" onclick="resolveDelistPopup(true)">
+                        Confirm &amp; Send Email
+                    </button>
+                </div>
+            </div>`;
+ 
+        popup._resolve = resolve;
+        document.body.appendChild(popup);
+        requestAnimationFrame(() => popup.classList.add('visible'));
+ 
+        // Focus textarea
+        setTimeout(() => document.getElementById('sub-delist-reason')?.focus(), 150);
+    });
+}
+ 
+function resolveDelistPopup(confirmed) {
+    const popup = document.getElementById('sub-delist-popup');
+    if (!popup) return;
+ 
+    if (confirmed) {
+        const reason = document.getElementById('sub-delist-reason')?.value?.trim();
+        if (!reason) {
+            document.getElementById('sub-delist-error').style.display = 'block';
+            return; // Keep popup open
+        }
+    }
+ 
+    const resolve = popup._resolve;
+    popup.classList.remove('visible');
+    setTimeout(() => popup.remove(), 200);
+    if (resolve) {
+        if (confirmed) {
+            const reason = document.getElementById('sub-delist-reason')?.value?.trim() ?? '';
+            resolve(reason); // Resolves with the reason string
+        } else {
+            resolve(null); // Cancelled
+        }
+    }
 }
 
 // ============================================

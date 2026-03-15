@@ -18,6 +18,19 @@ class Email
     // PUBLIC SEND METHODS
     // ============================================
 
+    public function sendChatbotDelisted(
+        string $toEmail,
+        string $toName,
+        string $chatbotName,
+        string $reason
+    ): bool {
+        $subject  = 'Chatbot Delisted - ChatbotHub';
+        $htmlBody = $this->getChatbotDelistedTemplate($toName, $chatbotName, $reason);
+        $textBody = "Hi $toName,\n\nYour chatbot \"$chatbotName\" has been delisted from ChatbotHub.\n\nReason: $reason\n\nIf you have any questions, please don't hesitate to contact us.\n\nBest regards,\nThe ChatbotHub Team";
+ 
+        return $this->send($toEmail, $toName, $subject, $htmlBody, $textBody);
+    }
+
     public function sendVerification(string $toEmail, string $toName, string $verificationToken): bool
     {
         $verificationLink = $this->config['base_url'] . '/verifyEmail.php?token=' . $verificationToken;
@@ -418,7 +431,7 @@ class Email
             <div>
                 <strong>What happens next?</strong><br><br>
                 Our team will review your chatbot and reach out to discuss the affiliate partnership terms - revenue share tailored to your product.<br><br>
-                Once we agree on terms, your chatbot will be listed and start receiving high-intent traffic from ChatbotHub.
+                Once we agree on terms, your chatbot will be listed on ChatbotHub.
             </div>
             <p>Best regards,<br><strong>The ChatbotHub Team</strong></p>
         </div>
@@ -472,9 +485,9 @@ class Email
         <div class="body">
             <p>Hi <strong>$name</strong>,</p>
             <div class="success-box">
-                <strong>✅ $chatbotName</strong> has been approved for listing on ChatbotHub.
+                <strong>$chatbotName</strong> has been approved for listing on ChatbotHub.
             </div>
-            <p>Our team will be in touch soon to finalise the affiliate partnership details.</p>
+            <p>Your chatbot is now live on ChatbotHub. We're excited to have you on board.</p>
             <p>Best regards,<br><strong>The ChatbotHub Team</strong></p>
         </div>
         HTML;
@@ -497,6 +510,28 @@ class Email
                 <strong>Reason:</strong><br><br>$reasonHtml
             </div>
             <p>If you have any questions, please don't hesitate to contact us.</p>
+            <p>Best regards,<br><strong>The ChatbotHub Team</strong></p>
+        </div>
+        HTML;
+        return $this->baseTemplate($content);
+    }
+
+    private function getChatbotDelistedTemplate(string $name, string $chatbotName, string $reason): string
+    {
+        $reasonHtml = nl2br(htmlspecialchars($reason));
+        $content    = <<<HTML
+        <div class="header">
+            <h1>Chatbot Delisted</h1>
+            <p>An update regarding your listing on ChatbotHub</p>
+        </div>
+        <div class="body">
+            <p>Hi <strong>$name</strong>,</p>
+            <p>We're writing to let you know that <strong>$chatbotName</strong> has been delisted from ChatbotHub.</p>
+            <div class="info-box">
+                <div class="label">Reason</div>
+                <div class="value">$reasonHtml</div>
+            </div>
+            <p>If you have any questions or would like to discuss this further, please don't hesitate to contact us.</p>
             <p>Best regards,<br><strong>The ChatbotHub Team</strong></p>
         </div>
         HTML;
