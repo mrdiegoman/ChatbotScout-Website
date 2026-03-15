@@ -138,8 +138,20 @@ try {
         $chatbotRow  = $chatbotStmt->fetch();
         $chatbotName = $chatbotRow['name'] ?? 'Unknown chatbot';
  
-        $appConfig  = require __DIR__ . '/../config/app.php';
-        $adminEmail = $appConfig['admin']['email'] ?? 'admin@chatbothub.com';
+        $settingsStmt = $db->query("
+            SELECT `key`, `value` FROM settings
+            WHERE `key` IN ('noreply_email', 'reply_from_name', 'admin_notification_email')
+        ");
+        $settingsRows = $settingsStmt->fetchAll(PDO::FETCH_KEY_PAIR);
+ 
+        $noreplyEmail = $settingsRows['noreply_email']            ?? '';
+        $fromName     = $settingsRows['reply_from_name']          ?? '';
+        $adminEmail   = $settingsRows['admin_notification_email'] ?? '';
+ 
+        if (empty($adminEmail)) {
+            $appConfig  = require __DIR__ . '/../config/app.php';
+            $adminEmail = $appConfig['admin']['email'] ?? 'admin@chatbothub.com';
+        }
  
         $emailService = new Email();
         $emailService->sendReviewAdminNotification(
@@ -150,7 +162,9 @@ try {
             $rating,
             $title,
             $reviewText,
-            $reviewId
+            $reviewId,
+            $noreplyEmail,
+            $fromName
         );
     } catch (Exception $emailEx) {
         // Email failure nesmie zrušiť úspešný submit

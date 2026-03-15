@@ -120,6 +120,23 @@ try {
     $appConfig    = require '../config/app.php';
     $adminEmail   = $appConfig['admin']['email'] ?? 'admin@chatbothub.com';
 
+    $emailService = new Email();
+ 
+    $settingsStmt = $db->query("
+        SELECT `key`, `value` FROM settings
+        WHERE `key` IN ('noreply_email', 'reply_from_name', 'admin_notification_email')
+    ");
+    $settingsRows = $settingsStmt->fetchAll(PDO::FETCH_KEY_PAIR);
+ 
+    $noreplyEmail = $settingsRows['noreply_email']            ?? '';
+    $fromName     = $settingsRows['reply_from_name']          ?? '';
+    $adminEmail   = $settingsRows['admin_notification_email'] ?? '';
+ 
+    if (empty($adminEmail)) {
+        $appConfig  = require '../config/app.php';
+        $adminEmail = $appConfig['admin']['email'] ?? 'admin@chatbothub.com';
+    }
+ 
     // 1. Confirmation to user
     $emailService->sendChatbotSubmissionConfirmation(
         $contactEmail,
@@ -127,7 +144,7 @@ try {
         $chatbotName,
         $websiteUrl
     );
-
+ 
     // 2. Notification to admin
     $emailService->sendChatbotSubmissionAdminNotification(
         $adminEmail,
@@ -137,7 +154,9 @@ try {
         $websiteUrl,
         $message,
         $chatbotId,
-        $companyName
+        $companyName,
+        $noreplyEmail,
+        $fromName
     );
 
     echo json_encode([

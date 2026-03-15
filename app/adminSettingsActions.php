@@ -4,8 +4,8 @@
  *
  * AJAX endpoint pre globálne nastavenia admina.
  * Akcie:
- *  - get  → vráti všetky settings
- *  - save → uloží reply_from_email + reply_from_name
+ *  - GET  → vráti všetky settings
+ *  - POST → uloží reply_from_email + reply_from_name + noreply_email + noreply_name + admin_notification_email
  */
 
 error_reporting(E_ALL);
@@ -57,27 +57,63 @@ if ($method === 'GET') {
 if ($method === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true) ?? [];
 
-    $replyEmail = trim($data['reply_from_email'] ?? '');
-    $replyName  = trim($data['reply_from_name']  ?? '');
+    $replyEmail   = trim($data['reply_from_email']         ?? '');
+    $replyName    = trim($data['reply_from_name']          ?? '');
+    $noreplyEmail = trim($data['noreply_email']            ?? '');
+    $noreplyName  = trim($data['noreply_name']             ?? '');
+    $adminEmail   = trim($data['admin_notification_email'] ?? '');
 
-    // Validácia
+    // ── Validácia reply_from_email ──
     if (empty($replyEmail)) {
         echo json_encode(['success' => false, 'message' => 'Reply-from email cannot be empty']);
         exit;
     }
-
     if (!filter_var($replyEmail, FILTER_VALIDATE_EMAIL)) {
-        echo json_encode(['success' => false, 'message' => 'Invalid email address']);
+        echo json_encode(['success' => false, 'message' => 'Reply-from email is invalid']);
         exit;
     }
-
     if (mb_strlen($replyEmail) > 254) {
-        echo json_encode(['success' => false, 'message' => 'Email address is too long']);
+        echo json_encode(['success' => false, 'message' => 'Reply-from email is too long']);
         exit;
     }
 
+    // ── Validácia reply_from_name ──
     if (mb_strlen($replyName) > 100) {
-        echo json_encode(['success' => false, 'message' => 'Name is too long (max 100 characters)']);
+        echo json_encode(['success' => false, 'message' => 'Reply-from name is too long (max 100 characters)']);
+        exit;
+    }
+
+    // ── Validácia noreply_email ──
+    if (empty($noreplyEmail)) {
+        echo json_encode(['success' => false, 'message' => 'No-reply email cannot be empty']);
+        exit;
+    }
+    if (!filter_var($noreplyEmail, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode(['success' => false, 'message' => 'No-reply email is invalid']);
+        exit;
+    }
+    if (mb_strlen($noreplyEmail) > 254) {
+        echo json_encode(['success' => false, 'message' => 'No-reply email is too long']);
+        exit;
+    }
+
+    // ── Validácia noreply_name ──
+    if (mb_strlen($noreplyName) > 100) {
+        echo json_encode(['success' => false, 'message' => 'No-reply name is too long (max 100 characters)']);
+        exit;
+    }
+
+    // ── Validácia admin_notification_email ──
+    if (empty($adminEmail)) {
+        echo json_encode(['success' => false, 'message' => 'Admin notification email cannot be empty']);
+        exit;
+    }
+    if (!filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode(['success' => false, 'message' => 'Admin notification email is invalid']);
+        exit;
+    }
+    if (mb_strlen($adminEmail) > 254) {
+        echo json_encode(['success' => false, 'message' => 'Admin notification email is too long']);
         exit;
     }
 
@@ -88,13 +124,13 @@ if ($method === 'POST') {
             ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), `updated_at` = NOW()
         ");
 
-        $stmt->execute([':key' => 'reply_from_email', ':value' => $replyEmail]);
-        $stmt->execute([':key' => 'reply_from_name',  ':value' => $replyName ?: null]);
+        $stmt->execute([':key' => 'reply_from_email',         ':value' => $replyEmail]);
+        $stmt->execute([':key' => 'reply_from_name',          ':value' => $replyName  ?: null]);
+        $stmt->execute([':key' => 'noreply_email',            ':value' => $noreplyEmail]);
+        $stmt->execute([':key' => 'noreply_name',             ':value' => $noreplyName ?: null]);
+        $stmt->execute([':key' => 'admin_notification_email', ':value' => $adminEmail]);
 
-        echo json_encode([
-            'success' => true,
-            'message' => 'Settings saved successfully',
-        ]);
+        echo json_encode(['success' => true, 'message' => 'Settings saved successfully']);
 
     } catch (Exception $e) {
         error_log('adminSettingsActions POST error: ' . $e->getMessage());

@@ -298,39 +298,46 @@ async function saveReviewNotes(id, btn) {
 // ============================================
 
 async function loadAdminSettings() {
-    const form       = document.getElementById('adminSettingsForm');
-    const loadingEl  = document.getElementById('settingsLoading');
-    const contentEl  = document.getElementById('settingsContent');
-
+    const loadingEl = document.getElementById('settingsLoading');
+    const contentEl = document.getElementById('settingsContent');
+ 
     if (loadingEl) loadingEl.style.display = 'flex';
     if (contentEl) contentEl.style.display = 'none';
-
+ 
     try {
         const res  = await fetch('../app/adminSettingsActions.php', { method: 'GET' });
         const data = await res.json();
-
+ 
         if (!data.success) {
             showNotification('Failed to load settings', 'error');
             return;
         }
-
+ 
         const s = data.settings;
-
-        const emailInput = document.getElementById('settingReplyEmail');
-        const nameInput  = document.getElementById('settingReplyName');
-        const updatedEl  = document.getElementById('settingsLastUpdated');
-
-        if (emailInput) emailInput.value = s['reply_from_email']?.value ?? '';
-        if (nameInput)  nameInput.value  = s['reply_from_name']?.value  ?? '';
-
-        // Zobraz kedy boli naposledy zmenené
-        const updatedAt = s['reply_from_email']?.updated_at || s['reply_from_name']?.updated_at;
+ 
+        const replyEmailInput  = document.getElementById('settingReplyEmail');
+        const replyNameInput   = document.getElementById('settingReplyName');
+        const noreplyInput     = document.getElementById('settingNoreplyEmail');
+        const noreplyNameInput = document.getElementById('settingNoreplyName');
+        const adminEmailInput  = document.getElementById('settingAdminNotificationEmail');
+        const updatedEl        = document.getElementById('settingsLastUpdated');
+ 
+        if (replyEmailInput)  replyEmailInput.value  = s['reply_from_email']?.value          ?? '';
+        if (replyNameInput)   replyNameInput.value   = s['reply_from_name']?.value           ?? '';
+        if (noreplyInput)     noreplyInput.value     = s['noreply_email']?.value              ?? '';
+        if (noreplyNameInput) noreplyNameInput.value = s['noreply_name']?.value               ?? '';
+        if (adminEmailInput)  adminEmailInput.value  = s['admin_notification_email']?.value  ?? '';
+ 
+        const updatedAt = s['reply_from_email']?.updated_at
+            || s['noreply_email']?.updated_at
+            || s['admin_notification_email']?.updated_at;
+ 
         if (updatedEl) {
             updatedEl.textContent = updatedAt ? `Last updated: ${updatedAt}` : '';
         }
-
+ 
         if (contentEl) contentEl.style.display = 'block';
-
+ 
     } catch (err) {
         showNotification('Failed to load settings', 'error');
     } finally {
@@ -343,36 +350,54 @@ async function loadAdminSettings() {
 // ============================================
 
 async function saveAdminSettings(btn) {
-    const emailInput = document.getElementById('settingReplyEmail');
-    const nameInput  = document.getElementById('settingReplyName');
-
-    const replyEmail = emailInput?.value.trim() ?? '';
-    const replyName  = nameInput?.value.trim()  ?? '';
-
+    const replyEmailInput  = document.getElementById('settingReplyEmail');
+    const replyNameInput   = document.getElementById('settingReplyName');
+    const noreplyInput     = document.getElementById('settingNoreplyEmail');
+    const noreplyNameInput = document.getElementById('settingNoreplyName');
+    const adminEmailInput  = document.getElementById('settingAdminNotificationEmail');
+ 
+    const replyEmail   = replyEmailInput?.value.trim()  ?? '';
+    const replyName    = replyNameInput?.value.trim()   ?? '';
+    const noreplyEmail = noreplyInput?.value.trim()     ?? '';
+    const noreplyName  = noreplyNameInput?.value.trim() ?? '';
+    const adminEmail   = adminEmailInput?.value.trim()  ?? '';
+ 
     if (!replyEmail) {
         showNotification('Reply-from email cannot be empty', 'error');
-        emailInput?.focus();
+        replyEmailInput?.focus();
         return;
     }
-
+    if (!noreplyEmail) {
+        showNotification('No-reply email cannot be empty', 'error');
+        noreplyInput?.focus();
+        return;
+    }
+    if (!adminEmail) {
+        showNotification('Admin notification email cannot be empty', 'error');
+        adminEmailInput?.focus();
+        return;
+    }
+ 
     btn.disabled    = true;
     btn.textContent = 'Saving...';
-
+ 
     try {
         const res  = await fetch('../app/adminSettingsActions.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({
-                reply_from_email: replyEmail,
-                reply_from_name:  replyName,
+                reply_from_email:         replyEmail,
+                reply_from_name:          replyName,
+                noreply_email:            noreplyEmail,
+                noreply_name:             noreplyName,
+                admin_notification_email: adminEmail,
             }),
         });
         const data = await res.json();
-
+ 
         if (data.success) {
             showNotification('Settings saved!', 'success');
-
-            // Aktualizuj "Last updated" na aktuálny čas
+ 
             const updatedEl = document.getElementById('settingsLastUpdated');
             if (updatedEl) {
                 const now = new Date();

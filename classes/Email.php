@@ -7,11 +7,35 @@
 
 class Email
 {
-    private array $config;
-
+    private array  $config;
+    private string $noreplyName;  // pre všetky automatické emaily
+    private string $replyName;    // len pre sendAdminReply()
+ 
     public function __construct()
     {
         $this->config = require __DIR__ . '/../config/gmail.php';
+ 
+        // Načítaj display names z DB; fallback na config
+        try {
+            $db   = Database::getInstance()->getConnection();
+            $stmt = $db->query("
+                SELECT `key`, `value` FROM settings
+                WHERE `key` IN ('noreply_name', 'reply_from_name')
+            ");
+            $rows = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+ 
+            $this->noreplyName = !empty($rows['noreply_name'])
+                ? $rows['noreply_name']
+                : $this->config['from_name'];
+ 
+            $this->replyName = !empty($rows['reply_from_name'])
+                ? $rows['reply_from_name']
+                : $this->config['from_name'];
+ 
+        } catch (Exception $e) {
+            $this->noreplyName = $this->config['from_name'];
+            $this->replyName   = $this->config['from_name'];
+        }
     }
 
     // ============================================
@@ -67,16 +91,21 @@ class Email
         string $senderEmail,
         string $subject,
         string $message,
-        string $ipAddress = ''
+        string $ipAddress  = '',
+        string $fromEmail  = '',
+        string $fromName   = ''
     ): bool {
-        $fullName    = $firstName . ' ' . $lastName;
+        $fullName     = $firstName . ' ' . $lastName;
         $emailSubject = 'New contact message: ' . $subject;
         $htmlBody     = $this->getContactAdminNotificationTemplate(
             $fullName, $senderEmail, $subject, $message, $ipAddress
         );
         $textBody = "New contact message received.\n\nFrom: $fullName ($senderEmail)\nSubject: $subject\nIP: $ipAddress\n\nMessage:\n$message";
  
-        return $this->send($adminEmail, 'Admin', $emailSubject, $htmlBody, $textBody);
+        $resolvedFrom     = !empty($fromEmail) ? $fromEmail : $this->config['from_email'];
+        $resolvedFromName = !empty($fromName)  ? $fromName  : $this->config['from_name'];
+ 
+        return $this->send($adminEmail, 'Admin', $emailSubject, $htmlBody, $textBody, $resolvedFrom, $resolvedFromName);
     }
 
 
@@ -93,7 +122,7 @@ class Email
         $htmlBody          = $this->getAdminReplyTemplate($toName, $originalSubject, $replyText);
         $textBody          = "Hi $toName,\n\nThank you for contacting us. Here is our response to your inquiry regarding \"$originalSubject\":\n\n$replyText\n\nBest regards,\nThe ChatbotHub Team";
         $resolvedFromEmail = !empty($fromEmail) ? $fromEmail : $this->config['from_email'];
-        $resolvedFromName  = !empty($fromName)  ? $fromName  : $this->config['from_name'];
+        $resolvedFromName  = !empty($fromName)  ? $fromName  : $this->replyName;
 
         return $this->send($toEmail, $toName, $emailSubject, $htmlBody, $textBody, $resolvedFromEmail, $resolvedFromName);
     }
@@ -119,7 +148,9 @@ class Email
         int    $rating,
         string $title,
         string $reviewText,
-        string $reviewId
+        string $reviewId,
+        string $fromEmail  = '',
+        string $fromName   = ''
     ): bool {
         $stars        = str_repeat('★', $rating) . str_repeat('☆', 5 - $rating);
         $subject      = 'New review pending approval: ' . $chatbotName;
@@ -128,7 +159,10 @@ class Email
         );
         $textBody = "New review pending approval.\n\nChatbot: $chatbotName\nRating: $stars ($rating/5)\nSubmitted by: $userName ($userEmail)\nTitle: $title\n\nReview:\n$reviewText\n\nReview ID: $reviewId";
  
-        return $this->send($adminEmail, 'Admin', $subject, $htmlBody, $textBody);
+        $resolvedFrom     = !empty($fromEmail) ? $fromEmail : $this->config['from_email'];
+        $resolvedFromName = !empty($fromName)  ? $fromName  : $this->config['from_name'];
+ 
+        return $this->send($adminEmail, 'Admin', $subject, $htmlBody, $textBody, $resolvedFrom, $resolvedFromName);
     }
 
     public function sendChatbotSubmissionAdminNotification(
@@ -139,15 +173,20 @@ class Email
         string $websiteUrl,
         string $accessNote,
         string $chatbotId,
-        string $companyName = ''
+        string $companyName = '',
+        string $fromEmail   = '',
+        string $fromName    = ''
     ): bool {
         $subject  = 'New chatbot submission: ' . $chatbotName;
         $htmlBody = $this->getChatbotAdminNotificationTemplate(
             $userName, $userEmail, $chatbotName, $websiteUrl, $accessNote, $chatbotId, $companyName
         );
         $textBody = "New affiliate partnership request:\n\nChatbot: $chatbotName\nWebsite: $websiteUrl\nCompany: $companyName\nSubmitted by: $userName ($userEmail)\n\nMessage:\n$accessNote\n\nChatbot ID: $chatbotId";
-
-        return $this->send($adminEmail, 'Admin', $subject, $htmlBody, $textBody);
+ 
+        $resolvedFrom     = !empty($fromEmail) ? $fromEmail : $this->config['from_email'];
+        $resolvedFromName = !empty($fromName)  ? $fromName  : $this->config['from_name'];
+ 
+        return $this->send($adminEmail, 'Admin', $subject, $htmlBody, $textBody, $resolvedFrom, $resolvedFromName);
     }
 
     public function sendChatbotApproved(
@@ -198,7 +237,7 @@ class Email
             }
 
             $resolvedFromEmail = !empty($fromEmail) ? $fromEmail : $this->config['from_email'];
-            $resolvedFromName  = !empty($fromName)  ? $fromName  : $this->config['from_name'];
+            $resolvedFromName  = !empty($fromName)  ? $fromName  : $this->noreplyName;
 
             $rawMessage = $this->buildRawMessage(
                 $resolvedFromEmail,

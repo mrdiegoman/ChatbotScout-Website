@@ -779,31 +779,72 @@ require '../inc/header.php';
             <div class="admin-settings-card">
                 <div class="admin-settings-card-header">
                     <h2>Reply Email Settings</h2>
-                    <p>Outgoing email address used when replying to contact messages. Keep this separate from your admin login email.</p>
+                    <p>Used when you <strong>manually reply</strong> to a contact message.</p>
                 </div>
-
+            
                 <div class="admin-settings-form" id="adminSettingsForm">
-
+            
                     <div class="admin-settings-field">
                         <label for="settingReplyEmail">Reply-from email <span class="admin-settings-required">*</span></label>
                         <input type="email"
-                               id="settingReplyEmail"
-                               maxlength="254"
-                               placeholder="support@yourdomain.com"
-                               autocomplete="off">
+                            id="settingReplyEmail"
+                            maxlength="254"
+                            placeholder="support@yourdomain.com"
+                            autocomplete="off">
                         <span class="admin-settings-hint">Users will see this address in their inbox when you reply.</span>
                     </div>
-
+            
                     <div class="admin-settings-field">
-                        <label for="settingReplyName">Reply-from name</label>
+                        <label for="settingReplyName">Display name</label>
                         <input type="text"
-                               id="settingReplyName"
-                               maxlength="100"
-                               placeholder="ChatbotHub Support"
-                               autocomplete="off">
-                        <span class="admin-settings-hint">Display name shown alongside the email address.</span>
+                            id="settingReplyName"
+                            maxlength="100"
+                            placeholder="ChatbotHub Support"
+                            autocomplete="off">
+                        <span class="admin-settings-hint">e.g. ChatbotHub Support</span>
                     </div>
-
+            
+                </div>
+            </div>
+            
+            <div class="admin-settings-card" style="margin-top: 2.4rem;">
+                <div class="admin-settings-card-header">
+                    <h2>No-Reply &amp; Notification Settings</h2>
+                    <p>Used for <strong>automatic emails</strong> — verifications, password resets, new message alerts, review alerts, chatbot submissions.</p>
+                </div>
+            
+                <div class="admin-settings-form">
+            
+                    <div class="admin-settings-field">
+                        <label for="settingNoreplyEmail">No-reply email <span class="admin-settings-required">*</span></label>
+                        <input type="email"
+                            id="settingNoreplyEmail"
+                            maxlength="254"
+                            placeholder="noreply@yourdomain.com"
+                            autocomplete="off">
+                        <span class="admin-settings-hint">Automated emails will be sent from this address.</span>
+                    </div>
+            
+                    <div class="admin-settings-field">
+                        <label for="settingNoreplyName">Display name</label>
+                        <input type="text"
+                            id="settingNoreplyName"
+                            maxlength="100"
+                            placeholder="ChatbotHub"
+                            autocomplete="off">
+                        <span class="admin-settings-hint">e.g. ChatbotHub</span>
+                    </div>
+            
+                    <div class="admin-settings-field">
+                        <label for="settingAdminNotificationEmail">Admin notification email <span class="admin-settings-required">*</span></label>
+                        <input type="email"
+                            id="settingAdminNotificationEmail"
+                            maxlength="254"
+                            placeholder="your@email.com"
+                            autocomplete="off">
+                        <span class="admin-settings-hint">Where you receive alerts for new messages, reviews and submissions.</span>
+                    </div>
+            
                     <div class="admin-settings-footer">
                         <span class="admin-settings-updated" id="settingsLastUpdated"></span>
                         <button class="admin-save-btn admin-settings-save-btn"
@@ -811,12 +852,9 @@ require '../inc/header.php';
                             Save Settings
                         </button>
                     </div>
-
                 </div>
             </div>
-
         </div>
-
     </div>
 
 </div><!-- end admin-wrapper -->
