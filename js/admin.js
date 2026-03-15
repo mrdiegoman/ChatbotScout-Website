@@ -561,8 +561,8 @@ async function acceptSubmission(id) {
 
     if (['rejected', 'removed'].includes(currentStatus)) {
         const chatbotName = card.querySelector('.admin-message-sender')?.textContent?.trim() || 'this chatbot';
-        const clearedField = currentStatus === 'rejected' ? 'rejected_at' : 'deleted_at';
-        const confirmed = await showChangeOfMindPopup(chatbotName, clearedField);
+        // const clearedField = currentStatus === 'rejected' ? 'rejected_at' : 'deleted_at';
+        const confirmed = await showChangeOfMindPopup(chatbotName);
         if (!confirmed) return;
     }
 
@@ -682,10 +682,10 @@ async function reviewSubmission(id, clickedBtn) {
     // "Change of mind" check for final states
     if (['active', 'rejected', 'removed'].includes(currentStatus)) {
         const chatbotName   = card.querySelector('.admin-message-sender')?.textContent?.trim() || 'this chatbot';
-        const clearedFields = currentStatus === 'active'   ? 'approved_at, verified_at, last_verified_at'
-                            : currentStatus === 'rejected' ? 'rejected_at'
-                            : 'deleted_at';
-        const confirmed = await showChangeOfMindPopup(chatbotName, clearedFields);
+        // const clearedFields = currentStatus === 'active'   ? 'approved_at, verified_at, last_verified_at'
+        //                     : currentStatus === 'rejected' ? 'rejected_at'
+        //                     : 'deleted_at';
+        const confirmed = await showChangeOfMindPopup(chatbotName);
         if (!confirmed) return;
     }
 
@@ -726,8 +726,8 @@ async function rejectSubmission(id, btn) {
     // "Change of mind" check for final states
     if (['active', 'removed'].includes(currentStatus)) {
         const chatbotName   = card.querySelector('.admin-message-sender')?.textContent?.trim() || 'this chatbot';
-        const clearedFields = currentStatus === 'active' ? 'approved_at, verified_at, last_verified_at' : 'deleted_at';
-        const confirmed = await showChangeOfMindPopup(chatbotName, clearedFields);
+        // const clearedFields = currentStatus === 'active' ? 'approved_at, verified_at, last_verified_at' : 'deleted_at';
+        const confirmed = await showChangeOfMindPopup(chatbotName);
         if (!confirmed) return;
     }
 
@@ -781,13 +781,13 @@ async function removeSubmission(id, clickedBtn) {
 
     // "Change of mind" check for final states
     if (['active', 'rejected'].includes(currentStatus)) {
-        const clearedFields = currentStatus === 'active'   ? 'approved_at, verified_at, last_verified_at'
-                            : 'rejected_at';
-        const confirmed = await showChangeOfMindPopup(chatbotName, clearedFields);
+        // const clearedFields = currentStatus === 'active'   ? 'approved_at, verified_at, last_verified_at'
+        //                     : 'rejected_at';
+        const confirmed = await showChangeOfMindPopup(chatbotName);
         if (!confirmed) return;
     } else {
         // For pending/reviewed → still confirm remove (it's destructive)
-        const confirmed = await showChangeOfMindPopup(chatbotName, null, true);
+        const confirmed = await showChangeOfMindPopup(chatbotName, true);
         if (!confirmed) return;
     }
 
@@ -853,14 +853,14 @@ async function saveSubmissionNotes(id, btn) {
 // HELPER: "Change of mind" confirmation popup
 // ============================================
 
-function showChangeOfMindPopup(chatbotName, clearedFields, isRemove = false) {
+function showChangeOfMindPopup(chatbotName, isRemove = false) {
     return new Promise((resolve) => {
         document.getElementById('sub-change-popup')?.remove();
 
-        let fieldsNote = '';
-        if (clearedFields) {
-            fieldsNote = `<p class="change-popup-fields">The following timestamps will be cleared: <strong>${clearedFields}</strong></p>`;
-        }
+        // let fieldsNote = '';
+        // if (clearedFields) {
+        //     fieldsNote = `<p class="change-popup-fields">The following timestamps will be cleared: <strong>${clearedFields}</strong></p>`;
+        // }
 
         const actionText = isRemove
             ? `Are you sure you want to <strong>remove</strong>`
@@ -877,7 +877,7 @@ function showChangeOfMindPopup(chatbotName, clearedFields, isRemove = false) {
                 </div>
                 <div class="sub-popup-body">
                     <p>${actionText} <strong>${escHtml(chatbotName)}</strong>?</p>
-                    ${fieldsNote}
+                    
                 </div>
                 <div class="sub-popup-footer">
                     <button class="admin-cancel-btn" onclick="resolveChangePopup(false)">Cancel</button>

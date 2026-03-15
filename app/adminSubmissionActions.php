@@ -206,7 +206,8 @@ switch ($action) {
             UPDATE chatbots SET
                 status      = 'reviewed',
                 is_verified = 1,
-                approved_at = NOW(),
+                approved_at = NULL,
+                verified_at = NOW(),
                 rejected_at = NULL,
                 deleted_at  = NULL
             WHERE id = :id
