@@ -10,6 +10,7 @@
  *  - Má cookie + fingerprint patrí inému staršiemu visitoru → obnov cookie na starého visitora
  *  - Má cookie + fingerprint nikde v DB → ulož fingerprint na aktuálneho visitora
  *  - Nemá cookie (edge case) → nič, bootstrap sa postará pri ďalšom page loade
+ *  - cookie_consent nie je 'accepted' → okamžite zastav, nič nerob
  */
 
 require '../inc/bootstrap.php';
@@ -18,6 +19,13 @@ header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false]);
+    exit;
+}
+
+// GDPR: Spracovanie fingerprintu je povolené len s explicitným súhlasom
+$cookieConsent = $_COOKIE['cookie_consent'] ?? null;
+if ($cookieConsent !== 'accepted') {
+    echo json_encode(['success' => true, 'action' => 'no_consent']);
     exit;
 }
 

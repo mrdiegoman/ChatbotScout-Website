@@ -402,17 +402,87 @@ if ($action === 'cancel_subscription') {
 }
 
 // ============================================
-// DELETE ACCOUNT
+// DELETE ACCOUNT — GDPR compliant
+// Anonymizuje osobné údaje namiesto soft delete.
+// Zachová len účtovné záznamy (payments) pre právne účely.
 // ============================================
-
+ 
 if ($action === 'delete_account') {
     $db = Database::getInstance()->getConnection();
-    $stmt = $db->prepare("UPDATE users SET status = 'disabled', disabled_at = NOW() WHERE id = :id");
-    $stmt->execute(['id' => $user['id']]);
-    
-    $stmt = $db->prepare("UPDATE subscriptions SET status = 'cancelled', cancelled_at = NOW(), end_date = NOW(), cancellation_reason = 'Account deleted by user' WHERE user_id = :user_id AND status = 'active'");
-    $stmt->execute(['user_id' => $user['id']]);
-    
+ 
+    try {
+        $db->beginTransaction();
+ 
+        $userId    = $user['id'];
+        $anonymousEmail = 'deleted_' . $userId . '@deleted.invalid';
+ 
+        // 1. Anonymizuj osobné údaje v users tabuľke
+        $db->prepare("
+            UPDATE users SET
+                email                          = :email,
+                password_hash                  = '',
+                google_id                      = NULL,
+                first_name                     = 'Deleted',
+                last_name                      = 'User',
+                profile_picture_url            = NULL,
+                bio                            = NULL,
+                website_url                    = NULL,
+                marketing_emails               = 0,
+                email_verification_token       = NULL,
+                email_verification_expires_at  = NULL,
+                password_reset_token           = NULL,
+                password_reset_expires_at      = NULL,
+                status                         = 'disabled',
+                disabled_at                    = NOW()
+            WHERE id = :id
+        ")->execute(['email' => $anonymousEmail, 'id' => $userId]);
+ 
+        // 2. Zruš aktívne subscripcie
+        $db->prepare("
+            UPDATE subscriptions
+            SET status              = 'cancelled',
+                cancelled_at        = NOW(),
+                end_date            = NOW(),
+                cancellation_reason = 'Account deleted by user'
+            WHERE user_id = :user_id AND status = 'active'
+        ")->execute(['user_id' => $userId]);
+ 
+        // 3. Vymaž visitor_id cookie a visitor_user_links (tracking dáta)
+        $db->prepare("
+            DELETE FROM visitor_user_links WHERE user_id = :user_id
+        ")->execute(['user_id' => $userId]);
+ 
+        // 4. Anonymizuj IP adresu v contact_messages (osobný údaj)
+        $db->prepare("
+            UPDATE contact_messages
+            SET ip_address = NULL,
+                first_name = 'Deleted',
+                last_name  = 'User'
+            WHERE user_id = :user_id
+        ")->execute(['user_id' => $userId]);
+ 
+        // 5. Anonymizuj IP v audit_log pre tohto usera
+        $db->prepare("
+            UPDATE audit_log
+            SET ip_address = NULL,
+                user_agent = NULL
+            WHERE user_id = :user_id
+        ")->execute(['user_id' => $userId]);
+ 
+        $db->commit();
+ 
+    } catch (Exception $e) {
+        $db->rollBack();
+        error_log('delete_account error: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Deletion failed. Please try again.']);
+        exit;
+    }
+ 
+    // Vymaž visitor_id cookie z browsera
+    $appConfig = require __DIR__ . '/../config/app.php';
+    setcookie($appConfig['visitor']['cookie_name'], '', time() - 3600, '/');
+    setcookie('cookie_consent', '', time() - 3600, '/');
+ 
     logout();
     echo json_encode(['success' => true]);
     exit;

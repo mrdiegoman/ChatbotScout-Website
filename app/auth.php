@@ -8,6 +8,7 @@ if (!defined('BOOTSTRAP_LOADED')) {
     http_response_code(403);
     exit;
 }
+
 /**
  * Prihlásenie používateľa
  * 
@@ -44,8 +45,10 @@ function login(array $userData, bool $rememberMe = false): void
         $appConfig['session']['cookie_httponly']
     );
     
-    // Ak bol visitor, konvertuj ho na usera (pre analytics)
-    if (isset($_COOKIE[$appConfig['visitor']['cookie_name']])) {
+    // GDPR: Konverzia visitor → user je povolená len s explicitným súhlasom.
+    // Ak user dal declined alebo ešte nerozhodol, visitor_user_links sa nevytvorí.
+    $cookieConsent = $_COOKIE['cookie_consent'] ?? null;
+    if ($cookieConsent === 'accepted' && isset($_COOKIE[$appConfig['visitor']['cookie_name']])) {
         $visitorId = $_COOKIE[$appConfig['visitor']['cookie_name']];
         
         $visitor = new Visitor();

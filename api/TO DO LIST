@@ -1,8 +1,12 @@
 Terms of service, privacy policy
 
+cookie popup
+
+
+
+
 Ak niekto posle mail na no reply tak automaticky vrati mail ze na tento email sa naposielaju maily
 
-ked klikne na most popular tak mu ho vyhlada alebo da na vrch v showcase
 
 cloudflare pridat do projektu(JE potrebne ale: mat domenu, spojazdnit VPS).
         Krok 1 — Doména
@@ -19,20 +23,27 @@ cloudflare pridat do projektu(JE potrebne ale: mat domenu, spojazdnit VPS).
         Prepojiť doménu s Cloudflare
         Zapnúť SSL (Full mode)
 
-        Krok 4 — Úpravy v kóde ← tu budem potrebný ja 😊
+        Krok 4 — Úpravy v kóde
 
         Opraviť detekciu IP adresy (rate limiter)
         Nastaviť cache hlavičky pre verejné stránky
         Prípadne .htaccess úpravy
 
 
-refresh token google:
-1//03IKjAO-DspkfCgYIARAAGAMSNwF-L9IrU5XMeGipEDXN4-qgl6NqOrBB5_hGDAUztUiUU3QmCtaZ4dzvPrcWgeunpqHLF-hj3Io
 
 POSIBLY NESKOR:
     vytvaranie invoicov na platby
     v advertise lepsie visuals toho co si kupuje user
     testovat Stripe cli -> nakup, visa, paypal, apple-pay (celkove zobrazenie tj. inputy)
+
+
+
+
+
+
+refresh token google:
+1//03IKjAO-DspkfCgYIARAAGAMSNwF-L9IrU5XMeGipEDXN4-qgl6NqOrBB5_hGDAUztUiUU3QmCtaZ4dzvPrcWgeunpqHLF-hj3Io
+
 
 stripe listen --forward-to localhost/mainwebsite/api/stripeWebhook.php
 php tools/seedTestData.php

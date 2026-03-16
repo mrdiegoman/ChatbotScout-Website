@@ -24,19 +24,23 @@ if (empty($chatbotId)) {
 try {
     $db = Database::getInstance()->getConnection();
 
-    // Update click_count (always - analytics counter)
+    // Update click_count (always - no consent needed, just a number)
     $db->prepare("
         UPDATE chatbots
         SET click_count = click_count + 1, updated_at = CURRENT_TIMESTAMP
         WHERE id = :id AND status = 'active' AND deleted_at IS NULL
     ")->execute([':id' => $chatbotId]);
 
-    $appConfig       = require __DIR__ . '/../config/app.php';
-    $cookieVisitorId = $_COOKIE[$appConfig['visitor']['cookie_name']] ?? null;
+    // $visitorId comes from bootstrap.php
+    // It is NULL if the user declined cookies or has not consented yet
+    // In that case we skip the detailed chatbot_clicks tracking entirely
+    $cookieVisitorId = $visitorId ?? null;
 
-    // Fallback pre prihlásených userov bez visitor cookie:
-    // Nájdi visitor_id cez visitor_user_links podľa user_id zo session
-    if (empty($cookieVisitorId) && !empty($_SESSION['user']['id'])) {
+    // Fallback for logged-in users without a visitor cookie:
+    // Find visitor_id via visitor_user_links by user_id from session
+    // Only runs if consent was explicitly accepted — never for declined users
+    $cookieConsent = $_COOKIE['cookie_consent'] ?? null;
+    if (empty($cookieVisitorId) && $cookieConsent === 'accepted' && !empty($_SESSION['user']['id'])) {
         $stmt = $db->prepare("
             SELECT visitor_id
             FROM visitor_user_links

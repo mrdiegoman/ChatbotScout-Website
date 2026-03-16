@@ -52,22 +52,31 @@ if (isset($_COOKIE[$appConfig['session']['cookie_name']])) {
 }
 
 // ============================================
-// VISITOR TRACKING (pre všetkých - prihlásených aj neprihlásených)
+// VISITOR TRACKING
+// Spustí sa IBA ak user dal súhlas s cookies.
+// Ak cookie_consent neexistuje alebo je 'declined' → tracking sa preskočí.
 // ============================================
 
-$userAgent  = $_SERVER['HTTP_USER_AGENT'] ?? '';
-$isBotOrApi = empty($userAgent) || preg_match('/(Stripe|curl|wget|bot|crawler)/i', $userAgent);
+$visitorId  = null;
+$cookieConsent = $_COOKIE['cookie_consent'] ?? null;
 
-$visitor   = new Visitor();
-$utmParams = [
-    'utm_source'   => $_GET['utm_source']   ?? null,
-    'utm_medium'   => $_GET['utm_medium']   ?? null,
-    'utm_campaign' => $_GET['utm_campaign'] ?? null,
-    'utm_term'     => $_GET['utm_term']     ?? null,
-    'utm_content'  => $_GET['utm_content']  ?? null,
-];
+if ($cookieConsent === 'accepted') {
+    $userAgent  = $_SERVER['HTTP_USER_AGENT'] ?? '';
+    $isBotOrApi = empty($userAgent) || preg_match('/(Stripe|curl|wget|bot|crawler)/i', $userAgent);
 
-$visitorId = $visitor->getOrCreate($utmParams);
+    if (!$isBotOrApi) {
+        $visitor   = new Visitor();
+        $utmParams = [
+            'utm_source'   => $_GET['utm_source']   ?? null,
+            'utm_medium'   => $_GET['utm_medium']   ?? null,
+            'utm_campaign' => $_GET['utm_campaign'] ?? null,
+            'utm_term'     => $_GET['utm_term']     ?? null,
+            'utm_content'  => $_GET['utm_content']  ?? null,
+        ];
+
+        $visitorId = $visitor->getOrCreate($utmParams);
+    }
+}
 
 // ============================================
 // SESSION CLEANUP (1% šanca)
