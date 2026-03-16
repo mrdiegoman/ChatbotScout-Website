@@ -693,3 +693,44 @@ notificationStyles.textContent = `
     }
 `;
 document.head.appendChild(notificationStyles);
+
+// ============================================
+// DRAG TO SCROLL — profile-tabs
+// ============================================
+
+(function () {
+    const tabs = document.querySelector('.profile-tabs');
+    if (!tabs) return;
+
+    let isDown     = false;
+    let startX     = 0;
+    let scrollLeft = 0;
+    let hasDragged = false;
+
+    tabs.addEventListener('mousedown', (e) => {
+        isDown     = true;
+        hasDragged = false;
+        startX     = e.pageX - tabs.offsetLeft;
+        scrollLeft = tabs.scrollLeft;
+        tabs.style.cursor = 'grabbing';
+    });
+
+    document.addEventListener('mouseup', () => {
+        isDown = false;
+        tabs.style.cursor = '';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x    = e.pageX - tabs.offsetLeft;
+        const walk = x - startX;
+        if (Math.abs(walk) > 5) hasDragged = true;
+        tabs.scrollLeft = scrollLeft - walk;
+    });
+
+    // Zabráni kliknutiu na tab ak používateľ ťahal
+    tabs.addEventListener('click', (e) => {
+        if (hasDragged) e.stopPropagation();
+    }, true);
+})();
