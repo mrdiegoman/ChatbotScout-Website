@@ -107,11 +107,11 @@
     </div>
 </div>
 
-<link rel="stylesheet" href="../css/cookieConsent.css">
+<link rel="stylesheet" href="../css/Consent.css">
 <script src="../js/footerVertical.js" defer></script>
 
 <!-- Cookie consent — controls whether visitor.js runs -->
-<script src="../js/cookieConsent.js"></script>
+<script src="../js/Consent.js"></script>
 
 </body>
 </html>
