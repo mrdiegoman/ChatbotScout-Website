@@ -968,6 +968,25 @@
             handleSearchInput(this.value);
         });
     }
+    
+    // ============================================
+    // INIT — read ?search= from URL (e.g. from homepage popular section)
+    // ============================================
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlSearch = urlParams.get('search');
+    if (urlSearch && urlSearch.trim() !== '') {
+        state.searchQuery = urlSearch.trim();
+
+        if (desktopSearchInput) {
+            desktopSearchInput.value = urlSearch.trim();
+            desktopSearch?.classList.add('active');
+            desktopClearIcon?.classList.add('visible');
+        }
+        if (mobileSearchInput) {
+            mobileSearchInput.value = urlSearch.trim();
+        }
+    }
+
     loadChatbots(false);
 
 })();

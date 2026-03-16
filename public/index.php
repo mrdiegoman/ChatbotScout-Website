@@ -270,7 +270,7 @@ require '../inc/header.php';
                         $botTags    = $tagNames[$bot['id']] ?? [];
                         $logoUrl    = !empty($bot['logo_url']) ? '../' . htmlspecialchars($bot['logo_url']) : null;
                     ?>
-                    <a href="chatbotShowcase.php" class="hp-pop-card">
+                    <a href="chatbotShowcase.php?search=<?= urlencode($bot['name']) ?>" class="hp-pop-card">
                         <div class="hp-pop-tags">
                             <?php if (!empty($botTags)): ?>
                                 <?php foreach ($botTags as $tag): ?>
