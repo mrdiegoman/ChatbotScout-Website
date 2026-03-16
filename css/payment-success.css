@@ -35,7 +35,7 @@
 
 .success-card__title {
     font-size: 2rem;
-    font-weight: 800;
+    font-family: outfit-bold, sans-serif;
     color: #1a1a2e;
     margin: 0;
 }
@@ -69,11 +69,11 @@
 
 .success-card__detail-row span:first-child {
     color: #6b7280;
-    font-weight: 500;
+    font-family: outfit-semibold, sans-serif;
 }
 
 .success-card__detail-row span:last-child {
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
     color: #1a1a2e;
 }
 
@@ -91,7 +91,7 @@
     padding: 14px;
     border-radius: 12px;
     font-size: 1rem;
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
     text-decoration: none;
     text-align: center;
     transition: all 0.2s;

@@ -669,7 +669,7 @@ notificationStyles.textContent = `
         border-radius: 8px;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
         font-size: 14px;
-        font-weight: 500;
+        font-family: outfit-semibold, sans-serif;
         z-index: 10000;
         opacity: 0;
         transform: translateX(100px);

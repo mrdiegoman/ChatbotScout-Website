@@ -82,7 +82,7 @@
 
 .pr-chatbot-name {
     font-size: 1.5rem;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     color: #1f2937;
 }
 
@@ -102,7 +102,7 @@
 
 .pr-rating-num {
     font-size: 1.2rem;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     color: #6b7280;
     margin-left: 0.4rem;
 }
@@ -119,7 +119,7 @@
     padding: 0.25rem 0.9rem;
     border-radius: 2rem;
     font-size: 1.2rem;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
 }
 
 .pr-status-pending  { background: #fef3c7; color: #92400e; }
@@ -131,7 +131,7 @@
 /* Review title */
 .pr-review-title {
     font-size: 1.5rem;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     color: #1f2937;
     font-style: italic;
     margin-bottom: 0.6rem;
@@ -157,7 +157,7 @@
 }
 
 .pr-moderation-note-label {
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
     margin-right: 0.4rem;
 }
 
@@ -178,7 +178,7 @@
     padding: 0.6rem 1.4rem;
     border-radius: 0.6rem;
     font-size: 1.35rem;
-    font-weight: 500;
+    font-family: outfit-semibold, sans-serif;
     cursor: pointer;
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
     border: 1.5px solid #e5e7eb;
@@ -256,7 +256,7 @@
 
 .pr-modal-header h2 {
     font-size: 1.8rem;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     margin: 0;
     color: #1f2937;
 }
@@ -309,7 +309,7 @@
 
 .pr-modal-stars-label {
     font-size: 1.5rem;
-    font-weight: 500;
+    font-family: outfit-semibold, sans-serif;
     color: #374151;
     min-height: 2rem;
 }
@@ -323,12 +323,12 @@
 
 .pr-modal-field label {
     font-size: 1.5rem;
-    font-weight: 500;
+    font-family: outfit-semibold, sans-serif;
     color: #374151;
 }
 
 .pr-modal-optional {
-    font-weight: 400;
+    font-family: outfit-medium, sans-serif;
     color: #9ca3af;
     font-size: 1.3rem;
 }
@@ -379,7 +379,7 @@
     border: 1.5px solid #e5e7eb;
     background: #f9fafb;
     font-size: 1.45rem;
-    font-weight: 500;
+    font-family: outfit-semibold, sans-serif;
     color: #374151;
     cursor: pointer;
     transition: background 0.15s ease;
@@ -393,7 +393,7 @@
     border: none;
     background: #4CAF50;
     font-size: 1.45rem;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     color: #fff;
     cursor: pointer;
     transition: background 0.15s ease;
@@ -427,7 +427,7 @@
 
 .pr-delete-modal-header h2 {
     font-size: 1.8rem;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     color: #1f2937;
     margin: 0;
 }
@@ -452,7 +452,7 @@
     border: none;
     background: #ef4444;
     font-size: 1.45rem;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     color: #fff;
     cursor: pointer;
     transition: background 0.15s ease;

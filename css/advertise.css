@@ -30,7 +30,7 @@
 
 .adv-section-title {
     font-size: clamp(2rem, 3.5vw, 2.8rem);
-    font-weight: 800;
+    font-family: outfit-bold, sans-serif;
     color: var(--adv-text);
     text-align: center;
     margin-bottom: 14px;
@@ -99,14 +99,14 @@
     border-radius: 100px;
     padding: 10px 24px;
     font-size: 1.05rem;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     margin-bottom: 24px;
     color: #fff;
 }
 
 .adv-hero__title {
     font-size: clamp(2.6rem, 5.5vw, 4rem);
-    font-weight: 900;
+    font-family: outfit-bold, sans-serif;
     line-height: 1.15;
     margin-bottom: 22px;
     color: #fff;
@@ -133,7 +133,7 @@
     display: inline-block;
     background: var(--adv-green);
     color: #fff;
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
     font-size: 1.15rem;
     padding: 16px 42px;
     border-radius: 100px;
@@ -180,7 +180,7 @@
 
 .adv-why__card h3 {
     font-size: 1.3rem;
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
     color: var(--adv-text);
     margin-bottom: 12px;
 }
@@ -217,7 +217,7 @@
     border: none;
     background: transparent;
     font-size: 1.05rem;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     color: var(--adv-text-muted);
     cursor: pointer;
     transition: all 0.2s;
@@ -239,7 +239,7 @@
     font-size: 0.9rem;
     padding: 2px 10px;
     border-radius: 100px;
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
 }
 
 /* Loading */
@@ -321,7 +321,7 @@
     background: var(--adv-purple);
     color: #fff;
     font-size: 0.8rem;
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
     padding: 5px 14px;
     border-radius: 100px;
     text-transform: uppercase;
@@ -334,7 +334,7 @@
 
 .adv-plan-card__name {
     font-size: 1.6rem;
-    font-weight: 800;
+    font-family: outfit-bold, sans-serif;
     color: var(--adv-text);
     margin-bottom: 12px;
 }
@@ -359,14 +359,14 @@
 
 .adv-plan-card__currency {
     font-size: 1.5rem;
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
     color: var(--adv-text);
     padding-bottom: 5px;
 }
 
 .adv-plan-card__amount {
     font-size: 3.2rem;
-    font-weight: 900;
+    font-family: outfit-bold, sans-serif;
     color: var(--adv-text);
     transition: all 0.3s;
 }
@@ -381,7 +381,7 @@
     margin-top: 10px;
     font-size: 0.95rem;
     color: var(--adv-green-dark);
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
 }
 
 .adv-plan-card__features {
@@ -405,7 +405,7 @@
 
 .adv-check {
     color: var(--adv-green);
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
     font-size: 1.1rem;
     flex-shrink: 0;
 }
@@ -419,7 +419,7 @@
     background: var(--adv-purple);
     color: #fff;
     font-size: 1.05rem;
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
     cursor: pointer;
     transition: all 0.2s;
     letter-spacing: 0.3px;
@@ -462,7 +462,7 @@
 
 .adv-no-listing h3 {
     font-size: 1.45rem;
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
     margin-bottom: 12px;
 }
 
@@ -479,7 +479,7 @@
     color: #fff;
     padding: 14px 32px;
     border-radius: 100px;
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
     text-decoration: none;
     font-size: 1rem;
     transition: opacity 0.2s;
@@ -558,7 +558,7 @@
 
 .adv-preview__screen-label {
     font-size: 0.75rem;
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
     color: rgba(255,255,255,0.8);
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -595,7 +595,7 @@
     background: var(--adv-green);
     color: #fff;
     font-size: 0.65rem;
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
     padding: 2px 8px;
     border-radius: 100px;
     text-transform: uppercase;
@@ -705,7 +705,7 @@
 
 .adv-modal__title {
     font-size: 1.5rem;
-    font-weight: 800;
+    font-family: outfit-bold, sans-serif;
     color: var(--adv-text);
     margin-bottom: 6px;
 }
@@ -726,7 +726,7 @@
 
 .adv-modal__label {
     font-size: 1.05rem;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     color: var(--adv-text);
     display: flex;
     flex-direction: column;
@@ -734,7 +734,7 @@
 }
 
 .adv-modal__label-hint {
-    font-weight: 400;
+    font-family: outfit-medium, sans-serif;
     color: var(--adv-text-muted);
     font-size: 0.92rem;
 }
@@ -796,7 +796,7 @@
 
 .adv-period-option__name {
     font-size: 0.92rem;
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
     color: var(--adv-text);
     text-transform: capitalize;
     margin-bottom: 5px;
@@ -804,7 +804,7 @@
 
 .adv-period-option__price {
     font-size: 1.15rem;
-    font-weight: 800;
+    font-family: outfit-bold, sans-serif;
     color: var(--adv-purple);
 }
 
@@ -834,7 +834,7 @@
 
 .adv-modal__summary-row strong {
     color: var(--adv-text);
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
 }
 
 .adv-modal__summary-row--total {
@@ -842,7 +842,7 @@
     border-top: 1px solid var(--adv-border);
     font-size: 1.15rem;
     color: var(--adv-text);
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
 }
 
 .adv-modal__summary-row--total strong {
@@ -853,7 +853,7 @@
 .adv-modal__error {
     font-size: 1rem;
     color: #EF233C;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     min-height: 20px;
 }
 
@@ -871,7 +871,7 @@
     border-radius: 10px;
     background: #fff;
     font-size: 1rem;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     color: var(--adv-text-muted);
     cursor: pointer;
     transition: all 0.2s;
@@ -890,7 +890,7 @@
     background: var(--adv-purple);
     color: #fff;
     font-size: 1.05rem;
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -924,7 +924,7 @@
     font-size: 1rem;
     color: var(--adv-text-muted);
     text-decoration: line-through;
-    font-weight: 500;
+    font-family: outfit-semibold, sans-serif;
 }
 
 /* Green savings badge on card */
@@ -932,7 +932,7 @@
     background: #dcfce7;
     color: #166534;
     font-size: 0.95rem;
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
     padding: 3px 10px;
     border-radius: 100px;
     letter-spacing: 0.2px;
@@ -946,7 +946,7 @@
     border: none;
     color: var(--adv-purple);
     font-size: 0.88rem;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     cursor: pointer;
     padding: 0;
     text-decoration: underline;
@@ -1004,7 +1004,7 @@
 
 .adv-redirect-overlay__title {
     font-size: 1.2rem;
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
     color: var(--adv-text);
     margin: 0;
 }

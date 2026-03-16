@@ -29,7 +29,7 @@ notifStyles.textContent = `
         border-radius: 8px;
         box-shadow: 0 4px 16px rgba(0,0,0,0.15);
         font-size: 14px;
-        font-weight: 500;
+        font-family: outfit-semibold, sans-serif;
         z-index: 10000;
         opacity: 0;
         transform: translateX(100px);
@@ -1024,8 +1024,8 @@ function showDelistPopup(chatbotName) {
                 <div class="sub-popup-body">
                     <p>You are about to delist <strong>${escHtml(chatbotName)}</strong> from ChatbotHub.</p>
                     <p>The owner will receive a <strong>Chatbot Delisted</strong> email with your reason.</p>
-                    <label style="display:block;margin-top:1rem;font-size:1.3rem;font-weight:600;color:#374151;">
-                        Reason <span style="font-weight:400;color:#6B7280;">(optional — will be sent to the user)</span>
+                    <label style="display:block;margin-top:1rem;font-size:1.3rem;font-family: outfit-semibold, sans-serif;color:#374151;">
+                        Reason <span style="font-family: outfit-medium, sans-serif;color:#6B7280;">(optional — will be sent to the user)</span>
                     </label>
                     <textarea
                         id="sub-delist-reason"

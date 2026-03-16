@@ -44,7 +44,7 @@
 
 .profile-header h1 {
     font-size: 36px;
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
     color: var(--profile-primary);
     margin: 0 0 8px 0;
     letter-spacing: -0.5px;
@@ -82,7 +82,7 @@
     border: none;
     padding: 12px 24px;
     font-size: 15px;
-    font-weight: 500;
+    font-family: outfit-semibold, sans-serif;
     color: var(--profile-text-muted);
     cursor: pointer;
     /* transition: all 0.3s ease; */
@@ -147,14 +147,14 @@
 
 .profile-card h2 {
     font-size: 20px;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     color: var(--profile-primary);
     margin: 0 0 24px 0;
 }
 
 .profile-card h3 {
     font-size: 18px;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     color: var(--profile-primary);
     margin: 0 0 12px 0;
 }
@@ -221,7 +221,7 @@
 .avatar-upload-label {
     color: white;
     font-size: 14px;
-    font-weight: 500;
+    font-family: outfit-semibold, sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -257,7 +257,7 @@
 .info-field label {
     display: block;
     font-size: 13px;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     color: var(--profile-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -267,7 +267,7 @@
 .info-field-static-label {
     display: block;
     font-size: 13px;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     color: var(--profile-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -306,7 +306,7 @@
     padding: 4px 10px;
     border-radius: 16px;
     font-size: 12px;
-    font-weight: 500;
+    font-family: outfit-semibold, sans-serif;
 }
 
 /* ============================================
@@ -359,7 +359,7 @@
 .form-group label {
     display: block;
     font-size: 13px;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     color: var(--profile-text-muted);
     margin-bottom: 6px;
 }
@@ -415,7 +415,7 @@
 
 .sub-plan {
     font-size: 20px;
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
     color: var(--profile-primary);
     margin-bottom: 4px;
 }
@@ -469,7 +469,7 @@
     padding: 10px 20px;
     border-radius: 6px;
     font-size: 14px;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     cursor: pointer;
     transition: all 0.2s ease;
     border: none;
@@ -570,7 +570,7 @@
 .filter-group label {
     display: block;
     font-size: 13px;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     color: var(--profile-text-muted);
     margin-bottom: 6px;
 }
@@ -612,7 +612,7 @@
     padding: 12px 16px;
     text-align: left;
     font-size: 13px;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     color: var(--profile-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -645,7 +645,7 @@
     padding: 4px 12px;
     border-radius: 12px;
     font-size: 12px;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
@@ -676,7 +676,7 @@
 .invoice-link {
     color: var(--profile-accent);
     text-decoration: none;
-    font-weight: 500;
+    font-family: outfit-semibold, sans-serif;
     transition: color 0.2s ease;
 }
 
@@ -716,7 +716,7 @@
 
 .setting-title {
     font-size: 15px;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     color: var(--profile-primary);
     margin-bottom: 4px;
 }
@@ -821,7 +821,7 @@
 .modal-header h2 {
     margin: 0;
     font-size: 20px;
-    font-weight: 700;
+    font-family: outfit-semibold, sans-serif;
     color: var(--profile-primary);
 }
 
@@ -873,7 +873,7 @@
 
 .info-row .value {
     font-size: 15px;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     color: var(--profile-primary);
 }
 
@@ -890,7 +890,7 @@
     border: 1px solid var(--profile-border);
     border-radius: 6px;
     font-size: 14px;
-    font-weight: 500;
+    font-family: outfit-semibold, sans-serif;
     color: var(--profile-primary);
     cursor: pointer;
     transition: all 0.2s ease;
@@ -959,7 +959,7 @@
 
 .option-title {
     font-size: 15px;
-    font-weight: 600;
+    font-family: outfit-semibold, sans-serif;
     color: var(--profile-primary);
     margin-bottom: 4px;
 }
