@@ -1,11 +1,31 @@
 Terms of service, privacy policy
 
 
-
-
 Ak niekto posle mail na no reply tak automaticky vrati mail ze na tento email sa naposielaju maily
 
 ked klikne na most popular tak mu ho vyhlada alebo da na vrch v showcase
+
+cloudflare pridat do projektu(JE potrebne ale: mat domenu, spojazdnit VPS).
+        Krok 1 — Doména
+
+        Kúpiť doménu (odporúčam cez Cloudflare alebo WebSupport)
+
+        Krok 2 — Hosting
+
+        Vybrať VPS (Hetzner / DigitalOcean)
+        Nastaviť server (PHP, MariaDB, Redis)
+
+        Krok 3 — Cloudflare
+
+        Prepojiť doménu s Cloudflare
+        Zapnúť SSL (Full mode)
+
+        Krok 4 — Úpravy v kóde ← tu budem potrebný ja 😊
+
+        Opraviť detekciu IP adresy (rate limiter)
+        Nastaviť cache hlavičky pre verejné stránky
+        Prípadne .htaccess úpravy
+
 
 refresh token google:
 1//03IKjAO-DspkfCgYIARAAGAMSNwF-L9IrU5XMeGipEDXN4-qgl6NqOrBB5_hGDAUztUiUU3QmCtaZ4dzvPrcWgeunpqHLF-hj3Io
