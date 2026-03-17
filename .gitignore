@@ -1,0 +1,3 @@
+# Error logs
+logs/*.log
+logs/error.log

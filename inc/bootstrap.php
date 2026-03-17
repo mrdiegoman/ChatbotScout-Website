@@ -6,6 +6,7 @@
  */
 
 define('BOOTSTRAP_LOADED', true);
+require __DIR__ . '/errorHandler.php';
 
 // Štart PHP session
 session_start();

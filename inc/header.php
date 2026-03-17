@@ -56,6 +56,8 @@ $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User'
         <link rel="stylesheet" href="../css/profile.css">
     <?php elseif (in_array($page, $authPages, true)): ?>
         <link rel="stylesheet" href="../css/userAuthAll.css">
+    <?php elseif ($page === '404' || $page === '500'): ?>
+        <link rel="stylesheet" href="../css/errorPages.css">
     <?php endif; ?>
 </head>
 
