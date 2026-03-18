@@ -1,8 +1,23 @@
-Terms of service, privacy policy
+Terms of service
 
-viacej jazykov
+F&Q
 
-peknu page not found stranku
+pridat zrusenie marketing notifikacii praimo v emaili dolezite
+
+v privacy policy pridat tabulku pre data
+
+zmenenie cookies na 3 moznosti
+    <li>Accept all cookies: Consent to the use of all cookies and tracking technologies.</li>
+    <li>Reject non-essential cookies: Only essential cookies will be used to provide you with necessary website functions.</li>
+    <li>Customize your preferences: Choose which categories of cookies you wish to allow.</li>
+
+
+chatbotscout.com
+
+ChatBaselookup.com
+livegentai.com
+livegenthub.com
+
 
 
 Ak niekto posle mail na no reply tak automaticky vrati mail ze na tento email sa naposielaju maily
@@ -32,6 +47,7 @@ cloudflare pridat do projektu(JE potrebne ale: mat domenu, spojazdnit VPS).
 
 
 POSIBLY NESKOR:
+    viacej jazykov
     vytvaranie invoicov na platby
     v advertise lepsie visuals toho co si kupuje user
     testovat Stripe cli -> nakup, visa, paypal, apple-pay (celkove zobrazenie tj. inputy)

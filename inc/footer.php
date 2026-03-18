@@ -107,6 +107,8 @@
     </div>
 </div>
 
+<!-- <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="f4b02026-4c80-43f5-b0d8-1632c3d5114f" data-blockingmode="auto" type="text/javascript"></script> -->
+
 <link rel="stylesheet" href="../css/Consent.css">
 <script src="../js/footerVertical.js" defer></script>
 
