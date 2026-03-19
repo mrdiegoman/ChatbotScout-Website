@@ -218,4 +218,6 @@
         collectAndSend();
     }
 
+    // Expose pre Consent.js (ak skript už bol načítaný)
+    window.collectAndSendVisitor = collectAndSend;
 })();
