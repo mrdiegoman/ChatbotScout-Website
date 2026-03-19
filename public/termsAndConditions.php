@@ -33,8 +33,115 @@ require '../inc/header.php';
         it can derecognize and remember things like your user preferences (visits, clicks, historical 
         activity). You can find more detailed information about cookies and how they work at 
         http://www.aboutcookies.org.</p>
-    <p></p>
+    <p>Cookies are used by our website to enable the functionality of certain areas to make it easier 
+        for people visiting our website. Some of our affiliate/advertising partners may also use cookies 
+        (necessary cookies).</p>
+    <p>This site offers newsletter or email subscription services and cookies may be used to remember 
+        if you are already registered and whether to show certain notifications which might only be 
+        valid for subscribed/unsubscribed users. When you submit data through a form such as those 
+        found on contact pages or comment forms, cookies may be set to remember your user details for 
+        future correspondence (functional cookies).</p>
+    <p>We also use social media buttons and/or plugins on this site that allow you to connect with your 
+        social network in various ways. For these to work social media sites such as Facebook, and 
+        LinkedIn, will set cookies through our site which may be used to enhance your profile on the 
+        respective site, or contribute to the data they hold for various purposes outlined in their 
+        respective privacy policies.</p>
+    <p>We or our service providers also use analytic services to help us understand how effective 
+        our content is, what interests our users have, and to improve how this Website works. In 
+        addition, we use web beacons or tracking pixels to count visitor numbers and performance 
+        cookies to track how many individual users access this Website and how often. This information 
+        is used for statistical purposes only and it is not our intention to use such information to 
+        personally identify any user.</p>
+    <p>The cookies collected are used to a very limited extent necessary for technical purposes 
+        (website functionality) and stored for 1 to 5 years in line with the international NAI 
+        standards.</p>
+    <p>The browsers of most computers, smartphones, and other web-enabled devices are typically set up 
+        to accept cookies. If you wish to amend your cookie preferences for this website or any other 
+        websites you can do this through your browser settings. Your browser’s ‘help’ function will tell 
+        you how to do this. Be aware that disabling cookies will affect the functionality of this website 
+        in areas in which cookies are necessary for the functioning of features, and usually results in also 
+        disabling certain functionalities and features on this site. Therefore, it is recommended that you 
+        do not disable cookies.</p>
+    <h2>License and Intellectual Property Rights</h2>
+    <p>Unless otherwise stated, chatbotscout, and/or its licensors own the intellectual property rights for 
+        all material on chatbotscout.com. This website and its contents are protected by copyright, trademark, 
+        and other laws of Slovakia, and/or foreign countries. We and our licensors reserve all rights not 
+        expressly granted under these Terms of Use.</p>
+    <p>You may access this website for your own personal use subject to restrictions set in these terms and 
+        conditions.</p>
+    <p>You must not:</p>
+    <ul>
+        <li>Republish material from chatbotscout.com</li>
+        <li>Use material from chatbotscout.com for commercial purposes</li>
+        <li>Sell, rent, or sub-license material from chatbotscout.com</li>
+        <li>Reproduce, duplicate, modify or copy material from chatbotscout.com</li>
+        <li>Redistribute content from chatbotscout.com</li>
+    </ul>
+    <p>You shall not use the "chatbotscout" name or the chatbotscout logo, either alone or in combination with 
+        other words or design elements. You may not use any of the foregoing names, marks, or logos in any press 
+        release, advertisement, or other promotional or marketing material or media, whether in written, oral, 
+        electronic, visual, or any other form, except if expressly permitted in writing by chatbotscout.
+    </p>
+    <p>You will comply with all applicable laws in accessing and using this Website.</p>
+    <h2>Your Privacy</h2>
+    <p>You acknowledge that we may use your personal information and data according to our Privacy Policy 
+        incorporated herein by this reference. You hereby agree to the terms of our Privacy Policy, including any 
+        obligations imposed on you therein.
+    </p>
+    <h2>Reservation of Rights</h2>
+    <p>We reserve the right to request that you remove all links or any particular link to our website. You approve 
+        of immediately removing all links to our website upon request. We also reserve the right to amend these terms 
+        and conditions at any time. By linking to our website, you agree to be bound to and follow these terms and 
+        conditions.
+    </p>
+    <h2>Removal of links from our website</h2>
+    <p>If you find any link on our website that is offensive for any reason, you are free to contact and inform us 
+        at any moment. We will consider requests to remove links, but we are not obligated to or so or to respond to 
+        you directly.
+    </p>
+    <h2>Disclaimers and Limitations of Liability</h2>
+    <p>We do not ensure that the information on this website is correct, we do not warrant its completeness or accuracy; 
+        nor do we promise to ensure that the website remains available or that the material on the website is kept up to 
+        date. This website (including without limitation any content or other part thereof) contains general information 
+        only, and we are not, by means of this website, rendering professional advice or services. Before making any 
+        decision or taking any action that might affect your finances or business, you should consult a qualified 
+        professional advisor.
+    </p>
+    <p>
+        This website is provided as is, and we make no express or implied representations or warranties regarding it. 
+        Without limiting the foregoing, we do not warrant that this website will be secure, error-free, free from viruses 
+        or malicious code, or will meet any particular criteria of performance or quality. We expressly disclaim all implied 
+        warranties, including, without limitation, warranties of merchantability, title, fitness for a particular purpose, 
+        non-infringement, compatibility, security, and accuracy.
+    </p>
+    <p>
+        Your use of this website is at your own risk and you assume full responsibility and risk of loss resulting from 
+        your usage, including, without limitation, with respect to loss of service or data. We will not be liable for any 
+        direct, indirect, special, incidental, consequential, or punitive damages or any other damages whatsoever, whether 
+        in an action of contract, statute, tort (including, without limitation, negligence), or otherwise, relating to or 
+        arising out of the use of this website, even if we knew, or should have known, of the possibility of such damages.
+    </p>
+    <p>
+        Certain links on this website may lead to websites, resources, or tools maintained by third parties over whom we 
+        have no control. Without limiting any of the foregoing, we make no express or implied representations or warranties 
+        whatsoever regarding such websites, resources, and tools, and links to any such websites, resources and tools should 
+        not be construed as an endorsement of them or their content by us.
+    </p>
+    <p>
+        The above disclaimers and limitations of liability shall be applicable not only to us but also to our personnel and 
+        subcontractors.
+    </p>
+    <p>
+        The above disclaimers and limitations of liability are applicable to the fullest extent permitted by law, whether 
+        in contract, statute, tort (including, without limitation, negligence), or otherwise.
+    </p>
+    <p>
+        To the maximum extent permitted by applicable law, we exclude all representations, warranties, and conditions relating 
+        to our website and the use of this website.
+    </p>
+    <p>
+        As long as the website and the information and services on the website are provided free of charge, we will not be 
+        liable for any loss or damage of any nature.
+    </p>
 
-
-</p>
 </div>
