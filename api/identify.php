@@ -27,18 +27,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // Supports both v2 (JSON) and legacy (string) cookie
 // ============================================
 
-function hasStatisticsConsent(): bool
-{
-    $v2 = $_COOKIE['cookie_consent_v2'] ?? null;
-    if ($v2) {
-        $consent = json_decode($v2, true);
-        if (is_array($consent)) {
-            return !empty($consent['statistics']);
-        }
-    }
+// function hasStatisticsConsent(): bool
+// {
+//     $v2 = $_COOKIE['cookie_consent_v2'] ?? null;
+//     if ($v2) {
+//         $consent = json_decode($v2, true);
+//         if (is_array($consent)) {
+//             return !empty($consent['statistics']);
+//         }
+//     }
 
-    return ($_COOKIE['cookie_consent'] ?? null) === 'accepted';
-}
+//     return ($_COOKIE['cookie_consent'] ?? null) === 'accepted';
+// }
 
 if (!hasStatisticsConsent()) {
     echo json_encode(['success' => true, 'action' => 'no_consent']);
