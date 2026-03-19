@@ -10,7 +10,7 @@
  *  - Má cookie + fingerprint patrí inému staršiemu visitoru → obnov cookie na starého visitora
  *  - Má cookie + fingerprint nikde v DB → ulož fingerprint na aktuálneho visitora
  *  - Nemá cookie (edge case) → nič, bootstrap sa postará pri ďalšom page loade
- *  - cookie_consent nie je 'accepted' → okamžite zastav, nič nerob
+ *  - Statistics consent nie je udelený → okamžite zastav, nič nerob
  */
 
 require '../inc/bootstrap.php';
@@ -22,9 +22,27 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// GDPR: Spracovanie fingerprintu je povolené len s explicitným súhlasom
-$cookieConsent = $_COOKIE['cookie_consent'] ?? null;
-if ($cookieConsent !== 'accepted') {
+// ============================================
+// GDPR: Statistics consent check
+// Supports both v2 (JSON) and legacy (string) cookie
+// ============================================
+
+function hasStatisticsConsent(): bool
+{
+    // Check new v2 cookie first
+    $v2 = $_COOKIE['cookie_consent_v2'] ?? null;
+    if ($v2) {
+        $consent = json_decode($v2, true);
+        if (is_array($consent)) {
+            return !empty($consent['statistics']);
+        }
+    }
+
+    // Fallback: legacy cookie
+    return ($_COOKIE['cookie_consent'] ?? null) === 'accepted';
+}
+
+if (!hasStatisticsConsent()) {
     echo json_encode(['success' => true, 'action' => 'no_consent']);
     exit;
 }
@@ -70,13 +88,11 @@ try {
 
     } else {
         // Fingerprint nebol nájdený v DB - aktualizuj fingerprint na aktuálnom visitorovi.
-        // (Server-side fingerprint z create() sa nahradí presnejším hodnotou)
         $visitor->updateFingerprint($cookieVisitorId, $fingerprint);
         echo json_encode(['success' => true, 'action' => 'updated', 'visitor_id' => $cookieVisitorId]);
     }
 
     // Cleanup orphaned visitorov s prázdnym fingerprintom staršších ako 5 minút
-    // Beží pri každom volaní identify.php aby sa DB udržala čistá
     $visitor->deleteOrphanedEmpty($cookieVisitorId);
 
 } catch (Exception $e) {

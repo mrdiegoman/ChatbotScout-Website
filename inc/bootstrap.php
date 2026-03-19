@@ -53,15 +53,33 @@ if (isset($_COOKIE[$appConfig['session']['cookie_name']])) {
 }
 
 // ============================================
+// GDPR CONSENT HELPER
+// Supports both v2 (JSON) and legacy (string) cookie
+// ============================================
+
+function hasStatisticsConsent(): bool
+{
+    // Check new v2 cookie first
+    $v2 = $_COOKIE['cookie_consent_v2'] ?? null;
+    if ($v2) {
+        $consent = json_decode($v2, true);
+        if (is_array($consent)) {
+            return !empty($consent['statistics']);
+        }
+    }
+
+    // Fallback: legacy cookie
+    return ($_COOKIE['cookie_consent'] ?? null) === 'accepted';
+}
+
+// ============================================
 // VISITOR TRACKING
-// Spustí sa IBA ak user dal súhlas s cookies.
-// Ak cookie_consent neexistuje alebo je 'declined' → tracking sa preskočí.
+// Spustí sa IBA ak user dal súhlas so Statistics cookies.
 // ============================================
 
 $visitorId  = null;
-$cookieConsent = $_COOKIE['cookie_consent'] ?? null;
 
-if ($cookieConsent === 'accepted') {
+if (hasStatisticsConsent()) {
     $userAgent  = $_SERVER['HTTP_USER_AGENT'] ?? '';
     $isBotOrApi = empty($userAgent) || preg_match('/(Stripe|curl|wget|bot|crawler)/i', $userAgent);
 
