@@ -162,7 +162,7 @@
     }
 
     function logoHtml(chatbot) {
-        const src = chatbot.logo_url ? escapeHtml(chatbot.logo_url) : '../img/chatbothub_logo.png';
+        const src = chatbot.logo_url ? escapeHtml(chatbot.logo_url) : '../img/ChatbotScout_logo.png';
         return `<img src="../${src}" alt="${escapeHtml(chatbot.name)} logo" loading="lazy">`;
     }
 

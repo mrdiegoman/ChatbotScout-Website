@@ -61,6 +61,8 @@ $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User'
     <?php elseif ($page === 'privacyPolicy'): ?>
         <link rel="stylesheet" href="../css/privacyPolicy.css">
     <?php endif; ?>
+
+    <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="f4b02026-4c80-43f5-b0d8-1632c3d5114f" data-blockingmode="auto" type="text/javascript"></script>
 </head>
 
 <body class="<?php echo implode(' ', $bodyClasses); ?>">
