@@ -26,7 +26,6 @@ class Visitor
     {
         $cookieName = $this->appConfig['visitor']['cookie_name'];
 
-        // Ak už má visitor cookie, over či existuje v DB
         if (isset($_COOKIE[$cookieName])) {
             $visitorId = $_COOKIE[$cookieName];
 
@@ -36,17 +35,45 @@ class Visitor
             }
         }
 
-        // Vytvor nového visitora
         return $this->create($utmParams);
     }
 
     /**
-     * Vytvorenie nového visitor záznamu
+     * Získa existujúceho visitora podľa ID — len aktualizuje last_seen, nevytvára nového.
+     *
+     * @param string $visitorId
+     * @return string|null Visitor ID ak existuje, null ak nie
      */
-    private function create(array $utmParams): string
+    public function getExisting(string $visitorId): ?string
     {
+        if (!$this->exists($visitorId)) {
+            return null;
+        }
+
+        $this->updateLastSeen($visitorId);
+        return $visitorId;
+    }
+
+    /**
+     * Vytvor visitora s fingerprintom hneď — používa identify.php pri prvej návšteve.
+     * Ak visitor s týmto fingerprintom už existuje, vráti jeho ID a obnoví cookie.
+     *
+     * @param string $fingerprint
+     * @param array  $utmParams
+     * @return string Visitor UUID
+     */
+    public function createWithFingerprint(string $fingerprint, array $utmParams = []): string
+    {
+        // Skontroluj či visitor s týmto fingerprintom už existuje
+        $existing = $this->findByFingerprint($fingerprint);
+        if ($existing) {
+            $this->updateLastSeen($existing);
+            $this->setCookie($existing);
+            return $existing;
+        }
+
+        // Vytvor nového visitora s fingerprintom hneď od začiatku
         $visitorId   = $this->generateUuid();
-        $fingerprint = $this->generateFingerprint();
         $ipAddress   = $_SERVER['REMOTE_ADDR'] ?? null;
         $userAgent   = $_SERVER['HTTP_USER_AGENT'] ?? null;
         $referrer    = $_SERVER['HTTP_REFERER'] ?? null;
@@ -90,9 +117,56 @@ class Visitor
     }
 
     /**
+     * Vytvorenie nového visitor záznamu (s prázdnym fingerprintom — len pre getOrCreate)
+     */
+    private function create(array $utmParams): string
+    {
+        $visitorId   = $this->generateUuid();
+        $ipAddress   = $_SERVER['REMOTE_ADDR'] ?? null;
+        $userAgent   = $_SERVER['HTTP_USER_AGENT'] ?? null;
+        $referrer    = $_SERVER['HTTP_REFERER'] ?? null;
+        $landingPage = $_SERVER['REQUEST_URI'] ?? null;
+
+        $cookieLifetime = $this->appConfig['visitor']['cookie_lifetime'];
+        $expiresAt      = date('Y-m-d H:i:s', time() + $cookieLifetime);
+
+        $stmt = $this->db->prepare("
+            INSERT INTO visitors (
+                id, fingerprint, ip_address, user_agent,
+                referrer_url, landing_page,
+                utm_source, utm_medium, utm_campaign, utm_term, utm_content,
+                first_seen, last_seen, expires_at
+            ) VALUES (
+                :id, :fingerprint, :ip, :user_agent,
+                :referrer, :landing_page,
+                :utm_source, :utm_medium, :utm_campaign, :utm_term, :utm_content,
+                NOW(), NOW(), :expires
+            )
+        ");
+
+        $stmt->execute([
+            'id'           => $visitorId,
+            'fingerprint'  => '',
+            'ip'           => $ipAddress,
+            'user_agent'   => $userAgent,
+            'referrer'     => $referrer,
+            'landing_page' => $landingPage,
+            'utm_source'   => $utmParams['utm_source']   ?? null,
+            'utm_medium'   => $utmParams['utm_medium']   ?? null,
+            'utm_campaign' => $utmParams['utm_campaign'] ?? null,
+            'utm_term'     => $utmParams['utm_term']     ?? null,
+            'utm_content'  => $utmParams['utm_content']  ?? null,
+            'expires'      => $expiresAt,
+        ]);
+
+        $this->setCookie($visitorId);
+
+        return $visitorId;
+    }
+
+    /**
      * Vymaž orphaned visitorov s prázdnym fingerprintom okrem zadaného ID.
-     * Maže IBA tých čo sú staršie ako 5 minút (aby sme nedali čas visitor.js dobehnúť)
-     * a nemajú žiadne aktivity.
+     * Maže IBA tých čo sú staršie ako 5 minút a nemajú žiadne aktivity.
      *
      * @param string $excludeVisitorId Tento visitor sa nevymaže (aktuálny)
      */
@@ -110,14 +184,11 @@ class Visitor
 
     /**
      * Vymaž visitora ak nemá žiadne aktivity (chatbot_clicks, visitor_user_links)
-     * Používa sa na vymazanie orphaned visitorov ktorých vytvoril bootstrap
-     * keď fingerprint neskôr nájde pôvodného visitora.
      *
      * @param string $visitorId
      */
     public function deleteIfEmpty(string $visitorId): void
     {
-        // Skontroluj či má nejaké aktivity
         $stmt = $this->db->prepare("
             SELECT
                 (SELECT COUNT(*) FROM chatbot_clicks WHERE visitor_id = :id) +
@@ -127,7 +198,6 @@ class Visitor
         $stmt->execute(['id' => $visitorId, 'id2' => $visitorId]);
         $count = (int) $stmt->fetchColumn();
 
-        // Vymaž iba ak nemá žiadne aktivity
         if ($count === 0) {
             $this->db->prepare("DELETE FROM visitors WHERE id = :id")
                 ->execute(['id' => $visitorId]);
@@ -142,7 +212,6 @@ class Visitor
      */
     public function findByFingerprint(string $fingerprint): ?string
     {
-        // Prázdny fingerprint ignorujeme - ešte nebol nastavený cez visitor.js
         if (empty($fingerprint)) {
             return null;
         }
@@ -161,7 +230,7 @@ class Visitor
     }
 
     /**
-     * Aktualizuj fingerprint visitora (FingerprintJS hodnota je presnejšia ako server-side)
+     * Aktualizuj fingerprint visitora
      *
      * @param string $visitorId
      * @param string $fingerprint
@@ -250,15 +319,6 @@ class Visitor
         $stmt = $this->db->prepare("SELECT COUNT(*) FROM visitors WHERE id = :id");
         $stmt->execute(['id' => $visitorId]);
         return $stmt->fetchColumn() > 0;
-    }
-
-    /**
-     * Fingerprint sa nastavuje cez visitor.js (client-side) po načítaní stránky.
-     * Pri vytvorení visitora je prázdny - identify.php ho neskôr nastaví.
-     */
-    private function generateFingerprint(): string
-    {
-        return '';
     }
 
     /**

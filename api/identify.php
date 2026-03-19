@@ -6,10 +6,10 @@
  * Zabezpečuje že visitor má správnu cookie aj po jej vymazaní.
  *
  * Logika:
+ *  - Nemá cookie + má fingerprint → vytvor nového visitora s fingerprintom hneď
  *  - Má cookie + fingerprint sa zhoduje → nič (OK)
  *  - Má cookie + fingerprint patrí inému staršiemu visitoru → obnov cookie na starého visitora
  *  - Má cookie + fingerprint nikde v DB → ulož fingerprint na aktuálneho visitora
- *  - Nemá cookie (edge case) → nič, bootstrap sa postará pri ďalšom page loade
  *  - Statistics consent nie je udelený → okamžite zastav, nič nerob
  */
 
@@ -29,7 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 function hasStatisticsConsent(): bool
 {
-    // Check new v2 cookie first
     $v2 = $_COOKIE['cookie_consent_v2'] ?? null;
     if ($v2) {
         $consent = json_decode($v2, true);
@@ -38,7 +37,6 @@ function hasStatisticsConsent(): bool
         }
     }
 
-    // Fallback: legacy cookie
     return ($_COOKIE['cookie_consent'] ?? null) === 'accepted';
 }
 
@@ -58,41 +56,52 @@ if (empty($fingerprint)) {
 $appConfig       = require __DIR__ . '/../config/app.php';
 $cookieVisitorId = $_COOKIE[$appConfig['visitor']['cookie_name']] ?? null;
 
-// Ak nie je cookie, nemáme čo robiť - bootstrap to vyrieši pri ďalšom page loade
+// ============================================
+// Nemá cookie — vytvor nového visitora s fingerprintom hneď
+// ============================================
+
 if (empty($cookieVisitorId)) {
-    echo json_encode(['success' => true, 'action' => 'no_cookie']);
+    try {
+        $visitor   = new Visitor();
+        $visitorId = $visitor->createWithFingerprint($fingerprint);
+        echo json_encode(['success' => true, 'action' => 'created', 'visitor_id' => $visitorId]);
+    } catch (Exception $e) {
+        error_log('identify createWithFingerprint error: ' . $e->getMessage());
+        echo json_encode(['success' => false]);
+    }
     exit;
 }
+
+// ============================================
+// Má cookie — spracuj existujúceho visitora
+// ============================================
 
 try {
     $visitor = new Visitor();
 
-    // Hľadaj visitora podľa FingerprintJS fingerprintu
     $fingerprintVisitorId = $visitor->findByFingerprint($fingerprint);
 
     if ($fingerprintVisitorId !== null) {
 
         if ($cookieVisitorId === $fingerprintVisitorId) {
-            // Visitor sa zhoduje s cookie aj fingerprintom - všetko OK
+            // Visitor sa zhoduje s cookie aj fingerprintom — všetko OK
             echo json_encode(['success' => true, 'action' => 'match', 'visitor_id' => $cookieVisitorId]);
 
         } else {
             // Fingerprint patrí inému (staršiemu) visitoru.
-            // Bootstrap vytvoril nového prázdneho visitora - vymažeme ho (orphaned).
-            // Potom obnovíme cookie na pôvodného visitora.
+            // Vymažeme aktuálneho prázdneho visitora a obnovíme cookie na pôvodného.
             $visitor->deleteIfEmpty($cookieVisitorId);
             $visitor->setCookie($fingerprintVisitorId);
-            // Vrátime správne visitor_id aby JS mohol okamžite aktualizovať cookie
             echo json_encode(['success' => true, 'action' => 'restored', 'visitor_id' => $fingerprintVisitorId]);
         }
 
     } else {
-        // Fingerprint nebol nájdený v DB - aktualizuj fingerprint na aktuálnom visitorovi.
+        // Fingerprint nebol nájdený v DB — aktualizuj fingerprint na aktuálnom visitorovi
         $visitor->updateFingerprint($cookieVisitorId, $fingerprint);
         echo json_encode(['success' => true, 'action' => 'updated', 'visitor_id' => $cookieVisitorId]);
     }
 
-    // Cleanup orphaned visitorov s prázdnym fingerprintom staršších ako 5 minút
+    // Cleanup orphaned visitorov s prázdnym fingerprintom starších ako 5 minút
     $visitor->deleteOrphanedEmpty($cookieVisitorId);
 
 } catch (Exception $e) {

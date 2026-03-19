@@ -84,16 +84,15 @@ if (hasStatisticsConsent()) {
     $isBotOrApi = empty($userAgent) || preg_match('/(Stripe|curl|wget|bot|crawler)/i', $userAgent);
 
     if (!$isBotOrApi) {
-        $visitor   = new Visitor();
-        $utmParams = [
-            'utm_source'   => $_GET['utm_source']   ?? null,
-            'utm_medium'   => $_GET['utm_medium']   ?? null,
-            'utm_campaign' => $_GET['utm_campaign'] ?? null,
-            'utm_term'     => $_GET['utm_term']     ?? null,
-            'utm_content'  => $_GET['utm_content']  ?? null,
-        ];
+        $appConfig = require __DIR__ . '/../config/app.php';
+        $cookieVisitorId = $_COOKIE[$appConfig['visitor']['cookie_name']] ?? null;
 
-        $visitorId = $visitor->getOrCreate($utmParams);
+        if ($cookieVisitorId) {
+            // Visitor už existuje — len aktualizuj last_seen
+            $visitor   = new Visitor();
+            $visitorId = $visitor->getExisting($cookieVisitorId);
+        }
+        // Nový visitor sa vytvorí až cez ensureVisitor.php po súhlase
     }
 }
 

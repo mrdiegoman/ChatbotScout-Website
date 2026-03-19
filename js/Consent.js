@@ -87,6 +87,8 @@
 
     // ============================================
     // VISITOR.JS LOADER
+    // visitor.js sa postará o všetko — vytvorí visitora s fingerprintom hneď
+    // cez identify.php (createWithFingerprint). Žiadny dvojkrokový proces.
     // ============================================
 
     function loadVisitorScript() {
@@ -100,15 +102,8 @@
 
     function applyConsent(consent) {
         if (consent.statistics) {
-            ensureVisitorId();
             loadVisitorScript();
         }
-    }
-
-    function ensureVisitorId() {
-        // Ak visitor_id už existuje (httponly — JS ho nevidí, takže vždy zavoláme endpoint)
-        fetch('../api/ensureVisitor.php', { method: 'POST' })
-            .catch(function () {});
     }
 
     // ============================================
@@ -142,14 +137,12 @@
         var overlay = document.getElementById('cookie-modal-overlay');
         if (!overlay) return;
 
-        // Populate toggles with current consent state
         var consent = getConsent();
         if (consent) {
             setToggle('cookie-toggle-statistics',  consent.statistics);
             setToggle('cookie-toggle-preferences', consent.preferences);
             setToggle('cookie-toggle-marketing',   consent.marketing);
 
-            // Show consent ID and date
             var idEl   = document.getElementById('cookie-consent-id');
             var dateEl = document.getElementById('cookie-consent-date');
             if (idEl)   idEl.textContent   = 'Consent ID: ' + consent.consentId;
@@ -261,7 +254,6 @@
         saveConsent(consent);
         applyConsent(consent);
 
-        // Revoke cookies for disabled categories
         if (!consent.statistics)  revokeStatisticsCookies();
         if (!consent.preferences) revokePreferencesCookies();
 
@@ -274,7 +266,6 @@
     // ============================================
 
     function wireUp() {
-        // Banner buttons
         var btnAcceptAll = document.getElementById('cookie-btn-accept-all');
         var btnRejectAll = document.getElementById('cookie-btn-reject-all');
         var btnManage    = document.getElementById('cookie-btn-manage');
@@ -283,7 +274,6 @@
         if (btnRejectAll) btnRejectAll.addEventListener('click', rejectAll);
         if (btnManage)    btnManage.addEventListener('click', showModal);
 
-        // Modal buttons
         var btnModalAccept = document.getElementById('cookie-modal-accept-all');
         var btnModalReject = document.getElementById('cookie-modal-reject-all');
         var btnModalSave   = document.getElementById('cookie-modal-save');
@@ -294,7 +284,6 @@
         if (btnModalSave)   btnModalSave.addEventListener('click', savePreferences);
         if (btnModalClose)  btnModalClose.addEventListener('click', hideModal);
 
-        // Toggle clicks
         ['statistics', 'preferences', 'marketing'].forEach(function (cat) {
             var toggle = document.getElementById('cookie-toggle-' + cat);
             if (toggle) {
@@ -304,7 +293,6 @@
             }
         });
 
-        // Category accordion headers — event delegation on modal body
         var modalBody = document.querySelector('.cookie-modal-body');
         if (modalBody) {
             modalBody.addEventListener('click', function (e) {
@@ -313,7 +301,6 @@
             });
         }
 
-        // Close modal on overlay click
         var overlay = document.getElementById('cookie-modal-overlay');
         if (overlay) {
             overlay.addEventListener('click', function (e) {
@@ -321,12 +308,10 @@
             });
         }
 
-        // ESC key closes modal
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') hideModal();
         });
 
-        // Fixed settings button
         var settingsBtn = document.getElementById('cookie-settings-btn');
         if (settingsBtn) {
             settingsBtn.addEventListener('click', showModal);
@@ -343,13 +328,11 @@
         var consent = getConsent();
 
         if (consent) {
-            // Existing consent — apply it and migrate to v2 if needed
             applyConsent(consent);
             if (!getCookie(COOKIE_V2)) {
                 saveConsent(consent);
             }
         } else {
-            // No consent yet — show banner
             showBanner();
         }
     }
