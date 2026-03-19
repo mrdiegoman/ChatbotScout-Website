@@ -215,6 +215,33 @@ class Email
         return $this->send($toEmail, $toName, $subject, $htmlBody, $textBody);
     }
 
+    public function sendMarketingEmail(
+        string $toEmail,
+        string $toName,
+        string $subject,
+        string $preheader,
+        string $headline,
+        string $bodyHtml,
+        string $ctaText,
+        string $ctaUrl,
+        string $unsubscribeToken
+    ): bool {
+        $unsubscribeUrl = $this->config['base_url'] . '/unsubscribe.php?token=' . urlencode($unsubscribeToken);
+        $htmlBody       = $this->getMarketingTemplate(
+            $toName,
+            $preheader,
+            $headline,
+            $bodyHtml,
+            $ctaText,
+            $ctaUrl,
+            $unsubscribeUrl
+        );
+        $textBody = strip_tags($bodyHtml) . "\n\n" . $ctaText . ': ' . $ctaUrl
+            . "\n\n---\nTo unsubscribe: " . $unsubscribeUrl;
+ 
+        return $this->send($toEmail, $toName, $subject, $htmlBody, $textBody);
+    }
+
     // ============================================
     // PRIVATE SEND — Gmail API
     // ============================================
@@ -597,6 +624,45 @@ class Email
             <p>Best regards,<br><strong>The ChatbotHub Team</strong></p>
         </div>
         HTML;
+        return $this->baseTemplate($content);
+    }
+
+    private function getMarketingTemplate(
+        string $name,
+        string $preheader,
+        string $headline,
+        string $bodyHtml,
+        string $ctaText,
+        string $ctaUrl,
+        string $unsubscribeUrl
+    ): string {
+        $content = <<<HTML
+        <!-- Preheader (neviditeľný náhľadový text v emailovom klientovi) -->
+        <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;color:#fff;">
+            {$preheader}
+        </div>
+ 
+        <div class="header" style="background: linear-gradient(135deg, #2d1b69 0%, #1a3a6e 100%); padding: 32px 32px 24px;">
+            <h1>{$headline}</h1>
+        </div>
+ 
+        <div class="body">
+            <p>Hi <strong>{$name}</strong>,</p>
+ 
+            {$bodyHtml}
+ 
+            <a href="{$ctaUrl}" class="button button-green"
+               style="display:inline-block;margin:24px 0 8px;">
+                {$ctaText}
+            </a>
+ 
+            <p style="font-size:12px;color:#9ca3af;margin-top:40px;padding-top:20px;border-top:1px solid #e5e7eb;">
+                You're receiving this email because you opted in to marketing communications from ChatbotHub.<br>
+                <a href="{$unsubscribeUrl}" style="color:#9ca3af;">Unsubscribe</a>
+            </p>
+        </div>
+        HTML;
+ 
         return $this->baseTemplate($content);
     }
 

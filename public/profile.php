@@ -76,7 +76,8 @@ require '../inc/header.php';
         <!-- Page Header -->
         <div class="profile-header">
             <h1>My Account</h1>
-            <p>Manage your profile, billing, and settings</p>
+            <p>Manage your profile, and settings</p>
+            <!-- <p>Manage your profile, billing, and settings</p> -->
         </div>
 
         <!-- Tab Navigation -->
@@ -85,10 +86,11 @@ require '../inc/header.php';
                     data-tab="profile">
                 Profile
             </button>
-            <button class="tab-btn <?php echo $activeTab === 'billing' ? 'active' : ''; ?>" 
+            <!-- Disabled button for billing info for now -->
+            <!-- <button class="tab-btn <?php echo $activeTab === 'billing' ? 'active' : ''; ?>" 
                     data-tab="billing">
                 Billing Info
-            </button>
+            </button> -->
             <button class="tab-btn <?php echo $activeTab === 'settings' ? 'active' : ''; ?>" 
                     data-tab="settings">
                 Settings
@@ -670,7 +672,7 @@ require '../inc/header.php';
                 <input type="text" id="delete-confirmation-input" placeholder="DELETE">
             </div>
 
-            <div class="modal-actions">
+            <div class="modal-actions" style="flex-direction:row;justify-content:space-between;gap:12px;">
                 <button class="cancel-btn modal-close">Cancel</button>
                 <button class="danger-btn" id="confirm-delete-btn" disabled>Delete My Account</button>
             </div>

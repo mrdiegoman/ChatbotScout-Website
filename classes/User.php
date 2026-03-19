@@ -144,7 +144,8 @@ class User
                 email_verification_expires_at,
                 marketing_emails,
                 status,
-                created_at
+                created_at,
+                unsubscribe_token
             ) VALUES (
                 :id,
                 :first_name,
@@ -155,7 +156,8 @@ class User
                 :token_expires,
                 :marketing_emails,
                 'pending_verification',
-                NOW()
+                NOW(),
+                :unsubscribe_token
             )
         ");
         
@@ -168,6 +170,7 @@ class User
             'token' => $verificationToken,
             'token_expires' => $tokenExpires,
             'marketing_emails' => $marketingEmails ? 1 : 0,
+            'unsubscribe_token' => bin2hex(random_bytes(32)),
         ]);
         
         // Odoslanie verification emailu

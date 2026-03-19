@@ -93,7 +93,8 @@ class Session
                 u.profile_picture_url,
                 u.is_email_verified,
                 u.is_admin,
-                u.status
+                u.status,
+                u.marketing_emails
             FROM user_sessions s
             JOIN users u ON s.user_id = u.id
             WHERE s.session_token = :token
@@ -151,6 +152,7 @@ class Session
             'is_email_verified'   => (bool)$data['is_email_verified'],
             'is_admin'            => (bool)$data['is_admin'],
             'status'              => $data['status'],
+            'marketing_emails'    => (bool)$data['marketing_emails'],
         ];
     }
     

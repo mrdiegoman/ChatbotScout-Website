@@ -232,7 +232,8 @@ try {
                 marketing_emails,
                 created_at,
                 updated_at,
-                last_login_at
+                last_login_at,
+                unsubscribe_token
             ) VALUES (
                 :id,
                 :email,
@@ -249,7 +250,8 @@ try {
                 0,
                 NOW(),
                 NOW(),
-                NOW()
+                NOW(),
+                :unsubscribe_token
             )
         ");
 
@@ -261,6 +263,7 @@ try {
             'first_name'   => $firstName,
             'last_name'    => $lastName,
             'picture'      => $picture,
+            'unsubscribe_token' => bin2hex(random_bytes(32)),
         ]);
 
         $userData = [

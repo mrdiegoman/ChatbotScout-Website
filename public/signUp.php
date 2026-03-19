@@ -228,7 +228,7 @@ require '../inc/header.php';
                         <?php echo !empty($oldInput['terms_accepted']) ? 'checked' : ''; ?>
                     >
                     <label for="terms_accepted">
-                        By signing up, you agree to our <a href="termsOfService.php" target="_blank">Terms of Service</a> and <a href="privacyPolicy.php" target="_blank">Privacy Policy</a>.
+                        By signing up, you agree to our <a href="termsAndConditions.php" target="_blank">Terms of Service</a> and <a href="privacyPolicy.php" target="_blank">Privacy Policy</a>.
                     </label>
                 </div>
                 <?php if (!empty($errors['terms'])): ?>

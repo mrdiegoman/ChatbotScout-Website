@@ -48,6 +48,7 @@ CREATE TABLE `users` (
   `profile_picture_url` VARCHAR(500) NULL COMMENT 'Profile picture URL, e.g., "https://cdn.chatbotdir.com/users/john-doe.jpg", "https://storage.googleapis.com/profiles/maria_k.png", "https://imgur.com/abc123.jpg"',
   `bio` TEXT NULL COMMENT 'User bio, e.g., "Digital marketing specialist with 5 years of experience", "Chatbot enthusiast and AI developer from Slovakia", "Helping businesses automate customer support"',
   `marketing_emails` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Marketing emails enabled?, e.g., TRUE, FALSE',
+  `unsubscribe_token` VARCHAR(64) NULL UNIQUE COMMENT 'Token pre one-click unsubscribe z marketing emailov',
   `website_url` VARCHAR(500) NULL COMMENT 'Personal website, e.g., "https://johndoe.com", "https://mariakovacova.sk", "https://techblog.io"',
 
   -- Account Status
