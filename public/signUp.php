@@ -82,8 +82,8 @@ require '../inc/header.php';
     <div class="auth-container">
         <!-- Logo and Brand -->
         <!-- <div class="auth-header">
-            <img src="../img/chatbothub_logo.png" alt="ChatbotHub Logo">
-            <h1>ChatbotHub</h1>
+            <img src="../img/ChatbotScout_logo.png" alt="ChatbotScout Logo">
+            <h1>ChatbotScout</h1>
         </div> -->
         
         <!-- Page Title -->

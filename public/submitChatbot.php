@@ -16,7 +16,7 @@ if (!$isLoggedIn) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Get Listed on ChatbotHub – Partner With Us</title>
+    <title>Get Listed on ChatbotScout – Partner With Us</title>
     <?php require '../inc/header.php'; ?>
     <link rel="stylesheet" href="../css/submitChatbot.css">
 </head>
@@ -30,7 +30,7 @@ if (!$isLoggedIn) {
 
             <div class="sc-sidebar__logo">
                 <a href="index.php">
-                    <img src="../img/chatbothub_logo.png" alt="ChatbotHub" height="36">
+                    <img src="../img/ChatbotScout_logo.png" alt="ChatbotScout" height="36">
                 </a>
             </div>
 
@@ -62,7 +62,7 @@ if (!$isLoggedIn) {
                 <li class="sc-steps__item">
                     <div class="sc-steps__dot">4</div>
                     <div>
-                        <strong>Go live on ChatbotHub</strong>
+                        <strong>Go live on ChatbotScout</strong>
                         <span>Your chatbot reaches thousands of buyers</span>
                     </div>
                 </li>

@@ -48,9 +48,9 @@ class Email
         string $chatbotName,
         string $reason
     ): bool {
-        $subject  = 'Chatbot Delisted - ChatbotHub';
+        $subject  = 'Chatbot Delisted - ChatbotScout';
         $htmlBody = $this->getChatbotDelistedTemplate($toName, $chatbotName, $reason);
-        $textBody = "Hi $toName,\n\nYour chatbot \"$chatbotName\" has been delisted from ChatbotHub.\n\nReason: $reason\n\nIf you have any questions, please don't hesitate to contact us.\n\nBest regards,\nThe ChatbotHub Team";
+        $textBody = "Hi $toName,\n\nYour chatbot \"$chatbotName\" has been delisted from ChatbotScout.\n\nReason: $reason\n\nIf you have any questions, please don't hesitate to contact us.\n\nBest regards,\nThe ChatbotScout Team";
  
         return $this->send($toEmail, $toName, $subject, $htmlBody, $textBody);
     }
@@ -58,7 +58,7 @@ class Email
     public function sendVerification(string $toEmail, string $toName, string $verificationToken): bool
     {
         $verificationLink = $this->config['base_url'] . '/verifyEmail.php?token=' . $verificationToken;
-        $subject          = 'Verify your ChatbotHub account';
+        $subject          = 'Verify your ChatbotScout account';
         $htmlBody         = $this->getVerificationTemplate($toName, $verificationLink);
         $textBody         = "Hi $toName,\n\nPlease verify your email by clicking this link:\n$verificationLink\n\nThis link will expire in 24 hours.";
 
@@ -68,7 +68,7 @@ class Email
     public function sendPasswordReset(string $toEmail, string $toName, string $resetToken): bool
     {
         $resetLink = $this->config['base_url'] . '/resetPassword.php?token=' . $resetToken;
-        $subject   = 'Reset your ChatbotHub password';
+        $subject   = 'Reset your ChatbotScout password';
         $htmlBody  = $this->getPasswordResetTemplate($toName, $resetLink);
         $textBody  = "Hi $toName,\n\nYou requested a password reset. Click this link to reset your password:\n$resetLink\n\nThis link will expire in 1 hour.\n\nIf you didn't request this, please ignore this email.";
 
@@ -77,9 +77,9 @@ class Email
 
     public function sendContactConfirmation(string $toEmail, string $toName, string $subject): bool
     {
-        $emailSubject = 'We received your message - ChatbotHub';
+        $emailSubject = 'We received your message - ChatbotScout';
         $htmlBody     = $this->getContactConfirmationTemplate($toName, $subject);
-        $textBody     = "Hi $toName,\n\nThank you for reaching out! We have received your message regarding \"$subject\".\n\nWe aim to respond within a few business days.\n\nBest regards,\nThe ChatbotHub Team";
+        $textBody     = "Hi $toName,\n\nThank you for reaching out! We have received your message regarding \"$subject\".\n\nWe aim to respond within a few business days.\n\nBest regards,\nThe ChatbotScout Team";
 
         return $this->send($toEmail, $toName, $emailSubject, $htmlBody, $textBody);
     }
@@ -118,9 +118,9 @@ class Email
         string $fromEmail = '',
         string $fromName  = ''
     ): bool {
-        $emailSubject      = 'Re: ' . $originalSubject . ' - ChatbotHub';
+        $emailSubject      = 'Re: ' . $originalSubject . ' - ChatbotScout';
         $htmlBody          = $this->getAdminReplyTemplate($toName, $originalSubject, $replyText);
-        $textBody          = "Hi $toName,\n\nThank you for contacting us. Here is our response to your inquiry regarding \"$originalSubject\":\n\n$replyText\n\nBest regards,\nThe ChatbotHub Team";
+        $textBody          = "Hi $toName,\n\nThank you for contacting us. Here is our response to your inquiry regarding \"$originalSubject\":\n\n$replyText\n\nBest regards,\nThe ChatbotScout Team";
         $resolvedFromEmail = !empty($fromEmail) ? $fromEmail : $this->config['from_email'];
         $resolvedFromName  = !empty($fromName)  ? $fromName  : $this->replyName;
 
@@ -133,9 +133,9 @@ class Email
         string $chatbotName,
         string $websiteUrl
     ): bool {
-        $subject  = 'We received your chatbot submission - ChatbotHub';
+        $subject  = 'We received your chatbot submission - ChatbotScout';
         $htmlBody = $this->getChatbotSubmissionConfirmationTemplate($toName, $chatbotName, $websiteUrl);
-        $textBody = "Hi $toName,\n\nThank you for submitting \"$chatbotName\" to ChatbotHub!\n\nWe have received your partnership request and will review your chatbot shortly. Our team will contact you to discuss the affiliate revenue deal.\n\nBest regards,\nThe ChatbotHub Team";
+        $textBody = "Hi $toName,\n\nThank you for submitting \"$chatbotName\" to ChatbotScout!\n\nWe have received your partnership request and will review your chatbot shortly. Our team will contact you to discuss the affiliate revenue deal.\n\nBest regards,\nThe ChatbotScout Team";
 
         return $this->send($toEmail, $toName, $subject, $htmlBody, $textBody);
     }
@@ -195,9 +195,9 @@ class Email
         string $chatbotName,
         string $pricingUrl = ''
     ): bool {
-        $subject  = '🎉 Your chatbot has been approved - ChatbotHub';
+        $subject  = '🎉 Your chatbot has been approved - ChatbotScout';
         $htmlBody = $this->getChatbotApprovedTemplate($toName, $chatbotName);
-        $textBody = "Hi $toName,\n\n\"$chatbotName\" has been approved for listing on ChatbotHub.\n\nOur team will be in touch soon to finalise the affiliate partnership details.\n\nBest regards,\nThe ChatbotHub Team";
+        $textBody = "Hi $toName,\n\n\"$chatbotName\" has been approved for listing on ChatbotScout.\n\nOur team will be in touch soon to finalise the affiliate partnership details.\n\nBest regards,\nThe ChatbotScout Team";
 
         return $this->send($toEmail, $toName, $subject, $htmlBody, $textBody);
     }
@@ -208,9 +208,9 @@ class Email
         string $chatbotName,
         string $reason
     ): bool {
-        $subject  = 'Update on your chatbot submission - ChatbotHub';
+        $subject  = 'Update on your chatbot submission - ChatbotScout';
         $htmlBody = $this->getChatbotRejectedTemplate($toName, $chatbotName, $reason);
-        $textBody = "Hi $toName,\n\nThank you for submitting \"$chatbotName\" to ChatbotHub.\n\nAfter reviewing your submission, we were unable to approve it at this time.\n\nReason: $reason\n\nIf you have any questions, please contact us.\n\nBest regards,\nThe ChatbotHub Team";
+        $textBody = "Hi $toName,\n\nThank you for submitting \"$chatbotName\" to ChatbotScout.\n\nAfter reviewing your submission, we were unable to approve it at this time.\n\nReason: $reason\n\nIf you have any questions, please contact us.\n\nBest regards,\nThe ChatbotScout Team";
 
         return $this->send($toEmail, $toName, $subject, $htmlBody, $textBody);
     }
@@ -434,7 +434,7 @@ class Email
         <div class="wrapper">
         <div class="container">
         $content
-        <div class="footer">© ChatbotHub · All rights reserved</div>
+        <div class="footer">© ChatbotScout · All rights reserved</div>
         </div>
         </div>
         </body>
@@ -446,7 +446,7 @@ class Email
     {
         $content = <<<HTML
         <div class="header" style="background: linear-gradient(135deg, #2d1b69 0%, #1a3a6e 100%); padding: 32px 32px 24px;">
-            <h1>Welcome to ChatbotHub! 🎉</h1>
+            <h1>Welcome to ChatbotScout! 🎉</h1>
             <p>Please verify your email address to get started</p>
         </div>
         <div class="body">
@@ -485,14 +485,14 @@ class Email
         $content = <<<HTML
         <div class="header">
             <h1>We received your message ✓</h1>
-            <p>Thank you for reaching out to ChatbotHub</p>
+            <p>Thank you for reaching out to ChatbotScout</p>
         </div>
         <div class="body">
             <p>Hi <strong>$name</strong>,</p>
             <p>Thank you for reaching out! We have received your message regarding:</p>
             <div class="info-box"><strong>$subject</strong></div>
             <p>We aim to respond within a few business days.</p>
-            <p>Best regards,<br><strong>The ChatbotHub Team</strong></p>
+            <p>Best regards,<br><strong>The ChatbotScout Team</strong></p>
         </div>
         HTML;
         return $this->baseTemplate($content);
@@ -510,7 +510,7 @@ class Email
             <p>Hi <strong>$name</strong>,</p>
             <div class="info-box" style="font-size:13px;color:#6B7280;">Re: $originalSubject</div>
             <div style="background:#fff;padding:20px;border:1px solid #e0e0e0;border-radius:6px;">$replyHtml</div>
-            <p style="margin-top:20px;">Best regards,<br><strong>The ChatbotHub Team</strong></p>
+            <p style="margin-top:20px;">Best regards,<br><strong>The ChatbotScout Team</strong></p>
         </div>
         HTML;
         return $this->baseTemplate($content);
@@ -528,7 +528,7 @@ class Email
         </div>
         <div class="body">
             <p>Hi <strong>$name</strong>,</p>
-            <p>Thank you for submitting your chatbot to ChatbotHub! Here's a summary of what we received:</p>
+            <p>Thank you for submitting your chatbot to ChatbotScout! Here's a summary of what we received:</p>
             <div class="info-box">
                 <div class="label">Chatbot Name</div>
                 <div class="value">$chatbotName</div>
@@ -538,9 +538,9 @@ class Email
             <div>
                 <strong>What happens next?</strong><br><br>
                 Our team will review your chatbot and reach out to discuss the affiliate partnership terms - revenue share tailored to your product.<br><br>
-                Once we agree on terms, your chatbot will be listed on ChatbotHub.
+                Once we agree on terms, your chatbot will be listed on ChatbotScout.
             </div>
-            <p>Best regards,<br><strong>The ChatbotHub Team</strong></p>
+            <p>Best regards,<br><strong>The ChatbotScout Team</strong></p>
         </div>
         HTML;
         return $this->baseTemplate($content);
@@ -591,15 +591,15 @@ class Email
         $content = <<<HTML
         <div class="header" style="color">
             <h1>Your Chatbot is Approved! 🎉</h1>
-            <p>Welcome to the ChatbotHub affiliate program</p>
+            <p>Welcome to the ChatbotScout affiliate program</p>
         </div>
         <div class="body">
             <p>Hi <strong>$name</strong>,</p>
             <div class="success-box">
-                <strong>$chatbotName</strong> has been approved for listing on ChatbotHub.
+                <strong>$chatbotName</strong> has been approved for listing on ChatbotScout.
             </div>
-            <p>Your chatbot is now live on ChatbotHub. We're excited to have you on board.</p>
-            <p>Best regards,<br><strong>The ChatbotHub Team</strong></p>
+            <p>Your chatbot is now live on ChatbotScout. We're excited to have you on board.</p>
+            <p>Best regards,<br><strong>The ChatbotScout Team</strong></p>
         </div>
         HTML;
         return $this->baseTemplate($content);
@@ -611,17 +611,17 @@ class Email
         $content    = <<<HTML
         <div class="header">
             <h1>Update on Your Submission</h1>
-            <p>Regarding your chatbot submission to ChatbotHub</p>
+            <p>Regarding your chatbot submission to ChatbotScout</p>
         </div>
         <div class="body">
             <p>Hi <strong>$name</strong>,</p>
-            <p>Thank you for submitting <strong>$chatbotName</strong> to ChatbotHub.</p>
+            <p>Thank you for submitting <strong>$chatbotName</strong> to ChatbotScout.</p>
             <p>After reviewing your submission, we were unable to approve it at this time.</p>
             <div>
                 <strong>Reason:</strong><br><br>$reasonHtml
             </div>
             <p>If you have any questions, please don't hesitate to contact us.</p>
-            <p>Best regards,<br><strong>The ChatbotHub Team</strong></p>
+            <p>Best regards,<br><strong>The ChatbotScout Team</strong></p>
         </div>
         HTML;
         return $this->baseTemplate($content);
@@ -657,7 +657,7 @@ class Email
             </a>
  
             <p style="font-size:12px;color:#9ca3af;margin-top:40px;padding-top:20px;border-top:1px solid #e5e7eb;">
-                You're receiving this email because you opted in to marketing communications from ChatbotHub.<br>
+                You're receiving this email because you opted in to marketing communications from ChatbotScout.<br>
                 <a href="{$unsubscribeUrl}" style="color:#9ca3af;">Unsubscribe</a>
             </p>
         </div>
@@ -682,14 +682,14 @@ class Email
         $content = <<<HTML
         <div class="header">
             <h1>Chatbot Delisted</h1>
-            <p>An update regarding your listing on ChatbotHub</p>
+            <p>An update regarding your listing on ChatbotScout</p>
         </div>
         <div class="body">
             <p>Hi <strong>$name</strong>,</p>
-            <p>We're writing to let you know that <strong>$chatbotName</strong> has been delisted from ChatbotHub.</p>
+            <p>We're writing to let you know that <strong>$chatbotName</strong> has been delisted from ChatbotScout.</p>
             $reasonBlock
             <p>If you have any questions or would like to discuss this further, please don't hesitate to contact us.</p>
-            <p>Best regards,<br><strong>The ChatbotHub Team</strong></p>
+            <p>Best regards,<br><strong>The ChatbotScout Team</strong></p>
         </div>
         HTML;
         return $this->baseTemplate($content);

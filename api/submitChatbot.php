@@ -130,7 +130,7 @@ try {
  
     if (empty($adminEmail)) {
         $appConfig  = require '../config/app.php';
-        $adminEmail = $appConfig['admin']['email'] ?? 'admin@chatbothub.com';
+        $adminEmail = $appConfig['admin']['email'] ?? 'admin@chatbotscout.com';
     }
  
     // 1. Confirmation to user

@@ -74,7 +74,7 @@ REDIS COMMANDY:
     INFO keyspace
     SELECT 1
     KEYS *
-    GET chatbothub:ratelimit:login:::1:count   (Zobrazi count attemptov)
+    GET chatbotscout:ratelimit:login:::1:count   (Zobrazi count attemptov)
     FLUSHALL
 
 Git Bash:
@@ -159,9 +159,9 @@ zvycajne sa to spusta automaticky potom ako zaplati.
         favicon.ico
         site.webmanifest
     /websiteLogos
-        chatbothub_logo.png
+        chatbotscout_logo.png
     chatbot robot.png
-    chatbothub_logo.png
+    chatbotscout_logo.png
     default-avatar.png
     default-avatar1.png
     default-avatar2.png

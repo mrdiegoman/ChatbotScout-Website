@@ -103,7 +103,7 @@ $periodLabel = $orderDetails['billing_period_type'] === 'yearly' ? 'Annual' : 'M
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout — ChatbotHub</title>
+    <title>Checkout — ChatbotScout</title>
     <?php require '../inc/header.php'; ?>
     <link rel="stylesheet" href="../css/checkout.css">
 </head>
@@ -114,7 +114,7 @@ $periodLabel = $orderDetails['billing_period_type'] === 'yearly' ? 'Annual' : 'M
         <!-- ── Order Summary ──────────────────────────────────────────────── -->
         <div class="checkout-summary">
             <div class="checkout-summary__logo">
-                <img src="../img/chatbothub_logo.png" alt="ChatbotHub">
+                <img src="../img/ChatbotScout_logo.png" alt="ChatbotScout">
             </div>
 
             <h2 class="checkout-summary__title">Order Summary</h2>

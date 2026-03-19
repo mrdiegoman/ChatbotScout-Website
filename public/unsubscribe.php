@@ -52,7 +52,7 @@ require '../inc/header.php';
         <?php if ($success): ?>
             <div class="unsub-icon unsub-icon--success">✓</div>
             <h1>You've been unsubscribed</h1>
-            <p>You will no longer receive marketing emails from ChatbotHub.</p>
+            <p>You will no longer receive marketing emails from ChatbotScout.</p>
             <p class="unsub-note">
                 You can re-enable marketing emails anytime in your
                 <a href="profile.php?tab=settings">account settings</a>.
@@ -63,7 +63,7 @@ require '../inc/header.php';
             <p><?php echo htmlspecialchars($error); ?></p>
         <?php endif; ?>
 
-        <a href="index.php" class="unsub-btn">Back to ChatbotHub</a>
+        <a href="index.php" class="unsub-btn">Back to ChatbotScout</a>
     </div>
 </div>
 

@@ -3,8 +3,8 @@
         <div class="footer-main-content">
             <div class="footer-main-content-first">
                 <a href="index.php" class="footer-main-content-first-logo">
-                    <img src="../img/chatbothub_logo.png" alt="chatbothub logo">
-                    <p>ChatbotHub</p>
+                    <img src="../img/ChatbotScout_logo.png" alt="ChatbotScout logo">
+                    <p>ChatbotScout</p>
                 </a>
 
                 <div class="footer-main-content-first-folow-section">
@@ -78,7 +78,7 @@
     </div>
 
     <div class="footer-main-bottom">
-        <p class="footer-main-bottom-Rights">© 2025 Chatbothub.com - All rights reserved.</p>
+        <p class="footer-main-bottom-Rights">© 2025 ChatbotScout.com - All rights reserved.</p>
         <div class="footer-main-bottom-extra">
             <a href="privacyPolicy.php" class="footer-main-bottom-PrivacyPolicy-a">Privacy policy</a>
             <a href="termsOfService.php" class="footer-main-bottom-terms-a">Terms of Service</a>

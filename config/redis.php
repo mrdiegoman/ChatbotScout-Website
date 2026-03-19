@@ -15,7 +15,7 @@ return [
     'read_timeout' => 2.5, // Read timeout v sekundách
     
     // Key prefix (predíde konfliktom)
-    'prefix' => 'chatbothub:',
+    'prefix' => 'ChatbotScout:',
     
     // TTL (Time To Live) defaults
     'default_ttl' => 3600, // 1 hodina

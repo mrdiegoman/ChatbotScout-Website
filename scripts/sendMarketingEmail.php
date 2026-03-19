@@ -42,9 +42,9 @@ if ($isWeb) {
 $testMode  = false;                          // true = len testEmail, false = všetci
 $testEmail = 'rafaj.jakub@gmail.com';       // tvoj email na testovanie
 
-$subject   = 'Nové chatboty na ChatbotHub! 🚀';
-$preheader = 'Pozri čo je nové tento mesiac na ChatbotHub';
-$headline  = 'Novinky na ChatbotHub';
+$subject   = 'Nové chatboty na ChatbotScout! 🚀';
+$preheader = 'Pozri čo je nové tento mesiac na ChatbotScout';
+$headline  = 'Novinky na ChatbotScout';
 $ctaText   = 'Pozrieť chatboty';
 $ctaUrl    = 'http://localhost/mainwebsite/public/chatbotShowcase.php';
 
@@ -73,7 +73,7 @@ function log_line(string $msg): void {
     flush();
 }
 
-log_line('=== ChatbotHub Marketing Email Sender ===');
+log_line('=== ChatbotScout Marketing Email Sender ===');
 log_line('Mode: ' . ($testMode ? 'TEST (only ' . $testEmail . ')' : 'LIVE (all subscribers)'));
 log_line('');
 

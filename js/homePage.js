@@ -1,5 +1,5 @@
 /**
- * homePage.js — ChatbotHub Homepage Scripts
+ * homePage.js — ChatbotScout Homepage Scripts
  * Hero carousel, Popular carousel, Scroll animations
  */
 

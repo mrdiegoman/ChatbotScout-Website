@@ -1022,7 +1022,7 @@ function showDelistPopup(chatbotName) {
                     <button class="sub-popup-close" onclick="resolveDelistPopup(false)">✕</button>
                 </div>
                 <div class="sub-popup-body">
-                    <p>You are about to delist <strong>${escHtml(chatbotName)}</strong> from ChatbotHub.</p>
+                    <p>You are about to delist <strong>${escHtml(chatbotName)}</strong> from ChatbotScout.</p>
                     <p>The owner will receive a <strong>Chatbot Delisted</strong> email with your reason.</p>
                     <label style="display:block;margin-top:1rem;font-size:1.3rem;font-family: outfit-semibold, sans-serif;color:#374151;">
                         Reason <span style="font-family: outfit-medium, sans-serif;color:#6B7280;">(optional — will be sent to the user)</span>

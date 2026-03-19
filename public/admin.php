@@ -799,9 +799,9 @@ require '../inc/header.php';
                         <input type="text"
                             id="settingReplyName"
                             maxlength="100"
-                            placeholder="ChatbotHub Support"
+                            placeholder="ChatbotScout Support"
                             autocomplete="off">
-                        <span class="admin-settings-hint">e.g. ChatbotHub Support</span>
+                        <span class="admin-settings-hint">e.g. ChatbotScout Support</span>
                     </div>
             
                 </div>
@@ -830,9 +830,9 @@ require '../inc/header.php';
                         <input type="text"
                             id="settingNoreplyName"
                             maxlength="100"
-                            placeholder="ChatbotHub"
+                            placeholder="ChatbotScout"
                             autocomplete="off">
-                        <span class="admin-settings-hint">e.g. ChatbotHub</span>
+                        <span class="admin-settings-hint">e.g. ChatbotScout</span>
                     </div>
             
                     <div class="admin-settings-field">

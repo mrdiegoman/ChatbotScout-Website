@@ -187,8 +187,8 @@ CREATE TABLE IF NOT EXISTS `settings` (
 
 -- Default hodnoty
 INSERT INTO `settings` (`key`, `value`) VALUES
-    ('reply_from_email', 'noreply@chatbothub.com'),
-    ('reply_from_name',  'ChatbotHub Support')
+    ('reply_from_email', 'noreply@ChatbotScout.com'),
+    ('reply_from_name',  'ChatbotScout Support')
 ON DUPLICATE KEY UPDATE `key` = `key`;
 
 -- ============================================

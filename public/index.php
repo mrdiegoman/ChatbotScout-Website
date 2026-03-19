@@ -325,7 +325,7 @@ require '../inc/header.php';
 
         <!-- Section label -->
         <div class="hp-chat-label hp-fade-up">
-            <span>✦ Why ChatbotHub?</span>
+            <span>✦ Why ChatbotScout?</span>
         </div>
 
         <!-- Messages -->
@@ -344,7 +344,7 @@ require '../inc/header.php';
             <!-- Bot response 1 -->
             <div class="hp-chat-row hp-chat-row-bot hp-chat-animate">
                 <div class="hp-chat-avatar-bot">
-                    <!-- <img src="../img/chatbothub_logo.png" alt="ChatbotHub" style="width:70%;object-fit:contain;"> -->
+                    <!-- <img src="../img/ChatbotScout_logo.png" alt="ChatbotScout" style="width:70%;object-fit:contain;"> -->
                 </div>
                 <div class="hp-chat-msg hp-chat-msg-bot">
                     <h3>Search, Filter & Sort - Find Your Perfect Chatbot</h3>
@@ -376,7 +376,7 @@ require '../inc/header.php';
             <!-- Bot response 2 -->
             <div class="hp-chat-row hp-chat-row-bot hp-chat-animate">
                 <div class="hp-chat-avatar-bot">
-                    <!-- <img src="../img/chatbothub_logo.png" alt="ChatbotHub" style="width:100%;height:100%;object-fit:contain;border-radius:50%;"> -->
+                    <!-- <img src="../img/ChatbotScout_logo.png" alt="ChatbotScout" style="width:100%;height:100%;object-fit:contain;border-radius:50%;"> -->
                 </div>
                 <div class="hp-chat-msg hp-chat-msg-bot">
                     <h3>Full Feature & Integration Details - All in One Place</h3>

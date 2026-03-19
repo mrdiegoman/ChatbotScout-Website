@@ -13,7 +13,7 @@ return [
 
     // Email z ktorého sa posiela
     'from_email' => 'rafaj.jakub@gmail.com',
-    'from_name'  => 'ChatbotHub Support',
+    'from_name'  => 'ChatbotScout Support',
 
     // Base URL pre linky v emailoch
     'base_url' => 'http://localhost/mainwebsite/public',

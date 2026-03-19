@@ -12,7 +12,7 @@ require '../app/auth.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advertise – ChatbotHub</title>
+    <title>Advertise – ChatbotScout</title>
     <?php require '../inc/header.php'; ?>
     <link rel="stylesheet" href="../css/advertise.css">
 </head>
@@ -28,14 +28,14 @@ require '../app/auth.php';
         <div class="adv-hero__blob adv-hero__blob--3"></div>
     </div>
     <div class="adv-hero__content">
-        <div class="adv-hero__badge">📢 Advertise on ChatbotHub</div>
+        <div class="adv-hero__badge">📢 Advertise on ChatbotScout</div>
         <h1 class="adv-hero__title">
             Reach More Users<br>
-            <span class="adv-hero__title--accent">With ChatbotHub Ads</span>
+            <span class="adv-hero__title--accent">With ChatbotScout Ads</span>
         </h1>
         <p class="adv-hero__subtitle">
-            Every day, companies browse ChatbotHub looking for chatbot solutions that fit their needs.
-            ChatbotHub Ads are your solution to get a competitive advantage.
+            Every day, companies browse ChatbotScout looking for chatbot solutions that fit their needs.
+            ChatbotScout Ads are your solution to get a competitive advantage.
         </p>
         <a href="#plans" class="adv-hero__cta">See Promotion Plans</a>
     </div>
@@ -170,7 +170,7 @@ require '../app/auth.php';
                     <div class="adv-plan-card__badge adv-plan-card__badge--gold">Best Value</div>
                 </div>
                 <h3 class="adv-plan-card__name">Full Bundle</h3>
-                <p class="adv-plan-card__desc">Get both placements at once. Maximum visibility across the entire ChatbotHub platform — homepage and category page combined.</p>
+                <p class="adv-plan-card__desc">Get both placements at once. Maximum visibility across the entire ChatbotScout platform — homepage and category page combined.</p>
                 <div class="adv-plan-card__price-wrap">
                     <div class="adv-plan-card__price">
                         <span class="adv-plan-card__currency">$</span>
@@ -205,7 +205,7 @@ require '../app/auth.php';
         <div class="adv-no-listing" id="noListingWarning" style="display:none;">
             <div class="adv-no-listing__icon">🔒</div>
             <h3>Active Listing Required</h3>
-            <p>You need an active listing subscription before you can purchase a promotion. Submit your chatbot first and get it listed on ChatbotHub.</p>
+            <p>You need an active listing subscription before you can purchase a promotion. Submit your chatbot first and get it listed on ChatbotScout.</p>
             <a href="profile.php?tab=billing" class="adv-no-listing__btn">View My Listing</a>
         </div>
 

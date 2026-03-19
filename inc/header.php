@@ -24,7 +24,7 @@ $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User'
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatbotHub</title>
+    <title>ChatbotScout</title>
 
     <link rel="apple-touch-icon" sizes="180x180" href="../img/favicons/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="../img/favicons/favicon-32x32.png">
@@ -66,8 +66,8 @@ $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User'
 <body class="<?php echo implode(' ', $bodyClasses); ?>">
     <header class="header-main">
         <div class="header-main-logo" onclick="window.location.href='index.php'">
-            <img src="../img/chatbothub_logo.png" alt="ChatbotHub Logo">
-            <p class="header-main-logo-title">ChatbotHub</p>
+            <img src="../img/ChatbotScout_logo.png" alt="ChatbotScout Logo">
+            <p class="header-main-logo-title">ChatbotScout</p>
         </div>
         <nav class="header-main-nav">
             <ul>
@@ -152,8 +152,8 @@ $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User'
             <!-- Header s logom a close btn -->
             <div class="header-mobile-menu-top">
                 <a href="index.php" class="header-mobile-menu-top-logo">
-                    <img src="../img/chatbothub_logo.png" alt="ChatbotHub logo">
-                    <span>ChatbotHub</span>
+                    <img src="../img/ChatbotScout_logo.png" alt="ChatbotScout logo">
+                    <span>ChatbotScout</span>
                 </a>
                 <button class="header-mobile-close" aria-label="Close menu">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
