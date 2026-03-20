@@ -60,6 +60,8 @@ $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User'
         <link rel="stylesheet" href="../css/errorPages.css">
     <?php elseif ($page === 'privacyPolicy'): ?>
         <link rel="stylesheet" href="../css/privacyPolicy.css">
+    <?php elseif ($page === 'termsAndConditions'): ?>
+        <link rel="stylesheet" href="../css/termsAndConditions.css">
     <?php endif; ?>
 
 </head>

@@ -120,8 +120,8 @@ require '../inc/header.php';
         </a>
         <p class="google-terms-text">
             By continuing, you agree to our
-            <a href="terms.php">Terms & Conditions</a> and
-            <a href="privacy.php">Privacy Policy</a>.
+            <a href="termsAndConditions.php">Terms & Conditions</a> and
+            <a href="privacyPolicy.php">Privacy Policy</a>.
         </p>
         
         <!-- Divider -->
