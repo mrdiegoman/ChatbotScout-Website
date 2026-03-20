@@ -5,143 +5,189 @@ require '../inc/header.php';
 
 <div class="tc-wrapper">
     <h1>Terms and conditions</h1>
-    <p>DATE OF LAST REVISION: 19/3/2026</p>
-    <p>These terms and conditions outline the rules and regulations for the use of chatbotscout' 
-        Website, located at chatbotscout.com. By accessing this website, you agree to these terms 
-        and conditions. Please do not continue to use chatbotscout.com if you do not agree with 
-        all of the terms and conditions stated on this page.
-    <p>The following terminology applies to these Terms and Conditions, Privacy Statement and 
-        Disclaimer Notice and all Agreements: “Client”, “You” and “Your” refers to you, the person 
-        log on this website and compliant to the Company’s terms and conditions. “The Company”, 
-        “Ourselves”, “We”, “Our” and “Us”, refers to our Company. “Party”, “Parties”, or “Us”, 
-        refers to both the Client and ourselves. All terms refer to the offer, acceptance and 
-        consideration of payment necessary to undertake the process of our assistance to the Client 
-        in the most appropriate manner for the express purpose of meeting the Client’s needs in 
-        respect of provision of the Company’s stated services, in accordance with and subject to, 
-        prevailing law of Slovakia. Any use of the above terminology or other words in the singular, 
-        plural, capitalization and/or he/she or they, are taken as interchangeable and therefore as 
-        referring to same.</p>
-    <h2>Cookies</h2>
-    <p>We employ the use of cookies. By accessing chatbotscout.com, you agree to use cookies in 
-        agreement with the chatbotscout' Terms and Conditions and Privacy Policy.</p>
-    <p>Most interactive websites use cookies to let us retrieve the user’s details for each visit. 
-        In order to provide you with access to the Website and a more personalized and responsive 
-        service, we need to remember and store information about how you use this website. This is 
-        done using small text files called cookies. Cookies contain small amounts of information 
-        and are downloaded to your computer or another device by a server for this Website. Your 
-        web browser then sends these cookies back to this website on each subsequent visit so that 
-        it can derecognize and remember things like your user preferences (visits, clicks, historical 
-        activity). You can find more detailed information about cookies and how they work at 
-        http://www.aboutcookies.org.</p>
-    <p>Cookies are used by our website to enable the functionality of certain areas to make it easier 
-        for people visiting our website. Some of our affiliate/advertising partners may also use cookies 
-        (necessary cookies).</p>
-    <p>This site offers newsletter or email subscription services and cookies may be used to remember 
-        if you are already registered and whether to show certain notifications which might only be 
-        valid for subscribed/unsubscribed users. When you submit data through a form such as those 
-        found on contact pages or comment forms, cookies may be set to remember your user details for 
-        future correspondence (functional cookies).</p>
-    <p>We also use social media buttons and/or plugins on this site that allow you to connect with your 
-        social network in various ways. For these to work social media sites such as Facebook, and 
-        LinkedIn, will set cookies through our site which may be used to enhance your profile on the 
-        respective site, or contribute to the data they hold for various purposes outlined in their 
-        respective privacy policies.</p>
-    <p>We or our service providers also use analytic services to help us understand how effective 
-        our content is, what interests our users have, and to improve how this Website works. In 
-        addition, we use web beacons or tracking pixels to count visitor numbers and performance 
-        cookies to track how many individual users access this Website and how often. This information 
-        is used for statistical purposes only and it is not our intention to use such information to 
-        personally identify any user.</p>
-    <p>The cookies collected are used to a very limited extent necessary for technical purposes 
-        (website functionality) and stored for 1 to 5 years in line with the international NAI 
-        standards.</p>
-    <p>The browsers of most computers, smartphones, and other web-enabled devices are typically set up 
-        to accept cookies. If you wish to amend your cookie preferences for this website or any other 
-        websites you can do this through your browser settings. Your browser’s ‘help’ function will tell 
-        you how to do this. Be aware that disabling cookies will affect the functionality of this website 
-        in areas in which cookies are necessary for the functioning of features, and usually results in also 
-        disabling certain functionalities and features on this site. Therefore, it is recommended that you 
-        do not disable cookies.</p>
-    <h2>License and Intellectual Property Rights</h2>
-    <p>Unless otherwise stated, chatbotscout, and/or its licensors own the intellectual property rights for 
-        all material on chatbotscout.com. This website and its contents are protected by copyright, trademark, 
-        and other laws of Slovakia, and/or foreign countries. We and our licensors reserve all rights not 
-        expressly granted under these Terms of Use.</p>
-    <p>You may access this website for your own personal use subject to restrictions set in these terms and 
-        conditions.</p>
+    <p class="tc-date">Effective Date: 19/3/2026 , 20:26:10</p>
+    <p>
+        These terms and conditions outline the rules and regulations for the use of chatbotscout 
+        website, located at chatbotscout.com.
+    </p>
+    <h2>Company Information</h2>
+    <p>This website is operated by:</p>
+    <ul>
+        <li>Name: ChatbotScout</li>
+        <li>Registered address: Cajlanská 86A</li>
+        <li>ICO: [INSERT ICO]</li>
+        <li>Contact email: rafaj.jakub@gmail.com</li>
+    </ul>
+    <p>By accessing this website, you agree to these terms and conditions.</p>
+    <h2>1. Definitions</h2>
+    <p>“User”, “You” refers to any person accessing or using the website.</p>
+    <p>“The Company”, “We”, “Us” refers to the operator of chatbotscout.</p>
+    <p>“Affiliate Partner” refers to third-party companies whose chatbot 
+        products are listed on this website and may generate commission for the Company.</p>
+    <h2>2. Description of Service</h2>
+    <p>Chatbotscout is an online platform that allows users to discover, compare, and 
+        review chatbot solutions provided by third-party companies.</p>
+    <p>The platform includes:</p>
+    <ul>
+        <li>chatbot listings with filters and search</li>
+        <li>user accounts</li>
+        <li>ratings and favorites</li>
+        <li>submission of chatbot tools</li>
+        <li>affiliate links to third-party services</li>
+        <li>paid promotional placements for chatbot providers</li>
+    </ul>
+    <p>We do not provide chatbot services ourselves.</p>
+    <h2>3. Affiliate Disclosure</h2>
+    <p>Some links on this website are affiliate links. This means that we may earn a 
+        commission if you click on the link and make a purchase.</p>
+    <p>All affiliate listings are clearly marked.</p>
+    <p>We are not responsible for:</p>
+    <ul>
+        <li>pricing</li>
+        <li>functionality</li>
+        <li>delivery</li>
+        <li>support of third-party chatbot services</li>
+    </ul>
+    <h2>4. User Accounts</h2>
+    <p>To access certain features, users may create an account.</p>
+    <p>You agree to:</p>
+    <ul>
+        <li>provide accurate information</li>
+        <li>keep your credentials secure</li>
+    </ul>
+    <p>We reserve the right to:</p>
+    <ul>
+        <li>suspend or terminate accounts at any time without notice</li>
+        <li>remove or restrict access if misuse is detected</li>
+    </ul>
+    <h2>5. Ratings and Reviews</h2>
+    <p>Users may submit ratings for chatbots.</p>
+    <p>Rules:</p>
+    <ul>
+        <li>each user may submit only one rating per chatbot</li>
+        <li>ratings may be updated by the user</li>
+        <li>all ratings are subject to manual approval</li>
+    </ul>
+    <p>We reserve the right to:</p>
+    <ul>
+        <li>remove ratings</li>
+        <li>reject ratings</li>
+        <li>moderate content at our sole discretion</li>
+    </ul>
+    <h2>6. Favorites Feature</h2>
+    <p>Users may mark chatbots as favorites.</p>
+    <p>This information may be displayed publicly in aggregated form (e.g., number of favorites).</p>
+
+    <h2>7. Submission of Chatbots</h2>
+    <p>Users may submit chatbot tools for review.</p>
+    <p>By submitting, you:</p>
+    <ul>
+        <li>confirm that the information is accurate</li>
+        <li>
+            <span>grant us the right to use submitted data for:</span>
+            <ul>
+                <li>listing on the website</li>
+                <li>promotional and marketing purposes</li>
+            </ul>
+        </li>
+    </ul>
+    <p>We reserve the right to:</p>
+    <ul>
+        <li>accept or reject submissions</li>
+        <li>edit or format content for display</li>
+    </ul>
+    <h2>8. Promotion and Paid Services</h2>
+    <p>Companies may purchase promotional placements via the platform.</p>
+    <p>Payments are processed via third-party providers (e.g., Stripe).</p>
+    <ul>
+        <li>All payments are final and non-refundable</li>
+        <li>Promotion may begin immediately after purchase</li>
+    </ul>
+    <p>We reserve the right to:</p>
+    <ul>
+        <li>modify placement formats</li>
+        <li>remove promotions in case of policy violations</li>
+    </ul>
+    <h2>9. Intellectual Property</h2>
+    <p>Unless otherwise stated, we own the intellectual property rights for all material 
+        on the website.</p>
     <p>You must not:</p>
     <ul>
-        <li>Republish material from chatbotscout.com</li>
-        <li>Use material from chatbotscout.com for commercial purposes</li>
-        <li>Sell, rent, or sub-license material from chatbotscout.com</li>
-        <li>Reproduce, duplicate, modify or copy material from chatbotscout.com</li>
-        <li>Redistribute content from chatbotscout.com</li>
+        <li>copy or redistribute content</li>
+        <li>use content for commercial purposes without permission</li>
     </ul>
-    <p>You shall not use the "chatbotscout" name or the chatbotscout logo, either alone or in combination with 
-        other words or design elements. You may not use any of the foregoing names, marks, or logos in any press 
-        release, advertisement, or other promotional or marketing material or media, whether in written, oral, 
-        electronic, visual, or any other form, except if expressly permitted in writing by chatbotscout.
+    <h2>10. Cookies</h2>
+    <p>We use cookies to:</p>
+    <ul>
+        <li>ensure website functionality</li>
+        <li>analyze usage</li>
+        <li>improve user experience</li>
+    </ul>
+    <p>Some cookies may be set by third-party services.</p>
+    <p>You can manage cookies through your browser settings.</p>
+    <h2>11. Privacy</h2>
+    <p>We process personal data in accordance with our 
+        <a href="privacyPolicy.php">Privacy Policy</a>.
     </p>
-    <p>You will comply with all applicable laws in accessing and using this Website.</p>
-    <h2>Your Privacy</h2>
-    <p>You acknowledge that we may use your personal information and data according to our Privacy Policy 
-        incorporated herein by this reference. You hereby agree to the terms of our Privacy Policy, including any 
-        obligations imposed on you therein.
-    </p>
-    <h2>Reservation of Rights</h2>
-    <p>We reserve the right to request that you remove all links or any particular link to our website. You approve 
-        of immediately removing all links to our website upon request. We also reserve the right to amend these terms 
-        and conditions at any time. By linking to our website, you agree to be bound to and follow these terms and 
-        conditions.
-    </p>
-    <h2>Removal of links from our website</h2>
-    <p>If you find any link on our website that is offensive for any reason, you are free to contact and inform us 
-        at any moment. We will consider requests to remove links, but we are not obligated to or so or to respond to 
-        you directly.
-    </p>
-    <h2>Disclaimers and Limitations of Liability</h2>
-    <p>We do not ensure that the information on this website is correct, we do not warrant its completeness or accuracy; 
-        nor do we promise to ensure that the website remains available or that the material on the website is kept up to 
-        date. This website (including without limitation any content or other part thereof) contains general information 
-        only, and we are not, by means of this website, rendering professional advice or services. Before making any 
-        decision or taking any action that might affect your finances or business, you should consult a qualified 
-        professional advisor.
-    </p>
-    <p>
-        This website is provided as is, and we make no express or implied representations or warranties regarding it. 
-        Without limiting the foregoing, we do not warrant that this website will be secure, error-free, free from viruses 
-        or malicious code, or will meet any particular criteria of performance or quality. We expressly disclaim all implied 
-        warranties, including, without limitation, warranties of merchantability, title, fitness for a particular purpose, 
-        non-infringement, compatibility, security, and accuracy.
-    </p>
-    <p>
-        Your use of this website is at your own risk and you assume full responsibility and risk of loss resulting from 
-        your usage, including, without limitation, with respect to loss of service or data. We will not be liable for any 
-        direct, indirect, special, incidental, consequential, or punitive damages or any other damages whatsoever, whether 
-        in an action of contract, statute, tort (including, without limitation, negligence), or otherwise, relating to or 
-        arising out of the use of this website, even if we knew, or should have known, of the possibility of such damages.
-    </p>
-    <p>
-        Certain links on this website may lead to websites, resources, or tools maintained by third parties over whom we 
-        have no control. Without limiting any of the foregoing, we make no express or implied representations or warranties 
-        whatsoever regarding such websites, resources, and tools, and links to any such websites, resources and tools should 
-        not be construed as an endorsement of them or their content by us.
-    </p>
-    <p>
-        The above disclaimers and limitations of liability shall be applicable not only to us but also to our personnel and 
-        subcontractors.
-    </p>
-    <p>
-        The above disclaimers and limitations of liability are applicable to the fullest extent permitted by law, whether 
-        in contract, statute, tort (including, without limitation, negligence), or otherwise.
-    </p>
-    <p>
-        To the maximum extent permitted by applicable law, we exclude all representations, warranties, and conditions relating 
-        to our website and the use of this website.
-    </p>
-    <p>
-        As long as the website and the information and services on the website are provided free of charge, we will not be 
-        liable for any loss or damage of any nature.
-    </p>
+    <p>Users have rights under applicable laws, including:</p>
+    <ul>
+        <li>access to data</li>
+        <li>correction</li>
+        <li>deletion</li>
+    </ul>
+    <h2>12. Disclaimer of Liability</h2>
+    <p>The website provides general information only.</p>
+    <p>While we make reasonable efforts to ensure that the information on this website is 
+        accurate, complete, and up to date, we do not guarantee its accuracy, completeness, 
+        or reliability.</p>
+    <p>Information about chatbot services, including but not limited to pricing, features, 
+        integrations, and availability, may change at any time without prior notice.</p>
+    <p>We are not responsible for:</p>
+    <ul>
+        <li>any chatbot services listed</li>
+        <li>decisions made based on listed information</li>
+        <li>any damages resulting from third-party services</li>
+    </ul>
+    <p>Use of the website is at your own risk.</p>
+    <h2>13. External Links</h2>
+    <p>We may link to third-party websites.</p>
+    <p>We do not control or endorse these websites and are not responsible for their 
+        content.</p>
+    <h2>14. Termination</h2>
+    <p>We reserve the right to:</p>
+    <ul>
+        <li>terminate access to the website</li>
+        <li>remove user accounts</li>
+        <li>restrict services at any time</li>
+    </ul>
+    <h2>15. Governing Law</h2>
+    <p>These terms are governed by the laws of Slovakia.</p>
+    <p>Any disputes shall be subject to the jurisdiction of Slovak courts.</p>
+    <h2>16. User Conduct and Security</h2>
+    <p>Users agree to use the website responsibly and not to engage in any 
+        activity that may disrupt the service or interfere with other users.</p>
+    <p>Prohibited actions include, but are not limited to:</p>
+    <ul>
+        <li>submitting spam, repetitive, misleading, or harmful content</li>
+        <li>attempting to manipulate ratings, favorites, or any other user-generated data</li>
+        <li>using automated scripts, bots, or other tools to interact with the website in an 
+            unauthorized manner</li>
+        <li>uploading malicious files, viruses, or any harmful code</li>
+    </ul>
+    <h3>Security measures:</h3>
+    <p>The Company may implement reasonable technical measures to protect the website and its users, 
+        including but not limited to:</p>
+    <ul>
+        <li>limits on login attempts (e.g., to prevent brute-force attacks)</li>
+        <li>rate-limiting submissions, ratings, or other interactions</li>
+    </ul>
+    <h2>17. Changes to Terms</h2>
+    <p>We reserve the right to update these terms at any time.</p>
+    <p>Continued use of the website constitutes acceptance of the updated terms.</p>
 
 </div>
+
+
+<?php
+require '../inc/footer.php';
+?>

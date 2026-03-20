@@ -23,6 +23,7 @@ body {
 }
 
 .tc-wrapper h2{
+    padding-top: 2rem;
     margin-bottom: 2rem;
     font-family: outfit-semibold, sans-serif;
 }
@@ -43,7 +44,14 @@ body {
     margin-left: 2rem;
 }
 
-li:before {
+.tc-wrapper ul ul{
+    position: relative;
+    margin-bottom: 1.2rem;
+    font-size: 1.5rem;
+    margin-left: 2rem;
+}
+
+.tc-wrapper li::before {
     content: "•";
     position: absolute;
     left: -1.5rem;
@@ -51,6 +59,13 @@ li:before {
     color: var(--black-color-light);
     font-size: 2.25rem;
     line-height: 1.2rem;
+}
+
+
+li span {
+    display: block;
+    margin-bottom: 1.2rem;
+    font-size: 1.5rem;
 }
 
 .tc-wrapper ul li strong{
@@ -64,30 +79,3 @@ li:before {
 .tc-wrapper ul li:last-child{
     margin-bottom: 2rem;
 }
-
-/* table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 3rem 0;
-}
-
-th, td {
-    border: 1px solid var(--black-color-hover);
-    padding: 12px;
-    text-align: left;
-    vertical-align: top;
-    font-size: 1.3rem;
-}
-
-th {
-    background-color: #f2f2f2;
-    font-family: outfit-semibold, sans-serif;
-}
-
-.tdName {
-    font-family: outfit-semibold, sans-serif;
-} */
-
-/* span {
-    letter-spacing: 0.075rem;
-} */

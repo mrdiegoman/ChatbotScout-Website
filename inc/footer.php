@@ -88,7 +88,7 @@
         <p class="footer-main-bottom-Rights">© 2025 ChatbotScout.com - All rights reserved.</p>
         <div class="footer-main-bottom-extra">
             <a href="privacyPolicy.php" class="footer-main-bottom-PrivacyPolicy-a">Privacy policy</a>
-            <a href="termsOfService.php" class="footer-main-bottom-terms-a">Terms of Service</a>
+            <a href="termsAndConditions.php" class="footer-main-bottom-terms-a">Terms & Conditions</a>
         </div>
         <p class="footer-main-bottom-affiliate-disclosure">More information can be found in our <a href="affiliateDisclosure.php">
             Affiliate Disclosure.</a></p>
