@@ -585,8 +585,14 @@ require '../inc/header.php';
 </section>
 
 <?php
-$baseUrl = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http')
-    . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+$baseScheme = 'http';
+if (
+    (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+) {
+    $baseScheme = 'https';
+}
+$baseUrl = $baseScheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
 
 $itemListElements = [];
 foreach ($popularChatbots as $index => $bot) {
@@ -594,7 +600,7 @@ foreach ($popularChatbots as $index => $bot) {
         '@type' => 'ListItem',
         'position' => $index + 1,
         'name' => $bot['name'],
-        'url' => $baseUrl . '/public/chatbotShowcase.php?search=' . urlencode($bot['name']),
+        'url' => $baseUrl . '/chatbotShowcase.php?search=' . urlencode($bot['name']),
     ];
 }
 

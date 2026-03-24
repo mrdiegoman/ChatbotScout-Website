@@ -17,7 +17,13 @@ $profilePicture = isset($user['profile_picture_url'])
     : '../img/default-avatar2.png';
 $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User';
 
-$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$scheme = 'http';
+if (
+    (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+) {
+    $scheme = 'https';
+}
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: ('/' . $page . '.php');
 
