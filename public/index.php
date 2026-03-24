@@ -535,6 +535,140 @@ require '../inc/header.php';
     </div>
 </section>
 
+<!-- ═══════════════════════════════════════
+     SEO CONTENT + FAQ
+═══════════════════════════════════════ -->
+<section class="hp-seo-section">
+    <div class="hp-section-inner">
+        <h2 class="hp-section-title">Compare AI Chatbots by Use Case, Features, and Platform</h2>
+        <p>
+            ChatbotScout helps website owners compare AI chatbot software for ecommerce, lead generation, customer
+            support, and appointment booking. Use one place to evaluate pricing models, integrations, supported
+            platforms, and real user ratings.
+        </p>
+        <p>
+            Start with popular categories:
+            <a href="chatbotShowcase.php?platform=WordPress">AI chatbots for WordPress</a>,
+            <a href="chatbotShowcase.php?platform=Shopify">AI chatbots for Shopify</a>,
+            <a href="chatbotShowcase.php?pricing=Free">free AI chatbots</a>, and
+            <a href="chatbotShowcase.php?feature=Live+agent+support">chatbots with live agent support</a>.
+        </p>
+
+        <div class="hp-faq">
+            <h3>Frequently Asked Questions</h3>
+
+            <article class="hp-faq-item">
+                <h4>How do I choose the best AI chatbot for my website?</h4>
+                <p>Compare chatbot goals, pricing model, integrations, and ratings. Then shortlist tools based on
+                    your platform and must-have features.</p>
+            </article>
+
+            <article class="hp-faq-item">
+                <h4>Can I filter chatbots by platform like WordPress or Shopify?</h4>
+                <p>Yes. You can narrow results by integration compatibility and focus on tools that work with your
+                    current website stack.</p>
+            </article>
+
+            <article class="hp-faq-item">
+                <h4>Are free or freemium AI chatbots available?</h4>
+                <p>Yes. You can filter chatbot listings by pricing model to find free, freemium, recurring, or
+                    usage-based plans.</p>
+            </article>
+
+            <article class="hp-faq-item">
+                <h4>Can I compare real user ratings before choosing?</h4>
+                <p>Yes. Listings include rating data and review context so you can evaluate reliability before you
+                    decide.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<?php
+$baseUrl = ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http')
+    . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+
+$itemListElements = [];
+foreach ($popularChatbots as $index => $bot) {
+    $itemListElements[] = [
+        '@type' => 'ListItem',
+        'position' => $index + 1,
+        'name' => $bot['name'],
+        'url' => $baseUrl . '/public/chatbotShowcase.php?search=' . urlencode($bot['name']),
+    ];
+}
+
+$webSiteSchema = [
+    '@context' => 'https://schema.org',
+    '@type' => 'WebSite',
+    'name' => 'ChatbotScout',
+    'url' => $baseUrl . '/',
+    'description' => 'Compare AI chatbots by features, pricing, integrations, and user reviews.',
+];
+
+$organizationSchema = [
+    '@context' => 'https://schema.org',
+    '@type' => 'Organization',
+    'name' => 'ChatbotScout',
+    'url' => $baseUrl . '/',
+    'logo' => $baseUrl . '/img/websiteLogos/ChatbotScout_logo.png',
+];
+
+$faqSchema = [
+    '@context' => 'https://schema.org',
+    '@type' => 'FAQPage',
+    'mainEntity' => [
+        [
+            '@type' => 'Question',
+            'name' => 'How do I choose the best AI chatbot for my website?',
+            'acceptedAnswer' => [
+                '@type' => 'Answer',
+                'text' => 'Compare chatbot goals, pricing model, integrations, and ratings. Then shortlist tools based on your platform and must-have features.',
+            ],
+        ],
+        [
+            '@type' => 'Question',
+            'name' => 'Can I filter chatbots by platform like WordPress or Shopify?',
+            'acceptedAnswer' => [
+                '@type' => 'Answer',
+                'text' => 'Yes. You can narrow results by integration compatibility and focus on tools that work with your current website stack.',
+            ],
+        ],
+        [
+            '@type' => 'Question',
+            'name' => 'Are free or freemium AI chatbots available?',
+            'acceptedAnswer' => [
+                '@type' => 'Answer',
+                'text' => 'Yes. You can filter chatbot listings by pricing model to find free, freemium, recurring, or usage-based plans.',
+            ],
+        ],
+        [
+            '@type' => 'Question',
+            'name' => 'Can I compare real user ratings before choosing?',
+            'acceptedAnswer' => [
+                '@type' => 'Answer',
+                'text' => 'Yes. Listings include rating data and review context so you can evaluate reliability before you decide.',
+            ],
+        ],
+    ],
+];
+
+$itemListSchema = [
+    '@context' => 'https://schema.org',
+    '@type' => 'ItemList',
+    'name' => 'Most Popular AI Chatbots',
+    'itemListElement' => $itemListElements,
+];
+?>
+
+<script type="application/ld+json"><?php echo json_encode($webSiteSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script>
+<script type="application/ld+json"><?php echo json_encode($organizationSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script>
+<script type="application/ld+json"><?php echo json_encode($faqSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script>
+<?php if (!empty($itemListElements)): ?>
+<script type="application/ld+json"><?php echo json_encode($itemListSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script>
+<?php endif; ?>
+
+
 
 <script src="../js/homePage.js" defer></script>
 

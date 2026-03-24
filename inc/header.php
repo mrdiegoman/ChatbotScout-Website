@@ -16,6 +16,83 @@ $profilePicture = isset($user['profile_picture_url'])
     ? $user['profile_picture_url']
     : '../img/default-avatar2.png';
 $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User';
+
+$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: ('/' . $page . '.php');
+
+if ($page === 'index') {
+    $canonicalPath = '/';
+} else {
+    $canonicalPath = $requestPath;
+}
+
+$canonicalUrl = $scheme . '://' . $host . $canonicalPath;
+$defaultImage = $scheme . '://' . $host . '/img/websiteLogos/ChatbotScout_logo.png';
+
+$seoDefaults = [
+    'title'       => 'ChatbotScout',
+    'description' => 'Compare AI chatbots by features, pricing, integrations, and user reviews.',
+    'type'        => 'website',
+];
+
+$seoByPage = [
+    'index' => [
+        'title'       => 'Best AI Chatbots for Websites (2026)',
+        'description' => 'Compare AI chatbots by features, pricing, integrations, and real user reviews. Find the best chatbot for your website in minutes.',
+    ],
+    'chatbotShowcase' => [
+        'title'       => 'AI Chatbot Directory',
+        'description' => 'Browse and compare AI chatbots with filters for pricing, features, integrations, ratings, and use cases.',
+    ],
+    'aboutUs' => [
+        'title'       => 'About ChatbotScout',
+        'description' => 'Learn about ChatbotScout and our mission to simplify chatbot comparison for website owners.',
+    ],
+    'contact' => [
+        'title'       => 'Contact ChatbotScout',
+        'description' => 'Get in touch with ChatbotScout for support, partnerships, and general questions.',
+    ],
+    'submitChatbot' => [
+        'title'       => 'Submit a Chatbot',
+        'description' => 'Submit your AI chatbot to ChatbotScout and reach users comparing chatbot tools.',
+    ],
+    'advertise' => [
+        'title'       => 'Advertise on ChatbotScout',
+        'description' => 'Promote your chatbot product to users actively comparing AI chatbot solutions.',
+    ],
+    'privacyPolicy' => [
+        'title'       => 'Privacy Policy',
+    ],
+    'termsAndConditions' => [
+        'title'       => 'Terms and Conditions',
+    ],
+    'affiliateDisclosure' => [
+        'title'       => 'Affiliate Disclosure',
+    ],
+];
+
+$seo = array_merge($seoDefaults, $seoByPage[$page] ?? []);
+$fullTitle = str_contains($seo['title'], 'ChatbotScout') ? $seo['title'] : $seo['title'] . ' | ChatbotScout';
+
+$noIndexPages = [
+    'login',
+    'signUp',
+    'forgotPassword',
+    'resetPassword',
+    'verifyEmail',
+    'verificationSent',
+    'logout',
+    'profile',
+    'admin',
+    'checkout',
+    'payment-success',
+    'getToken',
+    'googleAuth',
+    'googleCallback',
+];
+
+$robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'index,follow';
 ?>
 
 <!DOCTYPE html>
@@ -24,7 +101,22 @@ $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User'
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatbotScout</title>
+    <title><?php echo htmlspecialchars($fullTitle, ENT_QUOTES, 'UTF-8'); ?></title>
+    <meta name="description" content="<?php echo htmlspecialchars($seo['description'], ENT_QUOTES, 'UTF-8'); ?>">
+    <meta name="robots" content="<?php echo htmlspecialchars($robotsContent, ENT_QUOTES, 'UTF-8'); ?>">
+    <link rel="canonical" href="<?php echo htmlspecialchars($canonicalUrl, ENT_QUOTES, 'UTF-8'); ?>">
+
+    <meta property="og:site_name" content="ChatbotScout">
+    <meta property="og:type" content="<?php echo htmlspecialchars($seo['type'], ENT_QUOTES, 'UTF-8'); ?>">
+    <meta property="og:title" content="<?php echo htmlspecialchars($fullTitle, ENT_QUOTES, 'UTF-8'); ?>">
+    <meta property="og:description" content="<?php echo htmlspecialchars($seo['description'], ENT_QUOTES, 'UTF-8'); ?>">
+    <meta property="og:url" content="<?php echo htmlspecialchars($canonicalUrl, ENT_QUOTES, 'UTF-8'); ?>">
+    <meta property="og:image" content="<?php echo htmlspecialchars($defaultImage, ENT_QUOTES, 'UTF-8'); ?>">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?php echo htmlspecialchars($fullTitle, ENT_QUOTES, 'UTF-8'); ?>">
+    <meta name="twitter:description" content="<?php echo htmlspecialchars($seo['description'], ENT_QUOTES, 'UTF-8'); ?>">
+    <meta name="twitter:image" content="<?php echo htmlspecialchars($defaultImage, ENT_QUOTES, 'UTF-8'); ?>">
 
     <link rel="apple-touch-icon" sizes="180x180" href="../img/favicons/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="../img/favicons/favicon-32x32.png">
