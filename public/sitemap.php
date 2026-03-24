@@ -19,6 +19,9 @@ $urls = [
     ['loc' => $baseUrl . '/contact.php', 'changefreq' => 'monthly', 'priority' => '0.6'],
     ['loc' => $baseUrl . '/advertise.php', 'changefreq' => 'monthly', 'priority' => '0.5'],
     ['loc' => $baseUrl . '/submitChatbot.php', 'changefreq' => 'weekly', 'priority' => '0.7'],
+    ['loc' => $baseUrl . '/privacyPolicy.php', 'changefreq' => 'monthly', 'priority' => '0.4'],
+    ['loc' => $baseUrl . '/termsAndConditions.php', 'changefreq' => 'monthly', 'priority' => '0.4'],
+    ['loc' => $baseUrl . '/affiliateDisclosure.php', 'changefreq' => 'monthly', 'priority' => '0.4'],
 ];
 
 echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
