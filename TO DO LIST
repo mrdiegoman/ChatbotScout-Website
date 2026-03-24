@@ -28,6 +28,19 @@ benefits of live chat on website,
 
 Ak niekto posle mail na no reply tak automaticky vrati mail ze na tento email sa naposielaju maily
 
+--------------------------
+Google Search Console:
+
+over doménu,
+
+submitni sitemap URL (https://tvojadomena/sitemap.php),
+
+“Request indexing” pre homepage a chatbotShowcase.php.
+
+Validácia rich results:
+
+otestuj homepage cez Rich Results Test (FAQ + organization/webpage data).
+----------------------
 
 cloudflare pridat do projektu(JE potrebne ale: mat domenu, spojazdnit VPS).
         Krok 1 — Doména
@@ -50,7 +63,7 @@ cloudflare pridat do projektu(JE potrebne ale: mat domenu, spojazdnit VPS).
         Nastaviť cache hlavičky pre verejné stránky
         Prípadne .htaccess úpravy
 
-
+---------------------------------
 
 POSIBLY NESKOR:
     limitovat promotions na 4 a 4
