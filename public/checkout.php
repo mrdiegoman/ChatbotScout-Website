@@ -180,7 +180,7 @@ $periodLabel = $orderDetails['billing_period_type'] === 'yearly' ? 'Annual' : 'M
 </div>
 
 <!-- PHP premenné pre checkout.js -->
-<script>
+<script nonce="<?= $cspNonce ?>">
 window.checkoutData = {
     chatbotId:     <?php echo json_encode($chatbotId); ?>,
     promotionId:   <?php echo json_encode($promotionId); ?>,

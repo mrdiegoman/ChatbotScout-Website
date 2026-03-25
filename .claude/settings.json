@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r \"supabase\\\\|amazonaws\\\\|reCAPTCHA\\\\|google-analytics\\\\|gtag\\\\|Tag Manager\" . --include=*.php --include=*.js)",
+      "Bash(composer require:*)",
+      "Bash(php -r \":*)"
+    ]
+  }
+}

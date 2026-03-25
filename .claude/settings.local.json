@@ -5,7 +5,15 @@
       "mcp__supabase__get_tables",
       "mcp__supabase__get_users",
       "mcp__websitedb__get_tables",
-      "mcp__websitedb__query"
+      "mcp__websitedb__query",
+      "Bash(git rm:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//c/xampp/htdocs/MainWebsite/api/**)",
+      "Bash(done)"
     ]
   }
 }

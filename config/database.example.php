@@ -2,15 +2,16 @@
 /**
  * Database Configuration
  *
- * Skopíruj tento súbor ako database.php a vyplň reálne hodnoty.
- * NIKDY necommituj database.php do gitu!
+ * Skopíruj tento súbor ako database.php.
+ * Credentials nastav v .env súbore (skopíruj .env.example → .env).
+ * NIKDY necommituj .env do gitu!
  */
 
 return [
-    'host'     => 'localhost',
-    'dbname'   => 'websitedb',
-    'username' => 'root',
-    'password' => '',
+    'host'     => $_ENV['DB_HOST']     ?? 'localhost',
+    'dbname'   => $_ENV['DB_NAME']     ?? 'websitedb',
+    'username' => $_ENV['DB_USER']     ?? 'root',
+    'password' => $_ENV['DB_PASSWORD'] ?? '',
     'charset'  => 'utf8mb4',
     'options'  => [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,

@@ -331,7 +331,7 @@ require '../app/auth.php';
 </div>
 
 <!-- Hidden: pass PHP data to JS -->
-<script>
+<script nonce="<?= $cspNonce ?>">
     window.advData = {
         isLoggedIn: <?php echo $isLoggedIn ? 'true' : 'false'; ?>,
         loginUrl: 'login.php'

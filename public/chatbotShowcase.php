@@ -4,7 +4,7 @@ require '../inc/header.php';
 ?>
 
 <!-- PHP premenné pre JS -->
-<script>
+<script nonce="<?= $cspNonce ?>">
     const CHATBOT_USER_LOGGED_IN = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
 </script>
 

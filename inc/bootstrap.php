@@ -9,6 +9,14 @@ define('BOOTSTRAP_LOADED', true);
 require __DIR__ . '/errorHandler.php';
 
 // ============================================
+// ENVIRONMENT VARIABLES (.env)
+// ============================================
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
+
+// ============================================
 // HELPERS
 // ============================================
 
@@ -45,10 +53,27 @@ function validateCsrfToken(string $redirectOnFail = ''): void {
 // ============================================
 // SECURITY HEADERS
 // ============================================
+
+// CSP nonce — unikátny pre každý request
+$cspNonce = bin2hex(random_bytes(16));
+
 header('X-Frame-Options: SAMEORIGIN');
 header('X-Content-Type-Options: nosniff');
 header('X-XSS-Protection: 1; mode=block');
 header('Referrer-Policy: strict-origin-when-cross-origin');
+header(
+    "Content-Security-Policy: " .
+    "default-src 'self'; " .
+    "script-src 'self' 'nonce-{$cspNonce}' https://js.stripe.com; " .
+    "style-src 'self' 'unsafe-inline'; " .
+    "img-src 'self' data:; " .
+    "font-src 'self'; " .
+    "connect-src 'self' https://api.stripe.com https://js.stripe.com; " .
+    "frame-src https://js.stripe.com; " .
+    "frame-ancestors 'none'; " .
+    "base-uri 'self'; " .
+    "object-src 'none'"
+);
 
 // Štart PHP session
 session_start();

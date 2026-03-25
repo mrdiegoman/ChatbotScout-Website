@@ -162,7 +162,7 @@ function old(string $key, array $old): string {
 </div>
 
 <!-- Pass PHP flash messages to JS -->
-<script>
+<script nonce="<?= $cspNonce ?>">
     window._contactSuccess = <?= json_encode($contactSuccess) ?>;
     window._contactError   = <?= json_encode($contactError) ?>;
     window._contactErrors  = <?= json_encode($contactErrors) ?>;
