@@ -22,8 +22,8 @@ require '../inc/header.php';
                 Find the Best <span>AI Chatbot</span><br>for Your Website
             </h1>
             <p class="hp-hero-subtitle">
-                Compare hundreds of AI chatbots by features, pricing, and real user reviews.
-                Save your favourites and pick the perfect fit for your business.
+                Explore AI chatbots by features, pricing, and real user reviews. 
+                Save your favorites and find the perfect match for your business.
             </p>
             <div class="hp-hero-cta">
                 <a href="chatbotShowcase.php" class="hp-btn hp-btn-green">
