@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "websitedb": {
+      "command": "node",
+      "args": ["mcp/supabase-server.js"]
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    }
+  }
+}

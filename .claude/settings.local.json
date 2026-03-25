@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "mcp__supabase__get_tables",
+      "mcp__supabase__get_users",
+      "mcp__websitedb__get_tables",
+      "mcp__websitedb__query"
+    ]
+  }
+}

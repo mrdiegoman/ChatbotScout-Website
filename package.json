@@ -19,6 +19,8 @@
   },
   "homepage": "https://github.com/mrdiegoman/ChatbotHub-Website#readme",
   "dependencies": {
-    "@supabase/supabase-js": "^2.100.0"
+    "@modelcontextprotocol/sdk": "^1.28.0",
+    "@supabase/supabase-js": "^2.100.0",
+    "mysql2": "^3.20.0"
   }
 }

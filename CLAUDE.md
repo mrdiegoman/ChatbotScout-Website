@@ -329,7 +329,10 @@ Configured in `config/app.php` under `rate_limit` key. Tracks both IP and email 
 
 
 ## Colaboration
-I want to always discuss eany change we make together. You can ask questions so we can figure out best option for you to make. 
+I want to always discuss eany change we make together. You can ask questions so we can figure out best option for you to make.
+
+## Context7
+Always use the Context7 MCP (`mcp__context7__resolve-library-id` + `mcp__context7__query-docs`) when working with any external library or framework (Stripe, PHPMailer, Supabase, mysql2, MCP SDK, etc.) to get up-to-date documentation before writing code.
 
 ## Styling in css
 When working with bold text always decide bettween font-family: outfit-bold, outfit-medium, outfit-semibold. Don't use font-weight.
