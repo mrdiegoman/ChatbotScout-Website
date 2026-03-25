@@ -9,6 +9,27 @@ if (!defined('BOOTSTRAP_LOADED')) {
 // ERROR LOGGING
 // ============================================
 
+function sanitizeUrlForLog(string $url): string
+{
+    $sensitiveParams = ['token', 'email', 'key', 'secret', 'password', 'reset', 'verify'];
+
+    $parts = parse_url($url);
+    if (empty($parts['query'])) {
+        return $url;
+    }
+
+    parse_str($parts['query'], $params);
+    foreach ($params as $key => $value) {
+        if (in_array(strtolower($key), $sensitiveParams, true)) {
+            $params[$key] = '[FILTERED]';
+        }
+    }
+
+    $filteredQuery = http_build_query($params);
+    $base = ($parts['path'] ?? '');
+    return $filteredQuery ? $base . '?' . $filteredQuery : $base;
+}
+
 function logError(string $type, string $message, string $file = '', int $line = 0): void
 {
     $logDir  = __DIR__ . '/../logs';
@@ -18,7 +39,7 @@ function logError(string $type, string $message, string $file = '', int $line = 
         mkdir($logDir, 0755, true);
     }
 
-    $url       = $_SERVER['REQUEST_URI'] ?? 'CLI';
+    $url       = sanitizeUrlForLog($_SERVER['REQUEST_URI'] ?? 'CLI');
     $ip        = $_SERVER['REMOTE_ADDR'] ?? '-';
     $timestamp = date('Y-m-d H:i:s');
     $method    = $_SERVER['REQUEST_METHOD'] ?? '-';
