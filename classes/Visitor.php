@@ -263,7 +263,7 @@ class Visitor
             time() + $cookieLifetime,
             '/',
             '',
-            false,
+            $this->appConfig['visitor']['cookie_secure'],
             true
         );
     }

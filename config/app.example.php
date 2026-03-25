@@ -21,6 +21,7 @@ return [
     'visitor' => [
         'cookie_name'     => 'visitor_id',
         'cookie_lifetime' => 365 * 24 * 60 * 60,
+        'cookie_secure'   => false, // true v produkcii (HTTPS)
     ],
 
     // Email verification
