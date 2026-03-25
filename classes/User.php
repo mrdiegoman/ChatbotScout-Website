@@ -9,6 +9,19 @@ class User
 {
     private PDO $db;
     private array $appConfig;
+
+    /**
+     * Vráti dummy bcrypt hash pre timing equalization.
+     * Zabraňuje zisteniu existencie emailu meraním času odpovede.
+     * Static premenná sa inicializuje raz za PHP-FPM worker proces.
+     */
+    private static function dummyHash(): string {
+        static $hash = null;
+        if ($hash === null) {
+            $hash = password_hash('__timing_dummy__', PASSWORD_BCRYPT);
+        }
+        return $hash;
+    }
     
     public function __construct()
     {
@@ -276,7 +289,8 @@ class User
         $user = $stmt->fetch();
 
         if (!$user) {
-            // 🆕 ZMENA: recordFailedAttempt() dostáva aj $email
+            // Timing equalization — bcrypt trvá rovnako dlho aj pre neexistujúci email
+            password_verify($password, self::dummyHash());
             $remaining = $rateLimiter->recordFailedAttempt('login', $clientIp, $email);
             if ($remaining >= 60) {
                 $minutes = ceil($remaining / 60);
