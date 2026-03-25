@@ -54,7 +54,8 @@ try {
     $existing = $checkStmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$existing) {
-        echo json_encode(['success' => false, 'message' => 'Review not found']);
+        http_response_code(404);
+        echo json_encode(['success' => false, 'message' => 'Not found or access denied']);
         exit;
     }
 
