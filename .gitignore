@@ -1,3 +1,11 @@
 # Error logs
 logs/*.log
 logs/error.log
+
+# Config files with credentials (use config/*.example.php as templates)
+config/app.php
+config/database.php
+config/stripe.php
+config/gmail.php
+config/mailtrap.php
+config/redis.php

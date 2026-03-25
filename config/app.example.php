@@ -1,6 +1,9 @@
 <?php
 /**
  * Application Configuration
+ *
+ * Skopíruj tento súbor ako app.php a vyplň reálne hodnoty.
+ * NIKDY necommituj app.php do gitu!
  */
 
 return [
@@ -10,7 +13,7 @@ return [
         'remember_me_lifetime' => 30 * 24 * 60 * 60,
         'cookie_name'          => 'session_token',
         'cookie_path'          => '/',
-        'cookie_secure'        => false,
+        'cookie_secure'        => false, // true v produkcii (HTTPS)
         'cookie_httponly'      => true,
     ],
 
@@ -67,19 +70,19 @@ return [
 
         'contact_form' => [
             'max_attempts' => 10,
-            'window'       => 60 * 60, // 1 hour
-            'lockout'      => 60 * 60, // 1 hour lockout
+            'window'       => 60 * 60,
+            'lockout'      => 60 * 60,
         ],
     ],
 
-    // Google OAuth
+    // Google OAuth — https://console.cloud.google.com/apis/credentials
     'google' => [
-        'client_id'     => '726695024122-ge43n76e5fgkt0omrmlfbl9crr641fd5.apps.googleusercontent.com',
-        'client_secret' => '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',
+        'client_id'     => 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
+        'client_secret' => 'YOUR_GOOGLE_CLIENT_SECRET',
         'redirect_uri'  => 'http://localhost/mainwebsite/public/googleCallback.php',
     ],
 
-    // reCAPTCHA v3
+    // reCAPTCHA v3 — https://www.google.com/recaptcha/admin
     'recaptcha' => [
         'site_key'   => '',
         'secret_key' => '',
@@ -88,6 +91,6 @@ return [
 
     // Admin
     'admin' => [
-        'email' => 'rafaj.jakub@gmail.com', // ← zmeň na svoj reálny email
+        'email' => 'your-admin-email@example.com',
     ],
 ];
