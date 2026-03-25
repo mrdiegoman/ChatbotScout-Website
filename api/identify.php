@@ -48,8 +48,8 @@ if (!hasStatisticsConsent()) {
 $data        = json_decode(file_get_contents('php://input'), true);
 $fingerprint = trim($data['fingerprint'] ?? '');
 
-if (empty($fingerprint)) {
-    echo json_encode(['success' => false, 'reason' => 'no_fingerprint']);
+if (empty($fingerprint) || mb_strlen($fingerprint) > 64 || !preg_match('/^[a-f0-9]+$/i', $fingerprint)) {
+    echo json_encode(['success' => false, 'reason' => 'invalid_fingerprint']);
     exit;
 }
 
