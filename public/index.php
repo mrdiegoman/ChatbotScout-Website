@@ -41,7 +41,11 @@ require '../inc/header.php';
                 <!-- Card 0 — LegalAI -->
                 <div class="hp-chatbot-card hp-theme-purple pos-far-left">
                     <div class="hp-card-header">
-                        <div class="hp-card-avatar"><i class="fa-solid fa-scale-balanced"></i></div>
+                        <div class="hp-card-avatar">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                                <path d="M320 128C241 128 175.3 185.3 162.3 260.7C171.6 257.7 181.6 256 192 256L208 256C234.5 256 256 277.5 256 304L256 400C256 426.5 234.5 448 208 448L192 448C139 448 96 405 96 352L96 288C96 164.3 196.3 64 320 64C443.7 64 544 164.3 544 288L544 456.1C544 522.4 490.2 576.1 423.9 576.1L336 576L304 576C277.5 576 256 554.5 256 528C256 501.5 277.5 480 304 480L336 480C362.5 480 384 501.5 384 528L384 528L424 528C463.8 528 496 495.8 496 456L496 435.1C481.9 443.3 465.5 447.9 448 447.9L432 447.9C405.5 447.9 384 426.4 384 399.9L384 303.9C384 277.4 405.5 255.9 432 255.9L448 255.9C458.4 255.9 468.3 257.5 477.7 260.6C464.7 185.3 399.1 127.9 320 127.9z"/>
+                            </svg>
+                        </div>
                         <div class="hp-card-info">
                             <div class="hp-card-name">LegalAI Assistant</div>
                             <div class="hp-card-status">Here for you</div>
@@ -66,7 +70,11 @@ require '../inc/header.php';
                 <!-- Card 1 — RestoBot -->
                 <div class="hp-chatbot-card hp-theme-green pos-left">
                     <div class="hp-card-header">
-                        <div class="hp-card-avatar"><i class="fa-solid fa-utensils"></i></div>
+                        <div class="hp-card-avatar">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                                <path d="M320 128C241 128 175.3 185.3 162.3 260.7C171.6 257.7 181.6 256 192 256L208 256C234.5 256 256 277.5 256 304L256 400C256 426.5 234.5 448 208 448L192 448C139 448 96 405 96 352L96 288C96 164.3 196.3 64 320 64C443.7 64 544 164.3 544 288L544 456.1C544 522.4 490.2 576.1 423.9 576.1L336 576L304 576C277.5 576 256 554.5 256 528C256 501.5 277.5 480 304 480L336 480C362.5 480 384 501.5 384 528L384 528L424 528C463.8 528 496 495.8 496 456L496 435.1C481.9 443.3 465.5 447.9 448 447.9L432 447.9C405.5 447.9 384 426.4 384 399.9L384 303.9C384 277.4 405.5 255.9 432 255.9L448 255.9C458.4 255.9 468.3 257.5 477.7 260.6C464.7 185.3 399.1 127.9 320 127.9z"/>
+                            </svg>
+                        </div>
                         <div class="hp-card-info">
                             <div class="hp-card-name">RestoBot</div>
                             <div class="hp-card-status">Live</div>
@@ -91,7 +99,11 @@ require '../inc/header.php';
                 <!-- Card 2 — SupportBot Pro (default center) -->
                 <div class="hp-chatbot-card hp-theme-blue pos-center">
                     <div class="hp-card-header">
-                        <div class="hp-card-avatar"><i class="fa-solid fa-headset"></i></div>
+                        <div class="hp-card-avatar">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                                <path d="M320 128C241 128 175.3 185.3 162.3 260.7C171.6 257.7 181.6 256 192 256L208 256C234.5 256 256 277.5 256 304L256 400C256 426.5 234.5 448 208 448L192 448C139 448 96 405 96 352L96 288C96 164.3 196.3 64 320 64C443.7 64 544 164.3 544 288L544 456.1C544 522.4 490.2 576.1 423.9 576.1L336 576L304 576C277.5 576 256 554.5 256 528C256 501.5 277.5 480 304 480L336 480C362.5 480 384 501.5 384 528L384 528L424 528C463.8 528 496 495.8 496 456L496 435.1C481.9 443.3 465.5 447.9 448 447.9L432 447.9C405.5 447.9 384 426.4 384 399.9L384 303.9C384 277.4 405.5 255.9 432 255.9L448 255.9C458.4 255.9 468.3 257.5 477.7 260.6C464.7 185.3 399.1 127.9 320 127.9z"/>
+                            </svg>
+                        </div>
                         <div class="hp-card-info">
                             <div class="hp-card-name">SupportBot Pro</div>
                             <div class="hp-card-status">Online</div>
@@ -117,7 +129,11 @@ require '../inc/header.php';
                 <!-- Card 3 — ShopAssist -->
                 <div class="hp-chatbot-card hp-theme-orange pos-right">
                     <div class="hp-card-header">
-                        <div class="hp-card-avatar"><i class="fa-solid fa-cart-shopping"></i></div>
+                        <div class="hp-card-avatar">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                                <path d="M320 128C241 128 175.3 185.3 162.3 260.7C171.6 257.7 181.6 256 192 256L208 256C234.5 256 256 277.5 256 304L256 400C256 426.5 234.5 448 208 448L192 448C139 448 96 405 96 352L96 288C96 164.3 196.3 64 320 64C443.7 64 544 164.3 544 288L544 456.1C544 522.4 490.2 576.1 423.9 576.1L336 576L304 576C277.5 576 256 554.5 256 528C256 501.5 277.5 480 304 480L336 480C362.5 480 384 501.5 384 528L384 528L424 528C463.8 528 496 495.8 496 456L496 435.1C481.9 443.3 465.5 447.9 448 447.9L432 447.9C405.5 447.9 384 426.4 384 399.9L384 303.9C384 277.4 405.5 255.9 432 255.9L448 255.9C458.4 255.9 468.3 257.5 477.7 260.6C464.7 185.3 399.1 127.9 320 127.9z"/>
+                            </svg>
+                        </div>
                         <div class="hp-card-info">
                             <div class="hp-card-name">ShopAssist AI</div>
                             <div class="hp-card-status">Ready to help</div>
@@ -142,7 +158,11 @@ require '../inc/header.php';
                 <!-- Card 4 — BookingBot -->
                 <div class="hp-chatbot-card hp-theme-pink pos-far-right">
                     <div class="hp-card-header">
-                        <div class="hp-card-avatar"><i class="fa-solid fa-calendar-check"></i></div>
+                        <div class="hp-card-avatar">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                                <path d="M320 128C241 128 175.3 185.3 162.3 260.7C171.6 257.7 181.6 256 192 256L208 256C234.5 256 256 277.5 256 304L256 400C256 426.5 234.5 448 208 448L192 448C139 448 96 405 96 352L96 288C96 164.3 196.3 64 320 64C443.7 64 544 164.3 544 288L544 456.1C544 522.4 490.2 576.1 423.9 576.1L336 576L304 576C277.5 576 256 554.5 256 528C256 501.5 277.5 480 304 480L336 480C362.5 480 384 501.5 384 528L384 528L424 528C463.8 528 496 495.8 496 456L496 435.1C481.9 443.3 465.5 447.9 448 447.9L432 447.9C405.5 447.9 384 426.4 384 399.9L384 303.9C384 277.4 405.5 255.9 432 255.9L448 255.9C458.4 255.9 468.3 257.5 477.7 260.6C464.7 185.3 399.1 127.9 320 127.9z"/>
+                            </svg>
+                        </div>
                         <div class="hp-card-info">
                             <div class="hp-card-name">BookingBot</div>
                             <div class="hp-card-status">Available 24/7</div>
@@ -344,7 +364,7 @@ require '../inc/header.php';
             <!-- Bot response 1 -->
             <div class="hp-chat-row hp-chat-row-bot hp-chat-animate">
                 <div class="hp-chat-avatar-bot">
-                    <!-- <img src="../img/ChatbotScout_logo.png" alt="ChatbotScout" style="width:70%;object-fit:contain;"> -->
+                    <img src="../img/ChatbotScout_logo.png" alt="ChatbotScout">
                 </div>
                 <div class="hp-chat-msg hp-chat-msg-bot">
                     <h3>Search, Filter & Sort - Find Your Perfect Chatbot</h3>
@@ -376,7 +396,7 @@ require '../inc/header.php';
             <!-- Bot response 2 -->
             <div class="hp-chat-row hp-chat-row-bot hp-chat-animate">
                 <div class="hp-chat-avatar-bot">
-                    <!-- <img src="../img/ChatbotScout_logo.png" alt="ChatbotScout" style="width:100%;height:100%;object-fit:contain;border-radius:50%;"> -->
+                    <img src="../img/ChatbotScout_logo.png" alt="ChatbotScout">
                 </div>
                 <div class="hp-chat-msg hp-chat-msg-bot">
                     <h3>Full Feature & Integration Details - All in One Place</h3>
@@ -458,13 +478,15 @@ require '../inc/header.php';
         <!-- Content -->
         <div class="hp-filter-content hp-fade-up">
             <div class="hp-filter-badge">
-                <i class="fa-solid fa-sliders"></i> Smart Filtering
+                Smart Filtering
             </div>
             <h2>Filter Chatbots by actual up-to-date <br> Features, Pricing, Integrations and more</h2>
             <div class="hp-filter-features">
                 <div class="hp-filter-feature">
                     <div class="hp-filter-feature-icon">
-                        <i class="fa-solid fa-tag"></i>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                            <path d="M320 32C373 32 416 75 416 128C416 181 373 224 320 224C267 224 224 181 224 128C224 75 267 32 320 32zM80 368C80 297.9 127 236.6 197.1 203.1C222.4 244.4 268 272 320 272C375.7 272 424.1 240.3 448 194C463.8 182.7 483.1 176 504 176L523.5 176C533.9 176 541.5 185.8 539 195.9L521.9 264.2C531.8 276.6 540.1 289.9 546.3 304L568 304C581.3 304 592 314.7 592 328L592 440C592 453.3 581.3 464 568 464L528 464C511.5 486 489.5 503.6 464 514.7L464 544C464 561.7 449.7 576 432 576L399 576C384.7 576 372.2 566.5 368.2 552.8L361.1 528L278.8 528L271.7 552.8C267.8 566.5 255.3 576 241 576L208 576C190.3 576 176 561.7 176 544L176 514.7C119.5 490 80 433.6 80 368zM456 384C469.3 384 480 373.3 480 360C480 346.7 469.3 336 456 336C442.7 336 432 346.7 432 360C432 373.3 442.7 384 456 384z"/>
+                        </svg>
                     </div>
                     <div class="hp-filter-feature-text">
                         <strong>Pricing that fits your budget</strong>
@@ -473,7 +495,9 @@ require '../inc/header.php';
                 </div>
                 <div class="hp-filter-feature">
                     <div class="hp-filter-feature-icon">
-                        <i class="fa-solid fa-gauge-high"></i>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                            <path d="M320 128C241 128 175.3 185.3 162.3 260.7C171.6 257.7 181.6 256 192 256L208 256C234.5 256 256 277.5 256 304L256 400C256 426.5 234.5 448 208 448L192 448C139 448 96 405 96 352L96 288C96 164.3 196.3 64 320 64C443.7 64 544 164.3 544 288L544 456.1C544 522.4 490.2 576.1 423.9 576.1L336 576L304 576C277.5 576 256 554.5 256 528C256 501.5 277.5 480 304 480L336 480C362.5 480 384 501.5 384 528L384 528L424 528C463.8 528 496 495.8 496 456L496 435.1C481.9 443.3 465.5 447.9 448 447.9L432 447.9C405.5 447.9 384 426.4 384 399.9L384 303.9C384 277.4 405.5 255.9 432 255.9L448 255.9C458.4 255.9 468.3 257.5 477.7 260.6C464.7 185.3 399.1 127.9 320 127.9z"/>
+                        </svg>
                     </div>
                     <div class="hp-filter-feature-text">
                         <strong>Filter by specific features</strong>
@@ -482,7 +506,9 @@ require '../inc/header.php';
                 </div>
                 <div class="hp-filter-feature">
                     <div class="hp-filter-feature-icon">
-                        <i class="fa-solid fa-puzzle-piece"></i>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                            <path d="M64 160C64 124.7 92.7 96 128 96L512 96C547.3 96 576 124.7 576 160L576 400L512 400L512 160L128 160L128 400L64 400L64 160zM0 467.2C0 456.6 8.6 448 19.2 448L620.8 448C631.4 448 640 456.6 640 467.2C640 509.6 605.6 544 563.2 544L76.8 544C34.4 544 0 509.6 0 467.2zM281 273L250 304L281 335C290.4 344.4 290.4 359.6 281 368.9C271.6 378.2 256.4 378.3 247.1 368.9L199.1 320.9C189.7 311.5 189.7 296.3 199.1 287L247.1 239C256.5 229.6 271.7 229.6 281 239C290.3 248.4 290.4 263.6 281 272.9zM393 239L441 287C450.4 296.4 450.4 311.6 441 320.9L393 368.9C383.6 378.3 368.4 378.3 359.1 368.9C349.8 359.5 349.7 344.3 359.1 335L390.1 304L359.1 273C349.7 263.6 349.7 248.4 359.1 239.1C368.5 229.8 383.7 229.7 393 239.1z"/>
+                        </svg>
                     </div>
                     <div class="hp-filter-feature-text">
                         <strong>Integration compatibility</strong>
@@ -540,7 +566,7 @@ require '../inc/header.php';
 ═══════════════════════════════════════ -->
 <section class="hp-seo-section">
     <div class="hp-section-inner">
-        <h2 class="hp-section-title">Compare AI Chatbots by Use Case, Features, and Platform</h2>
+        <!-- <h2 class="hp-section-title">Compare AI Chatbots by Use Case, Features, and Platform</h2>
         <p>
             ChatbotScout helps website owners compare AI chatbot software for ecommerce, lead generation, customer
             support, and appointment booking. Use one place to evaluate pricing models, integrations, supported
@@ -552,7 +578,7 @@ require '../inc/header.php';
             <a href="chatbotShowcase.php?platform=Shopify">AI chatbots for Shopify</a>,
             <a href="chatbotShowcase.php?pricing=Free">free AI chatbots</a>, and
             <a href="chatbotShowcase.php?feature=Live+agent+support">chatbots with live agent support</a>.
-        </p>
+        </p> -->
 
         <div class="hp-faq">
             <h3>Frequently Asked Questions</h3>

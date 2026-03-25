@@ -1,0 +1,335 @@
+# CLAUDE.md
+
+## Project Overview
+ChatbotHub — a chatbot directory/listing platform. Users can browse, submit, and review AI chatbots. Admins manage submissions, reviews, and promotions.
+
+Built with PHP + Node.js on XAMPP (Windows, local dev).
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | PHP (OOP, no framework) |
+| Frontend | HTML, CSS, Vanilla JS |
+| Database | MySQL via PDO (`websitedb`) + Supabase (external queries) |
+| Payments | Stripe (`stripe/stripe-php` + webhooks) |
+| Email | PHPMailer — Gmail API (prod) / Mailtrap (dev) |
+| Rate Limiting | Redis (primary) with MySQL fallback |
+| MCP | `mcp/supabase-server.js` (CommonJS) |
+
+---
+
+## Project Structure
+
+```
+api/          — JSON API endpoints (called by frontend JS fetch)
+app/          — Server-side action handlers (form submissions, auth flows)
+classes/      — PHP classes (Database, User, Session, Email, RateLimiter, AuditLog, Visitor)
+config/       — Config files (app, database, stripe, gmail, mailtrap, redis)
+inc/          — Shared PHP includes (bootstrap, header, footer, errorHandler)
+css/js/img/   — Frontend assets
+mcp/          — MCP servers (supabase-server.js)
+cron/         — Cron jobs
+logs/         — Log files (error.log)
+public/       — Public-facing pages
+scripts/      — Utility scripts
+tools/        — Dev tools (seedTestData.php)
+WebsiteDB/    — Database schema backup (Base.sql)
+```
+
+### Key API Endpoints (`api/`)
+- `getChatbots.php` — main chatbot listing with filtering/pagination
+- `submitChatbot.php` / `submitReview.php` — user submissions
+- `stripeWebhook.php` — Stripe payment events
+- `getAdminData.php` / `getAdminSubmissions.php` — admin panel data
+- `toggleFavorite.php`, `blockUser.php`, `identify.php`, `recordVisit.php`
+
+### Key App Handlers (`app/`)
+- `auth.php` — login/register/logout helpers
+- `guard.php` — route protection
+- `stripeActions.php` — payment flows
+- `adminSubmissionActions.php` / `adminReviewActions.php` / `adminSettingsActions.php`
+- `profileActions.php`, `advertiseActions.php`, `contactActions.php`
+
+### PHP Classes (`classes/`)
+- `Database.php` — Singleton PDO connection
+- `User.php` — user management and registration
+- `Session.php` — session creation, validation, cleanup
+- `Email.php` — email sending via PHPMailer
+- `RateLimiter.php` — Redis/DB rate limiting
+- `AuditLog.php` — admin audit trail
+- `Visitor.php` — visitor tracking
+
+---
+
+## Development Environment
+- OS: Windows 11
+- Local server: XAMPP
+- Web root: `C:\xampp\htdocs\MainWebsite`
+- MySQL DB name: `websitedb` (password: blank, user: root)
+
+## Common Commands
+```bash
+# Install Node dependencies
+npm install
+
+# Install PHP dependencies
+composer install
+
+# Stripe webhook testing (requires Stripe CLI)
+stripe listen --forward-to localhost/mainwebsite/api/stripeWebhook.php
+
+# Seed test data
+php tools/seedTestData.php
+```
+I give you always access for commands that allow you to look at the files. For you to get more information to get make better results.
+
+---
+
+## Bootstrap Globals
+
+Every page/endpoint includes `inc/bootstrap.php`, which sets these globals:
+
+| Variable | Type | Description |
+|---|---|---|
+| `$isLoggedIn` | bool | Whether user has a valid session |
+| `$user` | array\|null | Full user data including `is_admin` flag |
+| `$userRole` | string | `'admin'` or `'user'` |
+| `$visitorId` | string\|null | Visitor tracking ID (if GDPR consent given) |
+| `$page` | string | Current page basename from `$_SERVER['PHP_SELF']` |
+
+Bootstrap also: starts session, registers class autoloader, validates session token from `session_token` cookie, checks GDPR consent, runs visitor tracking, and may clean expired sessions (1% chance per request).
+
+---
+
+## Coding Conventions
+
+### PHP Naming
+- Classes: `PascalCase` — in `classes/`
+- Action files: `camelCaseActions.php` — in `app/`
+- API endpoints: `camelCase.php` — in `api/`
+- Config files: `lowercase.php` — in `config/`
+- Variables & functions: `$camelCase` / `camelCase()`
+- DB tables & columns: `snake_case`
+
+### PHP Rules
+- Always use `mb_strlen()` not `strlen()` (multi-byte string support, UTF-8)
+- UUIDs generated in PHP with `mt_rand()`, not the database
+- Config files return associative arrays, loaded fresh per request (no caching layer)
+- `BOOTSTRAP_LOADED` constant is set by bootstrap — do not include bootstrap files without it being set
+
+### Database Naming
+- IDs: UUID v4 (36-char string), stored as `VARCHAR(36)`
+- Status column values: `active`, `pending`, `deleted`, `inactive`, `blocked`, `pending_verification`
+- Soft deletes: `deleted_at TIMESTAMP NULL` — always include `deleted_at IS NULL` in queries
+- Timestamps: `created_at`, `updated_at`, `deleted_at`
+
+---
+
+## Standard API Endpoint Pattern
+
+Every file in `api/` follows this structure:
+
+```php
+<?php
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+
+require '../inc/bootstrap.php';
+
+header('Content-Type: application/json');
+header('Cache-Control: no-cache');
+
+// Method check
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['success' => false, 'message' => 'Method not allowed.']);
+    exit;
+}
+
+// Auth check (if needed)
+if (!$isLoggedIn) {
+    http_response_code(401);
+    echo json_encode(['success' => false, 'message' => 'You must be logged in.', 'redirect' => '/login.php']);
+    exit;
+}
+
+// Input
+$data = json_decode(file_get_contents('php://input'), true) ?? [];
+
+// Validate inputs...
+
+try {
+    $db = Database::getInstance()->getConnection();
+    // ... operations
+    echo json_encode(['success' => true, 'data' => $result]);
+} catch (Exception $e) {
+    error_log('Error in ' . basename(__FILE__) . ': ' . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Server error. Please try again.']);
+}
+```
+
+**Response shape:** `{ success: bool, message?: string, data?: any, redirect?: string }`
+
+### Input Validation Patterns
+- Email: `filter_var($email, FILTER_VALIDATE_EMAIL)`
+- URL: `filter_var($url, FILTER_VALIDATE_URL)`
+- UUID: `/^[0-9a-f\-]{36}$/i` regex
+- Enum: `in_array($value, ['opt1', 'opt2'], true)` (strict)
+- Strings: `trim()` + `mb_strlen()` for length checks
+
+---
+
+## Database Patterns
+
+```php
+// Always use singleton
+$db = Database::getInstance()->getConnection();
+
+// Named prepared statements — never string concatenation
+$stmt = $db->prepare("SELECT * FROM users WHERE email = :email AND deleted_at IS NULL");
+$stmt->execute([':email' => $email]);
+$row = $stmt->fetch(); // Returns assoc array
+
+// Fetch modes
+$stmt->fetch()                          // Single row
+$stmt->fetchAll()                       // All rows
+$stmt->fetchColumn()                    // Single column value
+$stmt->fetchAll(PDO::FETCH_KEY_PAIR)    // key => value pairs
+
+// Dynamic IN() placeholders
+$placeholders = implode(',', array_fill(0, count($ids), '?'));
+$stmt = $db->prepare("SELECT * FROM table WHERE id IN ({$placeholders})");
+$stmt->execute($ids);
+
+// Transactions
+try {
+    $db->beginTransaction();
+    // ...
+    $db->commit();
+} catch (Exception $e) {
+    $db->rollBack();
+    throw $e;
+}
+```
+
+PDO config: `ERRMODE_EXCEPTION`, `FETCH_ASSOC`, `EMULATE_PREPARES = false`.
+
+---
+
+## Authentication & Guards
+
+```php
+// app/auth.php helpers
+login($userData, $rememberMe = false)   // Creates DB session + sets cookie
+logout()                                 // Destroys session
+isLoggedIn()                             // Returns bool from $_SESSION
+getCurrentUser()                         // Returns user array from $_SESSION
+
+// app/guard.php
+requireLogin()          // Redirects to login if not authenticated
+requireRole('admin')    // Checks is_admin flag, redirects if unauthorized
+```
+
+Session token: 32 random bytes (hex), stored in `user_sessions` table and `session_token` cookie (httpOnly). Session validation checks account status — suspended/blocked users will have `$isLoggedIn = false` even with a valid cookie.
+
+---
+
+## JavaScript Patterns
+
+All JS files use IIFE pattern:
+```javascript
+(function () {
+    'use strict';
+
+    const state = { currentPage: 1, filters: {} };
+
+    // DOM refs cached once
+    const listEl = document.getElementById('list');
+
+    // Fetch pattern
+    async function loadData() {
+        const response = await fetch('/api/endpoint.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: value })
+        });
+        const result = await response.json();
+        if (!result.success) {
+            if (result.redirect) window.location.href = result.redirect;
+            return;
+        }
+        // use result.data
+    }
+
+    // XSS prevention — always use these when inserting user content into DOM
+    function escapeHtml(str) { ... }
+    function escapeAttr(str) { ... }
+
+    document.addEventListener('DOMContentLoaded', () => { ... });
+})();
+```
+
+- Use event delegation on parent elements rather than binding to every child
+- Show/hide loading states while fetching
+- Validate forms on blur (real-time) and on submit
+
+---
+
+## MCP Server
+
+**File:** `mcp/supabase-server.js` (CommonJS — uses `require`/`module.exports`)
+
+**Exposed tools:**
+- `get_tables` — queries `information_schema.tables` to list all Supabase tables
+- `get_users` — queries the `users` table
+
+**Required env vars** (set in MCP client config, not in any `.env` file):
+- `SUPABASE_URL`
+- `SUPABASE_KEY`
+
+---
+
+## Rate Limiting
+
+Class: `RateLimiter` — Redis primary, MySQL DB fallback (auto-detected).
+
+```php
+$limiter = new RateLimiter();
+$limiter->check($action, $ipAddress, $email);          // Returns bool
+$limiter->recordFailedAttempt($action, $ip, $email);   // Returns remaining lockout secs
+$limiter->reset($action, $ip, $email);
+```
+
+Configured in `config/app.php` under `rate_limit` key. Tracks both IP and email independently. Actions: `login`, `registration`, `password_reset`, `contact`.
+
+---
+
+## Email
+
+- **Production:** Gmail API with OAuth2 — credentials in `config/gmail.php`
+- **Development:** Mailtrap SMTP — credentials in `config/mailtrap.php`
+- Methods in `Email` class follow pattern: `send<Action>()` e.g. `sendVerification()`, `sendPasswordReset()`
+
+---
+
+## Architecture Notes
+- No PHP framework — custom OOP with manual routing via `app/guard.php`
+- API endpoints return JSON, consumed by frontend JS fetch calls
+- Supabase used for external/MCP queries; MySQL (`websitedb`) is the primary app database
+- Stripe webhooks handled in `api/stripeWebhook.php`
+- MCP server (`mcp/supabase-server.js`) connects Claude to Supabase for DB queries during development
+- No `.env` file — all credentials hardcoded in `config/` files (local dev only)
+- `WebsiteDB/Base.sql` contains the full database schema dump
+- Cron: `cron/updatePopularTags.php` runs daily to update tag rankings
+
+
+## Colaboration
+I want to always discuss eany change we make together. You can ask questions so we can figure out best option for you to make. 
+
+## Styling in css
+When working with bold text always decide bettween font-family: outfit-bold, outfit-medium, outfit-semibold. Don't use font-weight.

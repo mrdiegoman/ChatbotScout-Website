@@ -1,11 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
-);
+// Cursor MCP runs this file via `node` under your repo's `"type": "commonjs"`.
+// So this file must be CommonJS (not ESM `import`/`export`).
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-export const tools = {
+const tools = {
   get_tables: async () => {
     const { data, error } = await supabase
       .from('information_schema.tables')
@@ -24,3 +23,5 @@ export const tools = {
     return data;
   }
 };
+
+module.exports = { tools };
