@@ -1180,12 +1180,35 @@ a, button {
 
 /* Email header */
 .header-profile-dropdown-email {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
     font-size: 1.6rem;
     font-family: Outfit-Bold;
     color: var(--white-color-dark);
     padding: 0.6rem 1.8rem 1rem;
     word-break: break-all;
-    /* opacity: 0.85; */
+}
+
+#dropdown-email-toggle {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: var(--white-color-dark);
+    opacity: 0.6;
+    display: flex;
+    align-items: center;
+}
+
+#dropdown-email-toggle:hover {
+    opacity: 1;
+}
+
+#dropdown-email-toggle svg {
+    width: 1.4rem;
+    height: 1.4rem;
 }
 
 /* Divider */

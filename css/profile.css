@@ -282,6 +282,25 @@
     color: var(--profile-primary);
 }
 
+#email-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: var(--profile-text-muted);
+    display: flex;
+    align-items: center;
+}
+
+#email-toggle:hover {
+    color: var(--profile-primary);
+}
+
+#email-toggle svg {
+    width: 16px;
+    height: 16px;
+}
+
 .edit-btn {
     background: none;
     border: none;

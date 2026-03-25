@@ -198,13 +198,17 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
                 <div class="header-profile-dropdown-wrapper">
 
                     <a class="header-main-right-profile-avatar" id="profileAvatarBtn" title="<?php echo htmlspecialchars($userName); ?>">
-                        <img src="<?php echo htmlspecialchars($profilePicture); ?>" alt="Profile" class="profile-avatar-img user-avatar-img"
-                            onerror="this.onerror=null; this.src='../img/default-avatar2.png';">
+                        <img src="../img/default-avatar2.png" data-src="<?php echo htmlspecialchars($profilePicture); ?>" alt="Profile" class="profile-avatar-img user-avatar-img">
                     </a>
 
                     <div class="header-profile-dropdown" id="profileDropdown">
                         <div class="header-profile-dropdown-email">
-                            user: <?php echo htmlspecialchars($user['email'] ?? ''); ?>
+                            <span id="dropdown-email-text"></span>
+                            <button type="button" id="dropdown-email-toggle" aria-label="Show email">
+                                <svg id="dropdown-email-icon-show" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                <svg id="dropdown-email-icon-hide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                            </button>
+                            <input type="hidden" id="dropdown-email-full" value="<?php echo htmlspecialchars($user['email'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                         </div>
 
                         <div class="header-profile-dropdown-divider"></div>
@@ -246,6 +250,11 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
             </svg>
         </button>
     </header>
+
+    <!-- DEV BANNER — remove before going live -->
+    <div style="background:#f59e0b;color:#1c1917;text-align:center;padding:10px 16px;font-size:14px;font-family:inherit;">
+        🚧 This site is currently under development. Chatbot listings are not yet available. 🚧
+    </div>
 
     <!-- Mobile Menu Overlay -->
     <div class="header-mobile-menu">
@@ -310,8 +319,7 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
                     <a href="signUp.php" class="header-mobile-signup">Sign Up</a>
                 <?php else: ?>
                     <a href="profile.php" class="header-mobile-profile">
-                        <img src="<?php echo htmlspecialchars($profilePicture); ?>" alt="Profile"
-                            onerror="this.onerror=null; this.src='../img/default-avatar2.png';">
+                        <img src="../img/default-avatar2.png" data-src="<?php echo htmlspecialchars($profilePicture); ?>" alt="Profile" class="user-avatar-img">
                         <span>Profile</span>
                     </a>
                     <a href="favouritesShowcase.php" class="header-mobile-favourites">
@@ -337,6 +345,19 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
     </div>
 
     <script src="../js/csrf.js"></script>
+    <script nonce="<?= $cspNonce ?>">
+        function loadAvatar(img) {
+            var real = img.getAttribute('data-src');
+            if (!real) return;
+            var tmp = new Image();
+            tmp.onload = function() { img.src = real; };
+            tmp.src = real;
+        }
+        document.querySelectorAll('img.user-avatar-img').forEach(loadAvatar);
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('img.user-avatar-img').forEach(loadAvatar);
+        });
+    </script>
     <script src="../js/BurgerMenuHeader.js" defer></script>
     <script src="../js/ProfileDropdown.js" defer></script>
     

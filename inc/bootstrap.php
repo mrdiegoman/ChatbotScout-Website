@@ -66,8 +66,8 @@ header(
     "default-src 'self'; " .
     "script-src 'self' 'nonce-{$cspNonce}' https://js.stripe.com; " .
     "style-src 'self' 'unsafe-inline'; " .
-    "img-src 'self' data:; " .
-    "font-src 'self'; " .
+    "img-src 'self' data: https://lh3.googleusercontent.com; " .
+    "font-src 'self' data:; " .
     "connect-src 'self' https://api.stripe.com https://js.stripe.com; " .
     "frame-src https://js.stripe.com; " .
     "frame-ancestors 'none'; " .

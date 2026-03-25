@@ -92,7 +92,6 @@
     // ============================================
 
     function loadVisitorScript() {
-        console.log('som tu1');
         if (document.getElementById('visitor-script')) {
             // Skript už je načítaný — zavolaj collectAndSend priamo
             if (typeof window.collectAndSendVisitor === 'function') {
@@ -100,7 +99,6 @@
             }
             return;
         }
-        console.log('som tu2');
         var script = document.createElement('script');
         script.id    = 'visitor-script';
         script.src   = '../js/visitor.js';

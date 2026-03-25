@@ -27,6 +27,38 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 
 // ============================================
+// EMAIL MASKING
+// ============================================
+
+(function () {
+    const emailDisplay = document.getElementById('email-display');
+    const emailFull    = document.getElementById('email-full');
+    const emailToggle  = document.getElementById('email-toggle');
+    const iconShow     = document.getElementById('email-icon-show');
+    const iconHide     = document.getElementById('email-icon-hide');
+
+    if (!emailDisplay || !emailFull || !emailToggle) return;
+
+    const full = emailFull.value;
+
+    function maskEmail(email) {
+        const atIndex = email.indexOf('@');
+        if (atIndex < 0) return email;
+        return email[0] + '***' + email.slice(atIndex);
+    }
+
+    let visible = false;
+    emailDisplay.textContent = maskEmail(full);
+
+    emailToggle.addEventListener('click', () => {
+        visible = !visible;
+        emailDisplay.textContent    = visible ? full : maskEmail(full);
+        iconShow.style.display = visible ? 'none' : '';
+        iconHide.style.display = visible ? ''     : 'none';
+    });
+})();
+
+// ============================================
 // AVATAR UPLOAD
 // ============================================
 
