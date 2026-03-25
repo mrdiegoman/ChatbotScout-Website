@@ -55,6 +55,7 @@ if ($method === 'GET') {
 // ============================================
 
 if ($method === 'POST') {
+    validateCsrfToken();
     $data = json_decode(file_get_contents('php://input'), true) ?? [];
 
     $replyEmail   = trim($data['reply_from_email']         ?? '');

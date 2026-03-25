@@ -18,6 +18,7 @@ unset($_SESSION['signup_input']);
 
 // Handle registration form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    validateCsrfToken('signUp.php');
     $firstName = trim($_POST['first_name'] ?? '');
     $lastName = trim($_POST['last_name'] ?? '');
     $email = trim($_POST['email'] ?? '');
@@ -127,6 +128,7 @@ require '../inc/header.php';
         
         <!-- Registration Form -->
         <form method="POST" action="signUp.php" class="auth-form">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
             <div class="name-fields">
                 <!-- First Name Field -->
                 <div class="form-group">

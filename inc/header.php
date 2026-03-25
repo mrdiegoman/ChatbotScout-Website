@@ -107,6 +107,7 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
     <title><?php echo htmlspecialchars($fullTitle, ENT_QUOTES, 'UTF-8'); ?></title>
     <meta name="description" content="<?php echo htmlspecialchars($seo['description'], ENT_QUOTES, 'UTF-8'); ?>">
     <meta name="robots" content="<?php echo htmlspecialchars($robotsContent, ENT_QUOTES, 'UTF-8'); ?>">
@@ -335,6 +336,7 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
         </div>
     </div>
 
+    <script src="../js/csrf.js"></script>
     <script src="../js/BurgerMenuHeader.js" defer></script>
     <script src="../js/ProfileDropdown.js" defer></script>
     

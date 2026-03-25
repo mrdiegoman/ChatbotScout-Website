@@ -25,6 +25,8 @@ if (!$isLoggedIn || empty($user['id'])) {
     exit;
 }
 
+validateCsrfToken();
+
 // ============================================
 // KONTROLA BLOKÁCIE
 // ============================================

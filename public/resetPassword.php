@@ -17,6 +17,7 @@ unset($_SESSION['reset_errors']);
 
 // Handle password reset form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    validateCsrfToken('resetPassword.php?token=' . urlencode($_GET['token'] ?? ''));
     $newPassword = $_POST['password'] ?? '';
     $confirmPassword = $_POST['confirm_password'] ?? '';
     
@@ -91,6 +92,7 @@ require '../inc/header.php';
         
         <!-- Reset Password Form -->
         <form method="POST" action="resetPassword.php?token=<?php echo htmlspecialchars($token); ?>" class="auth-form">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
             <!-- New Password Field -->
             <div class="form-group">
                 <label for="password">New Password</label>

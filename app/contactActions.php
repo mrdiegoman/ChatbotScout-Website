@@ -25,6 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+validateCsrfToken($contactUrl);
+
 $db = Database::getInstance()->getConnection();
 
 $firstName = trim($_POST['first_name'] ?? '');

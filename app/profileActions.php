@@ -25,6 +25,10 @@ if (!in_array($action, $publicActions) && !$isLoggedIn) {
     exit;
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    validateCsrfToken();
+}
+
 // ============================================
 // RESEND VERIFICATION EMAIL (na začiatok - public action)
 // ============================================

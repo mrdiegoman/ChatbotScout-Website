@@ -17,6 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+validateCsrfToken();
+
 $input  = json_decode(file_get_contents('php://input'), true);
 $action = $input['action'] ?? '';
 $id     = trim($input['id'] ?? '');

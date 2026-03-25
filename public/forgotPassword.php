@@ -20,6 +20,7 @@ unset($_SESSION['forgot_input']);
 
 // Handle password reset request
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    validateCsrfToken('forgotPassword.php');
     $email = trim($_POST['email'] ?? '');
     
     // ✅ Rate limiting check
@@ -125,6 +126,7 @@ require '../inc/header.php';
         
         <!-- Password Reset Form -->
         <form method="POST" action="forgotPassword.php" class="auth-form">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
             <!-- Email Field -->
             <div class="form-group">
                 <label for="email">Email address</label>

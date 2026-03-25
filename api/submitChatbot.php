@@ -21,6 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+validateCsrfToken();
+
 // ============================================
 // KONTROLA BLOKÁCIE
 // ============================================

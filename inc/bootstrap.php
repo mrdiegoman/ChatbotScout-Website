@@ -19,6 +19,29 @@ function generateUUID(): string {
     return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 }
 
+/**
+ * Validácia CSRF tokenu.
+ * Kontroluje X-CSRF-Token header (fetch) alebo csrf_token POST pole (HTML formy).
+ *
+ * @param string $redirectOnFail URL na redirect ak validácia zlyhá (pre HTML formy).
+ *                               Ak je prázdny, vráti JSON 403 (pre API).
+ */
+function validateCsrfToken(string $redirectOnFail = ''): void {
+    $token    = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_POST['csrf_token'] ?? '';
+    $expected = $_SESSION['csrf_token'] ?? '';
+
+    if (!$expected || !hash_equals($expected, $token)) {
+        if ($redirectOnFail) {
+            header('Location: ' . $redirectOnFail);
+            exit;
+        }
+        http_response_code(403);
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Invalid request. Please refresh the page.']);
+        exit;
+    }
+}
+
 // ============================================
 // SECURITY HEADERS
 // ============================================
@@ -29,6 +52,11 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
 
 // Štart PHP session
 session_start();
+
+// CSRF token — generuj raz za session
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 
 // Autoloader tried - automaticky načíta triedy z /classes
 spl_autoload_register(function ($class) {

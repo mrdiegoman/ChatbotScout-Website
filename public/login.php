@@ -20,6 +20,7 @@ unset($_SESSION['login_success']);
 
 // Handle login form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    validateCsrfToken('login.php');
 
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
@@ -133,6 +134,7 @@ require '../inc/header.php';
         
         <!-- Login Form -->
         <form method="POST" action="login.php" class="auth-form">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
             <!-- Email Field -->
             <div class="form-group">
                 <label for="email">Email</label>

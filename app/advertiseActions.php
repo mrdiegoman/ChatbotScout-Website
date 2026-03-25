@@ -18,6 +18,10 @@ if (!$isLoggedIn) {
     exit;
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    validateCsrfToken();
+}
+
 $action = $_GET['action'] ?? '';
 
 switch ($action) {

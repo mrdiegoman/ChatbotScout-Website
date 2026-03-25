@@ -28,6 +28,8 @@ if ($action === 'create_payment_intent') {
         exit;
     }
 
+    validateCsrfToken();
+
     $input        = json_decode(file_get_contents('php://input'), true);
     $chatbotId    = trim($input['chatbot_id']    ?? '');
     $promotionId  = trim($input['promotion_id']  ?? '');
