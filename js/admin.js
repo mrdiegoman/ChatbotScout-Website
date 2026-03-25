@@ -167,7 +167,7 @@ async function sendReply(id, btn) {
                 responseBlock.className = 'admin-existing-response';
                 card.querySelector('.admin-message-body').after(responseBlock);
             }
-            responseBlock.innerHTML = `<strong>Your response:</strong><p>${response.replace(/\n/g, '<br>')}</p>`;
+            responseBlock.innerHTML = `<strong>Your response:</strong><p>${escHtml(response).replace(/\n/g, '<br>')}</p>`;
         } else {
             showNotification(result.message || 'Failed to send reply', 'error');
         }
@@ -647,7 +647,7 @@ function showAcceptPopup(id, chatbotName, rules, allPassed) {
             <div class="sub-popup-footer">
                 <button class="admin-cancel-btn" onclick="closeAcceptPopup()">Cancel</button>
                 <button class="admin-accept-confirm-btn"${confirmDisabled}
-                        onclick="confirmAccept('${id}', this)">
+                        onclick="confirmAccept('${escHtml(id)}', this)">
                     ✅ Confirm Accept
                 </button>
             </div>
