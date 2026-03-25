@@ -28,18 +28,6 @@ $db = Database::getInstance()->getConnection();
 
 echo "[" . date('Y-m-d H:i:s') . "] renewSubscriptions started\n";
 
-// ── Helper: generate UUID v4 ────────────────────────────────────────────────
-function generateRenewUUID(): string {
-    return sprintf(
-        '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-        mt_rand(0, 0xffff), mt_rand(0, 0xffff),
-        mt_rand(0, 0xffff),
-        mt_rand(0, 0x0fff) | 0x4000,
-        mt_rand(0, 0x3fff) | 0x8000,
-        mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
-    );
-}
-
 try {
     // Find subscriptions expiring within next 24 hours with auto_renew = TRUE
     $stmt = $db->prepare("
@@ -104,7 +92,7 @@ try {
             };
 
             // Create new payment record
-            $newPaymentId = generateRenewUUID();
+            $newPaymentId = generateUUID();
             $db->prepare("
                 INSERT INTO payments (
                     id, user_id, subscription_id, chatbot_id,
