@@ -7,14 +7,16 @@
  *
  * Spustenie: https://yourdomain.com/scripts/sendMarketingEmail.php?secret=YOUR_SECRET
  * alebo cez CLI: php scripts/sendMarketingEmail.php
- * 
- * http://localhost/MainWebsite/scripts/sendMarketingEmail.php?secret=d0490709d5bc32d3a72ce77c6834eb76
  */
 
 define('BOOTSTRAP_LOADED', true);
+require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../inc/errorHandler.php';
 require __DIR__ . '/../classes/Database.php';
 require __DIR__ . '/../classes/Email.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
 
 session_start();
 
@@ -22,7 +24,7 @@ session_start();
 // OCHRANA — secret key (zmeň si na vlastný!)
 // ============================================
 
-$secret = 'd0490709d5bc32d3a72ce77c6834eb76';
+$secret = $_ENV['MARKETING_SECRET'] ?? '';
 
 $isCli  = PHP_SAPI === 'cli';
 $isWeb  = !$isCli;
