@@ -3,7 +3,16 @@
     "allow": [
       "Bash(grep -r \"supabase\\\\|amazonaws\\\\|reCAPTCHA\\\\|google-analytics\\\\|gtag\\\\|Tag Manager\" . --include=*.php --include=*.js)",
       "Bash(composer require:*)",
-      "Bash(php -r \":*)"
+      "Bash(php -r \":*)",
+      "Read(//c/Users/rafaj/.claude/**)",
+      "mcp__claude_ai_Supabase__list_projects",
+      "mcp__claude_ai_Supabase__list_tables",
+      "mcp__claude_ai_Supabase__execute_sql",
+      "Read(//c/Users/rafaj/AppData/Roaming/Code/User/globalStorage/anthropic.claude-code/settings/**)",
+      "Bash(xargs grep:*)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\rafaj\\.claude"
     ]
   }
 }

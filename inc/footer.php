@@ -7,7 +7,7 @@
                     <p>ChatbotScout</p>
                 </a>
 
-                <div class="footer-main-content-first-folow-section">
+                <!-- <div class="footer-main-content-first-folow-section">
                     <p class="footer-main-content-first-folow-section-text">Follow Us</p>
                     <div class="footer-content-first-folow-section-icons">
                         <a href="#">
@@ -39,7 +39,7 @@
                             </svg>
                         </a>
                     </div>
-                </div>
+                </div> -->
             </div>
 
             <!-- Chatbots Section with Accordion -->
@@ -57,9 +57,10 @@
 
                 <div class="footer-accordion-content" id="chatbots-content">
                     <a href="chatbotShowcase.php">Browse Chatbots</a>
-                    <a href="submitChatbot.php">Submit Chatbot</a>
-                    <a href="#">Get Featured</a>
-                    <a href="advertise.php">Advertise</a>
+                    <!-- <a href="submitChatbot.php">Submit Chatbot</a> -->
+                    <!-- <a href="login.php">Login</a> -->
+                    <!-- <a href="signUp.php">Sign Up</a> -->
+                    <!-- <a href="advertise.php">Advertise</a> -->
                 </div>
             </div>
 

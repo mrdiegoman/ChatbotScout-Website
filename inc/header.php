@@ -179,8 +179,8 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
             </ul>
         </nav>
         <div class="header-main-btns-promo">
-            <a href="submitChatbot.php" class="header-main-btn-submit">Submit Chatbot</a>
-            <a href="advertise.php" class="header-main-btn-advertise">Advertise</a>
+            <!-- <a href="submitChatbot.php" class="header-main-btn-submit">Submit Chatbot</a>
+            <a href="advertise.php" class="header-main-btn-advertise">Advertise</a> -->
         </div>
         <div class="header-main-right">
             <?php if (!$isLoggedIn): ?>
@@ -252,8 +252,8 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
     </header>
 
     <!-- DEV BANNER — remove before going live -->
-    <div style="background:#f59e0b;color:#1c1917;text-align:center;padding:10px 16px;font-size:14px;font-family:inherit;">
-        🚧 This site is currently under development. Chatbot listings are not yet available. 🚧
+    <div style="position:fixed;top:60px;left:0;width:100%;background:#f59e0b;color:#1c1917;text-align:center;padding:10px 16px;font-size:14px;font-family:inherit;z-index:999;">
+        This site is currently under development. Chatbot listings are not yet available.
     </div>
 
     <!-- Mobile Menu Overlay -->
@@ -301,19 +301,19 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
             </nav>
 
             <!-- Divider -->
-            <div class="header-mobile-divider"></div>
+            <!-- <div class="header-mobile-divider"></div> -->
 
             <!-- Promo buttons -->
-            <div class="header-mobile-promo">
+            <!-- <div class="header-mobile-promo">
                 <a href="submitChatbot.php" class="header-mobile-btn-submit">Submit Chatbot</a>
                 <a href="advertise.php" class="header-mobile-btn-advertise">Advertise</a>
-            </div>
+            </div> -->
 
             <!-- Divider -->
-            <div class="header-mobile-divider"></div>
+            <!-- <div class="header-mobile-divider"></div> -->
 
             <!-- Auth -->
-            <div class="header-mobile-auth">
+            <!-- <div class="header-mobile-auth">
                 <?php if (!$isLoggedIn): ?>
                     <a href="login.php" class="header-mobile-login">Log In</a>
                     <a href="signUp.php" class="header-mobile-signup">Sign Up</a>
@@ -339,7 +339,7 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
                     <?php endif; ?>
                     <a href="logout.php" class="header-mobile-logout">Log Out</a>
                 <?php endif; ?>
-            </div>
+            </div> -->
 
         </div>
     </div>
