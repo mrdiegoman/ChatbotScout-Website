@@ -1,6 +1,6 @@
 <?php
 /**
- * 404 - Page Not Found
+ * 404 - Page Not Foundd
  */
 
 // Prevent error handler loops on this page
