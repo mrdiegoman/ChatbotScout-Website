@@ -22,27 +22,27 @@ html {
 
 @font-face {
     font-family: Outfit;
-    src: url(../Fonts/Outfit/Outfit-Regular.ttf);
+    src: url(Fonts/Outfit/Outfit-Regular.ttf);
 }
 @font-face {
     font-family: Outfit-Bold;
-    src: url(../Fonts/Outfit/Outfit-Bold.ttf);
+    src: url(Fonts/Outfit/Outfit-Bold.ttf);
 }
 @font-face {
     font-family: Outfit-SemiBold;
-    src: url(../Fonts/Outfit/Outfit-SemiBold.ttf);
+    src: url(Fonts/Outfit/Outfit-SemiBold.ttf);
 }
 @font-face {
     font-family: Outfit-Medium;
-    src: url(../Fonts/Outfit/Outfit-Medium.ttf);
+    src: url(Fonts/Outfit/Outfit-Medium.ttf);
 }
 @font-face {
     font-family: RubikDistressed;
-    src: url(../Fonts/RubikDistressed/RubikDistressed-Regular.ttf);
+    src: url(Fonts/RubikDistressed/RubikDistressed-Regular.ttf);
 }
 @font-face {
     font-family: Outfit-ExtraBold;
-    src: url(../Fonts/Outfit/Outfit-ExtraBold.ttf);
+    src: url(Fonts/Outfit/Outfit-ExtraBold.ttf);
 }
 
 body {
