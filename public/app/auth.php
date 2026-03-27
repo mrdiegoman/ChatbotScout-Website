@@ -28,8 +28,8 @@ function login(array $userData, bool $rememberMe = false): void
     $sessionData = $sessionManager->create($userData['id'], $rememberMe);
     
     // Načítaj config
-    $appConfig = require __DIR__ . '/../config/app.php';
-    
+    $appConfig = require __DIR__ . '/../../config/app.php';
+
     // Nastav cookie lifetime
     $cookieLifetime = $rememberMe 
         ? time() + $appConfig['session']['remember_me_lifetime']
@@ -62,8 +62,8 @@ function login(array $userData, bool $rememberMe = false): void
 function logout(): void
 {
     // Načítaj config
-    $appConfig = require __DIR__ . '/../config/app.php';
-    
+    $appConfig = require __DIR__ . '/../../config/app.php';
+
     // Vymaž DB session
     if (isset($_COOKIE[$appConfig['session']['cookie_name']])) {
         $sessionToken = $_COOKIE[$appConfig['session']['cookie_name']];
