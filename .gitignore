@@ -10,6 +10,5 @@ config/app.php
 config/database.php
 config/stripe.php
 config/gmail.php
-config/mailtrap.php
 config/redis.php
 TO DO LIST.txt

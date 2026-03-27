@@ -17,7 +17,7 @@ Built with PHP + Node.js on XAMPP (Windows, local dev).
 | Frontend | HTML, CSS, Vanilla JS |
 | Database | MySQL via PDO (`websitedb`) |
 | Payments | Stripe (`stripe/stripe-php` + webhooks) |
-| Email | PHPMailer — Gmail API (prod) / Mailtrap (dev) |
+| Email | PHPMailer — Gmail API |
 | Rate Limiting | Redis (primary) with MySQL fallback |
 | MCP | `mcp/supabase-server.js` (CommonJS) |
 
@@ -29,7 +29,7 @@ Built with PHP + Node.js on XAMPP (Windows, local dev).
 api/          — JSON API endpoints (called by frontend JS fetch)
 app/          — Server-side action handlers (form submissions, auth flows)
 classes/      — PHP classes (Database, User, Session, Email, RateLimiter, AuditLog, Visitor)
-config/       — Config files (app, database, stripe, gmail, mailtrap, redis)
+config/       — Config files (app, database, stripe, gmail, redis)
 inc/          — Shared PHP includes (bootstrap, header, footer, errorHandler)
 css/js/img/   — Frontend assets
 mcp/          — MCP servers (supabase-server.js)
