@@ -5,6 +5,7 @@
  * Credentials sú načítané z .env súboru.
  * NIKDY necommituj .env do gitu!
  */
+error_log('DB config: ' . ($_ENV['DB_HOST'] ?? 'null') . ' | ' . ($_ENV['DB_NAME'] ?? 'null') . ' | ' . ($_ENV['DB_USER'] ?? 'null') . ' | ' . ($_ENV['DB_PASSWORD'] ?? 'null'));
 
 return [
     'host'     => $_ENV['DB_HOST']     ?? 'localhost',

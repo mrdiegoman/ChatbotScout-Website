@@ -236,7 +236,7 @@ require '../inc/header.php';
                     try {
                         error_log('tu1');
                         $db = Database::getInstance()->getConnection();
-
+                        error_log('tu2');
                         $stmt = $db->query("
                             SELECT
                                 c.id,
@@ -254,7 +254,7 @@ require '../inc/header.php';
                             LIMIT 8
                         ");
                         $popularChatbots = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                        error_log('tu2');
+                        error_log('tu3');
                         // Načítaj tagy pre tieto chatboty
                         if (!empty($popularChatbots)) {
                             $ids          = array_column($popularChatbots, 'id');
