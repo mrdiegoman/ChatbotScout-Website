@@ -795,14 +795,14 @@
     color: #14532D;
 }
 
-/* ── Scroll-in animation ── */
-.hp-chat-animate {
+/* ── Scroll-in animation (only when JS loaded) ── */
+.hp-js .hp-chat-animate {
     opacity: 0;
     transform: translateY(24px);
     transition: opacity .6s ease, transform .6s ease;
 }
 
-.hp-chat-animate.visible {
+.hp-js .hp-chat-animate.visible {
     opacity: 1;
     transform: translateY(0);
 }
@@ -1167,15 +1167,15 @@
 }
 
 /* ============================================================
-   GENERIC SCROLL FADE-UP
+   GENERIC SCROLL FADE-UP (only when JS loaded)
    ============================================================ */
-.hp-fade-up {
+.hp-js .hp-fade-up {
     opacity: 0;
     transform: translateY(28px);
     transition: opacity .7s ease, transform .7s ease;
 }
 
-.hp-fade-up.visible {
+.hp-js .hp-fade-up.visible {
     opacity: 1;
     transform: translateY(0);
 }

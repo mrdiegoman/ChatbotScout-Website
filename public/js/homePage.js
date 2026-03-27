@@ -3,6 +3,9 @@
  * Hero carousel, Popular carousel, Scroll animations
  */
 
+// Mark HTML element so CSS animations only activate when JS is running
+document.documentElement.classList.add('hp-js');
+
 document.addEventListener('DOMContentLoaded', function () {
 
     /* ════════════════════════════════════════════════
