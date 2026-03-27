@@ -167,10 +167,10 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
 
 <body class="<?php echo implode(' ', $bodyClasses); ?>">
     <header class="header-main">
-        <div class="header-main-logo" onclick="window.location.href='index.php'">
+        <a class="header-main-logo" href="index.php">
             <img src="img/ChatbotScout_logo.png" alt="ChatbotScout Logo">
             <p class="header-main-logo-title">ChatbotScout</p>
-        </div>
+        </a>
         <nav class="header-main-nav">
             <ul>
                 <li><a href="chatbotShowcase.php">Chatbots</a></li>
