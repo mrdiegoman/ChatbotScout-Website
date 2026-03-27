@@ -147,7 +147,12 @@ try {
             $appConfig  = require __DIR__ . '/../config/app.php';
             $adminEmail = $appConfig['admin']['email'] ?? 'admin@chatbotscout.com';
         }
- 
+
+        if (empty($noreplyEmail)) {
+            error_log('[WARNING] noreply_email not configured. Set it in Admin Panel → Settings.');
+            $noreplyEmail = 'noreply@chatbotscout.com';
+        }
+
         $emailService = new Email();
         $emailService->sendReviewAdminNotification(
             $adminEmail,

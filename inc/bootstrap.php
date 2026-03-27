@@ -175,6 +175,7 @@ if (hasStatisticsConsent()) {
 if (rand(1, 100) === 1) {
     $sessionManager = new Session();
     $sessionManager->cleanup();
+    (new RateLimiter())->cleanup();
 }
 
 // ============================================

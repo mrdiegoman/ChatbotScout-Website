@@ -12,14 +12,13 @@ SET time_zone = '+00:00';
 -- USER MANAGEMENT
 -- ============================================
 
-CREATE TABLE `users` (
+CREATE TABLE IF NOT EXISTS `users` (
   `id` CHAR(36) NOT NULL COMMENT 'UUID, e.g., "550e8400-e29b-41d4-a716-446655440000", "7c9e6679-7425-40de-944b-e07fc1f90ae7"',
   `email` VARCHAR(255) NOT NULL COMMENT 'User email, e.g., "john.doe@gmail.com", "maria.kovacova@azet.sk", "business@chatbotcompany.com"',
   `password_hash` VARCHAR(255) NOT NULL COMMENT 'Argon2id hashed password, e.g., "$argon2id$v=19$m=65536,t=3,p=4$c29tZXNhbHQ$RdescudvJCsgt3ub+b+dWRWJTmaaJObG", "$argon2id$v=19$m=19456,t=2,p=1$kL7kJRMI3JxWD5mEZLzBsQ$jWY6NJ3aqNJzCXLBcE0nLg"',
   `google_id` VARCHAR(255) NULL UNIQUE COMMENT 'Google OAuth user ID',
   `terms_accepted` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'User accepted Terms of Service',
   `terms_accepted_at` TIMESTAMP NULL COMMENT 'When user accepted Terms of Service',
-#   `username` VARCHAR(50) NULL UNIQUE COMMENT 'Unique username, e.g., "johndoe123", "maria_k", "tech_guru_2025"',
   `first_name` VARCHAR(100) NULL COMMENT 'First name, e.g., "John", "Mária", "Peter"',
   `last_name` VARCHAR(100) NULL COMMENT 'Last name, e.g., "Doe", "Kováčová", "Novák"',
   `verified_reviewer` BOOLEAN NOT NULL DEFAULT FALSE,
@@ -27,13 +26,6 @@ CREATE TABLE `users` (
   `is_review_blocked` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'User is blocked from submitting/editing reviews',
   `is_submission_blocked` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'User is blocked from submitting chatbots',
   `stripe_customer_id` VARCHAR(255) NULL,
-
-
-
-#   -- Affiliate Program
-#   `is_affiliate` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Is user an affiliate?, e.g., TRUE, FALSE',
-#   `affiliate_code` VARCHAR(20) NULL UNIQUE COMMENT 'User own affiliate code, e.g., "JOHN2025", "MARIA-REF", "TECH50"',
-#   `referred_by_affiliate_code` VARCHAR(20) NULL COMMENT 'Affiliate code used during signup, e.g., "PETER123", "PROMO2025", "FRIEND-CODE"',
 
   -- Email Verification
   `is_email_verified` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Email verified?, e.g., TRUE, FALSE',
@@ -71,7 +63,7 @@ CREATE TABLE `users` (
 
 -- ============================================
 
-CREATE TABLE `user_sessions` (
+CREATE TABLE IF NOT EXISTS `user_sessions` (
   `id` CHAR(36) NOT NULL COMMENT 'Session UUID, e.g., "650e8400-e29b-41d4-a716-446655440001", "8d1f2a3b-4c5e-6f7g-8h9i-0j1k2l3m4n5o"',
   `user_id` CHAR(36) NOT NULL COMMENT 'User UUID, e.g., "550e8400-e29b-41d4-a716-446655440000", "7c9e6679-7425-40de-944b-e07fc1f90ae7"',
   `session_token` VARCHAR(255) NOT NULL UNIQUE COMMENT 'Unique session token, e.g., "sess_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6", "token_2025_abc123def456ghi789jkl012"',
@@ -93,7 +85,7 @@ CREATE TABLE `user_sessions` (
 
 -- ============================================
 
-CREATE TABLE `visitors` (
+CREATE TABLE IF NOT EXISTS `visitors` (
   `id` CHAR(36) NOT NULL COMMENT 'Visitor UUID, e.g., "750e8400-e29b-41d4-a716-446655440002", "9e2f3b4c-5d6e-7f8g-9h0i-1j2k3l4m5n6o"',
   `fingerprint` VARCHAR(64) NULL DEFAULT NULL COMMENT 'SHA-256 browser fingerprint hash, e.g., "ec523d037249f514096cff40a45559b7cd4f3e68eed204c3f4c312bf491cecbf"',
   `ip_address` VARCHAR(45) NULL COMMENT 'IP address, e.g., "88.212.34.56", "2001:718:1c01:1111::2", "195.113.20.150"',
@@ -113,30 +105,21 @@ CREATE TABLE `visitors` (
   `utm_term` VARCHAR(255) NULL COMMENT 'Paid keywords, e.g., "ai chatbot", "customer support bot", "live chat widget"',
   `utm_content` VARCHAR(255) NULL COMMENT 'Ad variation, e.g., "banner_blue", "text_ad_v2", "sidebar_widget"',
 
-#   `user_id` CHAR(36) NULL COMMENT 'Set when visitor registers, e.g., "550e8400-e29b-41d4-a716-446655440000", "7c9e6679-7425-40de-944b-e07fc1f90ae7"',
-#   `converted_at` TIMESTAMP NULL COMMENT 'Registration time, e.g., "2025-01-29 14:30:00", "2025-01-28 10:15:00"',
-
   `first_seen` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'First visit, e.g., "2025-01-20 08:00:00", "2025-01-15 12:30:00"',
   `last_seen` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last visit, e.g., "2025-01-29 12:45:00", "2025-01-29 09:20:00"',
   `expires_at` TIMESTAMP NULL DEFAULT NULL ,
 
   PRIMARY KEY (`id`),
   KEY `idx_fingerprint` (`fingerprint`),
-#   KEY `idx_user_id` (`user_id`),
   KEY `idx_last_seen` (`last_seen`),
-  KEY `idx_utm_source_campaign` (`utm_source`, `utm_campaign`),
-
-#   CONSTRAINT `fk_visitors_user`
-#     FOREIGN KEY (`user_id`)
-#     REFERENCES `users` (`id`)
-#     ON DELETE SET NULL
+  KEY `idx_utm_source_campaign` (`utm_source`, `utm_campaign`)
 
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci;
 
 -- Väzobná tabuľka visitors a user ucty
-CREATE TABLE `visitor_user_links` (
+CREATE TABLE IF NOT EXISTS `visitor_user_links` (
   `id` CHAR(36) NOT NULL,
   `visitor_id` CHAR(36) NOT NULL,
   `user_id` CHAR(36) NOT NULL,
@@ -154,7 +137,7 @@ CREATE TABLE `visitor_user_links` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- recording unique visitors clicks on chatbot
-CREATE TABLE `chatbot_clicks` (
+CREATE TABLE IF NOT EXISTS `chatbot_clicks` (
   `id` CHAR(36) NOT NULL,
   `chatbot_id` CHAR(36) NOT NULL,
   `visitor_id` CHAR(36) NOT NULL,
@@ -175,7 +158,6 @@ CREATE TABLE `chatbot_clicks` (
 
 -- ============================================
 -- Settings table
--- Global key-value store pre site-wide nastavenia
 -- ============================================
 
 CREATE TABLE IF NOT EXISTS `settings` (
@@ -186,31 +168,29 @@ CREATE TABLE IF NOT EXISTS `settings` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Default hodnoty
-INSERT INTO `settings` (`key`, `value`) VALUES
-    ('reply_from_email', 'noreply@ChatbotScout.com'),
-    ('reply_from_name',  'ChatbotScout Support')
-ON DUPLICATE KEY UPDATE `key` = `key`;
+INSERT IGNORE INTO `settings` (`key`, `value`) VALUES
+    ('reply_from_email',         'ChatbotScout@gmail.com'),
+    ('reply_from_name',          'ChatbotScout Support'),
+    ('noreply_email',            NULL),
+    ('noreply_name',             NULL),
+    ('admin_notification_email', NULL);
 
 -- ============================================
 -- CHATBOT LISTINGS (WEBSITES)
 -- ============================================
 
-CREATE TABLE `chatbots` (
+CREATE TABLE IF NOT EXISTS `chatbots` (
   `id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
   `owner_user_id` CHAR(36) NULL COMMENT 'Owner UUID, e.g., "550e8400-e29b-41d4-a716-446655440000", "7c9e6679-7425-40de-944b-e07fc1f90ae7"',
   `verified_reviewer` BOOLEAN NULL default FALSE,
 
   -- Basic Info
   `name` VARCHAR(200) NOT NULL COMMENT 'Chatbot/company name, e.g., "Intercom", "Drift", "Tidio"',
-#   `slug` VARCHAR(255) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "intercom", "drift-conversational-ai", "tidio-live-chat"',
   `website_url` VARCHAR(500) NOT NULL COMMENT 'Official website, e.g., "https://www.intercom.com", "https://www.drift.com", "https://www.tidio.com"',
   `description` VARCHAR(150) NULL COMMENT 'Full description, e.g., "Intercom is a complete customer service solution that provides seamless communication...", "AI-powered conversational platform for sales and marketing teams", "Live chat widget with chatbot automation for customer support"',
-#   `tagline` VARCHAR(200) NULL COMMENT 'Short tagline, e.g., "The complete customer service solution", "Conversational AI for modern teams", "Chat with your customers in real-time"',
 
   -- Media
   `logo_url` VARCHAR(500) NULL COMMENT 'Logo image, e.g., "https://cdn.chatbotdir.com/logos/intercom.png", "https://storage.googleapis.com/chatbots/drift-logo.svg", "https://assets.tidio.com/logo.png"',
-#   `cover_image_url` VARCHAR(500) NULL COMMENT 'Cover/hero image, e.g., "https://cdn.chatbotdir.com/covers/intercom-dashboard.jpg", "https://images.drift.com/cover-hero.png", "https://tidio.com/images/dashboard-screenshot.jpg"',
-#   `demo_url` VARCHAR(500) NULL COMMENT 'Demo link, e.g., "https://www.intercom.com/demo", "https://app.drift.com/try-demo", "https://www.tidio.com/panel/demo"',
 
   -- Affiliate Program
   `has_affiliate_program` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Has affiliate?, e.g., TRUE, FALSE',
@@ -235,17 +215,11 @@ CREATE TABLE `chatbots` (
   `rejection_reason` TEXT NULL COMMENT 'Rejection reason, e.g., "Incomplete information provided", "Duplicate listing", "Website not accessible"',
 
   -- Denormalized Stats (updated via triggers/scheduled jobs)
-#   `view_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Total views, e.g., 1523, 45892, 234',
   `click_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Total clicks, e.g., 456, 12345, 89',
   `favorite_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Total favorites, e.g., 78, 1234, 12',
   `rating_average` DECIMAL(3,2) NOT NULL DEFAULT 0.00 COMMENT 'Average rating, e.g., 4.50, 3.80, 4.95',
   `rating_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Number of ratings, e.g., 234, 56, 1892',
   `conversion_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Affiliate conversions, e.g., 45, 123, 8',
-
-  -- SEO
-#   `meta_title` VARCHAR(255) NULL COMMENT 'SEO title, e.g., "Intercom - Best Customer Service Chatbot Platform", "Drift AI Chatbot for Sales Teams | ChatbotDirectory", "Tidio Live Chat Widget Review"',
-#   `meta_description` VARCHAR(500) NULL COMMENT 'SEO description, e.g., "Discover why Intercom is the #1 customer service solution with AI-powered chat...", "Learn about Drift\'s conversational AI platform for sales and marketing automation", "Compare Tidio features, pricing, and integrations"',
-#   `meta_keywords` VARCHAR(500) NULL COMMENT 'SEO keywords, e.g., "customer service chatbot, ai support, live chat", "conversational ai, sales automation, marketing chatbot", "live chat widget, customer support, chatbot integration"',
 
   -- Timestamps
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Record created, e.g., "2025-01-15 10:00:00", "2024-12-01 08:30:00"',
@@ -287,12 +261,10 @@ CREATE TABLE IF NOT EXISTS `tags` (
   `id` CHAR(36) NOT NULL COMMENT 'Tag UUID',
   `name` VARCHAR(100) NOT NULL UNIQUE COMMENT 'Tag name, e.g., "Popular", "Affiliate"',
   `is_system` BOOLEAN NOT NULL DEFAULT FALSE,
-#   `slug` VARCHAR(150) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "popular", "affiliate"',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
   PRIMARY KEY (`id`)
-#   UNIQUE KEY `idx_slug` (`slug`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
@@ -313,149 +285,49 @@ CREATE TABLE IF NOT EXISTS `chatbot_tags` (
     REFERENCES `tags` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================
--- SEED DATA - Default tags
--- ============================================
-
-INSERT IGNORE INTO `tags` (`id`, `name`) VALUES
-  (UUID(), 'Popular'),
-  (UUID(), 'Affiliate');
-
--- ============================================
--- COMMENTED OUT - CATEGORIES TABLE
--- ============================================
-
-# CREATE TABLE `categories` (
-#   `id` CHAR(36) NOT NULL COMMENT 'Category UUID, e.g., "950e8400-e29b-41d4-a716-446655440004", "2b3c4d5e-6f7g-8h9i-0j1k-2l3m4n5o6p7q"',
-#   `name` VARCHAR(100) NOT NULL UNIQUE COMMENT 'Category name, e.g., "Customer Support", "E-commerce", "Sales & Marketing"',
-#   `slug` VARCHAR(150) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "customer-support", "ecommerce", "sales-marketing"',
-#   `description` TEXT NULL COMMENT 'Category description, e.g., "Chatbots focused on customer service and support automation", "AI assistants for online stores and shopping experiences", "Conversational tools for sales teams and lead generation"',
-#   `icon_name` VARCHAR(50) NULL COMMENT 'Icon identifier, e.g., "headset", "shopping-cart", "trending-up"',
-#   `color_hex` CHAR(7) NULL COMMENT 'Category color #RRGGBB, e.g., "#3B82F6", "#10B981", "#F59E0B"',
-#   `parent_category_id` CHAR(36) NULL COMMENT 'For subcategories, e.g., "950e8400-e29b-41d4-a716-446655440004", NULL',
-#   `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
-#   `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
-#   `chatbot_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Denormalized count, e.g., 45, 128, 7',
-#
-#   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-10 10:00:00", "2024-11-15 08:30:00"',
-#   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 12:00:00", "2025-01-20 14:15:00"',
-#
-#   PRIMARY KEY (`id`),
-#   UNIQUE KEY `idx_slug` (`slug`),
-#   KEY `idx_active` (`is_active`, `display_order`),
-#   KEY `idx_parent` (`parent_category_id`),
-#
-#   CONSTRAINT `fk_categories_parent` FOREIGN KEY (`parent_category_id`)
-#     REFERENCES `categories` (`id`) ON DELETE SET NULL
-# ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ============================================
--- COMMENTED OUT - CHATBOT CATEGORIES TABLE
--- ============================================
-
-# CREATE TABLE `chatbot_categories` (
-#   `id` CHAR(36) NOT NULL COMMENT 'Record UUID, e.g., "a50e8400-e29b-41d4-a716-446655440005", "3c4d5e6f-7g8h-9i0j-1k2l-3m4n5o6p7q8r"',
-#   `chatbot_id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
-#   `category_id` CHAR(36) NOT NULL COMMENT 'Category UUID, e.g., "950e8400-e29b-41d4-a716-446655440004", "2b3c4d5e-6f7g-8h9i-0j1k-2l3m4n5o6p7q"',
-#   `is_primary` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Is primary category?, e.g., TRUE, FALSE',
-#   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Assigned at, e.g., "2025-01-15 11:00:00", "2024-12-05 09:30:00"',
-#
-#   PRIMARY KEY (`id`),
-#   UNIQUE KEY `idx_chatbot_category` (`chatbot_id`, `category_id`),
-#   KEY `idx_category_listings` (`category_id`, `is_primary`),
-#
-#   CONSTRAINT `fk_chatbot_categories_chatbot` FOREIGN KEY (`chatbot_id`)
-#     REFERENCES `chatbots` (`id`) ON DELETE CASCADE,
-#   CONSTRAINT `fk_chatbot_categories_category` FOREIGN KEY (`category_id`)
-#     REFERENCES `categories` (`id`) ON DELETE RESTRICT
-# ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ============================================
-
-# CREATE TABLE `chatbot_cards` (
-#   `id` CHAR(36) NOT NULL COMMENT 'Card UUID, e.g., "b50e8400-e29b-41d4-a716-446655440006", "4d5e6f7g-8h9i-0j1k-2l3m-4n5o6p7q8r9s"',
-#   `chatbot_id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
-#   `image_url` VARCHAR(500) NOT NULL COMMENT 'Screenshot/card image, e.g., "https://cdn.chatbotdir.com/screens/intercom-chat-1.jpg", "https://storage.googleapis.com/chatbots/drift-demo-screen.png", "https://assets.tidio.com/gallery/widget-preview.jpg"',
-#   `caption` VARCHAR(255) NULL COMMENT 'Image caption, e.g., "Live chat interface with AI responses", "Dashboard analytics view", "Mobile widget customization"',
-#   `alt_text` VARCHAR(255) NULL COMMENT 'Alt text for accessibility, e.g., "Intercom live chat widget showing conversation", "Drift analytics dashboard screenshot", "Tidio mobile chat interface"',
-#   `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
-#   `is_primary` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Primary image?, e.g., TRUE, FALSE',
-#   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Uploaded at, e.g., "2025-01-15 12:00:00", "2024-12-10 10:30:00"',
-#
-#   PRIMARY KEY (`id`),
-#   KEY `idx_chatbot_order` (`chatbot_id`, `display_order`),
-#
-#   CONSTRAINT `fk_cards_chatbot` FOREIGN KEY (`chatbot_id`)
-#     REFERENCES `chatbots` (`id`) ON DELETE CASCADE
-# ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ============================================
-
-CREATE TABLE `Social_links` (
-  `id` CHAR(36) NOT NULL COMMENT 'Link UUID, e.g., "c50e8400-e29b-41d4-a716-446655440007", "5e6f7g8h-9i0j-1k2l-3m4n-5o6p7q8r9s0t"',
-#   `chatbot_id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
-  `platform` ENUM('twitter', 'facebook', 'linkedin', 'instagram', 'youtube', 'github', 'discord', 'other') NOT NULL COMMENT 'Social platform, e.g., "twitter", "linkedin", "github"',
-  `url` VARCHAR(500) NOT NULL COMMENT 'Social profile URL, e.g., "https://twitter.com/intercom", "https://www.linkedin.com/company/drift", "https://github.com/tidio"',
-  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Added at, e.g., "2025-01-15 12:30:00", "2024-12-15 11:00:00"',
-  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 13:00:00", "2025-01-20 09:45:00"',
-
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_chatbot_platform` (`platform`)
-
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
 -- FEATURES & INTEGRATIONS
 -- ============================================
 
-CREATE TABLE `features` (
+CREATE TABLE IF NOT EXISTS `features` (
   `id` CHAR(36) NOT NULL COMMENT 'Feature UUID, e.g., "d50e8400-e29b-41d4-a716-446655440008", "6f7g8h9i-0j1k-2l3m-4n5o-6p7q8r9s0t1u"',
   `name` VARCHAR(100) NOT NULL UNIQUE COMMENT 'Feature name, e.g., "Live Chat", "AI Responses", "Multi-language Support"',
   `advanced` BOOLEAN NOT NULL DEFAULT FALSE,
-#   `slug` VARCHAR(150) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "live-chat", "ai-responses", "multi-language-support"',
-#   `description` TEXT NULL COMMENT 'Feature description, e.g., "Real-time chat with customers through widget", "Automated AI-powered response generation", "Support for 50+ languages with auto-translation"',
-#   `category` ENUM('core_features', 'ai_capabilities', 'integrations', 'support', 'pricing', 'security', 'analytics', 'customization') NOT NULL COMMENT 'Feature category, e.g., "core_features", "ai_capabilities", "customization"',
-#   `feature_type` ENUM('boolean', 'text', 'number', 'multi_select') NOT NULL DEFAULT 'boolean' COMMENT 'Value type, e.g., "boolean", "text", "number"',
-#   `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
-#   `is_filterable` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Show in filters?, e.g., TRUE, FALSE',
-#   `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
-#   `icon_name` VARCHAR(50) NULL COMMENT 'Icon identifier, e.g., "message-circle", "brain", "globe"',
 
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-10 08:00:00", "2024-11-20 10:30:00"',
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 14:00:00", "2025-01-25 11:15:00"',
 
   PRIMARY KEY (`id`)
-#   UNIQUE KEY `idx_slug` (`slug`),
-#   KEY `idx_active_filterable` (`is_active`, `is_filterable`, `category`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- ============================================
 -- SEED DATA - Default features
 -- ============================================
-Insert IGNORE into features (id, name, description,advanced)
-value (UUID(),'Mobile application',NULL,FALSE),
-    (UUID(),'Desktop application',NULL,FALSE),
-    (UUID(),'Website widget',NULL,FALSE),
-    (UUID(),'Multilingual',NULL,FALSE),
-    (UUID(),'Custom design',NULL,FALSE),
-    (UUID(),'AI agent',NULL,FALSE),
-    (UUID(),'Live agent support',NULL,FALSE),
-    (UUID(),'Website application',NULL,FALSE),
-    (UUID(),'Ticket management',NULL,FALSE),
-    (UUID(),'Dashboard',NULL,FALSE),
-    (UUID(),'Interaction stats',NULL,FALSE),
-    (UUID(),'Performance overview',NULL,FALSE),
-    (UUID(),'File uploads',NULL,FALSE),
-    (UUID(),'Quick replies',NULL,FALSE),
-    (UUID(),'User feedback',NULL, TRUE),
-    (UUID(),'Location tracking',NULL, TRUE),
-    (UUID(),'Automation workflows',NULL, TRUE),
-    (UUID(),'Session logs',NULL, TRUE);
+INSERT IGNORE INTO `features` (`id`, `name`, `advanced`) VALUES
+(UUID(), 'Mobile application',    FALSE),
+(UUID(), 'Desktop application',   FALSE),
+(UUID(), 'Website widget',        FALSE),
+(UUID(), 'Multilingual',          FALSE),
+(UUID(), 'Custom design',         FALSE),
+(UUID(), 'AI agent',              FALSE),
+(UUID(), 'Live agent support',    FALSE),
+(UUID(), 'Website application',   FALSE),
+(UUID(), 'Ticket management',     FALSE),
+(UUID(), 'Dashboard',             FALSE),
+(UUID(), 'Interaction stats',     FALSE),
+(UUID(), 'Performance overview',  FALSE),
+(UUID(), 'File uploads',          FALSE),
+(UUID(), 'Quick replies',         FALSE),
+(UUID(), 'User feedback',         TRUE),
+(UUID(), 'Location tracking',     TRUE),
+(UUID(), 'Automation workflows',  TRUE),
+(UUID(), 'Session logs',          TRUE);
 
 -- ============================================
 
-CREATE TABLE `chatbot_features` (
+CREATE TABLE IF NOT EXISTS `chatbot_features` (
   `id` CHAR(36) NOT NULL COMMENT 'Record UUID, e.g., "e50e8400-e29b-41d4-a716-446655440009", "7g8h9i0j-1k2l-3m4n-5o6p-7q8r9s0t1u2v"',
   `chatbot_id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
   `feature_id` CHAR(36) NOT NULL COMMENT 'Feature UUID, e.g., "d50e8400-e29b-41d4-a716-446655440008", "6f7g8h9i-0j1k-2l3m-4n5o-6p7q8r9s0t1u"',
@@ -480,16 +352,9 @@ CREATE TABLE `chatbot_features` (
 
 -- ============================================
 
-CREATE TABLE `integrations` (
+CREATE TABLE IF NOT EXISTS `integrations` (
   `id` CHAR(36) NOT NULL COMMENT 'Integration UUID, e.g., "f50e8400-e29b-41d4-a716-446655440010", "8h9i0j1k-2l3m-4n5o-6p7q-8r9s0t1u2v3w"',
   `name` VARCHAR(100) NOT NULL UNIQUE COMMENT 'Integration name, e.g., "Shopify", "WordPress", "Salesforce"',
-#   `slug` VARCHAR(150) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "shopify", "wordpress", "salesforce"',
-#   `logo_url` VARCHAR(500) NULL COMMENT 'Logo image, e.g., "https://cdn.chatbotdir.com/integrations/shopify.png", "https://assets.wordpress.org/logo.svg", "https://cdn.salesforce.com/logo.png"',
-#   `website_url` VARCHAR(500) NULL COMMENT 'Official website, e.g., "https://www.shopify.com", "https://wordpress.org", "https://www.salesforce.com"',
-#   `description` TEXT NULL COMMENT 'Integration description, e.g., "E-commerce platform for online stores", "Open-source content management system", "CRM and sales automation platform"',
-#   `category` ENUM('cms', 'ecommerce', 'crm', 'marketing', 'analytics', 'communication', 'productivity', 'other') NULL COMMENT 'Integration category, e.g., "ecommerce", "cms", "crm"',
-#   `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
-#   `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
 
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-10 09:00:00", "2024-11-25 11:00:00"',
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 15:00:00", "2025-01-22 13:30:00"',
@@ -501,16 +366,11 @@ CREATE TABLE `integrations` (
 
 -- ============================================
 
-CREATE TABLE `chatbot_integrations` (
+CREATE TABLE IF NOT EXISTS `chatbot_integrations` (
   `id` CHAR(36) NOT NULL COMMENT 'Record UUID, e.g., "050e8400-e29b-41d4-a716-446655440011", "9i0j1k2l-3m4n-5o6p-7q8r-9s0t1u2v3w4x"',
   `chatbot_id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
   `integration_id` CHAR(36) NOT NULL COMMENT 'Integration UUID, e.g., "f50e8400-e29b-41d4-a716-446655440010", "8h9i0j1k-2l3m-4n5o-6p7q-8r9s0t1u2v3w"',
   `is_supported` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is supported?, e.g., TRUE, FALSE',
-#   `is_native` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Native vs third-party integration, e.g., TRUE (native/built-in), FALSE (via Zapier/API)',
-#   `difficulty` ENUM('easy', 'medium', 'advanced') NULL COMMENT 'Setup difficulty, e.g., "easy", "medium", "advanced"',
-#   `setup_time_minutes` INT NULL COMMENT 'Setup time estimate, e.g., 5, 30, 120',
-#   `documentation_url` VARCHAR(500) NULL COMMENT 'Setup guide URL, e.g., "https://help.intercom.com/shopify-integration", "https://docs.drift.com/wordpress-setup", "https://support.tidio.com/salesforce-guide"',
-#   `notes` TEXT NULL COMMENT 'Additional notes, e.g., "Requires Pro plan or higher", "Supports custom fields mapping", "Real-time sync available"',
 
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Added at, e.g., "2025-01-15 14:00:00", "2024-12-22 10:30:00"',
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 15:30:00", "2025-01-28 11:45:00"',
@@ -529,7 +389,7 @@ CREATE TABLE `chatbot_integrations` (
 -- RATINGS & REVIEWS
 -- ============================================
 
-CREATE TABLE `reviews` (
+CREATE TABLE IF NOT EXISTS `reviews` (
   `id` CHAR(36) NOT NULL COMMENT 'Review UUID, e.g., "150e8400-e29b-41d4-a716-446655440012", "0j1k2l3m-4n5o-6p7q-8r9s-0t1u2v3w4x5y"',
   `chatbot_id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
   `user_id` CHAR(36) NOT NULL COMMENT 'Reviewer UUID, e.g., "550e8400-e29b-41d4-a716-446655440000", "7c9e6679-7425-40de-944b-e07fc1f90ae7"',
@@ -538,16 +398,6 @@ CREATE TABLE `reviews` (
   `rating` TINYINT NOT NULL COMMENT 'Star rating (1-5), e.g., 5, 4, 3',
   `title` VARCHAR(200) NULL COMMENT 'Review title, e.g., "Great customer support tool!", "Not worth the price", "Perfect for small businesses"',
   `review_text` TEXT NULL COMMENT 'Review content, e.g., "We\'ve been using Intercom for 6 months and it has transformed our customer support...", "The AI features are impressive but the learning curve is steep", "Easy to set up and integrate with our website"',
-#   `pros` TEXT NULL COMMENT 'Positive points, e.g., "Easy to use, Great AI responses, Excellent mobile app", "Fast setup, Good integrations", "Affordable pricing, Helpful support team"',
-#   `cons` TEXT NULL COMMENT 'Negative points, e.g., "Expensive for small teams, Limited customization", "Complex pricing structure", "Occasional bugs in mobile app"',
-
-  -- Verification
-#   `is_verified_purchase` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Verified buyer?, e.g., TRUE, FALSE',
-#   `purchase_verification_token` VARCHAR(255) NULL COMMENT 'Verification token, e.g., "verify_purchase_abc123def456", "token_verified_2025_xyz789"',
-
-  -- Engagement
-#   `helpful_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Helpful votes, e.g., 45, 123, 7',
-#   `not_helpful_count` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Not helpful votes, e.g., 3, 12, 1',
 
   -- Moderation
   `status` ENUM('pending', 'approved', 'rejected', 'flagged', 'removed') NOT NULL DEFAULT 'pending' COMMENT 'Review status, e.g., "approved", "pending", "rejected"',
@@ -575,30 +425,12 @@ CREATE TABLE `reviews` (
   CONSTRAINT `chk_rating_range` CHECK (`rating` BETWEEN 1 AND 5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================
-
-# CREATE TABLE `review_helpfulness` (
-#   `id` CHAR(36) NOT NULL COMMENT 'Vote UUID, e.g., "250e8400-e29b-41d4-a716-446655440013", "1k2l3m4n-5o6p-7q8r-9s0t-1u2v3w4x5y6z"',
-#   `review_id` CHAR(36) NOT NULL COMMENT 'Review UUID, e.g., "150e8400-e29b-41d4-a716-446655440012", "0j1k2l3m-4n5o-6p7q-8r9s-0t1u2v3w4x5y"',
-#   `user_id` CHAR(36) NOT NULL COMMENT 'Voter UUID, e.g., "550e8400-e29b-41d4-a716-446655440000", "7c9e6679-7425-40de-944b-e07fc1f90ae7"',
-#   `is_helpful` BOOLEAN NOT NULL COMMENT 'Vote value, e.g., TRUE (helpful), FALSE (not helpful)',
-#   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Voted at, e.g., "2025-01-16 12:00:00", "2025-01-22 15:30:00"',
-#
-#   PRIMARY KEY (`id`),
-#   UNIQUE KEY `idx_review_user` (`review_id`, `user_id`),
-#   KEY `idx_user` (`user_id`),
-#
-#   CONSTRAINT `fk_helpfulness_review` FOREIGN KEY (`review_id`)
-#     REFERENCES `reviews` (`id`) ON DELETE CASCADE,
-#   CONSTRAINT `fk_helpfulness_user` FOREIGN KEY (`user_id`)
-#     REFERENCES `users` (`id`) ON DELETE CASCADE
-# ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
 -- FAVORITES
 -- ============================================
 
-CREATE TABLE `favorites` (
+CREATE TABLE IF NOT EXISTS `favorites` (
   `id` CHAR(36) NOT NULL COMMENT 'Favorite UUID, e.g., "350e8400-e29b-41d4-a716-446655440014", "2l3m4n5o-6p7q-8r9s-0t1u-2v3w4x5y6z7a"',
   `chatbot_id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
   `user_id` CHAR(36) NOT NULL COMMENT 'User UUID, e.g., "550e8400-e29b-41d4-a716-446655440000", "7c9e6679-7425-40de-944b-e07fc1f90ae7"',
@@ -619,12 +451,11 @@ CREATE TABLE `favorites` (
 -- CORE PAYMENT TABLES - WITH EXAMPLES
 -- ============================================
 
-CREATE TABLE `currencies` (
+CREATE TABLE IF NOT EXISTS `currencies` (
   `id` CHAR(36) NOT NULL COMMENT 'Currency UUID, e.g., "450e8400-e29b-41d4-a716-446655440015", "3m4n5o6p-7q8r-9s0t-1u2v-3w4x5y6z7a8b"',
   `code` CHAR(3) NOT NULL COMMENT 'ISO 4217, e.g., "USD", "EUR", "GBP"',
   `name` VARCHAR(100) NOT NULL COMMENT 'Currency name, e.g., "US Dollar", "Euro", "British Pound"',
   `symbol` VARCHAR(10) NOT NULL COMMENT 'Currency symbol, e.g., "$", "€", "£"',
-#   `decimal_places` TINYINT NOT NULL DEFAULT 2 COMMENT 'Decimal places, e.g., 2, 0, 3',
   `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
 
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-01 10:00:00", "2024-12-15 08:30:00"',
@@ -636,41 +467,25 @@ CREATE TABLE `currencies` (
 
 -- ============================================
 
-CREATE TABLE `billing_periods` (
+CREATE TABLE IF NOT EXISTS `billing_periods` (
   `id` CHAR(36) NOT NULL COMMENT 'Period UUID, e.g., "550e8400-e29b-41d4-a716-446655440016", "4n5o6p7q-8r9s-0t1u-2v3w-4x5y6z7a8b9c"',
-#   `name` VARCHAR(50) NOT NULL COMMENT 'Period name, e.g., "Monthly", "Annually", "Quarterly"',
-#   `slug` VARCHAR(50) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "monthly", "annually", "quarterly"',
   `type` ENUM('daily', 'weekly', 'monthly', 'yearly') NOT NULL,
   `duration_days` INT NOT NULL COMMENT 'Duration in days',
-#   `discount_percentage` DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT 'Discount percentage, e.g., 0.00, 20.00, 15.50',
-#   `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
 
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-01 10:00:00", "2024-12-01 08:00:00"',
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 12:30:00", "2025-01-25 09:15:00"',
 
   PRIMARY KEY (`id`),
-#   UNIQUE KEY `idx_name` (`name`),
   UNIQUE KEY `idx_type_duration` (`type`, `duration_days`)
-#   CONSTRAINT `chk_discount` CHECK (`discount_percentage` BETWEEN 0.00 AND 100.00)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
 -- LISTING PLANS (for chatbots without affiliate)
 -- ============================================
 
-CREATE TABLE `listing_plans` (
+CREATE TABLE IF NOT EXISTS `listing_plans` (
   `id` CHAR(36) NOT NULL COMMENT 'Plan UUID, e.g., "650e8400-e29b-41d4-a716-446655440017", "5o6p7q8r-9s0t-1u2v-3w4x-5y6z7a8b9c0d"',
   `name` VARCHAR(100) NOT NULL COMMENT 'Plan name, e.g., "Basic Listing", "Premium Listing", "Pro Listing"',
-#   `slug` VARCHAR(150) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "basic-listing", "premium-listing", "pro-listing"',
-#   `description` TEXT NULL COMMENT 'Plan description, e.g., "Get your chatbot listed on our directory with basic features", "Premium visibility with featured badge and priority placement", "Maximum exposure with homepage banner and verified badge"',
-
-  -- Listing Features
-#   `max_screenshots` TINYINT NOT NULL DEFAULT 3 COMMENT 'Max screenshot images, e.g., 3, 5, 10',
-#   `allows_video` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Video allowed?, e.g., TRUE, FALSE',
-#   `priority_support` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Priority support?, e.g., TRUE, FALSE',
-#   `verified_badge` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Verified badge?, e.g., TRUE, FALSE',
-#   `featured_in_category` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Featured in category?, e.g., TRUE, FALSE',
-#   `homepage_visibility` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Homepage visibility?, e.g., TRUE, FALSE',
 
   `billing_period_id` CHAR(36) NOT NULL,
   `currency_id` CHAR(36) NOT NULL,
@@ -700,51 +515,12 @@ CREATE TABLE `listing_plans` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
-
-# CREATE TABLE `listing_plan_prices` (
-#   `id` CHAR(36) NOT NULL COMMENT 'Price UUID, e.g., "750e8400-e29b-41d4-a716-446655440018", "6p7q8r9s-0t1u-2v3w-4x5y-6z7a8b9c0d1e"',
-#   `plan_id` CHAR(36) NOT NULL COMMENT 'Plan UUID, e.g., "650e8400-e29b-41d4-a716-446655440017", "5o6p7q8r-9s0t-1u2v-3w4x-5y6z7a8b9c0d"',
-#   `billing_period_id` CHAR(36) NOT NULL COMMENT 'Period UUID, e.g., "550e8400-e29b-41d4-a716-446655440016", "4n5o6p7q-8r9s-0t1u-2v3w-4x5y6z7a8b9c"',
-#   `currency_id` CHAR(36) NOT NULL COMMENT 'Currency UUID, e.g., "450e8400-e29b-41d4-a716-446655440015", "3m4n5o6p-7q8r-9s0t-1u2v-3w4x5y6z7a8b"',
-#   `price` DECIMAL(10,2) NOT NULL COMMENT 'Current price, e.g., 29.99, 299.00, 49.99',
-#   `original_price` DECIMAL(10,2) NULL COMMENT 'Strikethrough pricing, e.g., 39.99, 399.00, 69.99',
-#
-#   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-05 11:00:00", "2024-12-10 09:00:00"',
-#   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 13:30:00", "2025-01-27 11:45:00"',
-#
-#   PRIMARY KEY (`id`),
-#   UNIQUE KEY `idx_plan_period_currency` (`plan_id`, `billing_period_id`, `currency_id`),
-#   KEY `idx_plan` (`plan_id`),
-#   KEY `idx_billing_period` (`billing_period_id`),
-#   KEY `idx_currency` (`currency_id`),
-#
-#   CONSTRAINT `fk_listing_prices_plan` FOREIGN KEY (`plan_id`)
-#     REFERENCES `listing_plans` (`id`) ON DELETE CASCADE,
-#   CONSTRAINT `fk_listing_prices_period` FOREIGN KEY (`billing_period_id`)
-#     REFERENCES `billing_periods` (`id`) ON DELETE RESTRICT,
-#   CONSTRAINT `fk_listing_prices_currency` FOREIGN KEY (`currency_id`)
-#     REFERENCES `currencies` (`id`) ON DELETE RESTRICT
-# ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ============================================
 -- PROMOTIONS (active promotion campaigns)
 -- ============================================
 
-CREATE TABLE `promotions` (
+CREATE TABLE IF NOT EXISTS `promotions` (
   `id` CHAR(36) NOT NULL COMMENT 'Plan UUID, e.g., "650e8400-e29b-41d4-a716-446655440017", "5o6p7q8r-9s0t-1u2v-3w4x-5y6z7a8b9c0d"',
-#   `name` VARCHAR(100) NOT NULL COMMENT 'Plan name, e.g., "Basic Listing", "Premium Listing", "Pro Listing"',
   `slot_type` ENUM('Homepage', 'Chatbots page') NOT NULL,
-
-#   `slug` VARCHAR(150) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "basic-listing", "premium-listing", "pro-listing"',
-#   `description` TEXT NULL COMMENT 'Plan description, e.g., "Get your chatbot listed on our directory with basic features", "Premium visibility with featured badge and priority placement", "Maximum exposure with homepage banner and verified badge"',
-
-  -- Listing Features
-#   `max_screenshots` TINYINT NOT NULL DEFAULT 3 COMMENT 'Max screenshot images, e.g., 3, 5, 10',
-#   `allows_video` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Video allowed?, e.g., TRUE, FALSE',
-#   `priority_support` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Priority support?, e.g., TRUE, FALSE',
-#   `verified_badge` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Verified badge?, e.g., TRUE, FALSE',
-#   `featured_in_category` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Featured in category?, e.g., TRUE, FALSE',
-#   `homepage_visibility` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Homepage visibility?, e.g., TRUE, FALSE',
 
   `billing_period_id` CHAR(36) NOT NULL,
   `currency_id` CHAR(36) NOT NULL,
@@ -754,7 +530,6 @@ CREATE TABLE `promotions` (
   -- Display
   `display_order` INT NOT NULL DEFAULT 0 COMMENT 'Sort order, e.g., 1, 2, 3',
   `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
-#   `is_popular` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Popular badge?, e.g., TRUE, FALSE',
 
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-05 10:00:00", "2024-12-10 08:30:00"',
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 13:00:00", "2025-01-26 10:20:00"',
@@ -775,53 +550,17 @@ CREATE TABLE `promotions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
--- PROMOTION SLOTS
--- ============================================
-
-# CREATE TABLE `promotion_slots` (
-#   `id` CHAR(36) NOT NULL COMMENT 'Slot UUID, e.g., "850e8400-e29b-41d4-a716-446655440019", "7q8r9s0t-1u2v-3w4x-5y6z-7a8b9c0d1e2f"',
-#   `name` VARCHAR(100) NOT NULL COMMENT 'Slot name, e.g., "Homepage Hero", "Category Top Banner", "Sidebar Featured"',
-#   `subscription_id` CHAR(36) NOT NULL,
-# #   `identifier` VARCHAR(150) NOT NULL UNIQUE COMMENT 'Unique identifier, e.g., "homepage_hero", "category_top", "sidebar_featured"',
-# #   `page_location` VARCHAR(100) NULL COMMENT 'Page location, e.g., "homepage", "category_customer_support", "search_results"',
-#   `position` INT NOT NULL COMMENT 'Display position (1 = top), e.g., 1, 2, 3',
-# #   `max_concurrent` TINYINT NOT NULL DEFAULT 1 COMMENT 'Max concurrent promotions, e.g., 1, 3, 5',
-# #   `description` TEXT NULL COMMENT 'Slot description, e.g., "Large hero banner at the top of homepage", "Featured position in category listing", "Sidebar widget visible on all pages"',
-# #   `dimensions` VARCHAR(50) NULL COMMENT 'Recommended dimensions, e.g., "1200x300", "300x250", "728x90"',
-#   `is_active` BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Is active?, e.g., TRUE, FALSE',
-#
-#   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-05 12:00:00", "2024-12-12 10:00:00"',
-#   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 14:00:00", "2025-01-28 09:30:00"',
-#
-#   PRIMARY KEY (`id`),
-#   UNIQUE KEY `idx_promotion_position` (`subscription_id`, `position`),
-#   KEY `idx_type_active_position` (`is_active`, `position`),
-#   KEY `idx_promotions` (`subscription_id`),
-#   CONSTRAINT `chk_position` CHECK (`position` >= 1),
-#   CONSTRAINT `fk_promotion_slots_promotion` FOREIGN KEY (`subscription_id`)
-#     REFERENCES `promotions` (`id`) ON DELETE CASCADE
-# ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ============================================
 -- SUBSCRIPTIONS (for both listings and promotions)
 -- ============================================
 
-CREATE TABLE `subscriptions` (
+CREATE TABLE IF NOT EXISTS `subscriptions` (
   `id` CHAR(36) NOT NULL COMMENT 'Subscription UUID, e.g., "a50e8400-e29b-41d4-a716-446655440021", "9s0t1u2v-3w4x-5y6z-7a8b-9c0d1e2f3g4h"',
   `user_id` CHAR(36) NOT NULL COMMENT 'User UUID, e.g., "550e8400-e29b-41d4-a716-446655440000", "7c9e6679-7425-40de-944b-e07fc1f90ae7"',
   `chatbot_id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
 
   -- Type: listing OR promotion
   `subscription_type` ENUM('promotion') NOT NULL COMMENT 'Subscription type, only promotion supported',
-#   `listing_plan_id` CHAR(36) NULL,
   `promotions_id` CHAR(36) NULL,
-  -- For listing subscriptions
-#   `listing_price_id` CHAR(36) NULL COMMENT 'Listing price UUID (NULL if promotion), e.g., "750e8400-e29b-41d4-a716-446655440018", NULL',
-
-
-
-  -- For promotion subscriptions
-#   `promotion_slot_price_id` CHAR(36) NULL COMMENT 'Promotion price UUID (NULL if listing), e.g., "950e8400-e29b-41d4-a716-446655440020", NULL',
 
   -- Status
   `status` ENUM('active', 'cancelled', 'expired', 'pending', 'past_due', 'trialing') NOT NULL DEFAULT 'pending',
@@ -846,25 +585,19 @@ CREATE TABLE `subscriptions` (
   KEY `idx_user_status` (`user_id`, `status`),
   KEY `idx_chatbot_type_status` (`chatbot_id`, `subscription_type`, `status`),
   KEY `idx_expiring` (`status`, `end_date`),
+  KEY `idx_active_chatbot` (`chatbot_id`, `status`, `end_date`),
   KEY `idx_stripe_customer` (`stripe_customer_id`),
-#   KEY `idx_listing_plan` (`listing_plan_id`),
   KEY `idx_promotions` (`promotions_id`),
 
   CONSTRAINT `fk_subscriptions_user` FOREIGN KEY (`user_id`)
     REFERENCES `users` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_subscriptions_chatbot` FOREIGN KEY (`chatbot_id`)
     REFERENCES `chatbots` (`id`) ON DELETE CASCADE,
-#   CONSTRAINT `fk_subscriptions_listing_plan` FOREIGN KEY (`listing_plan_id`)
-#     REFERENCES `listing_plans` (`id`) ON DELETE RESTRICT,
   CONSTRAINT `fk_subscriptions_promotion` FOREIGN KEY (`promotions_id`)
     REFERENCES `promotions` (`id`) ON DELETE RESTRICT,
 
   CONSTRAINT `chk_dates` CHECK (`end_date` > `start_date`),
   CONSTRAINT `chk_trial` CHECK (trial_end_date IS NULL OR trial_end_date > start_date),
-#   CONSTRAINT `chk_subscription_type_ids` CHECK (
-#     (`subscription_type` = 'listing' AND `listing_plan_id` IS NOT NULL AND `promotions_id` IS NULL) OR
-#     (`subscription_type` = 'promotion' AND `promotions_id` IS NOT NULL AND `listing_plan_id` IS NULL)
-#   ),
   CONSTRAINT `chk_cancellation` CHECK (
     (status = 'cancelled' AND cancelled_at IS NOT NULL) OR
     (status != 'cancelled' AND cancelled_at IS NULL) OR
@@ -876,7 +609,7 @@ CREATE TABLE `subscriptions` (
 -- PAYMENTS
 -- ============================================
 
-CREATE TABLE `payments` (
+CREATE TABLE IF NOT EXISTS `payments` (
   `id` CHAR(36) NOT NULL COMMENT 'Payment UUID, e.g., "c50e8400-e29b-41d4-a716-446655440023", "1u2v3w4x-5y6z-7a8b-9c0d-1e2f3g4h5i6j"',
   `user_id` CHAR(36) NOT NULL COMMENT 'User UUID, e.g., "550e8400-e29b-41d4-a716-446655440000", "7c9e6679-7425-40de-944b-e07fc1f90ae7"',
   `subscription_id` CHAR(36) NULL COMMENT 'Subscription UUID (NULL for one-time), e.g., "a50e8400-e29b-41d4-a716-446655440021", NULL',
@@ -956,87 +689,10 @@ CREATE TABLE `payments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
--- AFFILIATE TRACKING
--- ============================================
-
-# CREATE TABLE `affiliate_clicks` (
-#   `id` CHAR(36) NOT NULL COMMENT 'Click UUID, e.g., "d50e8400-e29b-41d4-a716-446655440024", "2v3w4x5y-6z7a-8b9c-0d1e-2f3g4h5i6j7k"',
-#   `chatbot_id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
-#   `user_id` CHAR(36) NULL COMMENT 'User UUID (NULL for anonymous), e.g., "550e8400-e29b-41d4-a716-446655440000", NULL',
-#
-#   -- Click Information
-#   `clicked_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Clicked at, e.g., "2025-01-15 14:30:00", "2025-01-28 16:45:00"',
-#   `ip_address` VARCHAR(45) NULL COMMENT 'IP address, e.g., "88.212.34.56", "195.113.20.150", "192.168.1.100"',
-#   `user_agent` TEXT NULL COMMENT 'User agent, e.g., "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0", "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)"',
-#   `referrer` VARCHAR(500) NULL COMMENT 'Referrer URL, e.g., "https://chatbotdirectory.com/chatbots/intercom", "https://google.com/search?q=chatbot", "https://facebook.com"',
-#   `country_code` CHAR(2) NULL COMMENT 'Country code, e.g., "SK", "CZ", "US"',
-#
-#   -- Tracking
-#   `session_id` VARCHAR(100) NULL COMMENT 'Session ID, e.g., "sess_a1b2c3d4e5f6g7h8", "session_20250115_abc123", "sid_xyz789def456"',
-#   `cookie_id` VARCHAR(100) NULL COMMENT 'Cookie ID for conversion tracking, e.g., "cookie_a1b2c3d4e5f6", "aff_track_abc123", "ck_xyz789"',
-#
-#   -- Conversion tracking
-#   `converted` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Has converted?, e.g., TRUE, FALSE',
-#   `conversion_date` TIMESTAMP NULL COMMENT 'Converted at, e.g., "2025-01-20 10:30:00", NULL',
-#   `estimated_commission` DECIMAL(10,2) NULL COMMENT 'Estimated commission, e.g., 25.00, 49.99, 100.00',
-#
-#   PRIMARY KEY (`id`),
-#   KEY `idx_chatbot_date` (`chatbot_id`, `clicked_at`),
-#   KEY `idx_user` (`user_id`),
-#   KEY `idx_cookie` (`cookie_id`),
-#   KEY `idx_converted` (`converted`, `conversion_date`),
-#
-#   CONSTRAINT `fk_affiliate_clicks_chatbot` FOREIGN KEY (`chatbot_id`)
-#     REFERENCES `chatbots` (`id`) ON DELETE CASCADE,
-#   CONSTRAINT `fk_affiliate_clicks_user` FOREIGN KEY (`user_id`)
-#     REFERENCES `users` (`id`) ON DELETE SET NULL
-# ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-#
-# -- ============================================
-#
-# CREATE TABLE `affiliate_commissions` (
-#   `id` CHAR(36) NOT NULL COMMENT 'Commission UUID, e.g., "e50e8400-e29b-41d4-a716-446655440025", "3w4x5y6z-7a8b-9c0d-1e2f-3g4h5i6j7k8l"',
-#   `chatbot_id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
-#   `affiliate_click_id` CHAR(36) NULL COMMENT 'Click UUID, e.g., "d50e8400-e29b-41d4-a716-446655440024", NULL',
-#
-#   -- Commission Details
-#   `commission_amount` DECIMAL(10,2) NOT NULL COMMENT 'Commission amount, e.g., 25.00, 49.99, 100.00',
-#   `currency_id` CHAR(36) NOT NULL COMMENT 'Currency UUID, e.g., "450e8400-e29b-41d4-a716-446655440015", "3m4n5o6p-7q8r-9s0t-1u2v-3w4x5y6z7a8b"',
-#   `commission_date` TIMESTAMP NOT NULL COMMENT 'Commission date, e.g., "2025-01-20 10:30:00", "2025-02-05 14:15:00"',
-#   `commission_type` ENUM('sale', 'lead', 'click', 'recurring') NOT NULL COMMENT 'Commission type, e.g., "sale", "recurring", "lead"',
-#
-#   -- Status
-#   `status` ENUM('pending', 'confirmed', 'paid', 'cancelled') NOT NULL DEFAULT 'pending' COMMENT 'Commission status, e.g., "pending", "confirmed", "paid"',
-#   `paid_at` TIMESTAMP NULL COMMENT 'Paid at, e.g., "2025-02-15 10:00:00", NULL',
-#
-#   -- Affiliate Program Info
-#   `affiliate_program_name` VARCHAR(100) NULL COMMENT 'Program name, e.g., "Intercom Affiliate Program", "Drift Partner Network", "Tidio Referral Program"',
-#   `external_transaction_id` VARCHAR(255) NULL COMMENT 'External transaction ID, e.g., "INTCOM_TXN_ABC123", "DRIFT_REF_XYZ789", "TIDIO_COMM_2025_001"',
-#
-#   -- Notes
-#   `notes` TEXT NULL COMMENT 'Admin notes, e.g., "First commission from this chatbot", "Payment pending verification", "Customer upgraded to enterprise plan"',
-#
-#   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-20 10:30:00", "2025-02-05 14:15:00"',
-#   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 16:30:00", "2025-02-10 11:20:00"',
-#
-#   PRIMARY KEY (`id`),
-#   KEY `idx_chatbot_status` (`chatbot_id`, `status`),
-#   KEY `idx_click` (`affiliate_click_id`),
-#   KEY `idx_date_status` (`commission_date`, `status`),
-#
-#   CONSTRAINT `fk_commissions_chatbot` FOREIGN KEY (`chatbot_id`)
-#     REFERENCES `chatbots` (`id`) ON DELETE CASCADE,
-#   CONSTRAINT `fk_commissions_click` FOREIGN KEY (`affiliate_click_id`)
-#     REFERENCES `affiliate_clicks` (`id`) ON DELETE SET NULL,
-#   CONSTRAINT `fk_commissions_currency` FOREIGN KEY (`currency_id`)
-#     REFERENCES `currencies` (`id`) ON DELETE RESTRICT
-# ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ============================================
 -- COMMUNICATION
 -- ============================================
 
-CREATE TABLE `contact_messages` (
+CREATE TABLE IF NOT EXISTS `contact_messages` (
   `id` CHAR(36) NOT NULL COMMENT 'Message UUID, e.g., "f50e8400-e29b-41d4-a716-446655440026"',
   `first_name` VARCHAR(50) NOT NULL,
   `last_name` VARCHAR(50) NOT NULL,
@@ -1044,13 +700,10 @@ CREATE TABLE `contact_messages` (
   `subject` VARCHAR(300) NULL COMMENT 'Message subject, e.g., "Question about pricing"',
   `message` TEXT NOT NULL COMMENT 'Message content, e.g., "I would like to know more about your premium plans..."',
 
-  -- Classification
---   `message_type` ENUM('general', 'support', 'business_inquiry', 'report_abuse', 'partnership', 'feedback', 'bug_report') NOT NULL DEFAULT 'general',
---   `priority` ENUM('low', 'normal', 'high', 'urgent') NOT NULL DEFAULT 'normal',
 
   -- Relations
   `user_id` CHAR(36) NULL COMMENT 'User UUID (if logged in), NULL if guest',
---   `chatbot_id` CHAR(36) NULL COMMENT 'Chatbot UUID (if reporting)',
+
 
   -- Status & Assignment
   `status` ENUM('new', 'resolved', 'replied', 'spam') NOT NULL DEFAULT 'new',
@@ -1083,85 +736,10 @@ CREATE TABLE `contact_messages` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
-
-# CREATE TABLE `newsletter_subscribers` (
-#   `id` CHAR(36) NOT NULL COMMENT 'Subscriber UUID, e.g., "050e8400-e29b-41d4-a716-446655440027", "5y6z7a8b-9c0d-1e2f-3g4h-5i6j7k8l9m0n"',
-#   `email` VARCHAR(255) NOT NULL UNIQUE COMMENT 'Subscriber email, e.g., "john.doe@gmail.com", "maria.kovacova@azet.sk", "business@company.com"',
-#   `status` ENUM('pending', 'active', 'unsubscribed', 'bounced', 'complained') NOT NULL DEFAULT 'pending' COMMENT 'Subscription status, e.g., "active", "pending", "unsubscribed"',
-#   `source` ENUM('homepage', 'footer', 'popup', 'chatbot_page', 'api', 'import', 'other') NULL COMMENT 'Signup source, e.g., "homepage", "footer", "popup"',
-#
-#   -- User Association
-#   `user_id` CHAR(36) NULL COMMENT 'User UUID (if registered), e.g., "550e8400-e29b-41d4-a716-446655440000", NULL',
-#
-#   -- Preferences
-#   `preferences` JSON NULL COMMENT 'Email preferences, e.g., {"topics": ["ai_chatbots", "new_listings"], "frequency": "weekly"}, {"interests": ["customer_support", "ecommerce"], "format": "html"}',
-#   `frequency` ENUM('daily', 'weekly', 'monthly', 'never') NOT NULL DEFAULT 'weekly' COMMENT 'Email frequency, e.g., "weekly", "monthly", "daily"',
-#
-#   -- Verification
-#   `verification_token` VARCHAR(255) NULL UNIQUE COMMENT 'Email verification token, e.g., "verify_email_abc123def456", "token_2025_xyz789ghi012"',
-#   `is_verified` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Is verified?, e.g., TRUE, FALSE',
-#
-#   -- Unsubscribe
-#   `unsubscribe_token` VARCHAR(255) NULL UNIQUE COMMENT 'Unsubscribe token, e.g., "unsub_abc123def456ghi789", "unsubscribe_2025_xyz123"',
-#
-#   -- Timestamps
-#   `subscribed_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Subscribed at, e.g., "2025-01-15 18:00:00", "2025-01-28 12:30:00"',
-#   `verified_at` TIMESTAMP NULL COMMENT 'Verified at, e.g., "2025-01-15 18:30:00", NULL',
-#   `unsubscribed_at` TIMESTAMP NULL COMMENT 'Unsubscribed at, e.g., "2025-01-25 10:00:00", NULL',
-#   `last_email_sent_at` TIMESTAMP NULL COMMENT 'Last email sent, e.g., "2025-01-29 08:00:00", "2025-01-22 09:00:00"',
-#
-#   PRIMARY KEY (`id`),
-#   UNIQUE KEY `idx_email` (`email`),
-#   KEY `idx_status_verified` (`status`, `is_verified`),
-#   KEY `idx_user` (`user_id`),
-#   KEY `idx_verification` (`verification_token`),
-#   KEY `idx_unsubscribe` (`unsubscribe_token`),
-#
-#   CONSTRAINT `fk_newsletter_user` FOREIGN KEY (`user_id`)
-#     REFERENCES `users` (`id`) ON DELETE SET NULL
-# ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ============================================
--- CONTENT MANAGEMENT
--- ============================================
-
-# CREATE TABLE `static_pages` (
-#   `id` CHAR(36) NOT NULL COMMENT 'Page UUID, e.g., "150e8400-e29b-41d4-a716-446655440028", "6z7a8b9c-0d1e-2f3g-4h5i-6j7k8l9m0n1o"',
-#   `slug` VARCHAR(255) NOT NULL UNIQUE COMMENT 'URL slug, e.g., "about-us", "privacy-policy", "terms-of-service"',
-#   `title` VARCHAR(255) NOT NULL COMMENT 'Page title, e.g., "About Us", "Privacy Policy", "Terms of Service"',
-#   `content` LONGTEXT NOT NULL COMMENT 'Page content (HTML), e.g., "<h1>About ChatbotDirectory</h1><p>We help businesses find...</p>", "<h2>Privacy Policy</h2><p>Last updated: January 2025...</p>"',
-#
-#   -- SEO
-#   `meta_title` VARCHAR(255) NULL COMMENT 'SEO title, e.g., "About ChatbotDirectory - Your AI Chatbot Guide", "Privacy Policy | ChatbotDirectory", "Terms of Service - ChatbotDirectory"',
-#   `meta_description` VARCHAR(500) NULL COMMENT 'SEO description, e.g., "Learn about our mission to help businesses discover the best chatbot solutions", "Read our privacy policy to understand how we protect your data", "Our terms of service explain how to use ChatbotDirectory"',
-#   `meta_keywords` VARCHAR(500) NULL COMMENT 'SEO keywords, e.g., "about us, chatbot directory, ai chatbots", "privacy policy, data protection, gdpr", "terms of service, user agreement, legal"',
-#
-#   -- Publishing
-#   `is_published` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Is published?, e.g., TRUE, FALSE',
-#   `published_at` TIMESTAMP NULL COMMENT 'Published at, e.g., "2025-01-10 10:00:00", NULL',
-#
-#   -- Audit
-#   `created_by_user_id` CHAR(36) NULL COMMENT 'Creator UUID, e.g., "550e8400-e29b-41d4-a716-446655440000", NULL',
-#   `updated_by_user_id` CHAR(36) NULL COMMENT 'Last editor UUID, e.g., "550e8400-e29b-41d4-a716-446655440000", "7c9e6679-7425-40de-944b-e07fc1f90ae7"',
-#
-#   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-10 10:00:00", "2024-12-15 08:00:00"',
-#   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated at, e.g., "2025-01-29 17:30:00", "2025-01-28 14:45:00"',
-#
-#   PRIMARY KEY (`id`),
-#   UNIQUE KEY `idx_slug` (`slug`),
-#   KEY `idx_published` (`is_published`, `published_at`),
-#
-#   CONSTRAINT `fk_pages_creator` FOREIGN KEY (`created_by_user_id`)
-#     REFERENCES `users` (`id`) ON DELETE SET NULL,
-#   CONSTRAINT `fk_pages_updater` FOREIGN KEY (`updated_by_user_id`)
-#     REFERENCES `users` (`id`) ON DELETE SET NULL
-# ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ============================================
 -- AUDIT & LOGGING
 -- ============================================
 
-CREATE TABLE `audit_log` (
+CREATE TABLE IF NOT EXISTS `audit_log` (
   `id` CHAR(36) NOT NULL COMMENT 'Log UUID, e.g., "250e8400-e29b-41d4-a716-446655440029", "7a8b9c0d-1e2f-3g4h-5i6j-7k8l9m0n1o2p"',
   `user_id` CHAR(36) NULL COMMENT 'User UUID, e.g., "550e8400-e29b-41d4-a716-446655440000", NULL',
 
@@ -1216,69 +794,71 @@ PARTITION BY RANGE (UNIX_TIMESTAMP(created_at)) (
 # );
 
 -- ============================================
+-- RATE LIMITING
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS `rate_limits` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `ip_address` VARCHAR(45) NULL,
+  `email` VARCHAR(255) NULL,
+  `action` VARCHAR(50) NOT NULL DEFAULT 'login',
+  `attempts_count` INT NOT NULL DEFAULT 0,
+  `first_attempt_at` TIMESTAMP NULL,
+  `last_attempt_at` TIMESTAMP NULL,
+  `locked_until` TIMESTAMP NULL,
+  KEY `idx_locked` (`locked_until`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
 -- INITIAL DATA
 -- ============================================
 
+-- Insert system tags
+INSERT IGNORE INTO `tags` (`id`, `name`, `is_system`) VALUES
+('f5164f01-1cbc-11f1-85f8-8c8caa573ed8', 'Popular',   1),
+('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'Sponsored', 1),
+('49212cbd-1fbf-11f1-b158-8c8caa573ed8', 'Affiliate', 0);
+
 -- Insert default currencies
-INSERT INTO `currencies` (`id`, `code`, `name`, `symbol`) VALUES
+INSERT IGNORE INTO `currencies` (`id`, `code`, `name`, `symbol`) VALUES
 (UUID(), 'USD', 'US Dollar', '$'),
 (UUID(), 'EUR', 'Euro', '€'),
 (UUID(), 'GBP', 'British Pound', '£');
 
 -- Insert billing periods
-INSERT INTO `billing_periods` (`id`, `name`, `type`, `duration`) VALUES
-(UUID(), 'Monthly', 'monthly', 1),
-(UUID(), 'Annually', 'yearly', 12);
+INSERT IGNORE INTO `billing_periods` (`id`, `type`, `duration_days`) VALUES
+(UUID(), 'monthly', 30),
+(UUID(), 'yearly', 365);
 
 -- Insert listing plans
-INSERT INTO `listing_plans` (`id`, `name`, `billing_period_id`, `currency_id`, `price`) VALUES
+INSERT IGNORE INTO `listing_plans` (`id`, `name`, `billing_period_id`, `currency_id`, `price`) VALUES
 (UUID(), 'Basic Listing',
-  (SELECT `id` FROM `billing_periods` WHERE `name` = 'Monthly'),
+  (SELECT `id` FROM `billing_periods` WHERE `type` = 'monthly'),
   (SELECT `id` FROM `currencies` WHERE `code` = 'USD'),
   9.99
 ),
 (UUID(), 'Premium Listing',
-  (SELECT `id` FROM `billing_periods` WHERE `name` = 'Monthly'),
+  (SELECT `id` FROM `billing_periods` WHERE `type` = 'monthly'),
   (SELECT `id` FROM `currencies` WHERE `code` = 'USD'),
   29.99
 );
 
-INSERT INTO `promotions` (`id`, `name`,`slot_type` ,`billing_period_id`, `currency_id`, `price`) VALUES
-(UUID(), 'Basic Listing', 'homepage_hero',
-  (SELECT `id` FROM `billing_periods` WHERE `name` = 'Monthly'),
-  (SELECT `id` FROM `currencies` WHERE `code` = 'USD'),
+INSERT IGNORE INTO `promotions` (`id`, `slot_type`, `billing_period_id`, `currency_id`, `price`) VALUES
+(UUID(), 'Homepage',
+  (SELECT `id` FROM `billing_periods` WHERE `type` = 'monthly'),
+  (SELECT `id` FROM `currencies` WHERE `code` = 'EUR'),
   300
 ),
-(UUID(), 'Basic Listing', 'category_featured',
-  (SELECT `id` FROM `billing_periods` WHERE `name` = 'Monthly'),
-  (SELECT `id` FROM `currencies` WHERE `code` = 'USD'),
+(UUID(), 'Chatbots page',
+  (SELECT `id` FROM `billing_periods` WHERE `type` = 'monthly'),
+  (SELECT `id` FROM `currencies` WHERE `code` = 'EUR'),
   300
 );
 
 
 
--- Insert promotion slots
-# INSERT INTO `promotion_slots` (`id`, `name`, `identifier`, `slot_type`, `page_location`, `position`, `max_concurrent`, `dimensions`) VALUES
-# (UUID(), 'Homepage Hero', 'homepage_hero', 'homepage_hero', 'homepage', 1, 1, '1200x400'),
-# (UUID(), 'Category Top Banner', 'category_top', 'category_featured', 'category', 1, 2, '728x90'),
-# (UUID(), 'Sidebar Featured', 'sidebar_featured', 'sidebar', 'all', 1, 3, '300x250');
-
--- Insert default categories
-# INSERT INTO `categories` (`id`, `name`, `slug`, `description`, `display_order`) VALUES
-# (UUID(), 'Customer Support', 'customer-support', 'Chatbots specialized in customer service and support', 1),
-# (UUID(), 'Sales & Marketing', 'sales-marketing', 'Chatbots for lead generation and sales automation', 2),
-# (UUID(), 'E-commerce', 'ecommerce', 'Shopping assistants and product recommendation bots', 3),
-# (UUID(), 'Healthcare', 'healthcare', 'Medical assistance and health-related chatbots', 4),
-# (UUID(), 'Education', 'education', 'Learning assistants and educational chatbots', 5);
-
 -- ============================================
--- VIEWS AND TRIGGERS - OPTIMIZED VERSION
--- ============================================
--- Only necessary views and triggers for your chatbot directory
--- ============================================
-
--- ============================================
--- TRIGGERS FOR DENORMALIZATION
+-- VIEWS AND TRIGGERS
 -- ============================================
 
 DELIMITER //
@@ -1373,204 +953,27 @@ BEGIN
 END//
 
 -- ============================================
--- PROMOTION ANALYTICS TRIGGERS
--- ============================================
-
--- Update promotion CTR when clicks change
-CREATE TRIGGER `trg_promotion_update_ctr` BEFORE UPDATE ON `promotions`
-FOR EACH ROW
-BEGIN
-  -- Recalculate CTR if impressions or clicks changed
-  IF NEW.impressions != OLD.impressions OR NEW.clicks != OLD.clicks THEN
-    IF NEW.impressions > 0 THEN
-      SET NEW.ctr = (NEW.clicks / NEW.impressions) * 100;
-    ELSE
-      SET NEW.ctr = 0;
-    END IF;
-  END IF;
-END//
-
--- ============================================
 -- SUBSCRIPTION LIFECYCLE TRIGGERS
 -- ============================================
 
--- Handle subscription expiration
+-- Deactivate chatbot when listing subscription expires
 CREATE TRIGGER `trg_subscription_expired` AFTER UPDATE ON `subscriptions`
 FOR EACH ROW
 BEGIN
-  -- Check if subscription just expired
   IF OLD.status != 'expired' AND NEW.status = 'expired' THEN
-
-    -- If listing subscription expired, deactivate chatbot
-    -- (unless it has an affiliate program - then it stays active for free)
     IF NEW.subscription_type = 'listing' THEN
       UPDATE `chatbots`
       SET `status` = 'inactive',
           `updated_at` = CURRENT_TIMESTAMP
       WHERE `id` = NEW.chatbot_id
-        AND `has_affiliate_program` = FALSE;  -- Only deactivate if no affiliate
-    END IF;
-
-    -- If promotion subscription expired, expire the promotion
-    IF NEW.subscription_type = 'promotion' THEN
-      UPDATE `promotions`
-      SET `status` = 'expired',
-          `updated_at` = CURRENT_TIMESTAMP
-      WHERE `subscription_id` = NEW.id
-        AND `status` = 'active';
-    END IF;
-  END IF;
-
-  -- Check if subscription was cancelled
-  IF OLD.status != 'cancelled' AND NEW.status = 'cancelled' THEN
-    -- Mark promotions as cancelled (not expired)
-    IF NEW.subscription_type = 'promotion' THEN
-      UPDATE `promotions`
-      SET `status` = 'cancelled',
-          `updated_at` = CURRENT_TIMESTAMP
-      WHERE `subscription_id` = NEW.id
-        AND `status` = 'active';
+        AND `has_affiliate_program` = FALSE;
     END IF;
   END IF;
 END//
 
--- ============================================
--- PAYMENT SUCCESS TRIGGER
--- ============================================
-
--- Activate subscription when payment succeeds
-CREATE TRIGGER `trg_payment_succeeded` AFTER UPDATE ON `payments`
-FOR EACH ROW
-BEGIN
-  -- Check if payment just succeeded
-  IF OLD.status != 'succeeded' AND NEW.status = 'succeeded' THEN
-
-    -- Activate the related subscription
-    IF NEW.subscription_id IS NOT NULL THEN
-      UPDATE `subscriptions`
-      SET `status` = 'active',
-          `updated_at` = CURRENT_TIMESTAMP
-      WHERE `id` = NEW.subscription_id
-        AND `status` = 'pending';
-
-      -- If it's a promotion subscription, activate the promotion
-      UPDATE `promotions` p
-      JOIN `subscriptions` s ON p.subscription_id = s.id
-      SET p.status = 'active',
-          p.activated_at = CURRENT_TIMESTAMP,
-          p.updated_at = CURRENT_TIMESTAMP
-      WHERE s.id = NEW.subscription_id
-        AND p.status = 'pending';
-
-      -- If it's a listing subscription, activate the chatbot
-      UPDATE `chatbots` c
-      JOIN `subscriptions` s ON c.id = s.chatbot_id
-      SET c.status = 'active',
-          c.updated_at = CURRENT_TIMESTAMP
-      WHERE s.id = NEW.subscription_id
-        AND s.subscription_type = 'listing'
-        AND c.status = 'pending';
-    END IF;
-  END IF;
-END//
-
--- ============================================
--- AFFILIATE CONVERSION TRIGGER
--- ============================================
-
--- Mark affiliate click as converted
-# CREATE TRIGGER `trg_affiliate_commission_insert` AFTER INSERT ON `affiliate_commissions`
-# FOR EACH ROW
-# BEGIN
-#   -- If commission has a related click, mark it as converted
-#   IF NEW.affiliate_click_id IS NOT NULL THEN
-#     UPDATE `affiliate_clicks`
-#     SET `converted` = TRUE,
-#         `conversion_date` = NEW.commission_date,
-#         `estimated_commission` = NEW.commission_amount
-#     WHERE `id` = NEW.affiliate_click_id
-#       AND `converted` = FALSE;
-#   END IF;
-# END//
 
 DELIMITER ;
 
--- ============================================
--- OPTIONAL VIEWS (use sparingly!)
--- ============================================
-
--- View for admin dashboard - subscription overview
-CREATE OR REPLACE VIEW `v_subscription_overview` AS
-SELECT
-  DATE(s.start_date) as subscription_date,
-  s.subscription_type,
-  s.status,
-  COUNT(*) as count,
-  COUNT(DISTINCT s.user_id) as unique_users,
-  SUM(
-    CASE s.subscription_type
-      WHEN 'listing' THEN lpp.price
-    END
-  ) as total_revenue
-FROM `subscriptions` s
-LEFT JOIN `listing_plan_prices` lpp ON s.listing_price_id = lpp.id
-GROUP BY DATE(s.start_date), s.subscription_type, s.status;
-
--- View for admin dashboard - affiliate performance
-# CREATE OR REPLACE VIEW `v_affiliate_performance` AS
-# SELECT
-#   c.id as chatbot_id,
-#   c.name as chatbot_name,
-#   COUNT(DISTINCT ac.id) as total_clicks,
-#   COUNT(DISTINCT CASE WHEN ac.converted = TRUE THEN ac.id END) as conversions,
-#   COALESCE(
-#     COUNT(DISTINCT CASE WHEN ac.converted = TRUE THEN ac.id END) /
-#     NULLIF(COUNT(DISTINCT ac.id), 0) * 100,
-#     0
-#   ) as conversion_rate,
-#   COUNT(DISTINCT acom.id) as total_commissions,
-#   COALESCE(SUM(acom.commission_amount), 0) as total_commission_amount,
-#   COALESCE(SUM(CASE WHEN acom.status = 'paid' THEN acom.commission_amount ELSE 0 END), 0) as paid_commission_amount
-# FROM `chatbots` c
-# LEFT JOIN `affiliate_clicks` ac ON c.id = ac.chatbot_id
-# LEFT JOIN `affiliate_commissions` acom ON c.id = acom.chatbot_id
-# WHERE c.has_affiliate_program = TRUE
-# GROUP BY c.id, c.name;
-
--- View for active promotions (for displaying on site)
-CREATE OR REPLACE VIEW `v_active_promotions` AS
-SELECT
-  p.*,
-  c.name as chatbot_name,
-  c.logo_url as chatbot_logo,
-  c.affiliate_link as chatbot_link,
-FROM `promotions` p
-JOIN `chatbots` c ON p.chatbot_id = c.id
-WHERE p.status = 'active'
-  AND NOW() BETWEEN p.start_date AND p.end_date
-ORDER BY p.display_order;
-
--- ============================================
--- INDEXES FOR PERFORMANCE
--- ============================================
-
--- Additional composite indexes for common queries
-
--- Find active subscriptions for a chatbot
-CREATE INDEX `idx_subscriptions_active_chatbot`
-  ON `subscriptions` (`chatbot_id`, `status`, `end_date`);
-
--- Find active promotions by slot
-# CREATE INDEX `idx_promotions_active_slot`
-#   ON `promotions` (`promotion_slot_id`, `status`, `display_order`);
-
--- Find recent payments by user
-CREATE INDEX `idx_payments_recent_user`
-  ON `payments` (`user_id`, `created_at`, `status`);
-
--- Find affiliate clicks for conversion tracking
-# CREATE INDEX `idx_affiliate_clicks_tracking`
-#   ON `affiliate_clicks` (`cookie_id`, `converted`, `clicked_at`);
 
 SET FOREIGN_KEY_CHECKS = 1;
 

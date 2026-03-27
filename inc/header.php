@@ -310,10 +310,10 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
             </div> -->
 
             <!-- Divider -->
-            <!-- <div class="header-mobile-divider"></div> -->
+            <div class="header-mobile-divider"></div>
 
             <!-- Auth -->
-            <!-- <div class="header-mobile-auth">
+            <div class="header-mobile-auth">
                 <?php if (!$isLoggedIn): ?>
                     <a href="login.php" class="header-mobile-login">Log In</a>
                     <a href="signUp.php" class="header-mobile-signup">Sign Up</a>
@@ -339,7 +339,7 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
                     <?php endif; ?>
                     <a href="logout.php" class="header-mobile-logout">Log Out</a>
                 <?php endif; ?>
-            </div> -->
+            </div>
 
         </div>
     </div>

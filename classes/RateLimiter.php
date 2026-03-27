@@ -23,8 +23,6 @@ class RateLimiter
         // Inicializuj Redis connection
         $this->initializeRedis();
         
-        // Vytvor DB tabuľku (fallback)
-        $this->createTableIfNotExists();
     }
     
     /**
@@ -605,7 +603,20 @@ class RateLimiter
             'action' => $action,
         ]);
     }
-    
+
+    /**
+     * Vymazanie starých záznamov (DB fallback cleanup)
+     */
+    public function cleanup(int $daysOld = 30): void
+    {
+        if (!$this->useRedis) {
+            $this->db->prepare("
+                DELETE FROM rate_limits
+                WHERE last_attempt_at < NOW() - INTERVAL :days DAY
+            ")->execute([':days' => $daysOld]);
+        }
+    }
+
     /**
      * Získanie zostávajúceho času lockoutu
      * 
@@ -763,27 +774,4 @@ class RateLimiter
         return $this->redisConfig['prefix'] . 'ratelimit:' . $action . ':email:' . $email . ':' . $suffix;
     }
     
-    /**
-     * Automatické vytvorenie tabuľky rate_limits (DB fallback)
-     */
-    private function createTableIfNotExists(): void
-    {
-        $this->db->exec("
-            CREATE TABLE IF NOT EXISTS rate_limits (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                ip_address VARCHAR(45) NULL,
-                email VARCHAR(255) NULL,
-                action VARCHAR(50) NOT NULL DEFAULT 'login',
-                attempts_count INT NOT NULL DEFAULT 0,
-                first_attempt_at TIMESTAMP NULL,
-                last_attempt_at TIMESTAMP NULL,
-                locked_until TIMESTAMP NULL,
-                KEY idx_locked (locked_until)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        ");
-        // 🆕 ZMENA: Zmenená štruktúra tabulky:
-        //   - ip_address je teraz NULL (nie NOT NULL) - pre email-only záznamy
-        //   - pridaný stĺpec email VARCHAR(255) NULL - pre email-based rate limiting
-        //   - odstránený UNIQUE KEY idx_ip_action - nahradený samostatnými NULL queries
-    }
 }
