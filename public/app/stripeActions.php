@@ -10,9 +10,9 @@
  */
 
 require '../../inc/bootstrap.php';
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
-$stripeConfig = require __DIR__ . '/../config/stripe.php';
+$stripeConfig = require __DIR__ . '/../../config/stripe.php';
 \Stripe\Stripe::setApiKey($stripeConfig['secret_key']);
 
 $action = $_GET['action'] ?? '';

@@ -60,7 +60,7 @@ function logError(string $type, string $message, string $file = '', int $line = 
 function isApiRequest(): bool
 {
     $uri = $_SERVER['REQUEST_URI'] ?? '';
-    return str_contains($uri, '/api/');
+    return str_contains($uri, '/api/') || str_contains($uri, '/app/');
 }
 
 function redirectToErrorPage(int $code): void
@@ -76,7 +76,7 @@ function redirectToErrorPage(int $code): void
     $scheme  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
     $host    = $_SERVER['HTTP_HOST'] ?? 'localhost';
     $script  = $_SERVER['SCRIPT_NAME'] ?? '/public/index.php';
-    $base    = preg_replace('#/(public|api)/.*$#', '', $script);
+    $base    = preg_replace('#/(public|api|app)/.*$#', '', $script);
 
     header("Location: {$scheme}://{$host}{$base}/public/{$code}.php");
     exit;

@@ -169,7 +169,7 @@ try {
     $adminEmail   = $settingsRows['admin_notification_email'] ?? '';
  
     if (empty($adminEmail)) {
-        $appConfig  = require __DIR__ . '/../config/app.php';
+        $appConfig  = require __DIR__ . '/../../config/app.php';
         $adminEmail = $appConfig['admin']['email'] ?? 'admin@chatbotscout.com';
     }
 

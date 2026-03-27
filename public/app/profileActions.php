@@ -106,7 +106,7 @@ if ($action === 'resend_verification') {
     }
     
     // Generuj nový token
-    $appConfig = require __DIR__ . '/../config/app.php';
+    $appConfig = require __DIR__ . '/../../config/app.php';
     $newToken = bin2hex(random_bytes(32));
     $expiresAt = date('Y-m-d H:i:s', time() + $appConfig['email_verification']['token_lifetime']);
     
@@ -483,7 +483,7 @@ if ($action === 'delete_account') {
     }
  
     // Vymaž visitor_id cookie z browsera
-    $appConfig = require __DIR__ . '/../config/app.php';
+    $appConfig = require __DIR__ . '/../../config/app.php';
     setcookie($appConfig['visitor']['cookie_name'], '', time() - 3600, '/');
     setcookie('cookie_consent', '', time() - 3600, '/');
  
