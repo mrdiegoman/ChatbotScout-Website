@@ -386,15 +386,15 @@ require '../inc/header.php';
     </div>
 </div>
 
-<script src="../js/featuresSwiping.js" defer></script>
-<script src="../js/layoutSwapping.js" defer></script>
-<script src="../js/clearButton.js" defer></script>
-<script src="../js/filterCurrencyAdding.js"></script>
-<script src="../js/filterFeaturesAdding.js" defer></script>
-<script src="../js/filterIntegrationsAdding.js" defer></script>
-<script src="../js/filterPricingAdding.js"></script>
-<script src="../js/chatbotFilters.js" defer></script>
-<script src="../js/showAdvancedFeatures.js" defer></script>
-<script src="../js/mobileSearch.js" defer></script>
-<script src="../js/chatbotShowcase.js" defer></script>
-<script src="../js/platformsPopup.js" defer></script>
+<script src="js/featuresSwiping.js" defer></script>
+<script src="js/layoutSwapping.js" defer></script>
+<script src="js/clearButton.js" defer></script>
+<script src="js/filterCurrencyAdding.js"></script>
+<script src="js/filterFeaturesAdding.js" defer></script>
+<script src="js/filterIntegrationsAdding.js" defer></script>
+<script src="js/filterPricingAdding.js"></script>
+<script src="js/chatbotFilters.js" defer></script>
+<script src="js/showAdvancedFeatures.js" defer></script>
+<script src="js/mobileSearch.js" defer></script>
+<script src="js/chatbotShowcase.js" defer></script>
+<script src="js/platformsPopup.js" defer></script>

@@ -3,7 +3,7 @@
         <div class="footer-main-content">
             <div class="footer-main-content-first">
                 <a href="index.php" class="footer-main-content-first-logo">
-                    <img src="../img/ChatbotScout_logo.png" alt="ChatbotScout logo">
+                    <img src="img/ChatbotScout_logo.png" alt="ChatbotScout logo">
                     <p>ChatbotScout</p>
                 </a>
 
@@ -368,9 +368,9 @@
 
 </button>
 
-<link rel="stylesheet" href="../css/Consent.css">
-<script src="../js/footerVertical.js" defer></script>
-<script src="../js/Consent.js"></script>
+<link rel="stylesheet" href="css/Consent.css">
+<script src="js/footerVertical.js" defer></script>
+<script src="js/Consent.js"></script>
 
 </body>
 </html>

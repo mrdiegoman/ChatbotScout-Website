@@ -364,7 +364,7 @@ require '../inc/header.php';
             <!-- Bot response 1 -->
             <div class="hp-chat-row hp-chat-row-bot hp-chat-animate">
                 <div class="hp-chat-avatar-bot">
-                    <img src="../img/ChatbotScout_logo.png" alt="ChatbotScout">
+                    <img src="img/ChatbotScout_logo.png" alt="ChatbotScout">
                 </div>
                 <div class="hp-chat-msg hp-chat-msg-bot">
                     <h3>Search, Filter & Sort - Find Your Perfect Chatbot</h3>
@@ -396,7 +396,7 @@ require '../inc/header.php';
             <!-- Bot response 2 -->
             <div class="hp-chat-row hp-chat-row-bot hp-chat-animate">
                 <div class="hp-chat-avatar-bot">
-                    <img src="../img/ChatbotScout_logo.png" alt="ChatbotScout">
+                    <img src="img/ChatbotScout_logo.png" alt="ChatbotScout">
                 </div>
                 <div class="hp-chat-msg hp-chat-msg-bot">
                     <h3>Full Feature & Integration Details - All in One Place</h3>
@@ -535,7 +535,7 @@ require '../inc/header.php';
     <div class="hp-discover-card hp-fade-up">
 
         <div class="hp-discover-visual">
-            <img src="../img/assets/ai_chatbot_pic.png" alt="AI Chatbot" class="hp-discover-bot" />
+            <img src="img/assets/ai_chatbot_pic.png" alt="AI Chatbot" class="hp-discover-bot" />
         </div>
 
         <div class="hp-discover-text">
@@ -702,7 +702,7 @@ $itemListSchema = [
 
 
 
-<script src="../js/homePage.js" defer></script>
+<script src="js/homePage.js" defer></script>
 
 <?php
 require '../inc/footer.php';

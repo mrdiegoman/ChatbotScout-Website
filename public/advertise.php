@@ -14,7 +14,7 @@ require '../app/auth.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advertise – ChatbotScout</title>
     <?php require '../inc/header.php'; ?>
-    <link rel="stylesheet" href="../css/advertise.css">
+    <link rel="stylesheet" href="css/advertise.css">
 </head>
 <body>
 
@@ -350,6 +350,6 @@ require '../app/auth.php';
 </div>
 
 <?php require '../inc/footer.php'; ?>
-<script src="../js/advertise.js"></script>
+<script src="js/advertise.js"></script>
 </body>
 </html>

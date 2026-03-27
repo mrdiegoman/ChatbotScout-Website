@@ -11,7 +11,7 @@ $userEmail = isset($_GET['email']) ? htmlspecialchars($_GET['email']) :
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verify Your Email</title>
-    <link rel="stylesheet" href="../css/verificationSent.css">
+    <link rel="stylesheet" href="css/verificationSent.css">
 </head>
 <body>
     <div class="container">
@@ -62,6 +62,6 @@ $userEmail = isset($_GET['email']) ? htmlspecialchars($_GET['email']) :
         </p>
     </div>
 
-    <script src="../js/resendEmail.js" defer></script>
+    <script src="js/resendEmail.js" defer></script>
 </body>
 </html>

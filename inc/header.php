@@ -14,7 +14,7 @@ if ($userRole) {
 // Získaj profilovú fotku (Variant 2 - Upload + Default)
 $profilePicture = isset($user['profile_picture_url'])
     ? $user['profile_picture_url']
-    : '../img/default-avatar2.png';
+    : 'img/default-avatar2.png';
 $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User';
 
 $scheme = 'http';
@@ -125,42 +125,42 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
     <meta name="twitter:description" content="<?php echo htmlspecialchars($seo['description'], ENT_QUOTES, 'UTF-8'); ?>">
     <meta name="twitter:image" content="<?php echo htmlspecialchars($defaultImage, ENT_QUOTES, 'UTF-8'); ?>">
 
-    <link rel="apple-touch-icon" sizes="180x180" href="../img/favicons/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="../img/favicons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="../img/favicons/favicon-16x16.png">
-    <link rel="icon" type="image/x-icon" href="../img/favicons/favicon.ico">
-    <link rel="manifest" href="../img/favicons/site.webmanifest">
+    <link rel="apple-touch-icon" sizes="180x180" href="img/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicons/favicon-16x16.png">
+    <link rel="icon" type="image/x-icon" href="img/favicons/favicon.ico">
+    <link rel="manifest" href="img/favicons/site.webmanifest">
 
-    <link rel="stylesheet" href="../css/reset.css">
-    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/main.css">
     <?php if ($page === 'index'): ?>
-        <link rel="stylesheet" href="../css/homePage.css">
+        <link rel="stylesheet" href="css/homePage.css">
     <?php elseif ($page === 'chatbotShowcase'): ?>
-        <link rel="stylesheet" href="../css/chatbotShowcase.css">
-        <link rel="stylesheet" href="../css/featuresShowMore.css">
-        <link rel="stylesheet" href="../css/platformsPopup.css">
+        <link rel="stylesheet" href="css/chatbotShowcase.css">
+        <link rel="stylesheet" href="css/featuresShowMore.css">
+        <link rel="stylesheet" href="css/platformsPopup.css">
     <?php elseif ($page === 'contact'): ?>
-        <link rel="stylesheet" href="../css/contact.css">
+        <link rel="stylesheet" href="css/contact.css">
     <?php elseif ($page === 'aboutUs'): ?>
-        <link rel="stylesheet" href="../css/aboutUs.css">
+        <link rel="stylesheet" href="css/aboutUs.css">
     <?php elseif ($page === 'affiliateDisclosure'): ?>
-        <link rel="stylesheet" href="../css/affiliateDisclosure.css">
+        <link rel="stylesheet" href="css/affiliateDisclosure.css">
     <?php elseif ($page === 'favouritesShowcase'): ?>
-        <link rel="stylesheet" href="../css/favouritesShowcase.css">
-        <link rel="stylesheet" href="../css/featuresShowMore.css">
-        <link rel="stylesheet" href="../css/platformsPopup.css">
+        <link rel="stylesheet" href="css/favouritesShowcase.css">
+        <link rel="stylesheet" href="css/featuresShowMore.css">
+        <link rel="stylesheet" href="css/platformsPopup.css">
     <?php elseif ($page === 'advertise'): ?>
-        <link rel="stylesheet" href="../css/advertise.css">
+        <link rel="stylesheet" href="css/advertise.css">
     <?php elseif ($page === 'profile'): ?>
-        <link rel="stylesheet" href="../css/profile.css">
+        <link rel="stylesheet" href="css/profile.css">
     <?php elseif (in_array($page, $authPages, true)): ?>
-        <link rel="stylesheet" href="../css/userAuthAll.css">
+        <link rel="stylesheet" href="css/userAuthAll.css">
     <?php elseif ($page === '404' || $page === '500'): ?>
-        <link rel="stylesheet" href="../css/errorPages.css">
+        <link rel="stylesheet" href="css/errorPages.css">
     <?php elseif ($page === 'privacyPolicy'): ?>
-        <link rel="stylesheet" href="../css/privacyPolicy.css">
+        <link rel="stylesheet" href="css/privacyPolicy.css">
     <?php elseif ($page === 'termsAndConditions'): ?>
-        <link rel="stylesheet" href="../css/termsAndConditions.css">
+        <link rel="stylesheet" href="css/termsAndConditions.css">
     <?php endif; ?>
 
 </head>
@@ -168,7 +168,7 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
 <body class="<?php echo implode(' ', $bodyClasses); ?>">
     <header class="header-main">
         <div class="header-main-logo" onclick="window.location.href='index.php'">
-            <img src="../img/ChatbotScout_logo.png" alt="ChatbotScout Logo">
+            <img src="img/ChatbotScout_logo.png" alt="ChatbotScout Logo">
             <p class="header-main-logo-title">ChatbotScout</p>
         </div>
         <nav class="header-main-nav">
@@ -198,7 +198,7 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
                 <div class="header-profile-dropdown-wrapper">
 
                     <a class="header-main-right-profile-avatar" id="profileAvatarBtn" title="<?php echo htmlspecialchars($userName); ?>">
-                        <img src="../img/default-avatar2.png" data-src="<?php echo htmlspecialchars($profilePicture); ?>" alt="Profile" class="profile-avatar-img user-avatar-img">
+                        <img src="img/default-avatar2.png" data-src="<?php echo htmlspecialchars($profilePicture); ?>" alt="Profile" class="profile-avatar-img user-avatar-img">
                     </a>
 
                     <div class="header-profile-dropdown" id="profileDropdown">
@@ -263,7 +263,7 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
             <!-- Header s logom a close btn -->
             <div class="header-mobile-menu-top">
                 <a href="index.php" class="header-mobile-menu-top-logo">
-                    <img src="../img/ChatbotScout_logo.png" alt="ChatbotScout logo">
+                    <img src="img/ChatbotScout_logo.png" alt="ChatbotScout logo">
                     <span>ChatbotScout</span>
                 </a>
                 <button class="header-mobile-close" aria-label="Close menu">
@@ -319,7 +319,7 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
                     <a href="signUp.php" class="header-mobile-signup">Sign Up</a>
                 <?php else: ?>
                     <a href="profile.php" class="header-mobile-profile">
-                        <img src="../img/default-avatar2.png" data-src="<?php echo htmlspecialchars($profilePicture); ?>" alt="Profile" class="user-avatar-img">
+                        <img src="img/default-avatar2.png" data-src="<?php echo htmlspecialchars($profilePicture); ?>" alt="Profile" class="user-avatar-img">
                         <span>Profile</span>
                     </a>
                     <a href="favouritesShowcase.php" class="header-mobile-favourites">
@@ -344,7 +344,7 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
         </div>
     </div>
 
-    <script src="../js/csrf.js"></script>
+    <script src="js/csrf.js"></script>
     <script nonce="<?= $cspNonce ?>">
         function loadAvatar(img) {
             var real = img.getAttribute('data-src');
@@ -358,6 +358,6 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
             document.querySelectorAll('img.user-avatar-img').forEach(loadAvatar);
         });
     </script>
-    <script src="../js/BurgerMenuHeader.js" defer></script>
-    <script src="../js/ProfileDropdown.js" defer></script>
+    <script src="js/BurgerMenuHeader.js" defer></script>
+    <script src="js/ProfileDropdown.js" defer></script>
     

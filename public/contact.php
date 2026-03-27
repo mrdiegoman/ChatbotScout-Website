@@ -24,7 +24,7 @@ function old(string $key, array $old): string {
 }
 ?>
 
-<link rel="stylesheet" href="../css/contact.css">
+<link rel="stylesheet" href="css/contact.css">
 
 <div class="contact-page-wrapper">
     <main class="contact-page-main">
@@ -168,6 +168,6 @@ function old(string $key, array $old): string {
     window._contactErrors  = <?= json_encode($contactErrors) ?>;
 </script>
 
-<script src="../js/contact.js" defer></script>
+<script src="js/contact.js" defer></script>
 
 <?php require '../inc/footer.php'; ?>

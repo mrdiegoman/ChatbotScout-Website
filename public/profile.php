@@ -67,8 +67,8 @@ $payments = [];
 require '../inc/header.php';
 ?>
 
-<link rel="stylesheet" href="../css/profile.css">
-<link rel="stylesheet" href="../css/profileReviews.css">
+<link rel="stylesheet" href="css/profile.css">
+<link rel="stylesheet" href="css/profileReviews.css">
 
 <div class="profile-page">
     <div class="profile-container">
@@ -113,7 +113,7 @@ require '../inc/header.php';
                     <!-- Avatar Section -->
                     <div class="profile-card avatar-card">
                         <div class="avatar-wrapper">                     
-                            <img src="../img/default-avatar2.png"
+                            <img src="img/default-avatar2.png"
                                 data-src="<?php echo htmlspecialchars($user['profile_picture_url'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                                 alt="Profile picture"
                                 class="profile-avatar user-avatar-img"
@@ -700,9 +700,9 @@ require '../inc/header.php';
     </div>
 </div>
 
-<script src="../js/profile.js"></script>
-<script src="../js/profileReviews.js" defer></script>
-<script src="../js/togglePasswordProfile.js"></script>
+<script src="js/profile.js"></script>
+<script src="js/profileReviews.js" defer></script>
+<script src="js/togglePasswordProfile.js"></script>
 
 <?php
 require '../inc/footer.php';

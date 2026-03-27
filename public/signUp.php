@@ -83,7 +83,7 @@ require '../inc/header.php';
     <div class="auth-container">
         <!-- Logo and Brand -->
         <!-- <div class="auth-header">
-            <img src="../img/ChatbotScout_logo.png" alt="ChatbotScout Logo">
+            <img src="img/ChatbotScout_logo.png" alt="ChatbotScout Logo">
             <h1>ChatbotScout</h1>
         </div> -->
         
@@ -267,9 +267,9 @@ require '../inc/header.php';
 </div>
 
 <!-- Password Toggle Script -->
-<script src="../js/passwordToggle.js"></script>
+<script src="js/passwordToggle.js"></script>
 <!--  Live Validation Script -->
-<script src="../js/authValidation.js"></script>
+<script src="js/authValidation.js"></script>
 
 <?php
 require '../inc/footer.php';

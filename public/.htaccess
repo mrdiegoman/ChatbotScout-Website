@@ -1,7 +1,2 @@
 ErrorDocument 404 /404.php
 ErrorDocument 500 /500.php
-
-RewriteEngine On
-RewriteRule ^css/(.*)$ ../css/$1 [L]
-RewriteRule ^js/(.*)$ ../js/$1 [L]
-RewriteRule ^img/(.*)$ ../img/$1 [L]

@@ -169,7 +169,7 @@ if ($action === 'upload_avatar') {
     
     $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
     $filename = 'avatar_' . $user['id'] . '_' . time() . '.' . $extension;
-    $uploadDir = __DIR__ . '/../img/avatars/';
+    $uploadDir = __DIR__ . '/img/avatars/';
     $uploadPath = $uploadDir . $filename;
     
     if (!is_dir($uploadDir)) {
@@ -220,7 +220,7 @@ if ($action === 'upload_avatar') {
         
         $db = Database::getInstance()->getConnection();
         $stmt = $db->prepare("UPDATE users SET profile_picture_url = :url WHERE id = :id");
-        $newUrl = '../img/avatars/' . $filename;
+        $newUrl = 'img/avatars/' . $filename;
         $stmt->execute(['url' => $newUrl, 'id' => $user['id']]);
         
         $_SESSION['user']['profile_picture_url'] = $newUrl;
