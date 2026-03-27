@@ -8,9 +8,9 @@ const { CallToolRequestSchema, ListToolsRequestSchema } = require('@modelcontext
 
 const dbConfig = {
   host: 'localhost',
-  user: 'root',
-  password: 'Affcheckin26',
-  database: 'websitedb'
+  user: 'u67598_chatbot',
+  password: 'GJ7Jd4xdM.18-d_!',
+  database: 'd67598_websitedb'
 };
 
 const server = new Server(
