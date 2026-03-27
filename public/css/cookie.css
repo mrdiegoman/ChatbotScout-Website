@@ -455,6 +455,11 @@
     flex-wrap: wrap;
 }
 
+/* Scroll lock when modal is open — only applied if modal is actually visible */
+body.cookie-modal-open {
+    overflow: hidden;
+}
+
 /* ---- FIXED SETTINGS BUTTON ---- */
 #cookie-settings-btn {
     position: fixed;

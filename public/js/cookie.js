@@ -122,6 +122,10 @@
         banner.style.display = 'block';
         requestAnimationFrame(function () {
             requestAnimationFrame(function () {
+                // If browser shields (e.g. Brave) hid the banner via CSS, don't animate
+                if (getComputedStyle(banner).display === 'none') {
+                    return;
+                }
                 banner.classList.add('cookie-banner--visible');
             });
         });
@@ -171,19 +175,22 @@
         requestAnimationFrame(function () {
             requestAnimationFrame(function () {
                 overlay.classList.add('cookie-modal--visible');
+                // Only lock scroll if overlay is actually visible (Brave Shields may block it)
+                if (getComputedStyle(overlay).display !== 'none') {
+                    document.body.classList.add('cookie-modal-open');
+                }
             });
         });
-        document.body.style.overflow = 'hidden';
     }
 
     function hideModal() {
         var overlay = document.getElementById('cookie-modal-overlay');
         if (!overlay) return;
         overlay.classList.remove('cookie-modal--visible');
+        document.body.classList.remove('cookie-modal-open');
         setTimeout(function () {
             overlay.style.display = 'none';
         }, 280);
-        document.body.style.overflow = '';
     }
 
     // ============================================
