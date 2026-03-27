@@ -148,13 +148,14 @@ class User
         // Insert do databázy
         $stmt = $this->db->prepare("
             INSERT INTO users (
-                id, 
-                first_name, 
-                last_name, 
-                email, 
+                id,
+                first_name,
+                last_name,
+                email,
                 password_hash,
                 email_verification_token,
                 email_verification_expires_at,
+                terms_accepted,
                 marketing_emails,
                 status,
                 created_at,
@@ -167,13 +168,14 @@ class User
                 :password_hash,
                 :token,
                 :token_expires,
+                :terms_accepted,
                 :marketing_emails,
                 'pending_verification',
                 NOW(),
                 :unsubscribe_token
             )
         ");
-        
+
         $stmt->execute([
             'id' => $userId,
             'first_name' => $firstName,
@@ -182,6 +184,7 @@ class User
             'password_hash' => $passwordHash,
             'token' => $verificationToken,
             'token_expires' => $tokenExpires,
+            'terms_accepted' => $termsAccepted ? 1 : 0,
             'marketing_emails' => $marketingEmails ? 1 : 0,
             'unsubscribe_token' => bin2hex(random_bytes(32)),
         ]);
