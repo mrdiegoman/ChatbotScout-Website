@@ -136,26 +136,6 @@ CREATE TABLE IF NOT EXISTS `visitor_user_links` (
     REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- recording unique visitors clicks on chatbot
-CREATE TABLE IF NOT EXISTS `chatbot_clicks` (
-  `id` CHAR(36) NOT NULL,
-  `chatbot_id` CHAR(36) NOT NULL,
-  `visitor_id` CHAR(36) NOT NULL,
-  `source_page` VARCHAR(1000) NULL COMMENT 'Stránka odkiaľ user klikol, e.g., "/MainWebsite/public/index.php"',
-  `clicked_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-  PRIMARY KEY (`id`),
-  KEY `idx_chatbot` (`chatbot_id`),
-  KEY `idx_visitor` (`visitor_id`),
-  KEY `idx_clicked_at` (`clicked_at`),
-
-  CONSTRAINT `fk_clicks_chatbot` FOREIGN KEY (`chatbot_id`)
-    REFERENCES `chatbots` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_clicks_visitor` FOREIGN KEY (`visitor_id`)
-    REFERENCES `visitors` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-
 -- ============================================
 -- Settings table
 -- ============================================
@@ -250,6 +230,25 @@ CREATE TABLE IF NOT EXISTS `chatbots` (
     (`has_free_trial` = TRUE AND `free_trial_days` > 0)
   ),
   CONSTRAINT `chk_rating` CHECK (`rating_average` BETWEEN 0 AND 5)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- recording unique visitors clicks on chatbot
+CREATE TABLE IF NOT EXISTS `chatbot_clicks` (
+  `id` CHAR(36) NOT NULL,
+  `chatbot_id` CHAR(36) NOT NULL,
+  `visitor_id` CHAR(36) NOT NULL,
+  `source_page` VARCHAR(1000) NULL COMMENT 'Stránka odkiaľ user klikol, e.g., "/MainWebsite/public/index.php"',
+  `clicked_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  KEY `idx_chatbot` (`chatbot_id`),
+  KEY `idx_visitor` (`visitor_id`),
+  KEY `idx_clicked_at` (`clicked_at`),
+
+  CONSTRAINT `fk_clicks_chatbot` FOREIGN KEY (`chatbot_id`)
+    REFERENCES `chatbots` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_clicks_visitor` FOREIGN KEY (`visitor_id`)
+    REFERENCES `visitors` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
