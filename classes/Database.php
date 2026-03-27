@@ -18,7 +18,8 @@ class Database
     {
         $config = require __DIR__ . '/../config/database.php';
         
-        $dsn = "mysql:host={$config['host']};dbname={$config['dbname']};charset={$config['charset']}";
+        $port = !empty($config['port']) ? ";port={$config['port']}" : '';
+        $dsn = "mysql:host={$config['host']}{$port};dbname={$config['dbname']};charset={$config['charset']}";
         
         try {
             $this->connection = new PDO($dsn, $config['username'], $config['password'], $config['options']);
