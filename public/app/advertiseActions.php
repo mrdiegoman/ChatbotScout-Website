@@ -8,7 +8,7 @@
  */
 
 require '../../inc/bootstrap.php';
-require '../../app/auth.php';
+require __DIR__ . '/auth.php';
 
 header('Content-Type: application/json');
 

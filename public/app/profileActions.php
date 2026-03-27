@@ -10,7 +10,7 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
 require '../../inc/bootstrap.php';
-require '../../app/auth.php';
+require __DIR__ . '/auth.php';
 
 $action = $_GET['action'] ?? '';
 
