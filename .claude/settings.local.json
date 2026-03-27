@@ -13,7 +13,12 @@
       "Bash(for f:*)",
       "Bash(do echo:*)",
       "Read(//c/xampp/htdocs/MainWebsite/api/**)",
-      "Bash(done)"
+      "Bash(done)",
+      "Skill(update-config)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "websitedb",
+    "context7"
+  ]
 }

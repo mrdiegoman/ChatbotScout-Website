@@ -9,7 +9,19 @@
       "mcp__claude_ai_Supabase__list_tables",
       "mcp__claude_ai_Supabase__execute_sql",
       "Read(//c/Users/rafaj/AppData/Roaming/Code/User/globalStorage/anthropic.claude-code/settings/**)",
-      "Bash(xargs grep:*)"
+      "Bash(xargs grep:*)",
+      "Bash(curl -s https://raw.githubusercontent.com/thedotmack/claude-mem/main/README.md)",
+      "Bash(curl -s https://raw.githubusercontent.com/nextlevelbuilder/ui-ux-pro-max-skill/main/README.md)",
+      "Bash(curl -s https://raw.githubusercontent.com/kepano/obsidian-skills/main/README.md)",
+      "Bash(curl -s https://raw.githubusercontent.com/hkuds/lightrag/main/README.md)",
+      "Bash(curl -s https://raw.githubusercontent.com/affaan-m/everything-claude-code/main/README.md)",
+      "Bash(curl -s https://raw.githubusercontent.com/obra/superpowers/main/README.md)",
+      "Bash(curl -s https://raw.githubusercontent.com/hesreallyhim/awesome-claude-code/main/README.md)",
+      "Bash(curl -s https://raw.githubusercontent.com/gsd-build/get-shit-done/main/README.md)",
+      "Bash(curl -s https://raw.githubusercontent.com/trailofbits/skills/main/README.md)",
+      "Bash(curl -s https://raw.githubusercontent.com/ldayton/Dippy/main/README.md)",
+      "Bash(curl -s https://raw.githubusercontent.com/anthropics/claude-code-marketplace/main/plugins/github/README.md)",
+      "Bash(gh api:*)"
     ],
     "additionalDirectories": [
       "C:\\Users\\rafaj\\.claude"

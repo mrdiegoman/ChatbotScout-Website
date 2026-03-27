@@ -1,7 +1,9 @@
 # CLAUDE.md
 
 ## Project Overview
-ChatbotHub — a chatbot directory/listing platform. Users can browse, submit, and review AI chatbots. Admins manage submissions, reviews, and promotions.
+ChatbotScout — a chatbot directory/listing platform. Users can browse, submit, and review AI chatbots. Admins manage submissions, reviews, and promotions.
+
+Domain: chatbotscout.com
 
 Built with PHP + Node.js on XAMPP (Windows, local dev).
 
@@ -13,7 +15,7 @@ Built with PHP + Node.js on XAMPP (Windows, local dev).
 |---|---|
 | Backend | PHP (OOP, no framework) |
 | Frontend | HTML, CSS, Vanilla JS |
-| Database | MySQL via PDO (`websitedb`) + Supabase (external queries) |
+| Database | MySQL via PDO (`websitedb`) |
 | Payments | Stripe (`stripe/stripe-php` + webhooks) |
 | Email | PHPMailer — Gmail API (prod) / Mailtrap (dev) |
 | Rate Limiting | Redis (primary) with MySQL fallback |
@@ -70,6 +72,9 @@ WebsiteDB/    — Database schema backup (Base.sql)
 - Web root: `C:\xampp\htdocs\MainWebsite`
 - MySQL DB name: `websitedb` (password: blank, user: root)
 
+## Local Dev URL
+`http://localhost/MainWebsite/`
+
 ## Common Commands
 ```bash
 # Install Node dependencies
@@ -79,12 +84,11 @@ npm install
 composer install
 
 # Stripe webhook testing (requires Stripe CLI)
-stripe listen --forward-to localhost/mainwebsite/api/stripeWebhook.php
+stripe listen --forward-to localhost/MainWebsite/api/stripeWebhook.php
 
 # Seed test data
 php tools/seedTestData.php
 ```
-I give you always access for commands that allow you to look at the files. For you to get more information to get make better results.
 
 ---
 
@@ -116,7 +120,7 @@ Bootstrap also: starts session, registers class autoloader, validates session to
 
 ### PHP Rules
 - Always use `mb_strlen()` not `strlen()` (multi-byte string support, UTF-8)
-- UUIDs generated in PHP with `mt_rand()`, not the database
+- UUIDs generated in PHP with `random_bytes()` via `generateUUID()` in bootstrap
 - Config files return associative arrays, loaded fresh per request (no caching layer)
 - `BOOTSTRAP_LOADED` constant is set by bootstrap — do not include bootstrap files without it being set
 
@@ -280,17 +284,17 @@ All JS files use IIFE pattern:
 
 ---
 
-## MCP Server
+## MCP Servers
 
-**File:** `mcp/supabase-server.js` (CommonJS — uses `require`/`module.exports`)
+**Local MySQL MCP** (`mcp__websitedb__*`) — primárny MCP, queries `websitedb` priamo
+- `mcp__websitedb__query` — vykonáva SQL dotazy
+- `mcp__websitedb__get_tables` — zobrazuje tabuľky
 
-**Exposed tools:**
-- `get_tables` — queries `information_schema.tables` to list all Supabase tables
-- `get_users` — queries the `users` table
+**Supabase MCP** (`mcp__claude_ai_Supabase__*`) — via claude.ai integration (projekt prázdny, nepoužíva sa)
 
-**Required env vars** (set in MCP client config, not in any `.env` file):
-- `SUPABASE_URL`
-- `SUPABASE_KEY`
+**Context7 MCP** (`mcp__context7__*`) — dokumentácia knižníc, vždy použiť pred písaním kódu s externe knižnicou
+
+**File:** `mcp/supabase-server.js` (CommonJS) — lokálny MCP server pre websitedb
 
 ---
 
@@ -320,19 +324,27 @@ Configured in `config/app.php` under `rate_limit` key. Tracks both IP and email 
 ## Architecture Notes
 - No PHP framework — custom OOP with manual routing via `app/guard.php`
 - API endpoints return JSON, consumed by frontend JS fetch calls
-- Supabase used for external/MCP queries; MySQL (`websitedb`) is the primary app database
+- MySQL (`websitedb`) is the primary app database; Supabase integration currently unused
 - Stripe webhooks handled in `api/stripeWebhook.php`
-- MCP server (`mcp/supabase-server.js`) connects Claude to Supabase for DB queries during development
+- MCP server (`mcp/supabase-server.js`) connects Claude to local MySQL (`websitedb`) for DB queries during development
 - No `.env` file — all credentials hardcoded in `config/` files (local dev only)
 - `WebsiteDB/Base.sql` contains the full database schema dump
 - Cron: `cron/updatePopularTags.php` runs daily to update tag rankings
 
 
-## Colaboration
-I want to always discuss eany change we make together. You can ask questions so we can figure out best option for you to make.
+## Git Workflow
+- Active branch: `dev`
+- Main branch: `main`
+- Merge `dev` → `main` before production deployment
+
+## Collaboration
+Always discuss any change before implementing. Ask clarifying questions to find the best solution together.
 
 ## Context7
 Always use the Context7 MCP (`mcp__context7__resolve-library-id` + `mcp__context7__query-docs`) when working with any external library or framework (Stripe, PHPMailer, Supabase, mysql2, MCP SDK, etc.) to get up-to-date documentation before writing code.
 
-## Styling in css
-When working with bold text always decide bettween font-family: outfit-bold, outfit-medium, outfit-semibold. Don't use font-weight.
+## Styling in CSS
+When working with bold text always choose between `font-family: outfit-bold`, `outfit-medium`, `outfit-semibold`. Never use `font-weight`.
+
+## Business Logic
+The main purpose is to get users to click affiliate links in `chatbotShowcase.php` or `favouriteShowcase.php` — this sets cookies so the site knows the user came from ChatbotScout, generating affiliate revenue if they buy a chatbot subscription. Future: paid advertising system with monthly subscriptions for promoted chatbot listings.
