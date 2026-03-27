@@ -5,7 +5,7 @@
  */
 
 require '../inc/bootstrap.php';
-require '../app/auth.php';
+require 'app/auth.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">

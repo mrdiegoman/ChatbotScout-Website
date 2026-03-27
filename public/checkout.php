@@ -7,7 +7,7 @@
  */
 
 require '../inc/bootstrap.php';
-require '../app/auth.php';
+require 'app/auth.php';
 
 if (!$isLoggedIn) {
     header('Location: login.php?redirect=advertise.php');

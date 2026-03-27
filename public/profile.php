@@ -6,7 +6,7 @@
  */
 
 require '../inc/bootstrap.php';
-require '../app/auth.php';
+require 'app/auth.php';
 
 // Redirect ak nie je prihlásený
 if (!$isLoggedIn) {

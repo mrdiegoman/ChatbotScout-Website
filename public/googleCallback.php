@@ -12,7 +12,7 @@
  */
 
 require '../inc/bootstrap.php';
-require '../app/auth.php';
+require 'app/auth.php';
 
 // Ak je už prihlásený, presmeruj na index
 if ($isLoggedIn) {

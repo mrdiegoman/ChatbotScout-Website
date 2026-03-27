@@ -14,7 +14,8 @@
       "Bash(do echo:*)",
       "Read(//c/xampp/htdocs/MainWebsite/api/**)",
       "Bash(done)",
-      "Skill(update-config)"
+      "Skill(update-config)",
+      "Bash(find public:*)"
     ]
   },
   "enabledMcpjsonServers": [
