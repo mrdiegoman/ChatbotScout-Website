@@ -15,7 +15,9 @@
       "Read(//c/xampp/htdocs/MainWebsite/api/**)",
       "Bash(done)",
       "Skill(update-config)",
-      "Bash(find public:*)"
+      "Bash(find public:*)",
+      "Bash(grep -r \"fontawesome\\\\|font-awesome\\\\|kit\\\\.\\\\|cdnjs\" c:/xampp/htdocs/MainWebsite/public --include=*.php --include=*.html -l)",
+      "Bash(grep -r kit. c:/xampp/htdocs/MainWebsite/inc --include=*.php -l)"
     ]
   },
   "enabledMcpjsonServers": [
