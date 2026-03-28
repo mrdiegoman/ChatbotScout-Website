@@ -368,9 +368,9 @@
 
 </button>
 
-<link rel="stylesheet" href="css/cookie.css">
+<link rel="stylesheet" href="css/cookie.css?v=2">
 <script src="js/footerVertical.js" defer></script>
-<script src="js/cookie.js"></script>
+<script src="js/cookie.js?v=2"></script>
 
 </body>
 </html>
