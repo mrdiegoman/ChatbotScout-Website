@@ -97,8 +97,11 @@
 </footer>
 
 <!-- ============================================
-     COOKIE BANNER
+     COOKIE BANNER — only rendered when no consent cookie exists yet.
+     PHP reads the cookie from HTTP request headers (not JS), so browsers
+     that block JS cookie access (e.g. Brave Shields) are handled correctly.
      ============================================ -->
+<?php if (empty($_COOKIE['cookie_consent_v2']) && empty($_COOKIE['cookie_consent'])): ?>
 <div id="cookie-banner" role="dialog" aria-label="Cookie consent" aria-live="polite" style="display:none">
     <div class="cookie-banner-inner">
         <div class="cookie-banner-text">
@@ -119,6 +122,7 @@
         </div>
     </div>
 </div>
+<?php endif; ?>
 
 <!-- ============================================
      COOKIE PREFERENCES MODAL
