@@ -48,7 +48,7 @@ $subject   = 'Nové chatboty na ChatbotScout! 🚀';
 $preheader = 'Pozri čo je nové tento mesiac na ChatbotScout';
 $headline  = 'Novinky na ChatbotScout';
 $ctaText   = 'Pozrieť chatboty';
-$ctaUrl    = 'http://localhost/mainwebsite/public/chatbotShowcase.php';
+$ctaUrl    = 'https://chatbotscout.com/chatbotShowcase.php';
 
 // HTML obsah emailu — uprav podľa potreby
 $bodyHtml  = <<<HTML
