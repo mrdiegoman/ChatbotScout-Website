@@ -703,7 +703,7 @@ $itemListSchema = [
 
 
 
-<script src="js/homePage.js" defer></script>
+<script src="js/homePage.js?v=<?= filemtime(__DIR__ . '/js/homePage.js') ?>" defer></script>
 
 <?php
 require '../inc/footer.php';
