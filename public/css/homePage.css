@@ -1323,17 +1323,19 @@
     line-height: 1.5;
     margin: 0;
     padding-top: 0;
-    /* padding-top: 12px; */
-    height: 0;
+    display: grid;
+    grid-template-rows: 0fr;
     overflow: hidden;
-    transition: height .35s ease;
-    /* transition: height .35s ease, padding-top 0.35s ease; */
+    transition: grid-template-rows 0.35s ease;
 }
 
-/* .hp-faq-item.open p {
-   padding-top: 1rem;
-   transition: height .35s ease;
-} */
+.hp-faq-item p > span {
+    min-height: 0;
+}
+
+.hp-faq-item.open p {
+    grid-template-rows: 1fr;
+}
 
 
 @media (max-width: 600px) {

@@ -213,36 +213,11 @@ document.addEventListener('DOMContentLoaded', function () {
        FAQ ACCORDION
     ════════════════════════════════════════════════ */
     (function initFaqAccordion() {
-        function closeItem(el) {
-            const p = el.querySelector('p');
-            if (el._openHandler) {
-                p.removeEventListener('transitionend', el._openHandler);
-                el._openHandler = null;
-            }
-            p.style.height = p.scrollHeight + 'px';
-            requestAnimationFrame(() => {
-                p.style.height = '0';
-            });
-            el.classList.remove('open');
-        }
-
-        function openItem(el) {
-            el.classList.add('open');
-            const p = el.querySelector('p');
-            p.style.height = p.scrollHeight + 'px';
-            const handler = () => {
-                p.style.height = 'auto';
-                el._openHandler = null;
-            };
-            el._openHandler = handler;
-            p.addEventListener('transitionend', handler, { once: true });
-        }
-
         document.querySelectorAll('.hp-faq-item').forEach(item => {
             item.addEventListener('click', () => {
                 const isOpen = item.classList.contains('open');
-                document.querySelectorAll('.hp-faq-item.open').forEach(closeItem);
-                if (!isOpen) openItem(item);
+                document.querySelectorAll('.hp-faq-item.open').forEach(el => el.classList.remove('open'));
+                if (!isOpen) item.classList.add('open');
             });
         });
     })();

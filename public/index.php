@@ -586,26 +586,26 @@ require '../inc/header.php';
 
             <article class="hp-faq-item">
                 <h4>How do I choose the best AI chatbot for my website?</h4>
-                <p>Compare chatbot goals, pricing model, integrations, and ratings. Then shortlist tools based on
-                    your platform and must-have features.</p>
+                <p><span>Compare chatbot goals, pricing model, integrations, and ratings. Then shortlist tools based on
+                    your platform and must-have features.</span></p>
             </article>
 
             <article class="hp-faq-item">
                 <h4>Can I filter chatbots by platform like WordPress or Shopify?</h4>
-                <p>Yes. You can narrow results by integration compatibility and focus on tools that work with your
-                    current website stack.</p>
+                <p><span>Yes. You can narrow results by integration compatibility and focus on tools that work with your
+                    current website stack.</span></p>
             </article>
 
             <article class="hp-faq-item">
                 <h4>Are free or freemium AI chatbots available?</h4>
-                <p>Yes. You can filter chatbot listings by pricing model to find free, freemium, recurring, or
-                    usage-based plans.</p>
+                <p><span>Yes. You can filter chatbot listings by pricing model to find free, freemium, recurring, or
+                    usage-based plans.</span></p>
             </article>
 
             <article class="hp-faq-item">
                 <h4>Can I compare real user ratings before choosing?</h4>
-                <p>Yes. Listings include rating data and review context so you can evaluate reliability before you
-                    decide.</p>
+                <p><span>Yes. Listings include rating data and review context so you can evaluate reliability before you
+                    decide.</span></p>
             </article>
         </div>
     </div>
