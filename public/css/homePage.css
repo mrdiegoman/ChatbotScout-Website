@@ -1261,7 +1261,7 @@
 
 .hp-faq > h3 {
     font-family: 'Outfit-Bold', sans-serif;
-    font-size: clamp(2.125rem, 3.5vw, 2.875rem);
+    font-size: clamp(2.125rem, 3.5vw, 2.6rem);
     line-height: 3rem;
     color: var(--hp-dark);
     margin-bottom: 28px;
@@ -1291,7 +1291,7 @@
 
 .hp-faq-item h4 {
     font-family: 'Outfit-SemiBold', sans-serif;
-    font-size: 1.75rem;
+    font-size: 1.7rem;
     line-height: 2.25rem;
     color: var(--hp-text);
     margin-bottom: 0;
