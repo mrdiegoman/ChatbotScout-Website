@@ -184,8 +184,10 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
         </div>
         <div class="header-main-right">
             <?php if (!$isLoggedIn): ?>
+                <!-- LOGIN/SIGNUP DISABLED — buggy auth
                 <a href="login.php" class="header-main-right-LogIn">Log In</a>
                 <a href="signUp.php" class="header-main-right-SignUp">Sign Up</a>
+                -->
             <?php else: ?>
                 <p class="header-main-right-username" 
                     data-fullname="<?php echo htmlspecialchars(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')); ?>">
@@ -315,8 +317,10 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
             <!-- Auth -->
             <div class="header-mobile-auth">
                 <?php if (!$isLoggedIn): ?>
+                    <!-- LOGIN/SIGNUP DISABLED — buggy auth
                     <a href="login.php" class="header-mobile-login">Log In</a>
                     <a href="signUp.php" class="header-mobile-signup">Sign Up</a>
+                    -->
                 <?php else: ?>
                     <a href="profile.php" class="header-mobile-profile">
                         <img src="img/default-avatar2.png" data-src="<?php echo htmlspecialchars($profilePicture); ?>" alt="Profile" class="user-avatar-img">
