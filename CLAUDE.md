@@ -338,10 +338,39 @@ Configured in `config/app.php` under `rate_limit` key. Tracks both IP and email 
 - Merge `dev` → `main` before production deployment
 
 ## Collaboration
-Always discuss any change before implementing. Ask clarifying questions to find the best solution together.
+- Discuss architecture and design decisions before implementing
+- For simple bug fixes and small CSS/JS changes: implement directly
+- For new features, multi-file changes, or DB schema changes: discuss approach first
+
+## Agent Plugins
+Always use the available agent plugins (skills) for relevant tasks — even if it takes longer or uses more context. Quality and correctness are more important than speed.
+
+| Plugin | When to use |
+|---|---|
+| `code-review:code-review` | After every non-trivial code change (multiple files, logic changes) |
+| `everything-claude-code:plan` | Before implementing any feature touching multiple files |
+| `everything-claude-code:security-review` | After changes to auth, input handling, API endpoints, or session logic |
+| `feature-dev:feature-dev` | When building a new page, feature, or system from scratch |
+| `claude-md-management:claude-md-improver` | When CLAUDE.md feels outdated or after major project changes |
 
 ## Context7
 Always use the Context7 MCP (`mcp__context7__resolve-library-id` + `mcp__context7__query-docs`) when working with any external library or framework (Stripe, PHPMailer, Supabase, mysql2, MCP SDK, etc.) to get up-to-date documentation before writing code.
+
+## Cache Busting
+All JS and CSS assets must include a `filemtime` query parameter to prevent browser caching issues after deploys:
+
+```php
+<!-- CSS in inc/header.php (path relative to inc/) -->
+<link rel="stylesheet" href="css/main.css?v=<?= filemtime(__DIR__ . '/../public/css/main.css') ?>">
+
+<!-- JS in public/*.php (path relative to public/) -->
+<script src="js/homePage.js?v=<?= filemtime(__DIR__ . '/js/homePage.js') ?>"></script>
+```
+
+Note: Some pages load their own CSS directly (e.g. `profile.php` loads `profileReviews.css`) instead of via `header.php` — these also need `filemtime`.
+
+## Deploy Workflow
+Production is on chatbotscout.com hosted via HostCreators. Files are uploaded manually via the hosting file manager after merging `dev` → `main`. Always push to `main` before uploading.
 
 ## Styling in CSS
 When working with bold text always choose between `font-family: outfit-bold`, `outfit-medium`, `outfit-semibold`. Never use `font-weight`.
