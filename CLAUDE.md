@@ -191,34 +191,15 @@ try {
 ## Database Patterns
 
 ```php
-// Always use singleton
-$db = Database::getInstance()->getConnection();
+$db = Database::getInstance()->getConnection(); // always singleton
 
-// Named prepared statements — never string concatenation
-$stmt = $db->prepare("SELECT * FROM users WHERE email = :email AND deleted_at IS NULL");
-$stmt->execute([':email' => $email]);
-$row = $stmt->fetch(); // Returns assoc array
-
-// Fetch modes
-$stmt->fetch()                          // Single row
-$stmt->fetchAll()                       // All rows
-$stmt->fetchColumn()                    // Single column value
-$stmt->fetchAll(PDO::FETCH_KEY_PAIR)    // key => value pairs
+// Soft deletes — always include in queries
+WHERE deleted_at IS NULL
 
 // Dynamic IN() placeholders
 $placeholders = implode(',', array_fill(0, count($ids), '?'));
 $stmt = $db->prepare("SELECT * FROM table WHERE id IN ({$placeholders})");
 $stmt->execute($ids);
-
-// Transactions
-try {
-    $db->beginTransaction();
-    // ...
-    $db->commit();
-} catch (Exception $e) {
-    $db->rollBack();
-    throw $e;
-}
 ```
 
 PDO config: `ERRMODE_EXCEPTION`, `FETCH_ASSOC`, `EMULATE_PREPARES = false`.
@@ -352,6 +333,11 @@ Always use the available agent plugins (skills) for relevant tasks — even if i
 | `everything-claude-code:security-review` | After changes to auth, input handling, API endpoints, or session logic |
 | `feature-dev:feature-dev` | When building a new page, feature, or system from scratch |
 | `claude-md-management:claude-md-improver` | When CLAUDE.md feels outdated or after major project changes |
+
+## CSRF
+`js/csrf.js` je načítavaný na každej stránke cez `inc/header.php`. Automaticky pridáva CSRF token do každého fetch POST requestu. Token je generovaný v PHP a vložený do `<meta name="csrf-token">`.
+
+Pri písaní nových fetch volaní **nie je potrebné manuálne pridávať CSRF** — `csrf.js` to robí automaticky cez fetch interceptor.
 
 ## Context7
 Always use the Context7 MCP (`mcp__context7__resolve-library-id` + `mcp__context7__query-docs`) when working with any external library or framework (Stripe, PHPMailer, Supabase, mysql2, MCP SDK, etc.) to get up-to-date documentation before writing code.
