@@ -58,8 +58,10 @@
                 <div class="footer-accordion-content" id="chatbots-content">
                     <a href="chatbotShowcase.php">Browse Chatbots</a>
                     <!-- <a href="submitChatbot.php">Submit Chatbot</a> -->
+                    <!-- LOGIN/SIGNUP DISABLED — buggy auth
                     <a href="login.php">Login</a>
                     <a href="signUp.php">Sign Up</a>
+                    -->
                     <!-- <a href="advertise.php">Advertise</a> -->
                 </div>
             </div>
