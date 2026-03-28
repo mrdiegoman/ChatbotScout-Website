@@ -215,6 +215,10 @@ document.addEventListener('DOMContentLoaded', function () {
     (function initFaqAccordion() {
         function closeItem(el) {
             const p = el.querySelector('p');
+            if (el._openHandler) {
+                p.removeEventListener('transitionend', el._openHandler);
+                el._openHandler = null;
+            }
             p.style.height = p.scrollHeight + 'px';
             requestAnimationFrame(() => {
                 p.style.height = '0';
@@ -226,9 +230,12 @@ document.addEventListener('DOMContentLoaded', function () {
             el.classList.add('open');
             const p = el.querySelector('p');
             p.style.height = p.scrollHeight + 'px';
-            p.addEventListener('transitionend', () => {
+            const handler = () => {
                 p.style.height = 'auto';
-            }, { once: true });
+                el._openHandler = null;
+            };
+            el._openHandler = handler;
+            p.addEventListener('transitionend', handler, { once: true });
         }
 
         document.querySelectorAll('.hp-faq-item').forEach(item => {
