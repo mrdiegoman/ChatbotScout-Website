@@ -169,7 +169,7 @@ if ($action === 'upload_avatar') {
     
     $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
     $filename = 'avatar_' . $user['id'] . '_' . time() . '.' . $extension;
-    $uploadDir = __DIR__ . '/img/avatars/';
+    $uploadDir = __DIR__ . '/../img/avatars/';
     $uploadPath = $uploadDir . $filename;
     
     if (!is_dir($uploadDir)) {
@@ -212,7 +212,7 @@ if ($action === 'upload_avatar') {
         imagedestroy($thumb);
         
         if ($user['profile_picture_url'] && strpos($user['profile_picture_url'], 'default-avatar') === false) {
-            $oldPath = __DIR__ . '/' . $user['profile_picture_url'];
+            $oldPath = __DIR__ . '/../' . $user['profile_picture_url'];
             error_log($oldPath);
             error_log(file_exists($oldPath) ? 'EXISTS' : 'NOT EXISTS');
             if (file_exists($oldPath)) unlink($oldPath);
