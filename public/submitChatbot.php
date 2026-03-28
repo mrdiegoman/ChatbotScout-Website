@@ -18,7 +18,7 @@ if (!$isLoggedIn) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Get Listed on ChatbotScout – Partner With Us</title>
     <?php require '../inc/header.php'; ?>
-    <link rel="stylesheet" href="css/submitChatbot.css">
+    <link rel="stylesheet" href="css/submitChatbot.css?v=<?= filemtime(__DIR__ . '/css/submitChatbot.css') ?>">
 </head>
 <body>
 
@@ -225,6 +225,6 @@ if (!$isLoggedIn) {
 </div>
 
 <?php require '../inc/footer.php'; ?>
-<script src="js/submitChatbot.js"></script>
+<script src="js/submitChatbot.js?v=<?= filemtime(__DIR__ . '/js/submitChatbot.js') ?>"></script>
 </body>
 </html>

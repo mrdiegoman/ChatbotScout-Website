@@ -45,7 +45,7 @@ if (empty($token)) {
 require '../inc/header.php';
 ?>
 
-<link rel="stylesheet" href="css/unsubscribe.css">
+<link rel="stylesheet" href="css/unsubscribe.css?v=<?= filemtime(__DIR__ . '/css/unsubscribe.css') ?>">
 
 <div class="unsub-wrapper">
     <div class="unsub-card">

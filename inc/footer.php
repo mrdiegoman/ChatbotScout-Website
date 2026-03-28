@@ -372,9 +372,9 @@
 
 </button>
 
-<link rel="stylesheet" href="css/cookie.css?v=2">
-<script src="js/footerVertical.js" defer></script>
-<script src="js/cookie.js?v=3"></script>
+<link rel="stylesheet" href="css/cookie.css?v=<?= filemtime(__DIR__ . '/../public/css/cookie.css') ?>">
+<script src="js/footerVertical.js?v=<?= filemtime(__DIR__ . '/../public/js/footerVertical.js') ?>" defer></script>
+<script src="js/cookie.js?v=<?= filemtime(__DIR__ . '/../public/js/cookie.js') ?>"></script>
 
 </body>
 </html>

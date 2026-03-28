@@ -67,8 +67,8 @@ $payments = [];
 require '../inc/header.php';
 ?>
 
-<link rel="stylesheet" href="css/profile.css">
-<link rel="stylesheet" href="css/profileReviews.css">
+<link rel="stylesheet" href="css/profile.css?v=<?= filemtime(__DIR__ . '/css/profile.css') ?>">
+<link rel="stylesheet" href="css/profileReviews.css?v=<?= filemtime(__DIR__ . '/css/profileReviews.css') ?>">
 
 <div class="profile-page">
     <div class="profile-container">
@@ -700,9 +700,9 @@ require '../inc/header.php';
     </div>
 </div>
 
-<script src="js/profile.js"></script>
-<script src="js/profileReviews.js" defer></script>
-<script src="js/togglePasswordProfile.js"></script>
+<script src="js/profile.js?v=<?= filemtime(__DIR__ . '/js/profile.js') ?>"></script>
+<script src="js/profileReviews.js?v=<?= filemtime(__DIR__ . '/js/profileReviews.js') ?>" defer></script>
+<script src="js/togglePasswordProfile.js?v=<?= filemtime(__DIR__ . '/js/togglePasswordProfile.js') ?>"></script>
 
 <?php
 require '../inc/footer.php';

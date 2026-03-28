@@ -188,9 +188,9 @@ foreach ($subCountStmt->fetchAll() as $row) {
 require '../inc/header.php';
 ?>
 
-<link rel="stylesheet" href="css/admin.css">
-<link rel="stylesheet" href="css/admin_refresh.css">
-<link rel="stylesheet" href="css/admin_settings.css">
+<link rel="stylesheet" href="css/admin.css?v=<?= filemtime(__DIR__ . '/css/admin.css') ?>">
+<link rel="stylesheet" href="css/admin_refresh.css?v=<?= filemtime(__DIR__ . '/css/admin_refresh.css') ?>">
+<link rel="stylesheet" href="css/admin_settings.css?v=<?= filemtime(__DIR__ . '/css/admin_settings.css') ?>">
 
 <style>
 .admin-submission-logo {
@@ -859,7 +859,7 @@ require '../inc/header.php';
 
 </div><!-- end admin-wrapper -->
 
-<script src="js/admin.js" defer></script>
-<script src="js/admin_refresh.js" defer></script>
+<script src="js/admin.js?v=<?= filemtime(__DIR__ . '/js/admin.js') ?>" defer></script>
+<script src="js/admin_refresh.js?v=<?= filemtime(__DIR__ . '/js/admin_refresh.js') ?>" defer></script>
 
 <?php require '../inc/footer.php'; ?>

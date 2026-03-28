@@ -105,7 +105,7 @@ $periodLabel = $orderDetails['billing_period_type'] === 'yearly' ? 'Annual' : 'M
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout — ChatbotScout</title>
     <?php require '../inc/header.php'; ?>
-    <link rel="stylesheet" href="css/checkout.css">
+    <link rel="stylesheet" href="css/checkout.css?v=<?= filemtime(__DIR__ . '/css/checkout.css') ?>">
 </head>
 <body>
 
@@ -190,7 +190,7 @@ window.checkoutData = {
 </script>
 
 <script src="https://js.stripe.com/v3/"></script>
-<script src="js/checkout.js"></script>
+<script src="js/checkout.js?v=<?= filemtime(__DIR__ . '/js/checkout.js') ?>"></script>
 
 </body>
 </html>

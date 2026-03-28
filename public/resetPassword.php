@@ -144,7 +144,7 @@ require '../inc/header.php';
 </div>
 
 <!-- Password Toggle Script -->
-<script src="js/passwordToggle.js"></script>
+<script src="js/passwordToggle.js?v=<?= filemtime(__DIR__ . '/js/passwordToggle.js') ?>"></script>
 
 <?php
 require '../inc/footer.php';

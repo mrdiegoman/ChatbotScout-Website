@@ -350,6 +350,6 @@ require 'app/auth.php';
 </div>
 
 <?php require '../inc/footer.php'; ?>
-<script src="js/advertise.js"></script>
+<script src="js/advertise.js?v=<?= filemtime(__DIR__ . '/js/advertise.js') ?>"></script>
 </body>
 </html>

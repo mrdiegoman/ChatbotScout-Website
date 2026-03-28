@@ -355,13 +355,13 @@ require '../inc/header.php';
     </div>
 </div>
 
-<script src="js/featuresSwiping.js" defer></script>
-<script src="js/layoutSwapping.js" defer></script>
-<script src="js/filterCurrencyAdding.js"></script>
-<script src="js/filterFeaturesAdding.js" defer></script>
-<script src="js/filterIntegrationsAdding.js" defer></script>
-<script src="js/filterPricingAdding.js"></script>
-<script src="js/showAdvancedFeatures.js" defer></script>
-<script src="js/favouritesShowcase.js" defer></script>
-<script src="js/platformsPopup.js" defer></script>
+<script src="js/featuresSwiping.js?v=<?= filemtime(__DIR__ . '/js/featuresSwiping.js') ?>" defer></script>
+<script src="js/layoutSwapping.js?v=<?= filemtime(__DIR__ . '/js/layoutSwapping.js') ?>" defer></script>
+<script src="js/filterCurrencyAdding.js?v=<?= filemtime(__DIR__ . '/js/filterCurrencyAdding.js') ?>"></script>
+<script src="js/filterFeaturesAdding.js?v=<?= filemtime(__DIR__ . '/js/filterFeaturesAdding.js') ?>" defer></script>
+<script src="js/filterIntegrationsAdding.js?v=<?= filemtime(__DIR__ . '/js/filterIntegrationsAdding.js') ?>" defer></script>
+<script src="js/filterPricingAdding.js?v=<?= filemtime(__DIR__ . '/js/filterPricingAdding.js') ?>"></script>
+<script src="js/showAdvancedFeatures.js?v=<?= filemtime(__DIR__ . '/js/showAdvancedFeatures.js') ?>" defer></script>
+<script src="js/favouritesShowcase.js?v=<?= filemtime(__DIR__ . '/js/favouritesShowcase.js') ?>" defer></script>
+<script src="js/platformsPopup.js?v=<?= filemtime(__DIR__ . '/js/platformsPopup.js') ?>" defer></script>
 

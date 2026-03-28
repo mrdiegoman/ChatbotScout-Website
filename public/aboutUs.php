@@ -36,7 +36,7 @@ require '../inc/header.php';
     </main>
 </div>
 
-<script src="js/dropdownOptions.js" defer></script>
+<script src="js/dropdownOptions.js?v=<?= filemtime(__DIR__ . '/js/dropdownOptions.js') ?>" defer></script>
 
 <?php
 require '../inc/footer.php';

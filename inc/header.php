@@ -131,36 +131,36 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
     <link rel="icon" type="image/x-icon" href="img/favicons/favicon.ico">
     <link rel="manifest" href="img/favicons/site.webmanifest">
 
-    <link rel="stylesheet" href="css/reset.css">
-    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/reset.css?v=<?= filemtime(__DIR__ . '/../public/css/reset.css') ?>">
+    <link rel="stylesheet" href="css/main.css?v=<?= filemtime(__DIR__ . '/../public/css/main.css') ?>">
     <?php if ($page === 'index'): ?>
         <link rel="stylesheet" href="css/homePage.css?v=<?= filemtime(__DIR__ . '/../public/css/homePage.css') ?>">
     <?php elseif ($page === 'chatbotShowcase'): ?>
-        <link rel="stylesheet" href="css/chatbotShowcase.css">
-        <link rel="stylesheet" href="css/featuresShowMore.css">
-        <link rel="stylesheet" href="css/platformsPopup.css">
+        <link rel="stylesheet" href="css/chatbotShowcase.css?v=<?= filemtime(__DIR__ . '/../public/css/chatbotShowcase.css') ?>">
+        <link rel="stylesheet" href="css/featuresShowMore.css?v=<?= filemtime(__DIR__ . '/../public/css/featuresShowMore.css') ?>">
+        <link rel="stylesheet" href="css/platformsPopup.css?v=<?= filemtime(__DIR__ . '/../public/css/platformsPopup.css') ?>">
     <?php elseif ($page === 'contact'): ?>
-        <link rel="stylesheet" href="css/contact.css">
+        <link rel="stylesheet" href="css/contact.css?v=<?= filemtime(__DIR__ . '/../public/css/contact.css') ?>">
     <?php elseif ($page === 'aboutUs'): ?>
-        <link rel="stylesheet" href="css/aboutUs.css">
+        <link rel="stylesheet" href="css/aboutUs.css?v=<?= filemtime(__DIR__ . '/../public/css/aboutUs.css') ?>">
     <?php elseif ($page === 'affiliateDisclosure'): ?>
-        <link rel="stylesheet" href="css/affiliateDisclosure.css">
+        <link rel="stylesheet" href="css/affiliateDisclosure.css?v=<?= filemtime(__DIR__ . '/../public/css/affiliateDisclosure.css') ?>">
     <?php elseif ($page === 'favouritesShowcase'): ?>
-        <link rel="stylesheet" href="css/favouritesShowcase.css">
-        <link rel="stylesheet" href="css/featuresShowMore.css">
-        <link rel="stylesheet" href="css/platformsPopup.css">
+        <link rel="stylesheet" href="css/favouritesShowcase.css?v=<?= filemtime(__DIR__ . '/../public/css/favouritesShowcase.css') ?>">
+        <link rel="stylesheet" href="css/featuresShowMore.css?v=<?= filemtime(__DIR__ . '/../public/css/featuresShowMore.css') ?>">
+        <link rel="stylesheet" href="css/platformsPopup.css?v=<?= filemtime(__DIR__ . '/../public/css/platformsPopup.css') ?>">
     <?php elseif ($page === 'advertise'): ?>
-        <link rel="stylesheet" href="css/advertise.css">
+        <link rel="stylesheet" href="css/advertise.css?v=<?= filemtime(__DIR__ . '/../public/css/advertise.css') ?>">
     <?php elseif ($page === 'profile'): ?>
-        <link rel="stylesheet" href="css/profile.css">
+        <link rel="stylesheet" href="css/profile.css?v=<?= filemtime(__DIR__ . '/../public/css/profile.css') ?>">
     <?php elseif (in_array($page, $authPages, true)): ?>
-        <link rel="stylesheet" href="css/userAuthAll.css">
+        <link rel="stylesheet" href="css/userAuthAll.css?v=<?= filemtime(__DIR__ . '/../public/css/userAuthAll.css') ?>">
     <?php elseif ($page === '404' || $page === '500'): ?>
-        <link rel="stylesheet" href="css/errorPages.css">
+        <link rel="stylesheet" href="css/errorPages.css?v=<?= filemtime(__DIR__ . '/../public/css/errorPages.css') ?>">
     <?php elseif ($page === 'privacyPolicy'): ?>
-        <link rel="stylesheet" href="css/privacyPolicy.css">
+        <link rel="stylesheet" href="css/privacyPolicy.css?v=<?= filemtime(__DIR__ . '/../public/css/privacyPolicy.css') ?>">
     <?php elseif ($page === 'termsAndConditions'): ?>
-        <link rel="stylesheet" href="css/termsAndConditions.css">
+        <link rel="stylesheet" href="css/termsAndConditions.css?v=<?= filemtime(__DIR__ . '/../public/css/termsAndConditions.css') ?>">
     <?php endif; ?>
 
 </head>
@@ -344,7 +344,7 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
         </div>
     </div>
 
-    <script src="js/csrf.js"></script>
+    <script src="js/csrf.js?v=<?= filemtime(__DIR__ . '/../public/js/csrf.js') ?>"></script>
     <script nonce="<?= $cspNonce ?>">
         function loadAvatar(img) {
             var real = img.getAttribute('data-src');
@@ -358,6 +358,6 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
             document.querySelectorAll('img.user-avatar-img').forEach(loadAvatar);
         });
     </script>
-    <script src="js/BurgerMenuHeader.js" defer></script>
-    <script src="js/ProfileDropdown.js" defer></script>
+    <script src="js/BurgerMenuHeader.js?v=<?= filemtime(__DIR__ . '/../public/js/BurgerMenuHeader.js') ?>" defer></script>
+    <script src="js/ProfileDropdown.js?v=<?= filemtime(__DIR__ . '/../public/js/ProfileDropdown.js') ?>" defer></script>
     

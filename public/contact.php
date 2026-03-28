@@ -168,6 +168,6 @@ function old(string $key, array $old): string {
     window._contactErrors  = <?= json_encode($contactErrors) ?>;
 </script>
 
-<script src="js/contact.js" defer></script>
+<script src="js/contact.js?v=<?= filemtime(__DIR__ . '/js/contact.js') ?>" defer></script>
 
 <?php require '../inc/footer.php'; ?>

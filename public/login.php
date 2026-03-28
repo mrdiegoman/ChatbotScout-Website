@@ -211,9 +211,9 @@ require '../inc/header.php';
 </div>
 
 <!-- Password Toggle Script -->
-<script src="js/passwordToggle.js"></script>
+<script src="js/passwordToggle.js?v=<?= filemtime(__DIR__ . '/js/passwordToggle.js') ?>"></script>
 <!-- ✅ Live Validation Script -->
-<script src="js/authValidation.js"></script>
+<script src="js/authValidation.js?v=<?= filemtime(__DIR__ . '/js/authValidation.js') ?>"></script>
 
 <?php
 require '../inc/footer.php';
