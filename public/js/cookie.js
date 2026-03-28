@@ -42,12 +42,22 @@
     // CONSENT READ / WRITE
     // ============================================
 
+    var LS_KEY = 'cookie_consent_v2';
+
+    function lsGet(key) {
+        try { return localStorage.getItem(key); } catch (e) { return null; }
+    }
+
+    function lsSet(key, value) {
+        try { localStorage.setItem(key, value); } catch (e) {}
+    }
+
     function getConsent() {
-        // Check new v2 cookie first
-        var v2 = getCookie(COOKIE_V2);
-        if (v2) {
+        // Check cookie first, then localStorage (fallback for browsers that block cookies e.g. Brave)
+        var raw = getCookie(COOKIE_V2) || lsGet(LS_KEY);
+        if (raw) {
             try {
-                var parsed = JSON.parse(v2);
+                var parsed = JSON.parse(raw);
                 if (parsed && typeof parsed === 'object' && parsed.necessary !== undefined) {
                     return parsed;
                 }
@@ -80,7 +90,9 @@
     function saveConsent(consent) {
         if (!consent.consentId) consent.consentId = generateConsentId();
         consent.date = new Date().toISOString();
-        setCookie(COOKIE_V2, JSON.stringify(consent), COOKIE_MONTHS);
+        var json = JSON.stringify(consent);
+        setCookie(COOKIE_V2, json, COOKIE_MONTHS);
+        lsSet(LS_KEY, json);
         // Keep old cookie for backward compatibility with identify.php / bootstrap.php
         setCookie(COOKIE_OLD, consent.statistics ? 'accepted' : 'declined', COOKIE_MONTHS);
     }
