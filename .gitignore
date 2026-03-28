@@ -1,0 +1,24 @@
+# Dependencies
+vendor/
+node_modules/
+
+# Logs
+logs/*.log
+
+# Config files with credentials — upload ONCE to server manually, never re-upload
+config/gmail.php
+config/stripe.php
+config/mailtrap.php
+config/redis.php
+
+# Environment files
+.env
+.env.*
+
+# User-uploaded content — never overwrite on deploy
+public/img/avatars/*
+!public/img/avatars/.gitkeep
+
+# OS files
+.DS_Store
+Thumbs.db
