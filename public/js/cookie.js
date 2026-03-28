@@ -42,22 +42,12 @@
     // CONSENT READ / WRITE
     // ============================================
 
-    var LS_KEY = 'cookie_consent_v2';
-
-    function lsGet(key) {
-        try { return localStorage.getItem(key); } catch (e) { return null; }
-    }
-
-    function lsSet(key, value) {
-        try { localStorage.setItem(key, value); } catch (e) {}
-    }
-
     function getConsent() {
-        // Check cookie first, then localStorage (fallback for browsers that block cookies e.g. Brave)
-        var raw = getCookie(COOKIE_V2) || lsGet(LS_KEY);
-        if (raw) {
+        // Check new v2 cookie first
+        var v2 = getCookie(COOKIE_V2);
+        if (v2) {
             try {
-                var parsed = JSON.parse(raw);
+                var parsed = JSON.parse(v2);
                 if (parsed && typeof parsed === 'object' && parsed.necessary !== undefined) {
                     return parsed;
                 }
@@ -90,9 +80,7 @@
     function saveConsent(consent) {
         if (!consent.consentId) consent.consentId = generateConsentId();
         consent.date = new Date().toISOString();
-        var json = JSON.stringify(consent);
-        setCookie(COOKIE_V2, json, COOKIE_MONTHS);
-        lsSet(LS_KEY, json);
+        setCookie(COOKIE_V2, JSON.stringify(consent), COOKIE_MONTHS);
         // Keep old cookie for backward compatibility with identify.php / bootstrap.php
         setCookie(COOKIE_OLD, consent.statistics ? 'accepted' : 'declined', COOKIE_MONTHS);
     }
@@ -132,23 +120,12 @@
         var banner = document.getElementById('cookie-banner');
         if (!banner) return;
         banner.style.display = 'block';
-        requestAnimationFrame(function () {
-            requestAnimationFrame(function () {
-                // If browser shields (e.g. Brave) hid the banner via CSS, don't animate
-                if (getComputedStyle(banner).display === 'none') {
-                    return;
-                }
-                banner.classList.add('cookie-banner--visible');
-            });
-        });
     }
 
     function hideBanner() {
         var banner = document.getElementById('cookie-banner');
         if (!banner) return;
-        banner.classList.remove('cookie-banner--visible');
-        banner.classList.add('cookie-banner--hidden');
-        setTimeout(function () { banner.style.display = 'none'; }, 380);
+        banner.style.display = 'none';
     }
 
     // ============================================
