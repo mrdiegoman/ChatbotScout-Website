@@ -54,6 +54,17 @@
             } catch (e) {}
         }
 
+        // Fallback: localStorage works even when cookies are blocked (e.g. Brave Shields)
+        try {
+            var ls = localStorage.getItem(COOKIE_V2);
+            if (ls) {
+                var parsedLs = JSON.parse(ls);
+                if (parsedLs && typeof parsedLs === 'object' && parsedLs.necessary !== undefined) {
+                    return parsedLs;
+                }
+            }
+        } catch (e) {}
+
         // Migrate old cookie format
         var old = getCookie(COOKIE_OLD);
         if (old === 'accepted') {
@@ -83,6 +94,8 @@
         setCookie(COOKIE_V2, JSON.stringify(consent), COOKIE_MONTHS);
         // Keep old cookie for backward compatibility with identify.php / bootstrap.php
         setCookie(COOKIE_OLD, consent.statistics ? 'accepted' : 'declined', COOKIE_MONTHS);
+        // Mirror to localStorage so browsers that block cookies (e.g. Brave) don't flash the banner
+        try { localStorage.setItem(COOKIE_V2, JSON.stringify(consent)); } catch (e) {}
     }
 
     // ============================================

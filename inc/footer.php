@@ -99,7 +99,7 @@
 <!-- ============================================
      COOKIE BANNER
      ============================================ -->
-<div id="cookie-banner" role="dialog" aria-label="Cookie consent" aria-live="polite">
+<div id="cookie-banner" role="dialog" aria-label="Cookie consent" aria-live="polite" style="display:none">
     <div class="cookie-banner-inner">
         <div class="cookie-banner-text">
             <span class="cookie-banner-icon">🍪</span>
@@ -370,7 +370,7 @@
 
 <link rel="stylesheet" href="css/cookie.css?v=2">
 <script src="js/footerVertical.js" defer></script>
-<script src="js/cookie.js?v=2"></script>
+<script src="js/cookie.js?v=3"></script>
 
 </body>
 </html>
