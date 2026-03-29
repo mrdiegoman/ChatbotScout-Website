@@ -15,8 +15,8 @@ require '../inc/header.php';
     <ul>
         <li>Name: ChatbotScout</li>
         <li>Registered address: Cajlanská 86A</li>
-        <li>ICO: [INSERT ICO]</li>
-        <li>Contact email: rafaj.jakub@gmail.com</li>
+        <li>ICO: Not yet made</li>
+        <li>Contact email: chatbotscoutsupport@gmail.com</li>
     </ul>
     <p>By accessing this website, you agree to these terms and conditions.</p>
     <h2>1. Definitions</h2>

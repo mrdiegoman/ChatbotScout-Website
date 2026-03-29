@@ -42,7 +42,7 @@ if ($isWeb) {
 // ============================================
 
 $testMode  = false;                          // true = len testEmail, false = všetci
-$testEmail = 'rafaj.jakub@gmail.com';       // tvoj email na testovanie
+$testEmail = 'chatbotscoutsupport@gmail.com';       // tvoj email na testovanie
 
 $subject   = 'Nové chatboty na ChatbotScout! 🚀';
 $preheader = 'Pozri čo je nové tento mesiac na ChatbotScout';

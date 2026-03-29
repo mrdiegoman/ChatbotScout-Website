@@ -29,7 +29,7 @@ require '../inc/header.php';
         <li>We do not have a designated Data Protection Officer (DPO) but remain fully committed 
             to addressing your privacy concerns. Should you have any questions or require further 
             information about how we manage personal information, please feel free to contact us 
-            at rafaj.jakub@gmail.com or <span>+421 940801275</span>.
+            at chatbotscoutsupport@gmail.com or <span>+421 940801275</span>.
         </li>
     </ul>
     <p>Your privacy is our priority. We are committed to processing your personal information 
@@ -122,6 +122,7 @@ require '../inc/header.php';
     </ul>
 
     <!-- 5x5 tabulka s hodnotami -->
+    <div class="table-wrapper">
     <table>
         <thead>
             <tr>
@@ -134,19 +135,19 @@ require '../inc/header.php';
         </thead>
         <tbody>
             <tr>
-            <td class="tdName">Google Cloud Platform</td>
-            <td>Google</td>
-            <td>
+            <td class="tdName" data-label="Service Name">Google Cloud Platform</td>
+            <td data-label="Provider">Google</td>
+            <td data-label="Purpose(s)">
                 Communication efforts<br>
                 Marketing and advertising<br>
                 Customer support
             </td>
-            <td>
+            <td data-label="Collected Personal Data">
                 First and last name<br>
                 Email address and/or Phone number<br>
                 IP address
             </td>
-            <td>
+            <td data-label="Privacy Policy">
                 <a href="https://policies.google.com/privacy" target="_blank">
                 Privacy Policy
                 </a>
@@ -154,13 +155,13 @@ require '../inc/header.php';
             </tr>
 
             <tr>
-            <td class="tdName">Stripe</td>
-            <td>Stripe</td>
-            <td>Payment processing</td>
-            <td>
+            <td class="tdName" data-label="Service Name">Stripe</td>
+            <td data-label="Provider">Stripe</td>
+            <td data-label="Purpose(s)">Payment processing</td>
+            <td data-label="Collected Personal Data">
                 Payment information (e.g., credit card number, bank details)
             </td>
-            <td>
+            <td data-label="Privacy Policy">
                 <a href="https://stripe.com/en-sk/privacy" target="_blank">
                 Privacy Policy
                 </a>
@@ -168,16 +169,16 @@ require '../inc/header.php';
             </tr>
 
             <tr>
-            <td class="tdName">Google Fonts</td>
-            <td>Google Ireland Limited</td>
-            <td>Customizing and adapting user experience</td>
-            <td>
+            <td class="tdName" data-label="Service Name">Google Fonts</td>
+            <td data-label="Provider">Google Ireland Limited</td>
+            <td data-label="Purpose(s)">Customizing and adapting user experience</td>
+            <td data-label="Collected Personal Data">
                 IP address<br>
                 Browser fingerprint<br>
                 Interaction logs (e.g., clicks, time spent on pages)<br>
                 Browser information and language
             </td>
-            <td>
+            <td data-label="Privacy Policy">
                 <a href="https://business.safety.google/privacy/?hl=en" target="_blank">
                 Privacy Policy
                 </a>
@@ -185,18 +186,18 @@ require '../inc/header.php';
             </tr>
 
             <tr>
-            <td class="tdName">Cloudflare</td>
-            <td>Cloudflare Inc.</td>
-            <td>
+            <td class="tdName" data-label="Service Name">Cloudflare</td>
+            <td data-label="Provider">Cloudflare Inc.</td>
+            <td data-label="Purpose(s)">
                 Authentication and security<br>
                 Customizing and adapting user experience
             </td>
-            <td>
+            <td data-label="Collected Personal Data">
                 Device ID<br>
                 IP address<br>
                 Operating system and version
             </td>
-            <td>
+            <td data-label="Privacy Policy">
                 <a href="https://www.cloudflare.com/privacypolicy/" target="_blank">
                 Privacy Policy
                 </a>
@@ -204,6 +205,7 @@ require '../inc/header.php';
             </tr>
         </tbody>
     </table>
+    </div>
 
     <!-- koniec tabulky -->
     <h2>Data processing agreements</h2>
@@ -217,7 +219,7 @@ require '../inc/header.php';
         option to consent to such changes.</p>
     <p>Your trust is important to us, and we strive to ensure that your personal information is disclosed only in 
         accordance with this policy and when there is a justified reason to do so. For any queries or concerns about 
-        how we share and disclose personal information, please reach out to us at rafaj.jakub@gmail.com or 
+        how we share and disclose personal information, please reach out to us at chatbotscoutsupport@gmail.com or 
         <span>+421 940801275.</span></p><!-- sem dat firmeny email a tel-->
     <h2>User rights and choices</h2>
     <p>At chatbotscout, we recognize and respect your rights regarding your personal information, in accordance with 
@@ -251,7 +253,7 @@ require '../inc/header.php';
             personal information violates applicable data protection laws.</li>
     </ul>
     <h3>Exercising your rights</h3>
-    <p>To exercise any of these rights, please contact us at rafaj.jakub@gmail.com or <span>+421 940801275</span>. We will 
+    <p>To exercise any of these rights, please contact us at chatbotscoutsupport@gmail.com or <span>+421 940801275</span>. We will 
         respond to your request in accordance with applicable data protection laws and within the timeframes 
         stipulated by those laws. Please note, in some cases, we may need to verify your identity as part of 
         the process to ensure the security of your personal information.</p>
@@ -294,7 +296,7 @@ require '../inc/header.php';
     <p>For more detailed information about the cookies we use, their purposes, and how you can manage your 
         preferences, please visit our detailed Cookie Policy https://chatbotscout.com/cookiePolicy.</p> <!-- treba pridat cookiePolicy -->
     <p>Should you have any questions or concerns about our use of cookies and tracking technologies, please 
-        do not hesitate to contact us at rafaj.jakub@gmail.com or <span>+421 940801275</span>. Your privacy and the 
+        do not hesitate to contact us at chatbotscoutsupport@gmail.com or <span>+421 940801275</span>. Your privacy and the 
         integrity of your personal data are of utmost importance to us.</p> <!-- sem dat firmeny email a tel-->
 
     <h3>International data transfers</h3>
@@ -364,7 +366,7 @@ require '../inc/header.php';
         assistance they need, including guidance on steps they can take to mitigate the potential risks associated 
         with the breach.</p>
     <p>Point of contact: If you have any questions or concerns about a data breach or believe you may have been 
-        affected, please contact us immediately at rafaj.jakub@gmail.com or <span>+421 940801275.</span></p>  <!-- sem dat firmeny email a tel-->
+        affected, please contact us immediately at chatbotscoutsupport@gmail.com or <span>+421 940801275.</span></p>  <!-- sem dat firmeny email a tel-->
 </div>
 
 <?php

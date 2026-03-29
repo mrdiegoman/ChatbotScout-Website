@@ -25,7 +25,7 @@ if (!in_array($action, $publicActions) && !$isLoggedIn) {
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !in_array($action, $publicActions)) {
     validateCsrfToken();
 }
 
