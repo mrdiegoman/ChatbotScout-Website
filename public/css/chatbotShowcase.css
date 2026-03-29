@@ -1099,9 +1099,9 @@ body {
 
 .chatbot-filters-modal-body-row-group-label-tooltip{
     position: absolute;
-    top: 50%;
-    left: calc(100%);
-    transform: translateY(-100%);
+    bottom: calc(100% + 0.5rem);
+    left: 0;
+    transform: none;
     width: 220px;
     z-index: 10;
 
@@ -1143,6 +1143,7 @@ body {
     outline: none;
     resize: vertical;
     width: 45%;
+    box-sizing: border-box;
 }
 
 .chatbot-filters-modal-body-row-group-values p {
@@ -2003,6 +2004,7 @@ body {
     .chatbot-page-main-content-topbar-group {
         flex-grow: 1;
         gap: 1rem;
+        min-width: 0;
     }
 
     .chatbot-page-main-content-topbar-group-in{
@@ -2052,4 +2054,16 @@ body {
         width: 12rem ;
         padding: 1rem 0 1rem 1rem ;
     }
+}
+
+@media (max-width: 380px) {
+    .chatbot-page-main-content-topbar {
+        padding: 0 0.5rem;
+        gap: 0.5rem;
+    }
+
+    .chatbot-page-main-content-topbar-group-in {
+        gap: 0.5rem;
+    }
+
 }

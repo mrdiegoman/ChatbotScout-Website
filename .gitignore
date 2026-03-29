@@ -16,6 +16,9 @@ config/database.php
 .env
 .env.*
 
+# Local dev only — production serves from public/ directly
+.htaccess
+
 # User-uploaded content — never overwrite on deploy
 public/img/avatars/*
 !public/img/avatars/.gitkeep

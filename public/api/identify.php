@@ -53,7 +53,7 @@ if (empty($fingerprint) || mb_strlen($fingerprint) > 64 || !preg_match('/^[a-f0-
     exit;
 }
 
-$appConfig       = require __DIR__ . '/../config/app.php';
+$appConfig       = require __DIR__ . '/../../config/app.php';
 $cookieVisitorId = $_COOKIE[$appConfig['visitor']['cookie_name']] ?? null;
 
 // ============================================

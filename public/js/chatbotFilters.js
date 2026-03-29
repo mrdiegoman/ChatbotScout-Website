@@ -118,3 +118,20 @@ function clearAllFilters () {
 }
 
 if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearAllFilters);
+
+// ============================================
+// BLOCK INVALID CHARS IN NUMBER INPUTS
+// ============================================
+
+['ratingInputStart', 'ratingInputEnd', 'votesInputStart', 'votesInputEnd',
+ 'favoritesInputStart', 'favoritesInputEnd', 'priceInputStart', 'priceInputEnd']
+    .forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('keydown', (e) => {
+            if (['-', '+', 'e', 'E'].includes(e.key)) e.preventDefault();
+        });
+        el.addEventListener('input', () => {
+            if (parseFloat(el.value) < 0) el.value = '';
+        });
+    });
