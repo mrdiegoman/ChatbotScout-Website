@@ -10,6 +10,7 @@ config/gmail.php
 config/stripe.php
 config/mailtrap.php
 config/redis.php
+config/database.php
 
 # Environment files
 .env
