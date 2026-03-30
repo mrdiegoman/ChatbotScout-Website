@@ -33,11 +33,15 @@ class RateLimiter
         try {
             $this->redis = new Redis();
             
-            $connected = $this->redis->connect(
-                $this->redisConfig['host'],
-                $this->redisConfig['port'],
-                $this->redisConfig['timeout']
-            );
+            if (!empty($this->redisConfig['socket'])) {
+                $connected = $this->redis->connect($this->redisConfig['socket']);
+            } else {
+                $connected = $this->redis->connect(
+                    $this->redisConfig['host'],
+                    $this->redisConfig['port'],
+                    $this->redisConfig['timeout']
+                );
+            }
             
             if (!$connected) {
                 throw new Exception('Redis connection failed');

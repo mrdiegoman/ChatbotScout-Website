@@ -58,10 +58,8 @@
                 <div class="footer-accordion-content" id="chatbots-content">
                     <a href="chatbotShowcase.php">Browse Chatbots</a>
                     <!-- <a href="submitChatbot.php">Submit Chatbot</a> -->
-                    <!-- LOGIN/SIGNUP DISABLED — buggy auth
                     <a href="login.php">Login</a>
                     <a href="signUp.php">Sign Up</a>
-                    -->
                     <!-- <a href="advertise.php">Advertise</a> -->
                 </div>
             </div>
@@ -262,6 +260,18 @@
                                     <td>ChatbotScout</td>
                                     <td>Anonymous visitor tracking and browser fingerprinting for analytics</td>
                                     <td>1 year</td>
+                                </tr>
+                                <tr>
+                                    <td><code>_ga</code></td>
+                                    <td>Google Analytics</td>
+                                    <td>Distinguishes unique users by assigning a randomly generated number as a client identifier</td>
+                                    <td>2 years</td>
+                                </tr>
+                                <tr>
+                                    <td><code>_ga_*</code></td>
+                                    <td>Google Analytics</td>
+                                    <td>Stores and counts page views for this property</td>
+                                    <td>2 years</td>
                                 </tr>
                             </tbody>
                         </table>

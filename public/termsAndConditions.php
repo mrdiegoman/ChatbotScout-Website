@@ -4,7 +4,7 @@ require '../inc/header.php';
 ?>
 
 <div class="tc-wrapper">
-    <h1>Terms and conditions</h1>
+    <h1>Terms and Conditions</h1>
     <p class="tc-date">Effective Date: 19/3/2026 , 20:26:10</p>
     <p>
         These terms and conditions outline the rules and regulations for the use of chatbotscout 

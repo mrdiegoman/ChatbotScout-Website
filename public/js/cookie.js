@@ -123,6 +123,15 @@
         if (consent.statistics) {
             loadVisitorScript();
         }
+
+        if (typeof gtag === 'function') {
+            gtag('consent', 'update', {
+                'analytics_storage': consent.statistics ? 'granted' : 'denied',
+                'ad_storage': consent.marketing ? 'granted' : 'denied',
+                'ad_user_data': consent.marketing ? 'granted' : 'denied',
+                'ad_personalization': consent.marketing ? 'granted' : 'denied'
+            });
+        }
     }
 
     // ============================================

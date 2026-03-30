@@ -220,7 +220,7 @@ require '../inc/header.php';
                 <?php endif; ?>
             </div>
             
-            <!-- Terms of Service Checkbox (Required) -->
+            <!-- Terms & Conditions Checkbox (Required) -->
             <div class="checkbox-container">
                 <div class="checkbox-group">
                     <input 
@@ -230,7 +230,7 @@ require '../inc/header.php';
                         <?php echo !empty($oldInput['terms_accepted']) ? 'checked' : ''; ?>
                     >
                     <label for="terms_accepted">
-                        By signing up, you agree to our <a href="termsAndConditions.php" target="_blank">Terms of Service</a> and <a href="privacyPolicy.php" target="_blank">Privacy Policy</a>.
+                        By signing up, you agree to our <a href="termsAndConditions.php" target="_blank">Terms & Conditions</a> and <a href="privacyPolicy.php" target="_blank">Privacy Policy</a>.
                     </label>
                 </div>
                 <?php if (!empty($errors['terms'])): ?>

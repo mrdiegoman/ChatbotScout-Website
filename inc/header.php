@@ -105,6 +105,20 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
 <html lang="en">
 
 <head>
+    <!-- Google Analytics (Consent Mode v2) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-17N57DRY59"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('consent', 'default', {
+            'analytics_storage': 'denied',
+            'ad_storage': 'denied',
+            'ad_user_data': 'denied',
+            'ad_personalization': 'denied'
+        });
+        gtag('js', new Date());
+        gtag('config', 'G-17N57DRY59');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
@@ -184,10 +198,8 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
         </div>
         <div class="header-main-right">
             <?php if (!$isLoggedIn): ?>
-                <!-- LOGIN/SIGNUP DISABLED — buggy auth
                 <a href="login.php" class="header-main-right-LogIn">Log In</a>
                 <a href="signUp.php" class="header-main-right-SignUp">Sign Up</a>
-                -->
             <?php else: ?>
                 <p class="header-main-right-username" 
                     data-fullname="<?php echo htmlspecialchars(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')); ?>">
@@ -317,10 +329,8 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
             <!-- Auth -->
             <div class="header-mobile-auth">
                 <?php if (!$isLoggedIn): ?>
-                    <!-- LOGIN/SIGNUP DISABLED — buggy auth
                     <a href="login.php" class="header-mobile-login">Log In</a>
                     <a href="signUp.php" class="header-mobile-signup">Sign Up</a>
-                    -->
                 <?php else: ?>
                     <a href="profile.php" class="header-mobile-profile">
                         <img src="img/default-avatar2.png" data-src="<?php echo htmlspecialchars($profilePicture); ?>" alt="Profile" class="user-avatar-img">

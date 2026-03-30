@@ -186,6 +186,24 @@ require '../inc/header.php';
             </tr>
 
             <tr>
+            <td class="tdName" data-label="Service Name">Google Analytics</td>
+            <td data-label="Provider">Google Ireland Limited</td>
+            <td data-label="Purpose(s)">Analytics and performance tracking</td>
+            <td data-label="Collected Personal Data">
+                IP address<br>
+                Browser information and language<br>
+                Operating system and version<br>
+                Interaction logs (e.g., clicks, time spent on pages)<br>
+                Device ID
+            </td>
+            <td data-label="Privacy Policy">
+                <a href="https://policies.google.com/privacy" target="_blank">
+                Privacy Policy
+                </a>
+            </td>
+            </tr>
+
+            <tr>
             <td class="tdName" data-label="Service Name">Cloudflare</td>
             <td data-label="Provider">Cloudflare Inc.</td>
             <td data-label="Purpose(s)">

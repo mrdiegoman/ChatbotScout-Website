@@ -7,8 +7,11 @@
  */
 
 $redisPassword = $_ENV['REDIS_PASSWORD'] ?? null;
+$redisSocket   = $_ENV['REDIS_SOCKET']   ?? null;
+$redisSocket   = ($redisSocket !== '' && $redisSocket !== null) ? $redisSocket : null;
 
 return [
+    'socket'       => $redisSocket,
     'host'         => '127.0.0.1',
     'port'         => 6379,
     'password'     => ($redisPassword !== '' && $redisPassword !== null) ? $redisPassword : null,

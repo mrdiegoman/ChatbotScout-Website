@@ -40,7 +40,7 @@ return [
     // Rate limiting (all actions)
     'rate_limit' => [
         'login' => [
-            'max_attempts' => 50,
+            'max_attempts' => 75,
             'window'       => 15 * 60,
             'lockout'      => 30 * 60,
 
@@ -49,12 +49,12 @@ return [
             'email_lockout'      => 60 * 60,
         ],
         'registration' => [
-            'max_attempts' => 50,
+            'max_attempts' => 75,
             'window'       => 60 * 60,
             'lockout'      => 30 * 60,
         ],
         'password_reset' => [
-            'max_attempts' => 50,
+            'max_attempts' => 75,
             'window'       => 15 * 60,
             'lockout'      => 30 * 60,
 
@@ -63,7 +63,7 @@ return [
             'email_lockout'      => 60 * 60,
         ],
         'resend_verification' => [
-            'max_attempts' => 50,
+            'max_attempts' => 75,
             'window'       => 60 * 60,
             'lockout'      => 30 * 60,
 
