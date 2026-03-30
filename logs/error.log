@@ -1,1 +1,2 @@
 [2026-03-28 00:11:30] [EXCEPTION] Error: Failed opening required 'C:\xampp\htdocs\MainWebsite\public\app/../config/app.php' (include_path='C:\xampp\php\PEAR') | File: C:\xampp\htdocs\MainWebsite\public\app\auth.php:31 | POST /MainWebsite/public/login.php | IP: ::1
+[2026-03-29 22:39:21] [EXCEPTION] Error: Failed opening required 'C:\xampp\htdocs\MainWebsite\public\api/../config/app.php' (include_path='C:\xampp\php\PEAR') | File: C:\xampp\htdocs\MainWebsite\public\api\identify.php:56 | POST /MainWebsite/api/identify.php | IP: ::1
