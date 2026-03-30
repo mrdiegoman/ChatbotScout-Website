@@ -4,7 +4,7 @@
 
 .admin-wrapper {
     max-width: 900px;
-    margin: 60px auto;
+    margin: 6rem auto;
     padding: 2rem 2rem 4rem;
 }
 
@@ -32,7 +32,7 @@
 .admin-main-tabs {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 0.8rem;
     height: fit-content;
     min-width: 0;
     width: 100%;

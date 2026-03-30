@@ -4,7 +4,7 @@
 
 .contact-page-wrapper {
     max-width: var(--page-width);
-    margin: 60px auto auto auto;
+    margin: 6rem auto auto auto;
     width: 100%;
     padding: 0 2rem;
     flex: 1;
@@ -75,6 +75,7 @@
     padding: 1.2rem;
     font-size: 1.5rem;
     border: 0.1rem solid #ccc;
+    width: 100%;
     border-radius: 0.6rem;
     outline: none;
     resize: vertical;
@@ -186,8 +187,8 @@
 /*-- End Subject options --*/
 
 .contact-page-main-section-2-submit-btn {
-    padding: 14px 24px;
-    font-size: 16px;
+    padding: 1.4rem 2.4rem;
+    font-size: 1.6rem;
     font-family: outfit-semibold, sans-serif;
     color: #fff;
     background-color: #3b82f6;

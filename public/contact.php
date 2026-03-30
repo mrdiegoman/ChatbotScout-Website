@@ -112,7 +112,7 @@ function old(string $key, array $old): string {
                                         $oldSubject = $oldInput['subject'] ?? '';
                                         echo $oldSubject && isset($subjectLabels[$oldSubject])
                                             ? htmlspecialchars($subjectLabels[$oldSubject])
-                                            : 'Please select a subject topic';
+                                            : 'Please select a subject';
                                     ?>
                                 </div>
                             </div>

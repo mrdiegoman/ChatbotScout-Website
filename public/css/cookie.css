@@ -452,8 +452,8 @@ body.cookie-modal-open {
 /* ---- FIXED SETTINGS BUTTON ---- */
 #cookie-settings-btn {
     position: fixed;
-    bottom: 10px;
-    right: 10px;
+    bottom: 1rem;
+    right: 1rem;
     z-index: 9997;
     background: var(--dark-blue-color);
     border: 0.1rem solid rgba(255, 255, 255, 0.15);

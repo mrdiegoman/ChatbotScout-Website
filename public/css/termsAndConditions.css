@@ -9,7 +9,7 @@ body {
 .tc-wrapper{
     max-width: var(--page-width);
     padding: 6rem 4rem;
-    margin: 60px auto auto auto;
+    margin: 6rem auto auto auto;
 }
 
 .tc-date {
@@ -79,3 +79,11 @@ li span {
 .tc-wrapper ul li:last-child{
     margin-bottom: 2rem;
 }
+
+@media (max-width: 600px) {
+    .tc-wrapper{
+        padding: 4rem 2rem;
+        margin: 60px auto auto auto;
+    }
+}
+

@@ -15,7 +15,7 @@ html {
     --dark-blue-color: rgb(30, 22, 46);
     --red-heart-color: rgb(226, 14, 14);
 
-    font-size: 10px;
+    font-size: min(62.5%, 15px);
     color: var(--black-color-light);
     --grid-item-padding: 1.5rem;
 }
@@ -307,15 +307,15 @@ a, button {
 .header-main-right-username::after {
     content: attr(data-fullname);
     position: absolute;
-    bottom: -35px;
+    bottom: -3.5rem;
     /* top:100%; */
     left: 50%;
     transform: translateX(-50%);
     background: rgba(0, 0, 0, 0.9);
     color: white;
-    padding: 6px 12px;
+    padding: 0.6rem 1.2rem;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 1.3rem;
     white-space: nowrap;
     opacity: 0;
     pointer-events: none;
@@ -331,7 +331,7 @@ a, button {
 .header-main-right-username::before {
     content: '';
     position: absolute;
-    bottom: -5px;
+    bottom: -0.5rem;
     /* top:100%; */
     left: 50%;
     transform: translateX(-50%);
@@ -403,6 +403,7 @@ a, button {
     flex-direction: row;
     background-color: var(--white-color-dark);
     padding: 0 1rem 0 0.5rem;
+    text-decoration: none;
 }
  
 .footer-main-content-first-logo img {
@@ -1130,9 +1131,6 @@ a, button {
         width: 100%;
         max-width: 100%;
     }
-}
-
-@media (max-width: 400px) {
     .header-main-logo p {
         display: none;
     }
@@ -1172,8 +1170,8 @@ a, button {
 /* Mobile responsive */
 @media (max-width: 1090px) {
     .header-main-right-profile-avatar {
-        width: 35px;
-        height: 35px;
+        width: 3.5rem;
+        height: 3.5rem;
     }
 }
 
