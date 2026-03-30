@@ -106,8 +106,8 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
 
 <head>
     <!-- Google Analytics (Consent Mode v2) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-17N57DRY59"></script>
-    <script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-17N57DRY59" nonce="<?= $cspNonce ?>"></script>
+    <script nonce="<?= $cspNonce ?>">
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('consent', 'default', {

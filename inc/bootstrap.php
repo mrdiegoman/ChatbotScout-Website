@@ -64,7 +64,7 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
 header(
     "Content-Security-Policy: " .
     "default-src 'self'; " .
-    "script-src 'self' 'nonce-{$cspNonce}' https://js.stripe.com; " .
+    "script-src 'self' 'nonce-{$cspNonce}' https://js.stripe.com https://www.googletagmanager.com; " .
     "style-src 'self' 'unsafe-inline'; " .
     "img-src 'self' data: https://lh3.googleusercontent.com; " .
     "font-src 'self' data:; " .
