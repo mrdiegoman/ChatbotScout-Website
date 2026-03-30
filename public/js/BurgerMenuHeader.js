@@ -5,18 +5,18 @@ const closeBtn = document.querySelector('.header-mobile-close');
 
 burgerBtn.addEventListener('click', () => {
     mobileMenu.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    lockScroll();
 });
 
 closeBtn.addEventListener('click', () => {
     mobileMenu.classList.remove('active');
-    document.body.style.overflow = '';
+    unlockScroll();
 });
 
 // Close menu when clicking outside
 mobileMenu.addEventListener('click', (e) => {
     if (e.target === mobileMenu) {
         mobileMenu.classList.remove('active');
-        document.body.style.overflow = '';
+        unlockScroll();
     }
 });

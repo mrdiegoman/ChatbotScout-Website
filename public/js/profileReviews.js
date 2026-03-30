@@ -213,12 +213,12 @@
         updatePickerStars(currentRating);
 
         editOverlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        lockScroll();
     };
 
     function closeEditModal() {
         editOverlay.classList.remove('active');
-        document.body.style.overflow = '';
+        unlockScroll();
         editingReviewId = null;
     }
 
@@ -361,12 +361,12 @@
     window.openDeleteReviewModal = function (reviewId) {
         pendingDeleteId = reviewId;
         deleteOverlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        lockScroll();
     };
 
     function closeDeleteModal() {
         deleteOverlay.classList.remove('active');
-        document.body.style.overflow = '';
+        unlockScroll();
         pendingDeleteId = null;
     }
 

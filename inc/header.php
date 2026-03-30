@@ -349,6 +349,7 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
     </div>
 
     <script src="js/csrf.js?v=<?= filemtime(__DIR__ . '/../public/js/csrf.js') ?>"></script>
+    <script src="js/scrollLock.js?v=<?= filemtime(__DIR__ . '/../public/js/scrollLock.js') ?>"></script>
     <script nonce="<?= $cspNonce ?>">
         function loadAvatar(img) {
             var real = img.getAttribute('data-src');

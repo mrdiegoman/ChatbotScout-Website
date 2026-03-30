@@ -118,6 +118,7 @@ body {
 
 /* Mobile search button (zobrazí sa len na mobiloch) */
 .chatbot-page-main-content-topbar-mobile-search-btn {
+    position: relative;
     display: none;
     width: 4rem;
     height: 4rem;
@@ -126,8 +127,6 @@ body {
     border: 0.1rem solid var(--grey-color-mid);
     background-color: var(--white-color-dark);
     cursor: pointer;
-    align-items: center;
-    justify-content: center;
     padding: 0;
     transition: background-color 0.2s ease;
 }
@@ -137,6 +136,10 @@ body {
 }
 
 .chatbot-page-main-content-topbar-mobile-search-btn svg {
+    position: absolute;
+    top: 50%;
+    left: 52%;
+    transform: translate(-50%, -50%);
     height: 2.5rem;
     width: auto;
 }
@@ -374,14 +377,12 @@ body {
 }
 
 .chatbot-page-main-content-topbar-group-layout-container-btn {
+    position: relative;
     height: 3.75rem;
     width: 3.75rem;
     border-radius: 50%;
     border: 2px solid transparent;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     /* transition: all 0.2s ease; */
     padding: 0;
 }
@@ -391,6 +392,10 @@ body {
 }
 
 .chatbot-page-main-content-topbar-group-layout-container-btn svg{
+    position: absolute;
+    top: 50%;
+    left: 51%;
+    transform: translate(-50%, -50%);
     height: 2.4rem;
     width: 2.4rem;
     stroke: #666666;

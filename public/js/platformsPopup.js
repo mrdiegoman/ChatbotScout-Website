@@ -57,7 +57,7 @@
         }
 
         // Zablokuj scroll stránky
-        document.body.style.overflow = 'hidden';
+        lockScroll();
 
         // Zobraz overlay, popup je centrovaný cez CSS
         overlay.style.display = 'flex';
@@ -77,7 +77,7 @@
         }, 180);
 
         // Obnov scroll stránky
-        document.body.style.overflow = '';
+        unlockScroll();
     }
 
     // ============================================

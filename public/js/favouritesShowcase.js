@@ -488,7 +488,7 @@ function openRatingModal(chatbotId, chatbotName) {
     updatePickerStars(0);
 
     ratingOverlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    lockScroll();
 
     // Skontroluj či user už dal review pre tento chatbot
     fetch(`../api/checkReview.php?chatbot_id=${encodeURIComponent(chatbotId)}`)
@@ -513,7 +513,7 @@ function openRatingModal(chatbotId, chatbotName) {
 
     function closeRatingModal() {
         ratingOverlay.classList.remove('active');
-        document.body.style.overflow = '';
+        unlockScroll();
         state.ratingChatbotId = null;
         state.ratingValue = 0;
     }
@@ -823,14 +823,14 @@ function openRatingModal(chatbotId, chatbotName) {
     if (filtersBtn && filtersOverlay) {
         filtersBtn.addEventListener('click', () => {
             filtersOverlay.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
+            lockScroll();
         });
     }
 
     if (filtersCloseBtn) {
         filtersCloseBtn.addEventListener('click', () => {
             filtersOverlay.style.display = 'none';
-            document.body.style.overflow = '';
+            unlockScroll();
         });
     }
 
@@ -838,7 +838,7 @@ function openRatingModal(chatbotId, chatbotName) {
         filtersOverlay.addEventListener('click', (e) => {
             if (e.target === filtersOverlay) {
                 filtersOverlay.style.display = 'none';
-                document.body.style.overflow = '';
+                unlockScroll();
             }
         });
     }
@@ -859,7 +859,7 @@ function openRatingModal(chatbotId, chatbotName) {
     if (applyFavFiltersBtn) {
         applyFavFiltersBtn.addEventListener('click', () => {
             filtersOverlay.style.display = 'none';
-            document.body.style.overflow = '';
+            unlockScroll();
             window.applyFilters();
         });
     }

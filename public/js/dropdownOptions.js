@@ -2,6 +2,8 @@ const selectDiv = document.querySelector('.dropdown-wrapper');
 const selected = document.querySelector('.dropdown-selected');
 const options = document.querySelectorAll('.dropdown-option');
 
+if (!selectDiv) return;
+
 // Otvoriť/zatvoriť dropdown
 selectDiv.addEventListener('click', function(e) {
     // Zabráň otvoreniu ak sa kliklo na option

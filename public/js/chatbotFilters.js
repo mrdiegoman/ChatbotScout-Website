@@ -21,12 +21,12 @@ const applyFiltersBtn = document.querySelector(
 
 function openModal() {
     overlay.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
+    lockScroll();
 }
 
 function closeModal() {
     overlay.style.display = 'none';
-    document.body.style.overflow = '';
+    unlockScroll();
 }
 
 filtersBtnBtn.addEventListener('click', openModal);

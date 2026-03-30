@@ -342,12 +342,12 @@ function openModal(slot) {
     updateSummary();
 
     modalOverlay.classList.add('open');
-    document.body.style.overflow = 'hidden';
+    lockScroll();
 }
 
 function closeModal() {
     modalOverlay.classList.remove('open');
-    document.body.style.overflow = '';
+    unlockScroll();
     state.selectedSlot   = null;
     state.selectedPlanId = null;
     state.selectedPlanIdAlt = null;

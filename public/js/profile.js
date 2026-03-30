@@ -364,11 +364,11 @@ function showConfirm(title, message) {
         titleEl.textContent = title;
         msgEl.textContent   = message;
         modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
+        lockScroll();
 
         function cleanup(result) {
             modal.style.display = 'none';
-            document.body.style.overflow = '';
+            unlockScroll();
             confirmBtn.removeEventListener('click', onConfirm);
             cancelBtn.removeEventListener('click', onCancel);
             resolve(result);
@@ -451,7 +451,7 @@ function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
+        lockScroll();
     }
 }
 
@@ -460,7 +460,7 @@ function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.style.display = 'none';
-        document.body.style.overflow = '';
+        unlockScroll();
     }
 }
 

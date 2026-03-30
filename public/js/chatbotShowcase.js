@@ -661,7 +661,7 @@
         updatePickerStars(0);
 
         ratingOverlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        lockScroll();
 
         // Skontroluj či user už dal review pre tento chatbot
         fetch(`../api/checkReview.php?chatbot_id=${encodeURIComponent(chatbotId)}`)
@@ -686,7 +686,7 @@
 
     function closeRatingModal() {
         ratingOverlay.classList.remove('active');
-        document.body.style.overflow = '';
+        unlockScroll();
         state.ratingChatbotId = null;
         state.ratingValue = 0;
     }

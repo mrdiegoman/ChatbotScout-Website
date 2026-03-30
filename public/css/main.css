@@ -20,6 +20,33 @@ html {
     --grid-item-padding: 1.5rem;
 }
 
+/* Custom scrollbar */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+::-webkit-scrollbar {
+    width: 0.6rem;
+}
+
+::-webkit-scrollbar-button {
+    display: none;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 0.3rem;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.35);
+}
+
 @font-face {
     font-family: Outfit;
     src: url(../Fonts/Outfit/Outfit-Regular.ttf);
@@ -588,15 +615,19 @@ a, button {
     background-color: var(--dark-blue-color);
     box-shadow: -4px 0 20px rgba(0, 0, 0, 0.35);
     padding: 0;
-    transform: translateX(100%);
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(10px);
+    transition: opacity 0.2s ease, transform 0.15s ease, visibility 0.2s ease;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    will-change: transform;
+    will-change: transform, opacity;
 }
 
 .header-mobile-menu.active .header-mobile-menu-content {
+    opacity: 1;
+    visibility: visible;
     transform: translateX(0);
 }
 
@@ -631,11 +662,10 @@ a, button {
 
 /* Close button */
 .header-mobile-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: relative;
     width: 3.2rem;
     height: 3.2rem;
+    padding: 0;
     background: rgba(255, 255, 255, 0.08);
     border: none;
     border-radius: 0.7rem;
@@ -649,6 +679,10 @@ a, button {
 }
 
 .header-mobile-close svg {
+    position: absolute;
+    top: 50%;
+    left: 51%;
+    transform: translate(-50%, -50%);
     width: 1.8rem;
     height: 1.8rem;
     stroke: rgba(255, 255, 255, 0.7);
