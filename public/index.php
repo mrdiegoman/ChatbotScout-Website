@@ -19,11 +19,11 @@ require '../inc/header.php';
                 <i class="fa-solid fa-bolt"></i> #1 AI Chatbot Directory
             </div>
             <h1 class="hp-hero-title">
-                Find the Best <span>AI Chatbot</span><br>for Your Website
+                Find the Best <span>AI Chatbot</span> for Your Website or App
             </h1>
             <p class="hp-hero-subtitle">
-                Explore AI chatbots by features, pricing, and real user reviews. 
-                Save your favorites and find the perfect match for your business.
+                Explore AI chatbots for your website, WhatsApp, Telegram, Instagram, and more.
+                Compare by features, pricing, and real user reviews to find the perfect match.
             </p>
             <div class="hp-hero-cta">
                 <a href="chatbotShowcase.php" class="hp-btn hp-btn-green">
@@ -358,7 +358,7 @@ require '../inc/header.php';
                     <i class="fa-solid fa-user"></i>
                 </div> -->
                 <div class="hp-chat-msg hp-chat-msg-user">
-                    How do I find the right AI chatbot for my website?
+                    How do I find the right AI chatbot widget for my website?
                 </div>
             </div>
 
@@ -368,7 +368,7 @@ require '../inc/header.php';
                     <img src="img/ChatbotScout_logo.png" alt="ChatbotScout">
                 </div>
                 <div class="hp-chat-msg hp-chat-msg-bot">
-                    <h3>Search, Filter & Sort - Find Your Perfect Chatbot</h3>
+                    <h3>Search, Filter & Sort - Find Your Perfect Chatbot for Your App</h3>
                     <p>
                         Use our search, filters and sorting to narrow down chatbots by pricing, 
                         features, and ratings. Whether you need a free plan or live agent 
@@ -390,7 +390,7 @@ require '../inc/header.php';
                     <i class="fa-solid fa-user"></i>
                 </div> -->
                 <div class="hp-chat-msg hp-chat-msg-user">
-                    Can I see whether I can use the chatbot on my website?
+                    Can I find chatbots for WhatsApp, Telegram, or Instagram too?
                 </div>
             </div>
 
@@ -400,11 +400,11 @@ require '../inc/header.php';
                     <img src="img/ChatbotScout_logo.png" alt="ChatbotScout">
                 </div>
                 <div class="hp-chat-msg hp-chat-msg-bot">
-                    <h3>Full Feature & Integration Details - All in One Place</h3>
+                    <h3>Not Just Websites — Bots for Every Platform</h3>
                     <p>
-                        Every chatbot listing includes a complete breakdown of supported platforms like 
-                        WordPress, Shopify, Slack and more. Check features and integrations at a glance - 
-                        so you know instantly if chatbot works for your website.
+                        Every listing shows which platforms the chatbot supports — including WhatsApp,
+                        Telegram, Instagram, Facebook Messenger, Slack, and more. Filter by integration
+                        to find the right bot for your messaging app in seconds.
                     </p>
                     <a href="chatbotShowcase.php" class="hp-link-green" style="margin-top:16px;display:inline-flex;align-items:center;gap:4px;">
                         Explore listings
@@ -606,6 +606,13 @@ require '../inc/header.php';
                 <h4>Can I compare real user ratings before choosing?</h4>
                 <p><span>Yes. Listings include rating data and review context so you can evaluate reliability before you
                     decide.</span></p>
+            </article>
+
+            <article class="hp-faq-item">
+                <h4>Can I find AI chatbots for WhatsApp, Telegram, or Instagram?</h4>
+                <p><span>Yes. ChatbotScout lists chatbots for messaging apps including WhatsApp, Telegram, Instagram,
+                    Facebook Messenger, and more — not just website widgets. Filter by platform to find the right bot
+                    for your app.</span></p>
             </article>
         </div>
     </div>

@@ -44,8 +44,8 @@ $seoDefaults = [
 
 $seoByPage = [
     'index' => [
-        'title'       => 'Best AI Chatbots for Websites (2026)',
-        'description' => 'Compare AI chatbots by features, pricing, integrations, and real user reviews. Find the best chatbot for your website in minutes.',
+        'title'       => 'Best AI Chatbots for Websites & Apps (2026)',
+        'description' => 'Compare AI chatbots for websites, WhatsApp, Telegram, Instagram and more. Filter by features, pricing, and real user reviews to find the perfect chatbot.',
     ],
     'chatbotShowcase' => [
         'title'       => 'AI Chatbot Directory',
