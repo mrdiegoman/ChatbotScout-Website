@@ -135,37 +135,41 @@ try {
  
         $settingsStmt = $db->query("
             SELECT `key`, `value` FROM settings
-            WHERE `key` IN ('noreply_email', 'reply_from_name', 'admin_notification_email')
+            WHERE `key` IN ('noreply_email', 'reply_from_name')
         ");
         $settingsRows = $settingsStmt->fetchAll(PDO::FETCH_KEY_PAIR);
- 
-        $noreplyEmail = $settingsRows['noreply_email']            ?? '';
-        $fromName     = $settingsRows['reply_from_name']          ?? '';
-        $adminEmail   = $settingsRows['admin_notification_email'] ?? '';
- 
-        if (empty($adminEmail)) {
-            $appConfig  = require __DIR__ . '/../config/app.php';
-            $adminEmail = $appConfig['admin']['email'] ?? 'admin@chatbotscout.com';
-        }
+
+        $noreplyEmail = $settingsRows['noreply_email']   ?? '';
+        $fromName     = $settingsRows['reply_from_name'] ?? '';
 
         if (empty($noreplyEmail)) {
             error_log('[WARNING] noreply_email not configured. Set it in Admin Panel → Settings.');
             $noreplyEmail = 'noreply@chatbotscout.com';
         }
 
+        $adminEmailsStmt = $db->query("SELECT email FROM admin_notification_emails ORDER BY created_at ASC");
+        $adminEmails     = $adminEmailsStmt->fetchAll(PDO::FETCH_COLUMN);
+
+        if (empty($adminEmails)) {
+            $appConfig   = require __DIR__ . '/../config/app.php';
+            $adminEmails = [$appConfig['admin']['email'] ?? 'admin@chatbotscout.com'];
+        }
+
         $emailService = new Email();
-        $emailService->sendReviewAdminNotification(
-            $adminEmail,
-            $user['first_name'] . ' ' . $user['last_name'],
-            $user['email'],
-            $chatbotName,
-            $rating,
-            $title,
-            $reviewText,
-            $reviewId,
-            $noreplyEmail,
-            $fromName
-        );
+        foreach ($adminEmails as $adminEmail) {
+            $emailService->sendReviewAdminNotification(
+                $adminEmail,
+                $user['first_name'] . ' ' . $user['last_name'],
+                $user['email'],
+                $chatbotName,
+                $rating,
+                $title,
+                $reviewText,
+                $reviewId,
+                $noreplyEmail,
+                $fromName
+            );
+        }
     } catch (Exception $emailEx) {
         // Email failure nesmie zrušiť úspešný submit
         error_log('sendReviewAdminNotification failed: ' . $emailEx->getMessage());

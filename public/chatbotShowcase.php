@@ -11,7 +11,7 @@ require '../inc/header.php';
 <div class="chatbot-page-wrapper">
     <main class="chatbot-page-main">
         <aside class="chatbot-page-main-banner">
-            <img src="..\img\chatbot robot.png" alt="Chatbot Robot">
+            <img src="..\img\chatbot_robot.png" alt="Chatbot Robot">
             <div class="chatbot-page-main-banner-textdiv">
                 <h1>
                     Chatbot Showcase

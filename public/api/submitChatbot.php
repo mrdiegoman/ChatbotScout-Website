@@ -5,7 +5,7 @@
  */
 
 require '../../inc/bootstrap.php';
-require '../../app/auth.php';
+require '../app/auth.php';
 
 header('Content-Type: application/json');
 
@@ -122,22 +122,24 @@ try {
  
     $settingsStmt = $db->query("
         SELECT `key`, `value` FROM settings
-        WHERE `key` IN ('noreply_email', 'reply_from_name', 'admin_notification_email')
+        WHERE `key` IN ('noreply_email', 'reply_from_name')
     ");
     $settingsRows = $settingsStmt->fetchAll(PDO::FETCH_KEY_PAIR);
- 
-    $noreplyEmail = $settingsRows['noreply_email']            ?? '';
-    $fromName     = $settingsRows['reply_from_name']          ?? '';
-    $adminEmail   = $settingsRows['admin_notification_email'] ?? '';
- 
-    if (empty($adminEmail)) {
-        $appConfig  = require '../../config/app.php';
-        $adminEmail = $appConfig['admin']['email'] ?? 'admin@chatbotscout.com';
-    }
+
+    $noreplyEmail = $settingsRows['noreply_email']   ?? '';
+    $fromName     = $settingsRows['reply_from_name'] ?? '';
 
     if (empty($noreplyEmail)) {
         error_log('[WARNING] noreply_email not configured. Set it in Admin Panel → Settings.');
         $noreplyEmail = 'noreply@chatbotscout.com';
+    }
+
+    $adminEmailsStmt = $db->query("SELECT email FROM admin_notification_emails ORDER BY created_at ASC");
+    $adminEmails     = $adminEmailsStmt->fetchAll(PDO::FETCH_COLUMN);
+
+    if (empty($adminEmails)) {
+        $appConfig   = require '../../config/app.php';
+        $adminEmails = [$appConfig['admin']['email'] ?? 'admin@chatbotscout.com'];
     }
 
     // 1. Confirmation to user
@@ -147,20 +149,22 @@ try {
         $chatbotName,
         $websiteUrl
     );
- 
-    // 2. Notification to admin
-    $emailService->sendChatbotSubmissionAdminNotification(
-        $adminEmail,
-        $contactName,
-        $contactEmail,
-        $chatbotName,
-        $websiteUrl,
-        $message,
-        $chatbotId,
-        $companyName,
-        $noreplyEmail,
-        $fromName
-    );
+
+    // 2. Notification to all admin emails
+    foreach ($adminEmails as $adminEmail) {
+        $emailService->sendChatbotSubmissionAdminNotification(
+            $adminEmail,
+            $contactName,
+            $contactEmail,
+            $chatbotName,
+            $websiteUrl,
+            $message,
+            $chatbotId,
+            $companyName,
+            $noreplyEmail,
+            $fromName
+        );
+    }
 
     echo json_encode([
         'success'    => true,

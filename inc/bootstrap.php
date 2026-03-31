@@ -57,6 +57,12 @@ function validateCsrfToken(string $redirectOnFail = ''): void {
 // CSP nonce — unikátny pre každý request
 $cspNonce = bin2hex(random_bytes(16));
 
+// Admin page has many inline onclick handlers — use unsafe-inline instead of nonce
+$isAdminPage  = str_contains($_SERVER['PHP_SELF'] ?? '', 'admin.php');
+$cspScriptSrc = $isAdminPage
+    ? "script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com; "
+    : "script-src 'self' 'nonce-{$cspNonce}' https://js.stripe.com https://www.googletagmanager.com; ";
+
 header('X-Frame-Options: SAMEORIGIN');
 header('X-Content-Type-Options: nosniff');
 header('X-XSS-Protection: 1; mode=block');
@@ -64,7 +70,7 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
 header(
     "Content-Security-Policy: " .
     "default-src 'self'; " .
-    "script-src 'self' 'nonce-{$cspNonce}' https://js.stripe.com https://www.googletagmanager.com; " .
+    $cspScriptSrc .
     "style-src 'self' 'unsafe-inline'; " .
     "img-src 'self' data: https://lh3.googleusercontent.com; " .
     "font-src 'self' data:; " .

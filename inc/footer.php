@@ -86,7 +86,7 @@
     </div>
 
     <div class="footer-main-bottom">
-        <p class="footer-main-bottom-Rights">© 2025 ChatbotScout.com - All rights reserved.</p>
+        <p class="footer-main-bottom-Rights">© 2026 ChatbotScout.com - All rights reserved.</p>
         <div class="footer-main-bottom-extra">
             <a href="privacyPolicy.php" class="footer-main-bottom-PrivacyPolicy-a">Privacy policy</a>
             <a href="termsAndConditions.php" class="footer-main-bottom-terms-a">Terms & Conditions</a>

@@ -1,0 +1,104 @@
+/* Admin Settings styles — see inline styles in admin.php */
+
+/* ── Notification email row (input + + button) ── */
+.admin-notif-email-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+}
+
+.admin-notif-email-row input {
+    flex: 1;
+}
+
+.admin-notif-add-btn {
+    flex-shrink: 0;
+    width: 3.6rem;
+    background: #4F46E5;
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-family: outfit-medium, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-notif-add-btn:hover {
+    background: #4338CA;
+}
+
+.admin-notif-add-btn:active {
+    background: #3730A3;
+}
+
+/* ── View emails button ── */
+.admin-notif-view-btn {
+    margin-top: 0.6rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: none;
+    border: 1px solid #C7D2FE;
+    color: #4F46E5;
+    font-size: 1.2rem;
+    font-family: outfit-medium, sans-serif;
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.admin-notif-view-btn:hover {
+    background: #EEF2FF;
+    border-color: #A5B4FC;
+}
+
+/* ── Notification emails popup list ── */
+.admin-notif-email-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 1.3rem;
+    color: #374151;
+    font-family: outfit-medium, sans-serif;
+    background: #F9FAFB;
+    border: 1px solid #E5E7EB;
+    margin-bottom: 0.5rem;
+}
+
+.admin-notif-email-item:last-child {
+    margin-bottom: 0;
+}
+
+.admin-notif-delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #9CA3AF;
+    font-size: 1.4rem;
+    line-height: 1;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    transition: color 0.15s, background 0.15s;
+    flex-shrink: 0;
+}
+
+.admin-notif-delete-btn:hover {
+    color: #EF4444;
+    background: #FEE2E2;
+}
+
+.admin-notif-empty-msg {
+    font-size: 1.3rem;
+    color: #9CA3AF;
+    text-align: center;
+    padding: 1rem 0;
+    margin: 0;
+}

@@ -973,6 +973,13 @@ END//
 
 DELIMITER ;
 
+CREATE TABLE IF NOT EXISTS `admin_notification_emails` (
+    `id`         VARCHAR(36)  NOT NULL,
+    `email`      VARCHAR(254) NOT NULL,
+    `created_at` DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
 

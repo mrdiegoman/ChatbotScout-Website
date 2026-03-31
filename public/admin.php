@@ -385,7 +385,7 @@ require '../inc/header.php';
                                 <span class="admin-reply-hint">(email will be sent to <?= htmlspecialchars($msg['email']) ?>)</span>
                             </label>
                             <textarea class="admin-textarea" placeholder="Write your reply here..."><?= htmlspecialchars($msg['response'] ?? '') ?></textarea>
-                            <button class="admin-save-btn" onclick="sendReply('<?= $msgId ?>', this)">📨 Send Reply</button>
+                            <button class="admin-save-btn" onclick="sendReply('<?= $msgId ?>', this)">Send Reply</button>
                         </div>
 
                         <div class="admin-notes-section" id="notes-<?= $msgId ?>" style="display:none;">
@@ -836,13 +836,19 @@ require '../inc/header.php';
                     </div>
             
                     <div class="admin-settings-field">
-                        <label for="settingAdminNotificationEmail">Admin notification email <span class="admin-settings-required">*</span></label>
-                        <input type="email"
-                            id="settingAdminNotificationEmail"
-                            maxlength="254"
-                            placeholder="your@email.com"
-                            autocomplete="off">
-                        <span class="admin-settings-hint">Where you receive alerts for new messages, reviews and submissions.</span>
+                        <label for="settingAdminNotificationEmail">Admin notification emails</label>
+                        <div class="admin-notif-email-row">
+                            <input type="email"
+                                id="settingAdminNotificationEmail"
+                                maxlength="254"
+                                placeholder="your@email.com"
+                                autocomplete="off">
+                            <button type="button" class="admin-notif-add-btn" onclick="addNotificationEmail()" title="Add email">+</button>
+                        </div>
+                        <button type="button" class="admin-notif-view-btn" onclick="openNotifEmailsPopup()">
+                            View emails (<span id="notifEmailCount">0</span>)
+                        </button>
+                        <span class="admin-settings-hint">All listed emails receive alerts for new messages, reviews and submissions.</span>
                     </div>
             
                     <div class="admin-settings-footer">
@@ -858,6 +864,20 @@ require '../inc/header.php';
     </div>
 
 </div><!-- end admin-wrapper -->
+
+<!-- ── Notification Emails Popup ── -->
+<div class="sub-popup-overlay" id="notifEmailsPopup" style="display:none;" onclick="closeNotifEmailsPopupOnOverlay(event)">
+    <div class="sub-popup-box">
+        <div class="sub-popup-header">
+            <h3>Notification Emails</h3>
+            <button class="sub-popup-close" onclick="closeNotifEmailsPopup()" title="Close">&#x2715;</button>
+        </div>
+        <div class="sub-popup-body">
+            <div id="notifEmailsList"></div>
+            <p class="admin-notif-empty-msg" id="notifEmailsEmpty" style="display:none;">No notification emails added yet.</p>
+        </div>
+    </div>
+</div>
 
 <script src="js/admin.js?v=<?= filemtime(__DIR__ . '/js/admin.js') ?>" defer></script>
 <script src="js/admin_refresh.js?v=<?= filemtime(__DIR__ . '/js/admin_refresh.js') ?>" defer></script>

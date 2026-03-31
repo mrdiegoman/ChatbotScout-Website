@@ -276,6 +276,13 @@ class Visitor
      */
     public function convertToUser(string $visitorId, string $userId): void
     {
+        // Verify visitor exists — cookie may reference a deleted/non-existent visitor
+        $exists = $this->db->prepare("SELECT COUNT(*) FROM visitors WHERE id = :id");
+        $exists->execute(['id' => $visitorId]);
+        if ($exists->fetchColumn() === 0) {
+            return;
+        }
+
         $check = $this->db->prepare("
             SELECT COUNT(*) FROM visitor_user_links
             WHERE visitor_id = :visitor_id AND user_id = :user_id

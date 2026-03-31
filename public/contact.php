@@ -146,6 +146,7 @@ function old(string $key, array $old): string {
                     </div>
                 </div>
 
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                 <button type="submit" class="contact-page-main-section-2-submit-btn">Send Message</button>
             </form>
         </section>

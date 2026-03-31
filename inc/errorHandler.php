@@ -72,13 +72,20 @@ function redirectToErrorPage(int $code): void
 
     http_response_code($code);
 
-    // Build base URL dynamically (works whether public/ is docroot or not)
-    $scheme  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    $host    = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    $script  = $_SERVER['SCRIPT_NAME'] ?? '/public/index.php';
-    $base    = preg_replace('#/(public|api|app)/.*$#', '', $script);
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host   = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $script = $_SERVER['SCRIPT_NAME'] ?? '/index.php';
 
-    header("Location: {$scheme}://{$host}{$base}/public/{$code}.php");
+    // If public/ appears in the path, we're in local dev (public/ is a subdir)
+    // Strip everything from /public/ onward to get the base, then append /public/
+    // Otherwise public/ is the docroot — error pages are at root
+    if (preg_match('#^(.*)/public(?:/.*)?$#', $script, $m)) {
+        $errorUrl = "{$scheme}://{$host}{$m[1]}/public/{$code}.php";
+    } else {
+        $errorUrl = "{$scheme}://{$host}/{$code}.php";
+    }
+
+    header("Location: {$errorUrl}");
     exit;
 }
 

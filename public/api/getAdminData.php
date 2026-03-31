@@ -12,7 +12,7 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
 require '../../inc/bootstrap.php';
-require '../../app/guard.php';
+require '../app/guard.php';
 
 requireRole('admin');
 

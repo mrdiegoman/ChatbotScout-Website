@@ -98,7 +98,7 @@ function buildMessageCard(msg) {
                 <span class="admin-reply-hint">(email will be sent to ${email})</span>
             </label>
             <textarea class="admin-textarea" placeholder="Write your reply here...">${escHtml(msg.response || '')}</textarea>
-            <button class="admin-save-btn" onclick="sendReply('${id}', this)">📨 Send Reply</button>
+            <button class="admin-save-btn" onclick="sendReply('${id}', this)">Send Reply</button>
         </div>
 
         <div class="admin-notes-section" id="notes-${id}" style="display:none;">

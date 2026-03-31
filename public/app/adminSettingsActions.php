@@ -5,7 +5,7 @@
  * AJAX endpoint pre globálne nastavenia admina.
  * Akcie:
  *  - GET  → vráti všetky settings
- *  - POST → uloží reply_from_email + reply_from_name + noreply_email + noreply_name + admin_notification_email
+ *  - POST → uloží reply_from_email + reply_from_name + noreply_email + noreply_name
  */
 
 error_reporting(E_ALL);
@@ -13,7 +13,7 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
 require '../../inc/bootstrap.php';
-require '../../app/guard.php';
+require 'guard.php';
 
 requireRole('admin');
 
@@ -58,11 +58,10 @@ if ($method === 'POST') {
     validateCsrfToken();
     $data = json_decode(file_get_contents('php://input'), true) ?? [];
 
-    $replyEmail   = trim($data['reply_from_email']         ?? '');
-    $replyName    = trim($data['reply_from_name']          ?? '');
-    $noreplyEmail = trim($data['noreply_email']            ?? '');
-    $noreplyName  = trim($data['noreply_name']             ?? '');
-    $adminEmail   = trim($data['admin_notification_email'] ?? '');
+    $replyEmail   = trim($data['reply_from_email'] ?? '');
+    $replyName    = trim($data['reply_from_name']  ?? '');
+    $noreplyEmail = trim($data['noreply_email']    ?? '');
+    $noreplyName  = trim($data['noreply_name']     ?? '');
 
     // ── Validácia reply_from_email ──
     if (empty($replyEmail)) {
@@ -104,20 +103,6 @@ if ($method === 'POST') {
         exit;
     }
 
-    // ── Validácia admin_notification_email ──
-    if (empty($adminEmail)) {
-        echo json_encode(['success' => false, 'message' => 'Admin notification email cannot be empty']);
-        exit;
-    }
-    if (!filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) {
-        echo json_encode(['success' => false, 'message' => 'Admin notification email is invalid']);
-        exit;
-    }
-    if (mb_strlen($adminEmail) > 254) {
-        echo json_encode(['success' => false, 'message' => 'Admin notification email is too long']);
-        exit;
-    }
-
     try {
         $stmt = $db->prepare("
             INSERT INTO settings (`key`, `value`, `updated_at`)
@@ -125,11 +110,10 @@ if ($method === 'POST') {
             ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), `updated_at` = NOW()
         ");
 
-        $stmt->execute([':key' => 'reply_from_email',         ':value' => $replyEmail]);
-        $stmt->execute([':key' => 'reply_from_name',          ':value' => $replyName  ?: null]);
-        $stmt->execute([':key' => 'noreply_email',            ':value' => $noreplyEmail]);
-        $stmt->execute([':key' => 'noreply_name',             ':value' => $noreplyName ?: null]);
-        $stmt->execute([':key' => 'admin_notification_email', ':value' => $adminEmail]);
+        $stmt->execute([':key' => 'reply_from_email', ':value' => $replyEmail]);
+        $stmt->execute([':key' => 'reply_from_name',  ':value' => $replyName  ?: null]);
+        $stmt->execute([':key' => 'noreply_email',    ':value' => $noreplyEmail]);
+        $stmt->execute([':key' => 'noreply_name',     ':value' => $noreplyName ?: null]);
 
         echo json_encode(['success' => true, 'message' => 'Settings saved successfully']);
 

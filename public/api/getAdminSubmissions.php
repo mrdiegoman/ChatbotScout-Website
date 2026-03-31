@@ -5,7 +5,7 @@
  */
 
 require '../../inc/bootstrap.php';
-require '../../app/guard.php';
+require '../app/guard.php';
 
 requireRole('admin');
 

@@ -1,4 +1,16 @@
 // ============================================
+// UTILS
+// ============================================
+
+function escapeHtml(str) {
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function escapeAttr(str) {
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ============================================
 // NOTIFICATION SYSTEM
 // ============================================
 
@@ -175,7 +187,7 @@ async function sendReply(id, btn) {
         showNotification('Something went wrong.', 'error');
     } finally {
         btn.disabled    = false;
-        btn.textContent = '📨 Send Reply';
+        btn.textContent = 'Send Reply';
     }
 }
 
@@ -319,24 +331,22 @@ async function loadAdminSettings() {
         const replyNameInput   = document.getElementById('settingReplyName');
         const noreplyInput     = document.getElementById('settingNoreplyEmail');
         const noreplyNameInput = document.getElementById('settingNoreplyName');
-        const adminEmailInput  = document.getElementById('settingAdminNotificationEmail');
         const updatedEl        = document.getElementById('settingsLastUpdated');
- 
-        if (replyEmailInput)  replyEmailInput.value  = s['reply_from_email']?.value          ?? '';
-        if (replyNameInput)   replyNameInput.value   = s['reply_from_name']?.value           ?? '';
-        if (noreplyInput)     noreplyInput.value     = s['noreply_email']?.value              ?? '';
-        if (noreplyNameInput) noreplyNameInput.value = s['noreply_name']?.value               ?? '';
-        if (adminEmailInput)  adminEmailInput.value  = s['admin_notification_email']?.value  ?? '';
- 
-        const updatedAt = s['reply_from_email']?.updated_at
-            || s['noreply_email']?.updated_at
-            || s['admin_notification_email']?.updated_at;
- 
+
+        if (replyEmailInput)  replyEmailInput.value  = s['reply_from_email']?.value ?? '';
+        if (replyNameInput)   replyNameInput.value   = s['reply_from_name']?.value  ?? '';
+        if (noreplyInput)     noreplyInput.value     = s['noreply_email']?.value     ?? '';
+        if (noreplyNameInput) noreplyNameInput.value = s['noreply_name']?.value      ?? '';
+
+        const updatedAt = s['reply_from_email']?.updated_at || s['noreply_email']?.updated_at;
+
         if (updatedEl) {
             updatedEl.textContent = updatedAt ? `Last updated: ${updatedAt}` : '';
         }
- 
+
         if (contentEl) contentEl.style.display = 'block';
+
+        loadNotificationEmails();
  
     } catch (err) {
         showNotification('Failed to load settings', 'error');
@@ -354,14 +364,12 @@ async function saveAdminSettings(btn) {
     const replyNameInput   = document.getElementById('settingReplyName');
     const noreplyInput     = document.getElementById('settingNoreplyEmail');
     const noreplyNameInput = document.getElementById('settingNoreplyName');
-    const adminEmailInput  = document.getElementById('settingAdminNotificationEmail');
- 
+
     const replyEmail   = replyEmailInput?.value.trim()  ?? '';
     const replyName    = replyNameInput?.value.trim()   ?? '';
     const noreplyEmail = noreplyInput?.value.trim()     ?? '';
     const noreplyName  = noreplyNameInput?.value.trim() ?? '';
-    const adminEmail   = adminEmailInput?.value.trim()  ?? '';
- 
+
     if (!replyEmail) {
         showNotification('Reply-from email cannot be empty', 'error');
         replyEmailInput?.focus();
@@ -372,25 +380,19 @@ async function saveAdminSettings(btn) {
         noreplyInput?.focus();
         return;
     }
-    if (!adminEmail) {
-        showNotification('Admin notification email cannot be empty', 'error');
-        adminEmailInput?.focus();
-        return;
-    }
- 
+
     btn.disabled    = true;
     btn.textContent = 'Saving...';
- 
+
     try {
         const res  = await fetch('../app/adminSettingsActions.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({
-                reply_from_email:         replyEmail,
-                reply_from_name:          replyName,
-                noreply_email:            noreplyEmail,
-                noreply_name:             noreplyName,
-                admin_notification_email: adminEmail,
+                reply_from_email: replyEmail,
+                reply_from_name:  replyName,
+                noreply_email:    noreplyEmail,
+                noreply_name:     noreplyName,
             }),
         });
         const data = await res.json();
@@ -418,6 +420,156 @@ async function saveAdminSettings(btn) {
 }
 
 // ============================================
+// NOTIFICATION EMAILS — LOAD
+// ============================================
+
+let notifEmails = [];
+
+async function loadNotificationEmails() {
+    try {
+        const res  = await fetch('../api/getAdminNotificationEmails.php', { method: 'GET' });
+        const data = await res.json();
+
+        if (!data.success) return;
+
+        notifEmails = data.emails;
+        updateNotifEmailCount();
+        renderNotifEmailsList();
+
+    } catch (err) {
+        // non-critical, silently fail
+    }
+}
+
+function updateNotifEmailCount() {
+    const countEl = document.getElementById('notifEmailCount');
+    if (countEl) countEl.textContent = notifEmails.length;
+}
+
+function renderNotifEmailsList() {
+    const listEl  = document.getElementById('notifEmailsList');
+    const emptyEl = document.getElementById('notifEmailsEmpty');
+    if (!listEl) return;
+
+    listEl.innerHTML = '';
+
+    if (notifEmails.length === 0) {
+        if (emptyEl) emptyEl.style.display = 'block';
+        return;
+    }
+
+    if (emptyEl) emptyEl.style.display = 'none';
+
+    notifEmails.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'admin-notif-email-item';
+        div.dataset.id = item.id;
+        div.innerHTML = `
+            <span>${escapeHtml(item.email)}</span>
+            <button class="admin-notif-delete-btn" onclick="deleteNotificationEmail('${escapeAttr(item.id)}')" title="Remove">&#x2715;</button>
+        `;
+        listEl.appendChild(div);
+    });
+}
+
+// ============================================
+// NOTIFICATION EMAILS — ADD
+// ============================================
+
+async function addNotificationEmail() {
+    const input = document.getElementById('settingAdminNotificationEmail');
+    const email = input?.value.trim() ?? '';
+
+    if (!email) {
+        showNotification('Enter an email address first', 'error');
+        input?.focus();
+        return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showNotification('Invalid email address', 'error');
+        input?.focus();
+        return;
+    }
+
+    const addBtn = document.querySelector('.admin-notif-add-btn');
+    if (addBtn) { addBtn.disabled = true; addBtn.textContent = '...'; }
+
+    try {
+        const res  = await fetch('../api/addAdminNotificationEmail.php', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ email }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            notifEmails.push(data.email);
+            updateNotifEmailCount();
+            renderNotifEmailsList();
+            if (input) input.value = '';
+            showNotification('Email added', 'success');
+        } else {
+            showNotification(data.message || 'Failed to add email', 'error');
+        }
+    } catch (err) {
+        showNotification('Something went wrong.', 'error');
+    } finally {
+        if (addBtn) { addBtn.disabled = false; addBtn.textContent = '+'; }
+    }
+}
+
+// ============================================
+// NOTIFICATION EMAILS — DELETE
+// ============================================
+
+async function deleteNotificationEmail(id) {
+    try {
+        const res  = await fetch('../api/deleteAdminNotificationEmail.php', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ id }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            notifEmails = notifEmails.filter(e => e.id !== id);
+            updateNotifEmailCount();
+            renderNotifEmailsList();
+        } else {
+            showNotification(data.message || 'Failed to delete email', 'error');
+        }
+    } catch (err) {
+        showNotification('Something went wrong.', 'error');
+    }
+}
+
+// ============================================
+// NOTIFICATION EMAILS — POPUP
+// ============================================
+
+function openNotifEmailsPopup() {
+    const popup = document.getElementById('notifEmailsPopup');
+    if (!popup) return;
+    popup.style.display = 'flex';
+    requestAnimationFrame(() => popup.classList.add('visible'));
+}
+
+function closeNotifEmailsPopup() {
+    const popup = document.getElementById('notifEmailsPopup');
+    if (!popup) return;
+    popup.classList.remove('visible');
+    popup.addEventListener('transitionend', () => { popup.style.display = 'none'; }, { once: true });
+}
+
+function closeNotifEmailsPopupOnOverlay(event) {
+    if (event.target === document.getElementById('notifEmailsPopup')) {
+        closeNotifEmailsPopup();
+    }
+}
+
+// ============================================
 // INIT — ak je settings tab aktívny pri načítaní
 // ============================================
 
@@ -426,6 +578,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (settingsTab?.classList.contains('active')) {
         settingsTab.dataset.loaded = '1';
         loadAdminSettings();
+    }
+
+    const notifInput = document.getElementById('settingAdminNotificationEmail');
+    if (notifInput) {
+        notifInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); addNotificationEmail(); }
+        });
     }
 });
 

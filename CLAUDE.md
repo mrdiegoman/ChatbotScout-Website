@@ -15,7 +15,7 @@ Built with PHP + Node.js on XAMPP (Windows, local dev).
 |---|---|
 | Backend | PHP (OOP, no framework) |
 | Frontend | HTML, CSS, Vanilla JS |
-| Database | MySQL via PDO (`websitedb`) |
+| Database | MySQL via PDO (`d67598_websitedb`) |
 | Payments | Stripe (`stripe/stripe-php` + webhooks) |
 | Email | PHPMailer — Gmail API |
 | Rate Limiting | Redis (primary) with MySQL fallback |
@@ -70,7 +70,7 @@ WebsiteDB/    — Database schema backup (Base.sql)
 - OS: Windows 11
 - Local server: XAMPP
 - Web root: `C:\xampp\htdocs\MainWebsite`
-- MySQL DB name: `websitedb` (password: blank, user: root)
+- MySQL DB name: `d67598_websitedb` (password: blank, user: root)
 
 ## Local Dev URL
 `http://localhost/MainWebsite/`
@@ -267,15 +267,15 @@ All JS files use IIFE pattern:
 
 ## MCP Servers
 
-**Local MySQL MCP** (`mcp__websitedb__*`) — primárny MCP, queries `websitedb` priamo
-- `mcp__websitedb__query` — vykonáva SQL dotazy
-- `mcp__websitedb__get_tables` — zobrazuje tabuľky
+**Local MySQL MCP** (`mcp__d67598_websitedb__*`) — primárny MCP, queries `d67598_websitedb` priamo
+- `mcp__d67598_websitedb__query` — vykonáva SQL dotazy
+- `mcp__d67598_websitedb__get_tables` — zobrazuje tabuľky
 
 **Supabase MCP** (`mcp__claude_ai_Supabase__*`) — via claude.ai integration (projekt prázdny, nepoužíva sa)
 
 **Context7 MCP** (`mcp__context7__*`) — dokumentácia knižníc, vždy použiť pred písaním kódu s externe knižnicou
 
-**File:** `mcp/supabase-server.js` (CommonJS) — lokálny MCP server pre websitedb
+**File:** `mcp/supabase-server.js` (CommonJS) — lokálny MCP server pre d67598_websitedb
 
 ---
 
@@ -305,9 +305,9 @@ Configured in `config/app.php` under `rate_limit` key. Tracks both IP and email 
 ## Architecture Notes
 - No PHP framework — custom OOP with manual routing via `app/guard.php`
 - API endpoints return JSON, consumed by frontend JS fetch calls
-- MySQL (`websitedb`) is the primary app database; Supabase integration currently unused
+- MySQL (`d67598_websitedb`) is the primary app database; Supabase integration currently unused
 - Stripe webhooks handled in `api/stripeWebhook.php`
-- MCP server (`mcp/supabase-server.js`) connects Claude to local MySQL (`websitedb`) for DB queries during development
+- MCP server (`mcp/supabase-server.js`) connects Claude to local MySQL (`d67598_websitedb`) for DB queries during development
 - No `.env` file — all credentials hardcoded in `config/` files (local dev only)
 - `WebsiteDB/Base.sql` contains the full database schema dump
 - Cron: `cron/updatePopularTags.php` runs daily to update tag rankings
@@ -360,6 +360,9 @@ Production is on chatbotscout.com hosted via HostCreators. Files are uploaded ma
 
 ## Styling in CSS
 When working with bold text always choose between `font-family: outfit-bold`, `outfit-medium`, `outfit-semibold`. Never use `font-weight`.
+
+## Localhost & Production Compatibility
+All code must work on **both** localhost (XAMPP) and production (chatbotscout.com). Never hardcode environment-specific values. Use config files or environment detection where behaviour differs (e.g. DB credentials, email driver, cookie `secure` flag). Always test logic paths that apply to both environments.
 
 ## Business Logic
 The main purpose is to get users to click affiliate links in `chatbotShowcase.php` or `favouriteShowcase.php` — this sets cookies so the site knows the user came from ChatbotScout, generating affiliate revenue if they buy a chatbot subscription. Future: paid advertising system with monthly subscriptions for promoted chatbot listings.
