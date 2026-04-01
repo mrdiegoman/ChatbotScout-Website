@@ -60,7 +60,7 @@
     }
 
     function fetchAndUpdateCounts() {
-        fetch('../api/getCurrencyCounts.php', {
+        fetch('api/getCurrencyCounts.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify(getActiveState()),
@@ -112,7 +112,7 @@
     }
 
     // ── Fetch currencies + render ─────────────────────────────────────────────
-    fetch('../api/getCurrencies.php')
+    fetch('api/getCurrencies.php')
         .then(res => res.json())
         .then(data => {
             if (!data.success || !data.currencies.length) return;

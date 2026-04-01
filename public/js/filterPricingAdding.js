@@ -90,7 +90,7 @@
     }
 
     function fetchAndUpdateCounts() {
-        fetch('../api/getPricingCounts.php', {
+        fetch('api/getPricingCounts.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify(getActiveState()),
@@ -149,7 +149,7 @@
     // FETCH MODELS + RENDER
     // ============================================
 
-    fetch('../api/getPricingModels.php')
+    fetch('api/getPricingModels.php')
         .then(res => res.json())
         .then(data => {
             if (!data.success || !data.models.length) return;

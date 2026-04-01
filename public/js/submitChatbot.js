@@ -137,7 +137,7 @@ function setupFormSubmit() {
                 message:       document.getElementById('message').value.trim(),
             };
 
-            const res  = await fetch('../api/submitChatbot.php', {
+            const res  = await fetch('api/submitChatbot.php', {
                 method:  'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body:    JSON.stringify(payload)

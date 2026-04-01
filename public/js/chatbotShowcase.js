@@ -478,7 +478,7 @@
             });
         }
 
-        fetch(`../api/getChatbots.php?${params}`)
+        fetch(`api/getChatbots.php?${params}`)
             .then(res => res.json())
             .then(data => {
                 if (!data.success) throw new Error('API error');
@@ -529,7 +529,7 @@
         // console.log('chatbotId:', chatbotId);
         if (!chatbotId) return;
 
-        fetch('../api/recordVisit.php', {
+        fetch('api/recordVisit.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -573,7 +573,7 @@
         }
 
         // Sync s DB
-        fetch('../api/toggleFavorite.php', {
+        fetch('api/toggleFavorite.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chatbot_id: chatbotId }),
@@ -664,7 +664,7 @@
         lockScroll();
 
         // Skontroluj či user už dal review pre tento chatbot
-        fetch(`../api/checkReview.php?chatbot_id=${encodeURIComponent(chatbotId)}`)
+        fetch(`api/checkReview.php?chatbot_id=${encodeURIComponent(chatbotId)}`)
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.has_reviewed) {
@@ -744,7 +744,7 @@
         ratingSubmitBtn.disabled = true;
         ratingSubmitBtn.textContent = 'Submitting...';
 
-        fetch('../api/submitReview.php', {
+        fetch('api/submitReview.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

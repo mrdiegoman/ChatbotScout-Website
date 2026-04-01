@@ -389,7 +389,7 @@
             '.favourites-page-main-content-chatbots-grid-view-item, .favourites-page-main-content-chatbots-list-view-item-containter'
         );
 
-        fetch('../api/toggleFavorite.php', {
+        fetch('api/toggleFavorite.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chatbot_id: chatbotId }),
@@ -429,7 +429,7 @@
         if (!link) return;
         const chatbotId = link.dataset.chatbotId;
         if (!chatbotId) return;
-        fetch('../api/recordVisit.php', {
+        fetch('api/recordVisit.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -491,7 +491,7 @@ function openRatingModal(chatbotId, chatbotName) {
     lockScroll();
 
     // Skontroluj či user už dal review pre tento chatbot
-    fetch(`../api/checkReview.php?chatbot_id=${encodeURIComponent(chatbotId)}`)
+    fetch(`api/checkReview.php?chatbot_id=${encodeURIComponent(chatbotId)}`)
         .then(res => res.json())
         .then(data => {
             if (data.success && data.has_reviewed) {
@@ -571,7 +571,7 @@ function openRatingModal(chatbotId, chatbotName) {
         ratingSubmitBtn.disabled = true;
         ratingSubmitBtn.textContent = 'Submitting...';
 
-        fetch('../api/submitReview.php', {
+        fetch('api/submitReview.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -666,7 +666,7 @@ function openRatingModal(chatbotId, chatbotName) {
             });
         }
 
-        fetch(`../api/getFavourites.php?${params}`)
+        fetch(`api/getFavourites.php?${params}`)
             .then(res => res.json())
             .then(data => {
                 if (!data.success) throw new Error('API error');

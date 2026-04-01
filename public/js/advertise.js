@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── Load promotion plans ─────────────────────────────────────────────────────
 async function loadPlans() {
     try {
-        const res  = await fetch('../api/getPromotionPlans.php');
+        const res  = await fetch('api/getPromotionPlans.php');
         const data = await res.json();
 
         if (!data.success) throw new Error(data.message);
@@ -74,7 +74,7 @@ async function loadPlans() {
 // ── Load user chatbots ───────────────────────────────────────────────────────
 async function loadChatbots() {
     try {
-        const res  = await fetch('../api/getUserChatbots.php');
+        const res  = await fetch('api/getUserChatbots.php');
         const data = await res.json();
 
         if (!data.success) return;

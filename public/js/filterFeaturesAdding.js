@@ -140,7 +140,7 @@
     let debounceTimer = null;
 
     function fetchAndUpdateCounts() {
-        fetch('../api/getFeatureCounts.php', {
+        fetch('api/getFeatureCounts.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify(getActiveFilters()),
@@ -300,7 +300,7 @@
     // FETCH FEATURES FROM API
     // ============================================
 
-    fetch('../api/getFeatures.php')
+    fetch('api/getFeatures.php')
         .then(res => res.json())
         .then(data => {
             if (!data.success) { console.error('getFeatures API error'); return; }

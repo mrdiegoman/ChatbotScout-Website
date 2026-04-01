@@ -191,7 +191,7 @@
 
         if (!fingerprint) return;
         
-        fetch('../api/identify.php', {
+        fetch('api/identify.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ fingerprint: fingerprint })

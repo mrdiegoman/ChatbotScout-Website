@@ -63,7 +63,7 @@
     function loadReviews() {
         setLoading(true);
 
-        fetch('../api/getUserReviews.php')
+        fetch('api/getUserReviews.php')
             .then(res => res.json())
             .then(data => {
                 if (!data.success) {
@@ -271,7 +271,7 @@
             editSubmitBtn.textContent = 'Saving...';
 
             try {
-                const res  = await fetch('../api/updateReview.php', {
+                const res  = await fetch('api/updateReview.php', {
                     method:  'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -382,7 +382,7 @@
             deleteConfirmBtn.textContent = 'Deleting...';
 
             try {
-                const res  = await fetch('../api/updateReview.php', {
+                const res  = await fetch('api/updateReview.php', {
                     method:  'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'delete', id: pendingDeleteId }),

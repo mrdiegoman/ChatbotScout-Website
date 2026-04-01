@@ -361,7 +361,7 @@ async function scrollToOldest(section) {
 
     try {
         // 1. Opýtaj sa API na ID najstaršieho new/pending záznamu
-        const res  = await fetch(`../api/getOldestNewItem.php?type=${section}`);
+        const res  = await fetch(`api/getOldestNewItem.php?type=${section}`);
         const data = await res.json();
 
         if (!data.success) throw new Error(data.message);
@@ -414,7 +414,7 @@ async function loadAllChunk(section) {
             if (href.includes('helpful')) { helpful = '&helpful'; }
             else { const m = href.match(/status=([^&]+)/); status = m ? m[1] : 'all'; }
         }
-        url = `../api/getAdminData.php?type=messages&status=${encodeURIComponent(status)}${helpful}&limit=50&offset=${state.offset}`;
+        url = `api/getAdminData.php?type=messages&status=${encodeURIComponent(status)}${helpful}&limit=50&offset=${state.offset}`;
     } else {
         const activeSubTab = document.querySelector('#reviews-tab .admin-tabs .admin-tab.active');
         let reviewStatus = 'all';
@@ -423,7 +423,7 @@ async function loadAllChunk(section) {
             const m = href.match(/review_status=([^&]+)/);
             reviewStatus = m ? m[1] : 'all';
         }
-        url = `../api/getAdminData.php?type=reviews&review_status=${encodeURIComponent(reviewStatus)}&limit=50&offset=${state.offset}`;
+        url = `api/getAdminData.php?type=reviews&review_status=${encodeURIComponent(reviewStatus)}&limit=50&offset=${state.offset}`;
     }
 
     const res  = await fetch(url);
@@ -469,7 +469,7 @@ async function loadMoreMessages(btn) {
         }
     }
 
-    const url = `../api/getAdminData.php?type=messages&status=${encodeURIComponent(status)}${helpful}&limit=${PAGE_SIZE}&offset=${state.offset}`;
+    const url = `api/getAdminData.php?type=messages&status=${encodeURIComponent(status)}${helpful}&limit=${PAGE_SIZE}&offset=${state.offset}`;
 
     try {
         const res  = await fetch(url);
@@ -511,7 +511,7 @@ async function loadMoreReviews(btn) {
         reviewStatus = match ? match[1] : 'all';
     }
 
-    const url = `../api/getAdminData.php?type=reviews&review_status=${encodeURIComponent(reviewStatus)}&limit=${PAGE_SIZE}&offset=${state.offset}`;
+    const url = `api/getAdminData.php?type=reviews&review_status=${encodeURIComponent(reviewStatus)}&limit=${PAGE_SIZE}&offset=${state.offset}`;
 
     try {
         const res  = await fetch(url);
@@ -553,7 +553,7 @@ async function refreshMessages(btn) {
         }
     }
 
-    const url = `../api/getAdminData.php?type=messages&status=${encodeURIComponent(status)}${helpful}&limit=${PAGE_SIZE}&offset=0`;
+    const url = `api/getAdminData.php?type=messages&status=${encodeURIComponent(status)}${helpful}&limit=${PAGE_SIZE}&offset=0`;
 
     btn.classList.add('spinning');
     btn.disabled = true;
@@ -624,7 +624,7 @@ async function refreshReviews(btn) {
         reviewStatus = match ? match[1] : 'all';
     }
 
-    const url = `../api/getAdminData.php?type=reviews&review_status=${encodeURIComponent(reviewStatus)}&limit=${PAGE_SIZE}&offset=0`;
+    const url = `api/getAdminData.php?type=reviews&review_status=${encodeURIComponent(reviewStatus)}&limit=${PAGE_SIZE}&offset=0`;
 
     btn.classList.add('spinning');
     btn.disabled = true;
@@ -696,7 +696,7 @@ async function loadMoreSubmissions(btn) {
         subStatus   = match ? match[1] : 'pending';
     }
 
-    const url = `../api/getAdminSubmissions.php?sub_status=${encodeURIComponent(subStatus)}&limit=${PAGE_SIZE}&offset=${state.offset}`;
+    const url = `api/getAdminSubmissions.php?sub_status=${encodeURIComponent(subStatus)}&limit=${PAGE_SIZE}&offset=${state.offset}`;
 
     try {
         const res  = await fetch(url);
@@ -730,7 +730,7 @@ async function scrollToOldestSubmissions() {
 
     try {
         // 1. Opýtaj sa API na ID najstaršieho pending submission
-        const res  = await fetch('../api/getOldestNewItem.php?type=submissions');
+        const res  = await fetch('api/getOldestNewItem.php?type=submissions');
         const data = await res.json();
 
         if (!data.success) throw new Error(data.message);
@@ -757,7 +757,7 @@ async function scrollToOldestSubmissions() {
                 const match = href.match(/sub_status=([^&]+)/);
                 subStatus   = match ? match[1] : 'pending';
             }
-            const url      = `../api/getAdminSubmissions.php?sub_status=${encodeURIComponent(subStatus)}&limit=50&offset=${state.offset}`;
+            const url      = `api/getAdminSubmissions.php?sub_status=${encodeURIComponent(subStatus)}&limit=50&offset=${state.offset}`;
             const chunkRes = await fetch(url);
             const chunkData = await chunkRes.json();
             if (!chunkData.success) throw new Error(chunkData.message);
@@ -802,7 +802,7 @@ async function refreshSubmissions(btn) {
         subStatus   = match ? match[1] : 'pending';
     }
 
-    const url = `../api/getAdminSubmissions.php?sub_status=${encodeURIComponent(subStatus)}&limit=${PAGE_SIZE}&offset=0`;
+    const url = `api/getAdminSubmissions.php?sub_status=${encodeURIComponent(subStatus)}&limit=${PAGE_SIZE}&offset=0`;
 
     btn.classList.add('spinning');
     btn.disabled = true;
@@ -921,7 +921,7 @@ async function blockUser(userId, type, btn) {
     btn.textContent = '⏳ Blocking...';
  
     try {
-        const res  = await fetch('../api/blockUser.php', {
+        const res  = await fetch('api/blockUser.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: userId, type }),
@@ -963,7 +963,7 @@ async function unblockUser(userId, type, btn) {
     btn.textContent = '⏳ Unblocking...';
  
     try {
-        const res  = await fetch('../api/blockUser.php', {
+        const res  = await fetch('api/blockUser.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: userId, type, unblock: true }),

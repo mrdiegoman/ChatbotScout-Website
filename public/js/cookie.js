@@ -238,7 +238,7 @@
 
     function revokeStatisticsCookies() {
         // visitor_id je httponly — JS k nemu nemá prístup, mažeme server-side
-        fetch('../api/revokeConsent.php', { method: 'POST' }).catch(function () {});
+        fetch('api/revokeConsent.php', { method: 'POST' }).catch(function () {});
         // Fallback pokus pre prípad že nie je httponly (dev prostredie)
         deleteCookie('visitor_id');
     }

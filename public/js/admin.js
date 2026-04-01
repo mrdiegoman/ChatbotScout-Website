@@ -427,7 +427,7 @@ let notifEmails = [];
 
 async function loadNotificationEmails() {
     try {
-        const res  = await fetch('../api/getAdminNotificationEmails.php', { method: 'GET' });
+        const res  = await fetch('api/getAdminNotificationEmails.php', { method: 'GET' });
         const data = await res.json();
 
         if (!data.success) return;
@@ -497,7 +497,7 @@ async function addNotificationEmail() {
     if (addBtn) { addBtn.disabled = true; addBtn.textContent = '...'; }
 
     try {
-        const res  = await fetch('../api/addAdminNotificationEmail.php', {
+        const res  = await fetch('api/addAdminNotificationEmail.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ email }),
@@ -526,7 +526,7 @@ async function addNotificationEmail() {
 
 async function deleteNotificationEmail(id) {
     try {
-        const res  = await fetch('../api/deleteAdminNotificationEmail.php', {
+        const res  = await fetch('api/deleteAdminNotificationEmail.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ id }),

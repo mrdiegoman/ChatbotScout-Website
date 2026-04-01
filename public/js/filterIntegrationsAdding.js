@@ -163,7 +163,7 @@
     }
 
     function fetchAndUpdateCounts() {
-        fetch('../api/getIntegrationCounts.php', {
+        fetch('api/getIntegrationCounts.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify(getActiveState()),
@@ -194,7 +194,7 @@
     // FETCH INTEGRATIONS + RENDER
     // ============================================
 
-    fetch('../api/getIntegrations.php')
+    fetch('api/getIntegrations.php')
         .then(res => res.json())
         .then(data => {
             if (!data.success || !data.integrations.length) {
