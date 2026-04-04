@@ -3,6 +3,17 @@ const gridBtn = document.getElementById('gridBtn');
 const gridView = document.getElementById('gridView');
 const listView = document.getElementById('listView');
 
+function hasPreferencesConsent() {
+    try {
+        var raw = localStorage.getItem('cookie_consent_v2');
+        if (raw) {
+            var c = JSON.parse(raw);
+            return c && c.preferences === true;
+        }
+    } catch(e) {}
+    return false;
+}
+
 function setActiveLayout(layout) {
     // Odstráň active triedu z oboch tlačidiel
     listBtn.classList.remove('active');
@@ -21,13 +32,15 @@ function setActiveLayout(layout) {
         gridView.classList.add('active');
     }
 
-    // Ulož preferenicu do localStorage
-    localStorage.setItem('preferredLayout', layout);
+    // Ulož preferenicu do localStorage len ak má používateľ súhlas
+    if (hasPreferencesConsent()) {
+        localStorage.setItem('preferredLayout', layout);
+    }
 }
 
 listBtn.addEventListener('click', () => setActiveLayout('list'));
 gridBtn.addEventListener('click', () => setActiveLayout('grid'));
 
-// Načítaj uloženú preferenicu pri načítaní stránky
-const savedLayout = localStorage.getItem('preferredLayout') || 'grid';
+// Načítaj uloženú preferenicu pri načítaní stránky (len ak má súhlas)
+const savedLayout = (hasPreferencesConsent() && localStorage.getItem('preferredLayout')) || 'grid';
 setActiveLayout(savedLayout);

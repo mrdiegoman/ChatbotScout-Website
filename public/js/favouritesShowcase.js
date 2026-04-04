@@ -28,7 +28,7 @@
         searchQuery: '',
     };
 
-    const LOGIN_URL = '../public/login.php?redirect=favouritesShowcase.php';
+    const LOGIN_URL = 'login.php?redirect=favouritesShowcase.php';
 
     // ============================================
     // DOM REFERENCES

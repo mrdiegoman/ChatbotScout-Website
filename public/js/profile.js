@@ -650,7 +650,7 @@ if (confirmDeleteBtn) {
             if (result.success) {
                 showNotification('Account deleted. Redirecting...', 'success');
                 setTimeout(() => {
-                    window.location.href = '../public/index.php';
+                    window.location.href = 'index.php';
                 }, 2000);
             } else {
                 showNotification(result.message || 'Deletion failed', 'error');

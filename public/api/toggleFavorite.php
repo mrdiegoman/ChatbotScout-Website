@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // Musí byť prihlásený
 if (!$isLoggedIn || empty($user['id'])) {
-    echo json_encode(['success' => false, 'message' => 'Not logged in', 'redirect' => '../public/login.php?redirect=chatbotShowcase.php']);
+    echo json_encode(['success' => false, 'message' => 'Not logged in', 'redirect' => '../login.php?redirect=chatbotShowcase.php']);
     exit;
 }
 

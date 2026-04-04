@@ -106,7 +106,6 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
 
 <head>
     <!-- Google Analytics (Consent Mode v2) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-17N57DRY59" nonce="<?= $cspNonce ?>"></script>
     <script nonce="<?= $cspNonce ?>">
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
@@ -114,8 +113,12 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
             'analytics_storage': 'denied',
             'ad_storage': 'denied',
             'ad_user_data': 'denied',
-            'ad_personalization': 'denied'
+            'ad_personalization': 'denied',
+            'wait_for_update': 500
         });
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-17N57DRY59" nonce="<?= $cspNonce ?>"></script>
+    <script nonce="<?= $cspNonce ?>">
         gtag('js', new Date());
         gtag('config', 'G-17N57DRY59');
     </script>

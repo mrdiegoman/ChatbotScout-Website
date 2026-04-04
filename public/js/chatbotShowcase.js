@@ -28,7 +28,7 @@
         searchQuery:     '', 
     };
 
-    const LOGIN_URL = '../public/login.php?redirect=chatbotShowcase.php';
+    const LOGIN_URL = 'login.php?redirect=chatbotShowcase.php';
 
     // ============================================
     // DOM REFERENCES

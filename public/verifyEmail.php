@@ -17,9 +17,6 @@ try {
     $userService->verifyEmail($token);
     
     $success = true;
-    $rateLimiter = new RateLimiter();
-    $clientIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-    $rateLimiter->reset('resend_verification', $clientIp, $email);
     
 } catch (Exception $e) {
     $error = $e->getMessage();

@@ -1,10 +1,9 @@
 <?php
 // Získanie emailu z URL parametra alebo session
-$userEmail = isset($_GET['email']) ? htmlspecialchars($_GET['email']) : 
+$userEmail = isset($_GET['email']) ? htmlspecialchars($_GET['email']) :
              (isset($_SESSION['user_email']) ? htmlspecialchars($_SESSION['user_email']) : 'your.email@example.com');
 ?>
 
-</html>
 <!DOCTYPE html>
 <html lang="sk">
 <head>
