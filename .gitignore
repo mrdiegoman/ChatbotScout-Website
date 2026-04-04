@@ -26,3 +26,6 @@ public/img/avatars/*
 # OS files
 .DS_Store
 Thumbs.db
+
+# IDE files
+.idea/
