@@ -74,7 +74,7 @@ header(
     "style-src 'self' 'unsafe-inline'; " .
     "img-src 'self' data: https://lh3.googleusercontent.com; " .
     "font-src 'self' data:; " .
-    "connect-src 'self' https://api.stripe.com https://js.stripe.com; " .
+    "connect-src 'self' https://api.stripe.com https://js.stripe.com https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com; " .
     "frame-src https://js.stripe.com; " .
     "frame-ancestors 'none'; " .
     "base-uri 'self'; " .

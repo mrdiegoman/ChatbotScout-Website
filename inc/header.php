@@ -26,6 +26,14 @@ if (
 }
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: ('/' . $page . '.php');
+$isErrorPage = in_array($page, ['404', '500'], true);
+$documentBaseHref = null;
+
+if ($isErrorPage) {
+    $scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
+    $scriptDir = rtrim(dirname($scriptName), '/\\');
+    $documentBaseHref = ($scriptDir === '' || $scriptDir === '.') ? '/' : $scriptDir . '/';
+}
 
 if ($page === 'index') {
     $canonicalPath = '/';
@@ -96,6 +104,8 @@ $noIndexPages = [
     'getToken',
     'googleAuth',
     'googleCallback',
+    '404',
+    '500',
 ];
 
 $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'index,follow';
@@ -124,6 +134,9 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <?php if ($documentBaseHref): ?>
+        <base href="<?php echo htmlspecialchars($documentBaseHref, ENT_QUOTES, 'UTF-8'); ?>">
+    <?php endif; ?>
     <meta name="csrf-token" content="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
     <title><?php echo htmlspecialchars($fullTitle, ENT_QUOTES, 'UTF-8'); ?></title>
     <meta name="description" content="<?php echo htmlspecialchars($seo['description'], ENT_QUOTES, 'UTF-8'); ?>">
