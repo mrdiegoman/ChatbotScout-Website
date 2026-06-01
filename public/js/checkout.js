@@ -4,11 +4,11 @@
  *
  * Očakáva window.checkoutData nastavený v checkout.php:
  * {
- *   chatbotId, promotionId, promotionId2, stripePubKey
+ *   chatbotId, promotionId, promotionId2, billingPeriod, stripePubKey
  * }
  */
 
-const { chatbotId, promotionId, promotionId2, stripePubKey } = window.checkoutData;
+const { chatbotId, promotionId, promotionId2, billingPeriod, stripePubKey } = window.checkoutData;
 
 const stripe  = Stripe(stripePubKey);
 let elements  = null;
@@ -31,6 +31,7 @@ async function init() {
                 chatbot_id:    chatbotId,
                 promotion_id:  promotionId,
                 promotion_id2: promotionId2,
+                billing_period: billingPeriod,
             }),
         });
         const data = await res.json();

@@ -30,6 +30,9 @@ const confirmBtn      = $('modalConfirmBtn');
 const confirmText     = $('modalConfirmText');
 const confirmLoader   = $('modalConfirmLoader');
 
+const YEARLY_DISCOUNT_PERCENTAGE = toNumber(window.advData?.yearlyDiscountPercentage, 20);
+const BUNDLE_DISCOUNT_PERCENTAGE = toNumber(window.advData?.bundleDiscountPercentage, 10);
+
 // ── Init ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     loadPlans();
@@ -116,23 +119,16 @@ function setupBillingToggle() {
 function updatePriceDisplay() {
     const period = state.selectedPeriod;
 
-    // Update billing badge with real savings %
+    // Update billing badge with the yearly bundle saving.
     const badgeEl = $('billingBadge');
     if (badgeEl) {
-        const hMonthly = state.plans['Homepage']?.['monthly'];
-        const hYearly  = state.plans['Homepage']?.['yearly'];
-        if (hMonthly && hYearly) {
-            const monthlyPrice   = parseFloat(hMonthly.price);
-            const yearlyPerMonth = (parseFloat(hYearly.price) * (1 - hYearly.discount_percentage / 100)) / 12;
-            const pct = Math.round((1 - yearlyPerMonth / monthlyPrice) * 100);
-            badgeEl.textContent = pct > 0 ? `Save ${pct}%` : 'Save more';
-        }
+        badgeEl.textContent = `Save ${formatDiscount(bundleDiscount('yearly'))}%`;
     }
 
     // Helper: update a single card
     function updateCard(slot) {
-        const plan        = state.plans[slot]?.[period];
-        const monthlyPlan = state.plans[slot]?.['monthly'];
+        const plan        = getBasePlan(slot);
+        const monthlyPlan = plan;
 
         const priceEl     = $('price-'        + slot);
         const periodEl    = $('period-'       + slot);
@@ -149,17 +145,16 @@ function updatePriceDisplay() {
         }
 
         if (period === 'yearly') {
-            const yearlyTotal = parseFloat(plan.price) * (1 - plan.discount_percentage / 100);
-            const perMonth    = yearlyTotal / 12;
+            const perMonth = packageMonthlyPrice(plan, period);
+            const pct      = packageDiscount(plan, period);
 
             priceEl.textContent  = perMonth.toFixed(2);
             periodEl.textContent = '/mo';
 
             if (monthlyPlan && yearlyInfo) {
-                const monthlyPrice = parseFloat(monthlyPlan.price);
-                const pct          = Math.round((1 - perMonth / monthlyPrice) * 100);
+                const monthlyPrice = toNumber(monthlyPlan.price);
                 originalEl.textContent  = '$' + monthlyPrice.toFixed(2) + '/mo';
-                savingPctEl.textContent = pct + '% cheaper per month';
+                savingPctEl.textContent = '-' + formatDiscount(pct) + '%';
                 yearlyInfo.style.display = 'flex';
             }
 
@@ -169,10 +164,19 @@ function updatePriceDisplay() {
                 totalBtn.textContent          = 'Show total (12 months)';
             }
         } else {
-            const monthlyPrice   = parseFloat(plan.price);
+            const monthlyPrice   = packageMonthlyPrice(plan, period);
+            const pct            = packageDiscount(plan, period);
             priceEl.textContent  = monthlyPrice.toFixed(2);
             periodEl.textContent = '/mo';
-            if (yearlyInfo) yearlyInfo.style.display = 'none';
+            if (yearlyInfo) {
+                if (pct > 0) {
+                    originalEl.textContent  = '$' + toNumber(plan.price).toFixed(2) + '/mo';
+                    savingPctEl.textContent = '-' + formatDiscount(pct) + '%';
+                    yearlyInfo.style.display = 'flex';
+                } else {
+                    yearlyInfo.style.display = 'none';
+                }
+            }
             if (totalBtn)   totalBtn.style.display   = 'none';
         }
     }
@@ -181,25 +185,23 @@ function updatePriceDisplay() {
     updateCard('Chatbots_Page');
 
     // Bundle
-    const hero = state.plans['Homepage']?.[period];
-    const cat  = state.plans['Chatbots_Page']?.[period];
+    const hero = getBasePlan('Homepage');
+    const cat  = getBasePlan('Chatbots_Page');
 
     if (hero && cat) {
-        const heroFinal = parseFloat(hero.price) * (1 - hero.discount_percentage / 100);
-        const catFinal  = parseFloat(cat.price)  * (1 - cat.discount_percentage  / 100);
-
         if (period === 'yearly') {
-            const perMonth = (heroFinal + catFinal) / 12;
+            const perMonth = bundleMonthlyPrice(hero, cat, period);
+            const pct      = bundleDiscount(period);
+
             $('price-bundle').textContent  = perMonth.toFixed(2);
             $('period-bundle').textContent = '/mo';
 
             const heroM = state.plans['Homepage']?.['monthly'];
             const catM  = state.plans['Chatbots_Page']?.['monthly'];
             if (heroM && catM) {
-                const monthlyTotal = parseFloat(heroM.price) + parseFloat(catM.price);
-                const pct = Math.round((1 - perMonth / monthlyTotal) * 100);
+                const monthlyTotal = toNumber(heroM.price) + toNumber(catM.price);
                 $('original-bundle').textContent   = '$' + monthlyTotal.toFixed(2) + '/mo';
-                $('saving-pct-bundle').textContent = pct + '% cheaper per month';
+                $('saving-pct-bundle').textContent = '-' + formatDiscount(pct) + '%';
                 $('yearly-info-bundle').style.display = 'flex';
             }
 
@@ -209,17 +211,15 @@ function updatePriceDisplay() {
             $('savings-bundle').style.display          = 'none';
 
         } else {
-            $('price-bundle').textContent  = (heroFinal + catFinal).toFixed(2);
+            $('price-bundle').textContent  = bundleMonthlyPrice(hero, cat, period).toFixed(2);
             $('period-bundle').textContent = '/mo';
             $('yearly-info-bundle').style.display = 'none';
             $('total-btn-bundle').style.display   = 'none';
 
-            const heroMonthly = parseFloat(hero.price);
-            const catMonthly  = parseFloat(cat.price);
-            const savings = Math.round((1 - (heroFinal + catFinal) / (heroMonthly + catMonthly)) * 100);
+            const savings = bundleDiscount(period);
             if (savings > 0) {
                 $('savings-bundle').style.display = 'block';
-                $('savings-amount').textContent   = savings;
+                $('savings-amount').textContent   = formatDiscount(savings);
             } else {
                 $('savings-bundle').style.display = 'none';
             }
@@ -241,40 +241,107 @@ function setupYearlyToggles() {
             const showing = btn.dataset.showingTotal === 'true';
 
             if (showing) {
-                // Revert to per-month view
                 updatePriceDisplay();
             } else {
-                // Show full yearly total
-                let total = null;
-
-                if (slot === 'bundle') {
-                    const hero = state.plans['Homepage']?.['yearly'];
-                    const cat  = state.plans['Chatbots_Page']?.['yearly'];
-                    if (hero && cat) {
-                        total = (parseFloat(hero.price) * (1 - hero.discount_percentage / 100))
-                              + (parseFloat(cat.price)  * (1 - cat.discount_percentage  / 100));
-                    }
-                } else {
-                    const plan = state.plans[slot]?.['yearly'];
-                    if (plan) {
-                        total = parseFloat(plan.price) * (1 - plan.discount_percentage / 100);
-                    }
-                }
-
-                if (total !== null) {
-                    $('price-'  + slot).textContent = total.toFixed(2);
-                    $('period-' + slot).textContent = '/yr';
-                    btn.textContent          = 'Show per month';
-                    btn.dataset.showingTotal = 'true';
-                }
+                showYearlyTotalsForAllCards();
             }
         });
     });
 }
 
-function formatPrice(price, discount) {
-    const final = price * (1 - discount / 100);
-    return final.toFixed(2);
+function showYearlyTotalsForAllCards() {
+    ['Homepage', 'Chatbots_Page', 'bundle'].forEach(slot => {
+        const total    = yearlyTotalForSlot(slot);
+        const priceEl  = $('price-' + slot);
+        const periodEl = $('period-' + slot);
+        const btn      = $('total-btn-' + slot);
+
+        if (total === null || !priceEl || !periodEl || !btn || btn.style.display === 'none') {
+            return;
+        }
+
+        priceEl.textContent  = total.toFixed(2);
+        periodEl.textContent = '/yr';
+        btn.textContent = 'Show per month';
+        btn.dataset.showingTotal = 'true';
+    });
+}
+
+function yearlyTotalForSlot(slot) {
+    if (slot === 'bundle') {
+        const hero = getBasePlan('Homepage');
+        const cat  = getBasePlan('Chatbots_Page');
+        return hero && cat ? bundleTotalPrice(hero, cat, 'yearly') : null;
+    }
+
+    const plan = getBasePlan(slot);
+    return plan ? packageTotalPrice(plan, 'yearly') : null;
+}
+
+function toNumber(value, fallback = 0) {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : fallback;
+}
+
+function clampDiscount(discount) {
+    return Math.max(0, Math.min(100, toNumber(discount)));
+}
+
+function formatDiscount(discount) {
+    const rounded = Math.round(clampDiscount(discount) * 100) / 100;
+    return Number.isInteger(rounded)
+        ? String(rounded)
+        : rounded.toFixed(2).replace(/\.?0+$/, '');
+}
+
+function billingMultiplier(period) {
+    return period === 'yearly' ? 12 : 1;
+}
+
+function getBasePlan(slot) {
+    return state.plans[slot]?.['monthly']
+        || state.plans[slot]?.['yearly']
+        || null;
+}
+
+function packageDiscount(plan, period) {
+    const dbDiscount = toNumber(plan?.discount_percentage);
+    const yearlyDiscount = period === 'yearly' ? YEARLY_DISCOUNT_PERCENTAGE : 0;
+    return clampDiscount(dbDiscount + yearlyDiscount);
+}
+
+function bundleDiscount(period) {
+    const yearlyDiscount = period === 'yearly' ? YEARLY_DISCOUNT_PERCENTAGE : 0;
+    return clampDiscount(BUNDLE_DISCOUNT_PERCENTAGE + yearlyDiscount);
+}
+
+function discountedMonthlyPrice(monthlyPrice, discount) {
+    return toNumber(monthlyPrice) * (1 - clampDiscount(discount) / 100);
+}
+
+function packageMonthlyPrice(plan, period) {
+    if (!plan) return 0;
+    return discountedMonthlyPrice(plan.price, packageDiscount(plan, period));
+}
+
+function packageTotalPrice(plan, period) {
+    return packageMonthlyPrice(plan, period) * billingMultiplier(period);
+}
+
+function bundleBaseMonthlyTotal(hero, cat) {
+    return toNumber(hero?.price) + toNumber(cat?.price);
+}
+
+function bundleMonthlyPrice(hero, cat, period) {
+    return discountedMonthlyPrice(bundleBaseMonthlyTotal(hero, cat), bundleDiscount(period));
+}
+
+function bundleTotalPrice(hero, cat, period) {
+    return bundleMonthlyPrice(hero, cat, period) * billingMultiplier(period);
+}
+
+function formatPrice(price) {
+    return toNumber(price).toFixed(2);
 }
 
 // ── Modal setup ──────────────────────────────────────────────────────────────
@@ -389,33 +456,35 @@ function populatePeriodOptions(slot) {
         let plan = null;
 
         if (slot === 'bundle') {
-            const hero = state.plans['Homepage']?.[period];
-            const cat  = state.plans['Chatbots_Page']?.[period];
+            const hero = getBasePlan('Homepage');
+            const cat  = getBasePlan('Chatbots_Page');
             if (hero && cat) {
-                const heroFinal = hero.price * (1 - hero.discount_percentage / 100);
-                const catFinal  = cat.price  * (1 - cat.discount_percentage  / 100);
                 plan = {
                     ...hero,
-                    price: (heroFinal + catFinal).toFixed(2),
+                    price: bundleTotalPrice(hero, cat, period).toFixed(2),
                     discount_percentage: 0
                 };
             }
         } else {
-            plan = state.plans[slot]?.[period];
+            plan = getBasePlan(slot);
         }
 
         if (!plan) return;
 
         const finalPrice = slot === 'bundle'
-            ? parseFloat(plan.price).toFixed(2)
-            : (plan.price * (1 - plan.discount_percentage / 100)).toFixed(2);
+            ? bundleTotalPrice(
+                getBasePlan('Homepage'),
+                getBasePlan('Chatbots_Page'),
+                period
+            )
+            : packageTotalPrice(plan, period);
 
         const div = document.createElement('div');
         div.className = 'adv-period-option' + (period === state.selectedPeriod ? ' selected' : '');
         div.dataset.period = period;
         div.innerHTML = `
             <div class="adv-period-option__name">${periodLabel[period]}</div>
-            <div class="adv-period-option__price">$${finalPrice}</div>
+            <div class="adv-period-option__price">$${formatPrice(finalPrice)}</div>
             <div class="adv-period-option__sub">${periodSub[period]}</div>
         `;
 
@@ -527,19 +596,17 @@ function updateSummary() {
     state.selectedPlanIdAlt = null;
 
     if (slot === 'bundle') {
-        const hero = state.plans['Homepage']?.[period];
-        const cat  = state.plans['Chatbots_Page']?.[period];
+        const hero = getBasePlan('Homepage');
+        const cat  = getBasePlan('Chatbots_Page');
         if (hero && cat) {
-            const heroFinal = hero.price * (1 - hero.discount_percentage / 100);
-            const catFinal  = cat.price  * (1 - cat.discount_percentage  / 100);
-            total = '$' + (heroFinal + catFinal).toFixed(2);
+            total = '$' + bundleTotalPrice(hero, cat, period).toFixed(2);
             state.selectedPlanId    = hero.id;
             state.selectedPlanIdAlt = cat.id;
         }
     } else {
-        const plan = state.plans[slot]?.[period];
+        const plan = getBasePlan(slot);
         if (plan) {
-            total = '$' + (plan.price * (1 - plan.discount_percentage / 100)).toFixed(2);
+            total = '$' + packageTotalPrice(plan, period).toFixed(2);
             state.selectedPlanId = plan.id;
         }
     }
@@ -582,7 +649,8 @@ async function handleConfirm() {
             document.getElementById('stripeRedirectOverlay').classList.add('active');
             window.location.href = 'checkout.php?chatbot_id=' + result1.chatbot_id
                                 + '&promotion_id='  + result1.promotion_id
-                                + '&promotion_id_2=' + result2.promotion_id;
+                                + '&promotion_id_2=' + result2.promotion_id
+                                + '&billing_period=' + encodeURIComponent(state.selectedPeriod);
         } else {
             const result = await createPromotion(botId, state.selectedPlanId);
 
@@ -590,7 +658,8 @@ async function handleConfirm() {
 
             document.getElementById('stripeRedirectOverlay').classList.add('active');
             window.location.href = 'checkout.php?chatbot_id=' + result.chatbot_id
-                                + '&promotion_id=' + result.promotion_id;
+                                + '&promotion_id=' + result.promotion_id
+                                + '&billing_period=' + encodeURIComponent(state.selectedPeriod);
         }
 
     } catch (e) {

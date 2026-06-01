@@ -29,6 +29,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !in_array($action, $publicActions))
     validateCsrfToken();
 }
 
+function deleteLocalProfilePicture(?string $profilePictureUrl): void
+{
+    if (!$profilePictureUrl || strpos($profilePictureUrl, 'default-avatar') !== false) {
+        return;
+    }
+
+    $path = parse_url($profilePictureUrl, PHP_URL_PATH) ?: $profilePictureUrl;
+    $relativePath = ltrim(str_replace('\\', '/', $path), '/');
+
+    if (!str_starts_with($relativePath, 'img/avatars/')) {
+        return;
+    }
+
+    $avatarDir = realpath(__DIR__ . '/../img/avatars');
+    $targetPath = realpath(__DIR__ . '/../' . $relativePath);
+
+    if (!$avatarDir || !$targetPath || !is_file($targetPath)) {
+        return;
+    }
+
+    if (strpos($targetPath, $avatarDir . DIRECTORY_SEPARATOR) !== 0) {
+        return;
+    }
+
+    if (!unlink($targetPath)) {
+        throw new RuntimeException('Failed to delete profile picture file');
+    }
+}
+
 // ============================================
 // RESEND VERIFICATION EMAIL (na začiatok - public action)
 // ============================================
@@ -419,6 +448,17 @@ if ($action === 'delete_account') {
  
         $userId    = $user['id'];
         $anonymousEmail = 'deleted_' . $userId . '@deleted.invalid';
+
+        $pictureStmt = $db->prepare("
+            SELECT profile_picture_url
+            FROM users
+            WHERE id = :id
+            LIMIT 1
+        ");
+        $pictureStmt->execute(['id' => $userId]);
+        $profilePictureUrl = $pictureStmt->fetchColumn();
+
+        deleteLocalProfilePicture($profilePictureUrl ?: null);
  
         // 1. Anonymizuj osobné údaje v users tabuľke
         $db->prepare("

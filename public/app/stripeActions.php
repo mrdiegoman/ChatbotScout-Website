@@ -34,6 +34,7 @@ if ($action === 'create_payment_intent') {
     $chatbotId    = trim($input['chatbot_id']    ?? '');
     $promotionId  = trim($input['promotion_id']  ?? '');
     $promotionId2 = trim($input['promotion_id2'] ?? ''); // Bundle (optional)
+    $requestedBillingPeriod = trim($input['billing_period'] ?? '');
 
     if (!$chatbotId || !$promotionId) {
         echo json_encode(['success' => false, 'message' => 'Missing chatbot_id or promotion_id']);
@@ -95,7 +96,16 @@ if ($action === 'create_payment_intent') {
             exit;
         }
 
-        $finalPrice  = floatval($promo['price']) * (1 - floatval($promo['discount_percentage']) / 100);
+        $billingPeriod = in_array($requestedBillingPeriod, ['monthly', 'yearly'], true)
+            ? $requestedBillingPeriod
+            : $promo['period_type'];
+        $durationDays = $billingPeriod === 'yearly' ? 365 : (int) $promo['duration_days'];
+
+        $finalPrice  = promotionSingleTotalPrice(
+            floatval($promo['price']),
+            floatval($promo['discount_percentage']),
+            $billingPeriod
+        );
         $totalPrice  = $finalPrice;
         $currency    = strtolower($promo['currency_code']);
 
@@ -116,8 +126,20 @@ if ($action === 'create_payment_intent') {
             $promoStmt2->execute(['promotion_id' => $promotionId2]);
             $promo2 = $promoStmt2->fetch(PDO::FETCH_ASSOC);
             if ($promo2) {
-                $finalPrice2 = floatval($promo2['price']) * (1 - floatval($promo2['discount_percentage']) / 100);
-                $totalPrice += $finalPrice2;
+                if ($promo2['currency_id'] !== $promo['currency_id']) {
+                    echo json_encode(['success' => false, 'message' => 'Invalid bundle promotion combination']);
+                    exit;
+                }
+
+                $finalPrice = promotionBundleLineTotalPrice(
+                    floatval($promo['price']),
+                    $billingPeriod
+                );
+                $finalPrice2 = promotionBundleLineTotalPrice(
+                    floatval($promo2['price']),
+                    $billingPeriod
+                );
+                $totalPrice = $finalPrice + $finalPrice2;
             }
         }
 
@@ -200,8 +222,8 @@ if ($action === 'create_payment_intent') {
                 'payment_id2'   => $paymentId2 ?: '',
                 'amount'        => $finalPrice,
                 'amount2'       => $finalPrice2,
-                'period_type'   => $promo['period_type'],
-                'duration_days' => $promo['duration_days'],
+                'period_type'   => $billingPeriod,
+                'duration_days' => $durationDays,
                 'currency_id'   => $promo['currency_id'],
             ],
         ]);

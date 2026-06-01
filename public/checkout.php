@@ -17,6 +17,7 @@ if (!$isLoggedIn) {
 $chatbotId    = trim($_GET['chatbot_id']    ?? '');
 $promotionId  = trim($_GET['promotion_id']  ?? '');
 $promotionId2 = trim($_GET['promotion_id_2'] ?? '');
+$requestedBillingPeriod = trim($_GET['billing_period'] ?? '');
 
 if (!$chatbotId || !$promotionId) {
     header('Location: advertise.php');
@@ -56,7 +57,15 @@ if (!$orderDetails) {
     exit;
 }
 
-$finalPrice = floatval($orderDetails['price']) * (1 - floatval($orderDetails['discount_percentage']) / 100);
+$billingPeriod = in_array($requestedBillingPeriod, ['monthly', 'yearly'], true)
+    ? $requestedBillingPeriod
+    : $orderDetails['billing_period_type'];
+
+$finalPrice = promotionSingleTotalPrice(
+    floatval($orderDetails['price']),
+    floatval($orderDetails['discount_percentage']),
+    $billingPeriod
+);
 
 // Bundle: načítaj druhý promotion ak existuje
 $orderDetails2 = null;
@@ -81,8 +90,23 @@ if ($promotionId2) {
     $stmt2->execute(['promotion_id' => $promotionId2]);
     $orderDetails2 = $stmt2->fetch(PDO::FETCH_ASSOC);
     if ($orderDetails2) {
-        $finalPrice2 = floatval($orderDetails2['price']) * (1 - floatval($orderDetails2['discount_percentage']) / 100);
+        if ($orderDetails2['currency_code'] !== $orderDetails['currency_code']) {
+            header('Location: advertise.php');
+            exit;
+        }
+
+        $finalPrice2 = promotionBundleLineTotalPrice(
+            floatval($orderDetails2['price']),
+            $billingPeriod
+        );
     }
+}
+
+if ($orderDetails2) {
+    $finalPrice = promotionBundleLineTotalPrice(
+        floatval($orderDetails['price']),
+        $billingPeriod
+    );
 }
 
 $totalPrice = $finalPrice + $finalPrice2;
@@ -96,7 +120,7 @@ $slotLabel = match($orderDetails['slot_type']) {
     default         => $orderDetails['slot_type'],
 };
 
-$periodLabel = $orderDetails['billing_period_type'] === 'yearly' ? 'Annual' : 'Monthly';
+$periodLabel = $billingPeriod === 'yearly' ? 'Annual' : 'Monthly';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -147,7 +171,7 @@ $periodLabel = $orderDetails['billing_period_type'] === 'yearly' ? 'Annual' : 'M
             </div>
 
             <div class="checkout-summary__renew">
-                🔄 Renews automatically every <?php echo $orderDetails['billing_period_type'] === 'yearly' ? 'year' : 'month'; ?>
+                🔄 Renews automatically every <?php echo $billingPeriod === 'yearly' ? 'year' : 'month'; ?>
             </div>
 
             <a href="advertise.php" class="checkout-summary__back">← Cancel and go back</a>
@@ -185,6 +209,7 @@ window.checkoutData = {
     chatbotId:     <?php echo json_encode($chatbotId); ?>,
     promotionId:   <?php echo json_encode($promotionId); ?>,
     promotionId2:  <?php echo json_encode($promotionId2 ?: null); ?>,
+    billingPeriod: <?php echo json_encode($billingPeriod); ?>,
     stripePubKey:  <?php echo json_encode($publishableKey); ?>,
 };
 </script>

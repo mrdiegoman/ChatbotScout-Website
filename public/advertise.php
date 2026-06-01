@@ -85,7 +85,7 @@ require 'app/auth.php';
             <button class="adv-billing-btn" data-period="monthly">Monthly</button>
             <button class="adv-billing-btn active" data-period="yearly">
                 Yearly
-                <span class="adv-billing-badge" id="billingBadge">Save</span>
+                <span class="adv-billing-badge" id="billingBadge">Save <?php echo promotionBundleDiscountPercentageForPeriod('yearly'); ?>%</span>
             </button>
         </div>
 
@@ -178,7 +178,7 @@ require 'app/auth.php';
                         <span class="adv-plan-card__period" id="period-bundle">/mo</span>
                     </div>
                     <div class="adv-plan-card__savings" id="savings-bundle" style="display:none;">
-                        Save <span id="savings-amount">0</span>% vs buying separately
+                        Bundle discount <span id="savings-amount">0</span>%
                     </div>
                     <div class="adv-plan-card__yearly-info" id="yearly-info-bundle" style="display:none;">
                         <span class="adv-plan-card__original" id="original-bundle"></span>
@@ -334,7 +334,9 @@ require 'app/auth.php';
 <script nonce="<?= $cspNonce ?>">
     window.advData = {
         isLoggedIn: <?php echo $isLoggedIn ? 'true' : 'false'; ?>,
-        loginUrl: 'login.php'
+        loginUrl: 'login.php',
+        yearlyDiscountPercentage: <?php echo json_encode(promotionYearlyDiscountPercentage()); ?>,
+        bundleDiscountPercentage: <?php echo json_encode(promotionBundleDiscountPercentage()); ?>
     };
 </script>
 
