@@ -24,7 +24,7 @@ const errorDiv      = document.getElementById('checkoutError');
 // ── Init: fetch PaymentIntent client_secret ───────────────────────────────────
 async function init() {
     try {
-        const res  = await fetch('../app/stripeActions.php?action=create_payment_intent', {
+        const res  = await fetch('app/stripeActions.php?action=create_payment_intent', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({
@@ -87,7 +87,7 @@ payBtn.addEventListener('click', async () => {
     const { error } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-            return_url: window.location.origin + '/mainwebsite/public/payment-success.php',
+            return_url: new URL('payment-success.php', window.location.href).href,
         },
     });
 

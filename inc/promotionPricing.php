@@ -63,6 +63,58 @@ function promotionBillingMultiplier(string $periodType): int
     return $periodType === 'yearly' ? 12 : 1;
 }
 
+function promotionNormalizeBillingPeriod(?string $periodType, string $fallback = 'monthly'): string
+{
+    $periodType = strtolower(trim((string) $periodType));
+    $fallback = strtolower(trim($fallback));
+    $allowedPeriods = ['daily', 'weekly', 'monthly', 'yearly'];
+
+    if (in_array($periodType, $allowedPeriods, true)) {
+        return $periodType;
+    }
+
+    if ($fallback === '') {
+        return '';
+    }
+
+    return in_array($fallback, $allowedPeriods, true) ? $fallback : 'monthly';
+}
+
+function promotionBillingPeriodFromDates(?string $startDate, ?string $endDate, string $fallback = 'monthly'): string
+{
+    if (!$startDate || !$endDate) {
+        return promotionNormalizeBillingPeriod($fallback);
+    }
+
+    try {
+        $start = new DateTimeImmutable($startDate);
+        $end = new DateTimeImmutable($endDate);
+    } catch (Exception $e) {
+        return promotionNormalizeBillingPeriod($fallback);
+    }
+
+    $days = ($end->getTimestamp() - $start->getTimestamp()) / 86400;
+
+    if ($days >= 330) {
+        return 'yearly';
+    }
+
+    if ($days >= 25) {
+        return 'monthly';
+    }
+
+    if ($days >= 6) {
+        return 'weekly';
+    }
+
+    return $days > 0 ? 'daily' : promotionNormalizeBillingPeriod($fallback);
+}
+
+function promotionBillingPeriodLabel(?string $periodType): string
+{
+    return ucfirst(promotionNormalizeBillingPeriod($periodType));
+}
+
 function promotionSingleMonthlyPrice(float $monthlyPrice, float $dbDiscountPercentage, string $periodType): float
 {
     return promotionDiscountedMonthlyPrice(

@@ -36,6 +36,7 @@ try {
             s.user_id,
             s.chatbot_id,
             s.stripe_customer_id,
+            s.start_date,
             s.end_date,
             s.promotions_id,
             p.price,
@@ -45,7 +46,15 @@ try {
             bp.duration_days,
             c.code            AS currency_code,
             u.email           AS user_email,
-            u.stripe_customer_id AS user_stripe_customer_id
+            u.stripe_customer_id AS user_stripe_customer_id,
+            (
+                SELECT pay.metadata
+                FROM payments pay
+                WHERE pay.subscription_id = s.id
+                  AND pay.status = 'succeeded'
+                ORDER BY COALESCE(pay.succeeded_at, pay.created_at) DESC
+                LIMIT 1
+            ) AS latest_payment_metadata
         FROM subscriptions s
         JOIN promotions      p   ON p.id  = s.promotions_id
         JOIN billing_periods bp  ON bp.id = p.billing_period_id
@@ -77,13 +86,26 @@ try {
         }
 
         try {
-            // Calculate renewal amount
-            $finalPrice  = floatval($sub['price']) * (1 - (floatval($sub['discount_percentage']) / 100));
+            // Calculate renewal amount from the actual subscription period, not only the base promotion row.
+            $billingPeriodType = promotionBillingPeriodFromDates(
+                $sub['start_date'] ?? null,
+                $sub['end_date'] ?? null,
+                $sub['billing_period_type'] ?? 'monthly'
+            );
+            $latestPaymentMetadata = json_decode((string) ($sub['latest_payment_metadata'] ?? ''), true);
+            $isBundleRenewal = is_array($latestPaymentMetadata) && !empty($latestPaymentMetadata['is_bundle']);
+            $finalPrice = $isBundleRenewal
+                ? promotionBundleLineTotalPrice(floatval($sub['price']), $billingPeriodType)
+                : promotionSingleTotalPrice(
+                    floatval($sub['price']),
+                    floatval($sub['discount_percentage']),
+                    $billingPeriodType
+                );
             $amountCents = (int) round($finalPrice * 100);
             $currency    = strtolower($sub['currency_code']);
 
             // Calculate new end_date based on billing period
-            $newEndDate = match($sub['billing_period_type']) {
+            $newEndDate = match($billingPeriodType) {
                 'daily'   => date('Y-m-d H:i:s', strtotime($sub['end_date'] . ' +1 day')),
                 'weekly'  => date('Y-m-d H:i:s', strtotime($sub['end_date'] . ' +1 week')),
                 'monthly' => date('Y-m-d H:i:s', strtotime($sub['end_date'] . ' +1 month')),
@@ -134,6 +156,7 @@ try {
                     'payment_id'      => $newPaymentId,
                     'user_id'         => $sub['user_id'],
                     'renewal'         => 'true',
+                    'period_type'     => $billingPeriodType,
                     'new_end_date'    => $newEndDate,
                 ],
             ]);

@@ -120,6 +120,12 @@ $slotLabel = match($orderDetails['slot_type']) {
     default         => $orderDetails['slot_type'],
 };
 
+$slotLabel2 = $orderDetails2 ? match($orderDetails2['slot_type']) {
+    'Homepage'      => 'Homepage Visibility',
+    'Chatbots page' => 'Chatbots Page Visibility',
+    default         => $orderDetails2['slot_type'],
+} : '';
+
 $periodLabel = $billingPeriod === 'yearly' ? 'Annual' : 'Monthly';
 ?>
 <!DOCTYPE html>
@@ -144,21 +150,21 @@ $periodLabel = $billingPeriod === 'yearly' ? 'Annual' : 'Monthly';
             <h2 class="checkout-summary__title">Order Summary</h2>
 
             <div class="checkout-summary__item">
-                <div class="checkout-summary__item-icon">📢</div>
+                <div class="checkout-summary__item-icon" aria-hidden="true"></div>
                 <div class="checkout-summary__item-info">
-                    <strong><?php echo htmlspecialchars($slotLabel); ?></strong> <br>  For:
-                    <span><?php echo htmlspecialchars($orderDetails['chatbot_name']); ?></span> <br> Type:
-                    <span class="checkout-summary__period"><?php echo strtoupper($periodLabel); ?> SUBSCRIPTION</span>
+                    <strong><?php echo htmlspecialchars($slotLabel); ?></strong>
+                    <span>For: <b><?php echo htmlspecialchars($orderDetails['chatbot_name']); ?></b></span>
+                    <span>Type: <b class="checkout-summary__period"><?php echo htmlspecialchars($periodLabel); ?> subscription</b></span>
                 </div>
             </div>
 
             <?php if ($orderDetails2): ?>
             <div class="checkout-summary__item">
-                <div class="checkout-summary__item-icon">📢</div>
+                <div class="checkout-summary__item-icon" aria-hidden="true"></div>
                 <div class="checkout-summary__item-info">
-                    <strong><?php echo htmlspecialchars($orderDetails2['slot_type']); ?> Visibility</strong>
-                    <span><?php echo htmlspecialchars($orderDetails['chatbot_name']); ?></span>
-                    <span class="checkout-summary__period"><?php echo strtoupper($periodLabel); ?> SUBSCRIPTION</span>
+                    <strong><?php echo htmlspecialchars($slotLabel2); ?></strong>
+                    <span>For: <b><?php echo htmlspecialchars($orderDetails['chatbot_name']); ?></b></span>
+                    <span>Type: <b class="checkout-summary__period"><?php echo htmlspecialchars($periodLabel); ?> subscription</b></span>
                 </div>
             </div>
             <?php endif; ?>
@@ -170,20 +176,18 @@ $periodLabel = $billingPeriod === 'yearly' ? 'Annual' : 'Monthly';
                 <strong><?php echo $orderDetails['currency_symbol'] . number_format($totalPrice, 2); ?></strong>
             </div>
 
-            <div class="checkout-summary__renew">
-                🔄 Renews automatically every <?php echo $billingPeriod === 'yearly' ? 'year' : 'month'; ?>
-            </div>
+            <div class="checkout-summary__renew" data-renew-label="Renews automatically every <?php echo $billingPeriod === 'yearly' ? 'year' : 'month'; ?>" aria-label="Renews automatically every <?php echo $billingPeriod === 'yearly' ? 'year' : 'month'; ?>"></div>
 
-            <a href="advertise.php" class="checkout-summary__back">← Cancel and go back</a>
+            <a href="advertise.php" class="checkout-summary__back">&larr; Cancel and go back</a>
         </div>
 
         <!-- ── Payment Form ───────────────────────────────────────────────── -->
         <div class="checkout-payment">
             <h2 class="checkout-payment__title">Payment details</h2>
-            <p class="checkout-payment__secured">Secured by Stripe 🔒</p>
+            <p class="checkout-payment__secured" aria-label="Secured by Stripe"></p>
 
             <div id="stripe-loading">
-                <p style="color:#6b7280;font-size:14px;">⏳ Loading payment form...</p>
+                <p style="color:#6b7280;font-size:14px;">Loading payment form...</p>
             </div>
             <div id="payment-element" style="display:none;"></div>
 

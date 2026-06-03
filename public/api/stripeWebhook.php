@@ -8,10 +8,10 @@
  *  payment_intent.canceled   → UPDATE payment (pending → cancelled)
  */
 
-require '../../inc/bootstrap.php';
-require_once __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/../../inc/bootstrap.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
-$stripeConfig = require __DIR__ . '/../config/stripe.php';
+$stripeConfig = require __DIR__ . '/../../config/stripe.php';
 \Stripe\Stripe::setApiKey($stripeConfig['secret_key']);
 
 $payload   = file_get_contents('php://input');
@@ -62,6 +62,23 @@ switch ($event->type) {
 
         if (!$userId || !$chatbotId || !$promotionId || !$paymentId) {
             error_log("Stripe webhook: payment_intent.succeeded missing metadata, pi={$pi->id}");
+            break;
+        }
+
+        $paymentIds = [$paymentId];
+        if ($paymentId2) {
+            $paymentIds[] = $paymentId2;
+        }
+        $placeholders = implode(',', array_fill(0, count($paymentIds), '?'));
+        $finalizedStmt = $db->prepare("
+            SELECT COUNT(*)
+            FROM payments
+            WHERE id IN ($placeholders)
+              AND NOT (status = 'succeeded' AND subscription_id IS NOT NULL)
+        ");
+        $finalizedStmt->execute($paymentIds);
+        if ((int) $finalizedStmt->fetchColumn() === 0) {
+            error_log("Stripe webhook: payment_intent.succeeded already finalized, pi={$pi->id}");
             break;
         }
 

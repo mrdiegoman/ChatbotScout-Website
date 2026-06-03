@@ -7,6 +7,7 @@
 
 require '../inc/bootstrap.php';
 require 'app/auth.php';
+require_once '../inc/stripePaymentFinalizer.php';
 
 // Redirect ak nie je prihlásený
 if (!$isLoggedIn) {
@@ -25,6 +26,28 @@ if (!in_array($activeTab, $allowedTabs)) {
 $subscription = null;
 $db = Database::getInstance()->getConnection();
 
+try {
+    $pendingStripeStmt = $db->prepare("
+        SELECT COUNT(*)
+        FROM payments
+        WHERE user_id = :user_id
+          AND payment_method = 'stripe'
+          AND status IN ('pending', 'processing')
+          AND stripe_payment_intent_id IS NOT NULL
+    ");
+    $pendingStripeStmt->execute(['user_id' => $user['id']]);
+
+    if ((int) $pendingStripeStmt->fetchColumn() > 0) {
+        $stripeConfig = require '../config/stripe.php';
+        if (!empty($stripeConfig['secret_key'])) {
+            \Stripe\Stripe::setApiKey($stripeConfig['secret_key']);
+            syncRecentSucceededStripePaymentsForUser($db, $user['id']);
+        }
+    }
+} catch (Exception $e) {
+    error_log('Profile Stripe payment sync error: ' . $e->getMessage());
+}
+
 $subStmt = $db->prepare("
     SELECT 
         s.*,
@@ -33,7 +56,15 @@ $subStmt = $db->prepare("
         c.symbol      AS currency_symbol,
         c.code        AS currency_code,
         bp.type       AS billing_period,
-        ch.name       AS chatbot_name
+        ch.name       AS chatbot_name,
+        COALESCE((
+            SELECT pay.amount
+            FROM payments pay
+            WHERE pay.subscription_id = s.id
+              AND pay.status = 'succeeded'
+            ORDER BY COALESCE(pay.succeeded_at, pay.created_at) DESC
+            LIMIT 1
+        ), p.price) AS current_period_price
     FROM subscriptions s
     JOIN promotions     p  ON s.promotions_id     = p.id
     JOIN currencies     c  ON p.currency_id        = c.id
@@ -47,6 +78,14 @@ $subStmt = $db->prepare("
 ");
 $subStmt->execute(['user_id' => $user['id']]);
 $subscription = $subStmt->fetch();
+
+if ($subscription) {
+    $subscription['billing_period'] = promotionBillingPeriodFromDates(
+        $subscription['start_date'] ?? null,
+        $subscription['end_date'] ?? null,
+        $subscription['billing_period'] ?? 'monthly'
+    );
+}
 
 // Load billing history
 $payments = [];
@@ -303,7 +342,7 @@ require '../inc/header.php';
                             <div class="sub-plan"><?php echo htmlspecialchars($subscription['plan_name']); ?></div>
                             <div class="sub-chatbot">🤖 <?php echo htmlspecialchars($subscription['chatbot_name']); ?></div>
                             <div class="sub-price">
-                                <?php echo $subscription['currency_symbol']; ?><?php echo number_format($subscription['price'], 2); ?>
+                                <?php echo $subscription['currency_symbol']; ?><?php echo number_format(floatval($subscription['current_period_price'] ?? $subscription['price']), 2); ?>
                                 / <?php echo strtolower($subscription['billing_period']); ?>
                             </div>
                             <?php if ($subscription['status'] === 'past_due'): ?>
@@ -566,7 +605,7 @@ require '../inc/header.php';
                     <div class="info-row">
                         <span class="label">💰 Price</span>
                         <span class="value">
-                            <?php echo $subscription['currency_symbol']; ?><?php echo number_format($subscription['price'], 2); ?> 
+                            <?php echo $subscription['currency_symbol']; ?><?php echo number_format(floatval($subscription['current_period_price'] ?? $subscription['price']), 2); ?>
                             / <?php echo strtolower($subscription['billing_period']); ?>
                         </span>
                     </div>

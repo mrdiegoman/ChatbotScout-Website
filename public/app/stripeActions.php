@@ -162,46 +162,66 @@ if ($action === 'create_payment_intent') {
 
         // ── Vytvor payment 1 (pending) v DB ──────────────────────────────────
         $paymentId = generateStripeUUID();
+        $paymentMetadata = json_encode([
+            'billing_period' => $billingPeriod,
+            'period_type' => $billingPeriod,
+            'duration_days' => $durationDays,
+            'promotion_id' => $promotionId,
+            'promotion_id2' => $promotionId2 ?: null,
+            'line_amount' => $finalPrice,
+            'total_amount' => $totalPrice,
+            'is_bundle' => (bool) $promo2,
+        ]);
         $db->prepare("
             INSERT INTO payments (
                 id, user_id, chatbot_id,
                 amount, currency_id, payment_method, status,
-                stripe_customer_id, created_at, updated_at
+                metadata, created_at, updated_at
             ) VALUES (
                 :id, :user_id, :chatbot_id,
                 :amount, :currency_id, 'stripe', 'pending',
-                :stripe_customer_id, NOW(), NOW()
+                :metadata, NOW(), NOW()
             )
         ")->execute([
-            'id'                 => $paymentId,
-            'user_id'            => $userData['id'],
-            'chatbot_id'         => $chatbotId,
-            'amount'             => $totalPrice,
-            'currency_id'        => $promo['currency_id'],
-            'stripe_customer_id' => $stripeCustomerId,
+            'id'          => $paymentId,
+            'user_id'     => $userData['id'],
+            'chatbot_id'  => $chatbotId,
+            'amount'      => $totalPrice,
+            'currency_id' => $promo['currency_id'],
+            'metadata'    => $paymentMetadata,
         ]);
 
         // ── Bundle: vytvor payment 2 (pending) v DB ──────────────────────────
         $paymentId2 = null;
         if ($promo2) {
             $paymentId2 = generateStripeUUID();
+            $paymentMetadata2 = json_encode([
+                'billing_period' => $billingPeriod,
+                'period_type' => $billingPeriod,
+                'duration_days' => $durationDays,
+                'promotion_id' => $promotionId2,
+                'promotion_id2' => null,
+                'line_amount' => $finalPrice2,
+                'total_amount' => $totalPrice,
+                'is_bundle' => true,
+            ]);
             $db->prepare("
                 INSERT INTO payments (
                     id, user_id, chatbot_id,
                     amount, currency_id, payment_method, status,
-                    stripe_customer_id, created_at, updated_at
+                    metadata, created_at, updated_at
                 ) VALUES (
                     :id, :user_id, :chatbot_id,
                     :amount, :currency_id, 'stripe', 'pending',
-                    :stripe_customer_id, NOW(), NOW()
+                    :metadata, NOW(), NOW()
                 )
             ")->execute([
-                'id'                 => $paymentId2,
-                'user_id'            => $userData['id'],
-                'chatbot_id'         => $chatbotId,
-                'amount'             => $finalPrice2,
-                'currency_id'        => $promo2['currency_id'],
-                'stripe_customer_id' => $stripeCustomerId,
+                'id'          => $paymentId2,
+                'user_id'     => $userData['id'],
+                'chatbot_id'  => $chatbotId,
+                'amount'      => $finalPrice2,
+                'currency_id' => $promo2['currency_id'],
+                'metadata'    => $paymentMetadata2,
             ]);
         }
 

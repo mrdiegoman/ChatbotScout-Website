@@ -12,6 +12,10 @@ const state = {
     selectedPlanIdAlt: null, // for bundle (category_featured plan)
     chatbots:       [],
     hasListing:     false,
+    chatbotsLoaded: false,
+    chatbotsLoading: null,
+    chatbotSelectRendered: false,
+    confirmBlockedReason: '',
     activeSlots:    [],     // slot_types ktoré má vybraný chatbot aktívne
 };
 
@@ -24,6 +28,9 @@ const noListingWarn   = $('noListingWarning');
 const billingToggle   = $('billingToggle');
 const modalOverlay    = $('promotionModalOverlay');
 const chatbotSelect   = $('chatbotSelect');
+const chatbotSelectTrigger = $('chatbotSelectTrigger');
+const chatbotSelectTriggerText = $('chatbotSelectTriggerText');
+const chatbotSelectMenu = $('chatbotSelectMenu');
 const periodGrid      = $('modalPeriodGrid');
 const modalError      = $('modalError');
 const confirmBtn      = $('modalConfirmBtn');
@@ -36,10 +43,6 @@ const BUNDLE_DISCOUNT_PERCENTAGE = toNumber(window.advData?.bundleDiscountPercen
 // ── Init ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     loadPlans();
-
-    if (window.advData?.isLoggedIn) {
-        loadChatbots();
-    }
 
     setupBillingToggle();
     setupModal();
@@ -76,14 +79,27 @@ async function loadPlans() {
 
 // ── Load user chatbots ───────────────────────────────────────────────────────
 async function loadChatbots() {
+    if (state.chatbotsLoaded) {
+        return true;
+    }
+
+    if (state.chatbotsLoading) {
+        return state.chatbotsLoading;
+    }
+
+    state.chatbotsLoading = (async () => {
     try {
         const res  = await fetch('api/getUserChatbots.php');
         const data = await res.json();
 
-        if (!data.success) return;
+        if (!data.success) {
+            throw new Error(data.message || 'Failed to load chatbots.');
+        }
 
         state.chatbots  = data.chatbots;
         state.hasListing = data.hasListing;
+        state.chatbotsLoaded = true;
+        state.chatbotSelectRendered = false;
 
         if (!state.hasListing) {
             // Show warning, disable buttons
@@ -97,9 +113,23 @@ async function loadChatbots() {
             });
         }
 
+        return true;
     } catch (e) {
         console.error('Chatbot load error:', e);
+        state.chatbots = [];
+        state.hasListing = false;
+        state.chatbotsLoaded = true;
+        state.chatbotSelectRendered = false;
+        if (modalOverlay?.classList.contains('open')) {
+            modalError.textContent = 'Could not load your chatbots. Please try again.';
+        }
+        return false;
+    } finally {
+        state.chatbotsLoading = null;
     }
+    })();
+
+    return state.chatbotsLoading;
 }
 
 // ── Billing toggle ───────────────────────────────────────────────────────────
@@ -368,6 +398,7 @@ function setupModal() {
     chatbotSelect.addEventListener('change', async () => {
         const botId = chatbotSelect.value;
         state.activeSlots = [];
+        state.confirmBlockedReason = '';
  
         if (botId) {
             await checkActivePromotions(botId);
@@ -375,19 +406,43 @@ function setupModal() {
  
         applySlotRestrictions();
         updateSummary();
+        updateChatbotSelectTrigger();
+    });
+
+    chatbotSelectTrigger.addEventListener('click', () => {
+        if (chatbotSelectTrigger.disabled) return;
+        toggleChatbotSelectMenu();
+    });
+
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.adv-modal__select-wrap--custom')) {
+            closeChatbotSelectMenu();
+        }
+    });
+
+    chatbotSelectTrigger.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleChatbotSelectMenu();
+        }
+        if (e.key === 'Escape') {
+            closeChatbotSelectMenu();
+        }
     });
 
     // Confirm
     confirmBtn.addEventListener('click', handleConfirm);
 }
 
-function openModal(slot) {
+async function openModal(slot) {
     if (!window.advData?.isLoggedIn) {
         window.location.href = window.advData.loginUrl + '?redirect=advertise.php';
         return;
     }
 
     state.selectedSlot = slot;
+    state.activeSlots = [];
+    state.confirmBlockedReason = '';
     modalError.textContent = '';
 
     // Set title
@@ -410,6 +465,14 @@ function openModal(slot) {
 
     modalOverlay.classList.add('open');
     lockScroll();
+
+    if (window.advData?.isLoggedIn && !state.chatbotsLoaded) {
+        chatbotSelectTrigger.disabled = true;
+        setChatbotSelectTriggerText('Loading chatbots...');
+        await loadChatbots();
+        populateChatbotSelect();
+        updateSummary();
+    }
 }
 
 function closeModal() {
@@ -418,17 +481,42 @@ function closeModal() {
     state.selectedSlot   = null;
     state.selectedPlanId = null;
     state.selectedPlanIdAlt = null;
+    state.confirmBlockedReason = '';
+    closeChatbotSelectMenu();
     modalError.textContent = '';
 }
 
 function populateChatbotSelect() {
+    closeChatbotSelectMenu();
+
+    if (state.chatbotsLoaded && state.chatbots.length > 0 && state.chatbotSelectRendered) {
+        chatbotSelect.value = '';
+        chatbotSelectTrigger.disabled = false;
+        updateChatbotSelectTrigger();
+        return;
+    }
+
     chatbotSelect.innerHTML = '';
+
+    if (!state.chatbotsLoaded && window.advData?.isLoggedIn) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'Loading chatbots...';
+        chatbotSelect.appendChild(opt);
+        renderChatbotSelectMenu([{ value: '', label: 'Loading chatbots...', disabled: true }]);
+        chatbotSelectTrigger.disabled = true;
+        setChatbotSelectTriggerText('Loading chatbots...');
+        return;
+    }
 
     if (state.chatbots.length === 0) {
         const opt = document.createElement('option');
         opt.value = '';
         opt.textContent = 'No chatbots with active listing found';
         chatbotSelect.appendChild(opt);
+        renderChatbotSelectMenu([{ value: '', label: 'No chatbots with active listing found', disabled: true }]);
+        chatbotSelectTrigger.disabled = true;
+        setChatbotSelectTriggerText('No chatbots with active listing found');
         return;
     }
 
@@ -436,13 +524,78 @@ function populateChatbotSelect() {
     placeholder.value = '';
     placeholder.textContent = 'Select a chatbot...';
     chatbotSelect.appendChild(placeholder);
+    const menuItems = [];
 
     state.chatbots.forEach(bot => {
         const opt = document.createElement('option');
         opt.value = bot.id;
         opt.textContent = bot.name + (bot.plan_name ? ` (${bot.plan_name})` : '');
         chatbotSelect.appendChild(opt);
+        menuItems.push({ value: bot.id, label: opt.textContent, disabled: false });
     });
+
+    renderChatbotSelectMenu(menuItems);
+    chatbotSelectTrigger.disabled = false;
+    state.chatbotSelectRendered = true;
+    updateChatbotSelectTrigger();
+}
+
+function renderChatbotSelectMenu(items) {
+    chatbotSelectMenu.innerHTML = '';
+    const fragment = document.createDocumentFragment();
+
+    items.forEach(item => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'adv-modal__select-option';
+        btn.role = 'option';
+        btn.disabled = !!item.disabled;
+        btn.dataset.value = item.value;
+        btn.textContent = item.label;
+        btn.setAttribute('aria-selected', item.value === chatbotSelect.value ? 'true' : 'false');
+
+        btn.addEventListener('click', () => {
+            if (btn.disabled) return;
+            chatbotSelect.value = item.value;
+            chatbotSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            closeChatbotSelectMenu();
+        });
+
+        fragment.appendChild(btn);
+    });
+
+    chatbotSelectMenu.appendChild(fragment);
+}
+
+function setChatbotSelectTriggerText(text) {
+    chatbotSelectTriggerText.textContent = text;
+}
+
+function updateChatbotSelectTrigger() {
+    const selectedOption = chatbotSelect.options[chatbotSelect.selectedIndex];
+    setChatbotSelectTriggerText(selectedOption ? selectedOption.textContent : 'Select a chatbot...');
+
+    chatbotSelectMenu.querySelectorAll('.adv-modal__select-option').forEach(option => {
+        option.setAttribute('aria-selected', option.dataset.value === chatbotSelect.value ? 'true' : 'false');
+    });
+}
+
+function toggleChatbotSelectMenu() {
+    if (chatbotSelectMenu.classList.contains('open')) {
+        closeChatbotSelectMenu();
+    } else {
+        openChatbotSelectMenu();
+    }
+}
+
+function openChatbotSelectMenu() {
+    chatbotSelectMenu.classList.add('open');
+    chatbotSelectTrigger.setAttribute('aria-expanded', 'true');
+}
+
+function closeChatbotSelectMenu() {
+    chatbotSelectMenu.classList.remove('open');
+    chatbotSelectTrigger.setAttribute('aria-expanded', 'false');
 }
 
 function populatePeriodOptions(slot) {
@@ -508,7 +661,7 @@ function populatePeriodOptions(slot) {
 // ── Check active promotions pre vybraný chatbot ──────────────────────────────
 async function checkActivePromotions(chatbotId) {
     try {
-        const res  = await fetch(`../app/advertiseActions.php?action=check_active_promotions&chatbot_id=${chatbotId}`);
+        const res  = await fetch(`app/advertiseActions.php?action=check_active_promotions&chatbot_id=${chatbotId}`);
         const data = await res.json();
         if (data.success) {
             state.activeSlots = data.active_slots || [];
@@ -519,6 +672,41 @@ async function checkActivePromotions(chatbotId) {
 }
  
 // ── Skryť/zobraziť sloty podľa aktívnych subscriptions ──────────────────────
+function setConfirmDisabled(disabled, reason = '') {
+    confirmBtn.disabled = Boolean(disabled);
+    confirmBtn.classList.toggle('is-blocked', Boolean(disabled && reason));
+    confirmBtn.title = reason || '';
+    confirmBtn.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+}
+
+function blockConfirm(message) {
+    state.confirmBlockedReason = message;
+    modalError.textContent = message;
+    setConfirmDisabled(true, message);
+}
+
+function getActivePromotionBlockMessage() {
+    if (!chatbotSelect.value) return '';
+
+    const slot        = state.selectedSlot;
+    const hasHomepage = state.activeSlots.includes('Homepage');
+    const hasChatbots = state.activeSlots.includes('Chatbots page');
+
+    if (hasHomepage && hasChatbots) {
+        return 'This chatbot already has all promotions active.';
+    }
+
+    if (slot === 'Homepage' && hasHomepage) {
+        return 'This chatbot already has Homepage Visibility active.';
+    }
+
+    if (slot === 'Chatbots_Page' && hasChatbots) {
+        return 'This chatbot already has Chatbots Page Visibility active.';
+    }
+
+    return '';
+}
+
 function applySlotRestrictions() {
     const slot        = state.selectedSlot;
     const hasHomepage = state.activeSlots.includes('Homepage');
@@ -527,26 +715,24 @@ function applySlotRestrictions() {
  
     // Reset
     modalError.textContent = '';
-    confirmBtn.disabled    = false;
+    state.confirmBlockedReason = '';
+    setConfirmDisabled(false);
  
     // Obe aktívne → zablokovať
     if (hasBoth) {
-        modalError.textContent = 'This chatbot already has all promotions active.';
-        confirmBtn.disabled    = true;
+        blockConfirm('This chatbot already has all promotions active.');
         return;
     }
  
     // Homepage modal + Homepage aktívna
     if (slot === 'Homepage' && hasHomepage) {
-        modalError.textContent = 'This chatbot already has Homepage Visibility active.';
-        confirmBtn.disabled    = true;
+        blockConfirm('This chatbot already has Homepage Visibility active.');
         return;
     }
  
     // Chatbots Page modal + Chatbots Page aktívna
     if (slot === 'Chatbots_Page' && hasChatbots) {
-        modalError.textContent = 'This chatbot already has Chatbots Page Visibility active.';
-        confirmBtn.disabled    = true;
+        blockConfirm('This chatbot already has Chatbots Page Visibility active.');
         return;
     }
  
@@ -613,14 +799,20 @@ function updateSummary() {
 
     $('summaryTotal').textContent = total + ' ' + (period === 'yearly' ? '/yr' : '/mo');
 
-    const canConfirm = botId && state.selectedPlanId;
-    confirmBtn.disabled = !canConfirm;
+    const canConfirm = botId && state.selectedPlanId && !state.confirmBlockedReason;
+    setConfirmDisabled(!canConfirm, state.confirmBlockedReason);
 }
 
 // ── Handle confirm / submit ───────────────────────────────────────────────────
 async function handleConfirm() {
     const botId = chatbotSelect.value;
     modalError.textContent = '';
+
+    const blockMessage = state.confirmBlockedReason || getActivePromotionBlockMessage();
+    if (blockMessage) {
+        blockConfirm(blockMessage);
+        return;
+    }
 
     if (!botId) {
         modalError.textContent = 'Please select a chatbot.';
@@ -634,7 +826,7 @@ async function handleConfirm() {
 
     confirmText.style.display   = 'none';
     confirmLoader.style.display = 'inline';
-    confirmBtn.disabled         = true;
+    setConfirmDisabled(true);
 
     try {
         if (state.selectedSlot === 'bundle') {
@@ -663,15 +855,24 @@ async function handleConfirm() {
         }
 
     } catch (e) {
-        modalError.textContent      = e.message || 'Something went wrong. Please try again.';
+        const message = e.message || 'Something went wrong. Please try again.';
+        const activeBlockMessage = getActivePromotionBlockMessage();
+
+        modalError.textContent      = message;
         confirmText.style.display   = 'inline';
         confirmLoader.style.display = 'none';
-        confirmBtn.disabled         = false;
+
+        if (activeBlockMessage || /already|active promotion|currently active/i.test(message)) {
+            blockConfirm(activeBlockMessage || message);
+            return;
+        }
+
+        setConfirmDisabled(false);
     }
 }
 
 async function createPromotion(chatbotId, promotionId) {
-    const res = await fetch('../app/advertiseActions.php?action=create_promotion', {
+    const res = await fetch('app/advertiseActions.php?action=create_promotion', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ chatbot_id: chatbotId, promotion_id: promotionId })

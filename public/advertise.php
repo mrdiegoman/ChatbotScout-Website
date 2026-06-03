@@ -282,10 +282,15 @@ require 'app/auth.php';
                     Select Chatbot
                     <span class="adv-modal__label-hint">Only chatbots with active listings are shown</span>
                 </label>
-                <div class="adv-modal__select-wrap">
-                    <select class="adv-modal__select" id="chatbotSelect">
+                <div class="adv-modal__select-wrap adv-modal__select-wrap--custom">
+                    <select class="adv-modal__select adv-modal__select--native" id="chatbotSelect" tabindex="-1" aria-hidden="true">
                         <option value="">Loading chatbots...</option>
                     </select>
+                    <button type="button" class="adv-modal__select-trigger" id="chatbotSelectTrigger" aria-haspopup="listbox" aria-expanded="false">
+                        <span id="chatbotSelectTriggerText">Loading chatbots...</span>
+                        <span class="adv-modal__select-trigger-arrow" aria-hidden="true">v</span>
+                    </button>
+                    <div class="adv-modal__select-menu" id="chatbotSelectMenu" role="listbox"></div>
                 </div>
             </div>
 
