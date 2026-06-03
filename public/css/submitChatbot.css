@@ -148,22 +148,44 @@
     background: rgba(255,255,255,0.07);
     border: 1px solid rgba(255,255,255,0.12);
     border-radius: 10px;
-    padding: 1.8rem 2rem;
-    display: flex;
-    gap: 1.4rem;
-    align-items: flex-start;
+    padding: 1.6rem 1.8rem;
 }
 
-.sc-sidebar__note-icon {
-    font-size: 1.6rem;
-    flex-shrink: 0;
+.sc-sidebar__note-kicker {
+    display: block;
+    font-size: 1rem;
+    font-family: outfit-semibold, sans-serif;
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 0.08em;
+    margin-bottom: 1.2rem;
+    text-transform: uppercase;
 }
 
-.sc-sidebar__note p {
-    font-size: 1.15rem;
-    color: rgba(255,255,255,0.7);
-    line-height: 1.65;
+.sc-sidebar__note-list {
+    list-style: none;
+    padding: 0;
     margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.sc-sidebar__note-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 1.2rem;
+    color: rgba(255,255,255,0.78);
+    line-height: 1.35;
+}
+
+.sc-sidebar__note-list li::before {
+    content: '';
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: #34d399;
+    flex-shrink: 0;
 }
 
 @media (max-width: 860px) {
@@ -209,32 +231,36 @@
 /* ── Affiliate banner ─────────────────────────────────────── */
 .sc-affiliate-banner {
     display: flex;
-    gap: 1.4rem;
     align-items: flex-start;
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    border-left: 4px solid var(--sc-green);
+    background: #fff;
+    border: 1px solid var(--sc-border);
+    border-left: 4px solid var(--sc-purple);
     border-radius: var(--sc-radius);
-    padding: 1.6rem 1.8rem;
+    padding: 1.5rem 1.8rem;
+    box-shadow: 0 2px 14px rgba(17, 24, 39, 0.04);
 }
 
-.sc-affiliate-banner__icon {
-    font-size: 1.5rem;
-    flex-shrink: 0;
-    line-height: 1;
+.sc-affiliate-banner__eyebrow {
+    display: block;
+    font-size: 0.82rem;
+    font-family: outfit-semibold, sans-serif;
+    color: var(--sc-purple);
+    letter-spacing: 0.07em;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
 }
 
 .sc-affiliate-banner strong {
     display: block;
     font-size: 1.25rem;
     font-family: outfit-semibold, sans-serif;
-    color: #065F46;
+    color: var(--sc-text);
     margin-bottom: 0.4rem;
 }
 
-.sc-affiliate-banner span {
+.sc-affiliate-banner span:not(.sc-affiliate-banner__eyebrow) {
     font-size: 1.15rem;
-    color: #047857;
+    color: var(--sc-text-muted);
     line-height: 1.5;
 }
 
@@ -317,6 +343,8 @@
 .sc-textarea {
     resize: vertical;
     min-height: 130px;
+    max-height: 320px;
+    overflow-y: auto;
     line-height: 1.6;
 }
 

@@ -224,7 +224,6 @@
 
     if (editCloseBtn)  editCloseBtn.addEventListener('click', closeEditModal);
     if (editCancelBtn) editCancelBtn.addEventListener('click', closeEditModal);
-    if (editOverlay)   editOverlay.addEventListener('click', (e) => { if (e.target === editOverlay) closeEditModal(); });
 
     // Stars picker
     if (editStarsPicker) {
@@ -372,7 +371,6 @@
 
     if (deleteCloseBtn)  deleteCloseBtn.addEventListener('click', closeDeleteModal);
     if (deleteCancelBtn) deleteCancelBtn.addEventListener('click', closeDeleteModal);
-    if (deleteOverlay)   deleteOverlay.addEventListener('click', (e) => { if (e.target === deleteOverlay) closeDeleteModal(); });
 
     if (deleteConfirmBtn) {
         deleteConfirmBtn.addEventListener('click', async () => {

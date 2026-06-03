@@ -627,14 +627,23 @@ require '../inc/header.php';
                 </div>
             <?php else: ?>
                 <?php foreach ($submissions as $sub): ?>
-                    <?php $subId = htmlspecialchars($sub['id']); ?>
+                    <?php
+                        $subId = htmlspecialchars($sub['id']);
+                        $subLogoUrl = (string)($sub['logo_url'] ?? '');
+                        $subLogoSrc = preg_match('~^(https?:)?//~i', $subLogoUrl)
+                            || strpos($subLogoUrl, '/') === 0
+                            || strpos($subLogoUrl, 'data:') === 0
+                            || strpos($subLogoUrl, '../') === 0
+                            ? $subLogoUrl
+                            : (strpos($subLogoUrl, 'public/') === 0 ? '../' . $subLogoUrl : $subLogoUrl);
+                    ?>
                     <div class="admin-message-card admin-submission-card" data-id="<?= $subId ?>" data-status="<?= htmlspecialchars($sub['status']) ?>">
 
                         <div class="admin-message-card-header">
                             <div class="admin-message-card-header-left">
                                 <div class="admin-message-sender-row">
                                     <?php if ($sub['logo_url']): ?>
-                                        <img src="../<?= htmlspecialchars($sub['logo_url']) ?>"
+                                        <img src="<?= htmlspecialchars($subLogoSrc) ?>"
                                              alt="logo"
                                              class="admin-submission-logo">
                                     <?php else: ?>
@@ -707,6 +716,10 @@ require '../inc/header.php';
                                 </button>
                             </div>
                             <div class="admin-toggle-actions">
+                                <button class="admin-toggle-btn admin-edit-listing-btn"
+                                        onclick="openSubmissionEditPopup('<?= $subId ?>')">
+                                    Edit Listing
+                                </button>
                                 <button class="admin-toggle-btn"
                                         onclick="toggleSection(this, 'sub-notes-<?= $subId ?>')">
                                     📝 Notes

@@ -69,8 +69,12 @@ if (!$isLoggedIn) {
             </ul>
 
             <div class="sc-sidebar__note">
-                <div class="sc-sidebar__note-icon">🤝</div>
-                <p>Every listing is based on a direct affiliate partnership — no flat fees, no hidden costs. We earn only when you do.</p>
+                <span class="sc-sidebar__note-kicker">Partnership model</span>
+                <ul class="sc-sidebar__note-list">
+                    <li>No listing fee</li>
+                    <li>Direct affiliate terms</li>
+                    <li>We earn when you earn</li>
+                </ul>
             </div>
 
         </div>
@@ -99,10 +103,10 @@ if (!$isLoggedIn) {
 
                 <!-- Affiliate info banner -->
                 <div class="sc-affiliate-banner">
-                    <div class="sc-affiliate-banner__icon">💡</div>
                     <div>
-                        <strong>This is an affiliate partnership request.</strong>
-                        <span>Getting listed is free — we'll reach out to discuss a revenue share deal that works for both sides.</span>
+                        <span class="sc-affiliate-banner__eyebrow">Affiliate listing request</span>
+                        <strong>Start with a free review.</strong>
+                        <span>If your chatbot is a fit, we'll contact you to agree clear affiliate terms before it goes live.</span>
                     </div>
                 </div>
 

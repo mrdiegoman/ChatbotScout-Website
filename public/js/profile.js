@@ -316,10 +316,20 @@ if (savePasswordBtn) {
 // ============================================
 
 const marketingToggle = document.getElementById('marketing-emails-toggle');
+const marketingToggleLockMs = 1200;
+let marketingToggleLocked = false;
 
 if (marketingToggle) {
     marketingToggle.addEventListener('change', async (e) => {
+        if (marketingToggleLocked) {
+            return;
+        }
+
         const enabled = e.target.checked;
+        const previousValue = !enabled;
+
+        marketingToggleLocked = true;
+        e.target.disabled = true;
         
         try {
             const response = await fetch('../app/profileActions.php?action=update_marketing_emails', {
@@ -337,14 +347,19 @@ if (marketingToggle) {
                 );
             } else {
                 // Revert toggle
-                e.target.checked = !enabled;
+                e.target.checked = previousValue;
                 showNotification(result.message || 'Update failed', 'error');
             }
         } catch (error) {
             // Revert toggle
-            e.target.checked = !enabled;
+            e.target.checked = previousValue;
             showNotification('Update failed. Please try again.', 'error');
             console.error('Update error:', error);
+        } finally {
+            setTimeout(() => {
+                e.target.disabled = false;
+                marketingToggleLocked = false;
+            }, marketingToggleLockMs);
         }
     });
 }
@@ -464,16 +479,10 @@ function closeModal(modalId) {
     }
 }
 
-// Close modal on X button or outside click
+// Close modals only through explicit controls.
 document.querySelectorAll('.modal').forEach(modal => {
     modal.querySelectorAll('.modal-close').forEach(btn => {
         btn.addEventListener('click', () => closeModal(modal.id));
-    });
-    
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeModal(modal.id);
-        }
     });
 });
 
@@ -667,20 +676,51 @@ if (confirmDeleteBtn) {
 // ============================================
 
 function showNotification(message, type = 'info') {
-    // Create notification element
+    document.querySelectorAll('.notification').forEach(existing => {
+        existing.remove();
+    });
+
+    const titles = {
+        success: 'Saved',
+        error: 'Action needed',
+        info: 'Notice'
+    };
+    const icons = {
+        success: '✓',
+        error: '!',
+        info: 'i'
+    };
+
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
-    notification.textContent = message;
-    
-    // Add to body
+    notification.setAttribute('role', 'alert');
+
+    const icon = document.createElement('span');
+    icon.className = 'notification-icon';
+    icon.textContent = icons[type] || icons.info;
+
+    const content = document.createElement('span');
+    content.className = 'notification-content';
+
+    const title = document.createElement('span');
+    title.className = 'notification-title';
+    title.textContent = titles[type] || titles.info;
+
+    const text = document.createElement('span');
+    text.className = 'notification-message';
+    text.textContent = message;
+
+    content.appendChild(title);
+    content.appendChild(text);
+    notification.appendChild(icon);
+    notification.appendChild(content);
+
     document.body.appendChild(notification);
-    
-    // Trigger animation
+
     setTimeout(() => {
         notification.classList.add('show');
     }, 10);
-    
-    // Remove after 3s
+
     setTimeout(() => {
         notification.classList.remove('show');
         setTimeout(() => {
@@ -694,34 +734,78 @@ const notificationStyles = document.createElement('style');
 notificationStyles.textContent = `
     .notification {
         position: fixed;
-        top: 70px;
-        right: 20px;
-        padding: 16px 24px;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-        font-size: 14px;
-        font-family: outfit-semibold, sans-serif;
+        top: 82px;
+        right: 24px;
+        width: min(360px, calc(100vw - 32px));
+        padding: 14px 16px;
+        background: #fff;
+        border: 1px solid rgba(45, 49, 66, 0.10);
+        border-top: 3px solid var(--notification-accent);
+        border-radius: 14px;
+        box-shadow: 0 16px 44px rgba(45, 49, 66, 0.16);
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
         z-index: 10000;
         opacity: 0;
-        transform: translateX(100px);
-        transition: all 0.3s ease;
+        transform: translateY(-8px) scale(0.98);
+        transition: opacity 0.22s ease, transform 0.22s ease;
     }
     .notification.show {
         opacity: 1;
-        transform: translateX(0);
+        transform: translateY(0) scale(1);
+    }
+    .notification-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        background: var(--notification-soft);
+        color: var(--notification-accent);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        font-family: outfit-bold, sans-serif;
+        font-size: 15px;
+        line-height: 1;
+    }
+    .notification-content {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        min-width: 0;
+    }
+    .notification-title {
+        color: var(--profile-primary);
+        font-family: outfit-semibold, sans-serif;
+        font-size: 14px;
+        line-height: 1.25;
+    }
+    .notification-message {
+        color: var(--profile-text-muted);
+        font-family: outfit-medium, sans-serif;
+        font-size: 13px;
+        line-height: 1.45;
     }
     .notification-success {
-        border-left: 4px solid #4CAF50;
-        color: #2E7D32;
+        --notification-accent: var(--profile-accent);
+        --notification-soft: #E8F5E9;
     }
     .notification-error {
-        border-left: 4px solid #EF233C;
-        color: #C62828;
+        --notification-accent: var(--profile-danger);
+        --notification-soft: #FFEBEE;
     }
     .notification-info {
-        border-left: 4px solid #2196F3;
-        color: #1976D2;
+        --notification-accent: var(--profile-info);
+        --notification-soft: #E3F2FD;
+    }
+    @media (max-width: 560px) {
+        .notification {
+            top: 72px;
+            right: 16px;
+            left: 16px;
+            width: auto;
+        }
     }
 `;
 document.head.appendChild(notificationStyles);

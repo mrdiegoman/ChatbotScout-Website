@@ -792,6 +792,19 @@
     transform: translateX(24px);
 }
 
+.toggle-switch input:disabled + .toggle-slider {
+    cursor: wait;
+    opacity: 0.72;
+}
+
+.toggle-switch input:checked:disabled + .toggle-slider {
+    background-color: #86d68a;
+}
+
+.toggle-switch input:disabled + .toggle-slider:before {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
+}
+
 /* ============================================
    MODALS
    ============================================ */
@@ -946,6 +959,151 @@
 .warning-message.danger {
     background: #FFEBEE;
     border-left-color: var(--profile-danger);
+}
+
+.delete-account-modal__content {
+    max-width: 560px;
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+.delete-account-modal__header {
+    align-items: flex-start;
+    padding: 2.8rem 3.2rem 2.2rem;
+    background: linear-gradient(180deg, #ffffff 0%, #fff7f8 100%);
+}
+
+.delete-account-modal__eyebrow {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--profile-danger);
+    font-size: 1.1rem;
+    font-family: outfit-semibold, sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.delete-account-modal__header h2 {
+    font-size: 2.4rem;
+}
+
+.delete-account-modal__body {
+    padding: 2.8rem 3.2rem 3.2rem;
+}
+
+.delete-account-modal__warning {
+    display: flex;
+    gap: 1.4rem;
+    align-items: flex-start;
+    padding: 1.6rem;
+    margin-bottom: 2rem;
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    border-radius: 12px;
+}
+
+.delete-account-modal__warning-icon {
+    width: 3.2rem;
+    height: 3.2rem;
+    border-radius: 50%;
+    background: var(--profile-danger);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.8rem;
+    font-family: outfit-bold, sans-serif;
+    line-height: 1;
+}
+
+.delete-account-modal__warning-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-width: 0;
+}
+
+.delete-account-modal__warning-copy strong {
+    color: var(--profile-primary);
+    font-size: 1.45rem;
+    font-family: outfit-semibold, sans-serif;
+}
+
+.delete-account-modal__warning-copy span {
+    color: var(--profile-text-muted);
+    font-size: 1.3rem;
+    line-height: 1.55;
+}
+
+.delete-account-modal__details {
+    margin-bottom: 2.4rem;
+}
+
+.delete-account-modal__details p {
+    color: var(--profile-text);
+    font-size: 1.4rem;
+    line-height: 1.6;
+    margin: 0 0 1.4rem;
+}
+
+.delete-account-modal__details ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.9rem;
+}
+
+.delete-account-modal__details li {
+    color: var(--profile-text-muted);
+    font-size: 1.3rem;
+    line-height: 1.45;
+    display: flex;
+    gap: 0.8rem;
+}
+
+.delete-account-modal__details li::before {
+    content: '';
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: var(--profile-danger);
+    flex: 0 0 auto;
+    margin-top: 0.65rem;
+}
+
+.delete-account-modal__confirm {
+    margin-bottom: 2.8rem;
+}
+
+.delete-account-modal__confirm .info-field-static-label {
+    margin-bottom: 0.8rem;
+}
+
+.delete-account-modal__confirm input {
+    border-width: 2px;
+    border-radius: 10px;
+    padding: 1.3rem 1.5rem;
+    font-family: outfit-semibold, sans-serif;
+    letter-spacing: 0.04em;
+}
+
+.delete-account-modal__confirm input:focus {
+    border-color: var(--profile-danger);
+    box-shadow: 0 0 0 3px rgba(239, 35, 60, 0.1);
+}
+
+.delete-account-modal__actions {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 1.2rem;
+}
+
+.delete-account-modal__actions .cancel-btn,
+.delete-account-modal__actions .danger-btn {
+    min-height: 4.8rem;
+    border-radius: 10px;
 }
 
 .cancel-options {
@@ -1109,5 +1267,14 @@
 
     .modal-content {
         margin: 2rem;
+    }
+
+    .delete-account-modal__actions {
+        flex-direction: column-reverse;
+    }
+
+    .delete-account-modal__actions .cancel-btn,
+    .delete-account-modal__actions .danger-btn {
+        width: 100%;
     }
 }

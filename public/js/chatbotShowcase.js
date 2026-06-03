@@ -165,9 +165,21 @@
         return html;
     }
 
+    function logoSrc(path) {
+        const value = String(path || '').trim();
+        if (!value) return 'img/ChatbotScout_logo.png';
+        if (/^(https?:)?\/\//i.test(value) || value.startsWith('/') || value.startsWith('data:') || value.startsWith('../')) {
+            return value;
+        }
+        if (value.startsWith('public/')) {
+            return `../${value}`;
+        }
+        return value;
+    }
+
     function logoHtml(chatbot) {
-        const src = chatbot.logo_url ? escapeHtml(chatbot.logo_url) : '../img/ChatbotScout_logo.png';
-        return `<img src="../${src}" alt="${escapeHtml(chatbot.name)} logo" loading="lazy">`;
+        const src = escapeHtml(logoSrc(chatbot.logo_url));
+        return `<img src="${src}" alt="${escapeHtml(chatbot.name)} logo" loading="lazy">`;
     }
 
     // ============================================

@@ -718,6 +718,426 @@
     cursor: not-allowed;
 }
 
+.admin-edit-listing-btn {
+    border-color: #C7D2FE;
+    color: #3730A3;
+    background: #EEF2FF;
+}
+
+.admin-edit-listing-btn:hover {
+    background: #E0E7FF;
+    border-color: #A5B4FC;
+}
+
+.sub-edit-popup-box {
+    max-width: 1040px;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.sub-edit-popup-box form {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.sub-edit-popup-body {
+    overflow-y: auto;
+    min-height: 0;
+    padding: 1.25rem;
+}
+
+.sub-edit-loading {
+    padding: 1.5rem;
+    color: #4B5563;
+    font-size: 1.25rem;
+}
+
+.sub-edit-section,
+.sub-edit-picker,
+.sub-edit-validation {
+    border: 1px solid #E5E7EB;
+    border-radius: 0.625rem;
+    background: #fff;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.sub-edit-section h4,
+.sub-edit-picker h4,
+.sub-edit-validation h4 {
+    margin: 0 0 0.85rem;
+    color: #111827;
+    font-size: 1.25rem;
+    font-family: outfit-semibold, sans-serif;
+}
+
+.sub-edit-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+}
+
+.sub-edit-field,
+.sub-edit-check-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    color: #374151;
+    font-size: 1.05rem;
+    font-family: outfit-semibold, sans-serif;
+}
+
+.sub-edit-field--wide {
+    grid-column: 1 / -1;
+}
+
+.sub-edit-field input,
+.sub-edit-field select,
+.sub-edit-field textarea,
+.sub-edit-search,
+.sub-edit-create-row input {
+    width: 100%;
+    border: 1px solid #D1D5DB;
+    border-radius: 0.45rem;
+    background: #fff;
+    color: #111827;
+    font: inherit;
+    font-family: outfit-medium, sans-serif;
+    padding: 0.65rem 0.75rem;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sub-edit-field textarea {
+    resize: vertical;
+    min-height: 6rem;
+    max-height: 12rem;
+}
+
+.sub-edit-field input:focus,
+.sub-edit-field select:focus,
+.sub-edit-field textarea:focus,
+.sub-edit-search:focus,
+.sub-edit-create-row input:focus {
+    border-color: #6366F1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.14);
+}
+
+.sub-edit-check-field {
+    flex-direction: row;
+    align-items: center;
+    min-height: 2.85rem;
+    padding-top: 1.45rem;
+}
+
+.sub-edit-check-field input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: #4F46E5;
+}
+
+.sub-edit-toggle-field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 3.8rem;
+    color: #374151;
+    font-size: 1.05rem;
+    font-family: outfit-semibold, sans-serif;
+}
+
+.sub-edit-toggle-field > span:first-child {
+    min-width: 0;
+    line-height: 1.25;
+}
+
+.sub-edit-toggle-field .toggle-switch {
+    position: relative;
+    width: 5.2rem;
+    height: 2.8rem;
+    display: inline-block;
+    flex: 0 0 auto;
+}
+
+.sub-edit-toggle-field .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.sub-edit-toggle-field .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: #ccc;
+    transition: 0.3s;
+    border-radius: 2.8rem;
+}
+
+.sub-edit-toggle-field .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 2rem;
+    width: 2rem;
+    left: 0.4rem;
+    bottom: 0.4rem;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.sub-edit-toggle-field .toggle-switch input:checked + .toggle-slider {
+    background-color: var(--profile-accent, #4F46E5);
+}
+
+.sub-edit-toggle-field .toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+}
+
+.sub-edit-pickers {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.sub-edit-picker {
+    min-width: 0;
+    margin-bottom: 1rem;
+}
+
+.sub-edit-picker-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.sub-edit-picker-head span {
+    color: #4F46E5;
+    background: #EEF2FF;
+    border-radius: 999px;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+
+.sub-edit-create-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0.25rem 0 0.75rem 0;
+}
+
+.sub-edit-create-row button {
+    border: none;
+    border-radius: 0.45rem;
+    background: #4F46E5;
+    color: #fff;
+    cursor: pointer;
+    font-family: outfit-semibold, sans-serif;
+    padding: 0.65rem 0.85rem;
+}
+
+.sub-edit-create-row button:hover {
+    background: #4338CA;
+}
+
+.sub-edit-advanced-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: #4B5563;
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+
+.sub-edit-advanced-toggle .toggle-switch {
+    position: relative;
+    width: 4.4rem;
+    height: 2.4rem;
+    display: inline-block;
+    flex: 0 0 auto;
+}
+
+.sub-edit-advanced-toggle .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.sub-edit-advanced-toggle .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: #ccc;
+    transition: 0.3s;
+    border-radius: 2.4rem;
+}
+
+.sub-edit-advanced-toggle .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 1.8rem;
+    width: 1.8rem;
+    left: 0.3rem;
+    bottom: 0.3rem;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.sub-edit-advanced-toggle .toggle-switch input:checked + .toggle-slider {
+    background-color: var(--profile-accent, #4F46E5);
+}
+
+.sub-edit-advanced-toggle .toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(2rem);
+}
+
+.sub-edit-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 0.35rem;
+}
+
+.sub-edit-option {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    border: 1px solid #E5E7EB;
+    border-radius: 0.45rem;
+    padding: 0.55rem 0.65rem;
+    color: #111827;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.sub-edit-option:hover {
+    border-color: #C7D2FE;
+    background: #F8FAFC;
+}
+
+.sub-edit-option--selected {
+    border-color: #6366F1;
+    background: #EEF2FF;
+    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.16);
+}
+
+.sub-edit-option--selected:hover {
+    border-color: #4F46E5;
+    background: #E0E7FF;
+}
+
+.sub-edit-option input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: #4F46E5;
+    flex: 0 0 auto;
+}
+
+.sub-edit-option-name {
+    min-width: 0;
+    flex: 1;
+    overflow-wrap: anywhere;
+}
+
+.sub-edit-option--selected .sub-edit-option-name {
+    color: #312E81;
+    font-family: outfit-semibold, sans-serif;
+}
+
+.sub-edit-option--new {
+    border-color: #A7F3D0;
+    background: #ECFDF5;
+}
+
+.sub-edit-option-badge {
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: #F3F4F6;
+    color: #4B5563;
+    padding: 0.15rem 0.45rem;
+    font-size: 0.8rem;
+    font-family: outfit-semibold, sans-serif;
+}
+
+.sub-edit-option-badge--new {
+    background: #D1FAE5;
+    color: #047857;
+}
+
+.sub-edit-delete-feature-btn,
+.sub-edit-delete-item-btn {
+    flex: 0 0 auto;
+    border: 1px solid #FCA5A5;
+    border-radius: 0.35rem;
+    background: #FEF2F2;
+    color: #B91C1C;
+    cursor: pointer;
+    font-family: outfit-semibold, sans-serif;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.sub-edit-delete-feature-btn:hover:not(:disabled),
+.sub-edit-delete-item-btn:hover:not(:disabled) {
+    background: #FEE2E2;
+    border-color: #F87171;
+}
+
+.sub-edit-delete-feature-btn--locked,
+.sub-edit-delete-feature-btn:disabled,
+.sub-edit-delete-item-btn:disabled {
+    border-color: #E5E7EB;
+    background: #F9FAFB;
+    color: #9CA3AF;
+    cursor: not-allowed;
+}
+
+.sub-edit-empty-option {
+    color: #6B7280;
+    font-size: 1rem;
+    padding: 0.75rem;
+    border: 1px dashed #D1D5DB;
+    border-radius: 0.45rem;
+}
+
+.sub-edit-validation {
+    background: #F9FAFB;
+}
+
+.sub-edit-validation .accept-rules-list {
+    margin-bottom: 0;
+}
+
+@media (max-width: 780px) {
+    .sub-edit-popup-box {
+        max-height: 96vh;
+    }
+
+    .sub-edit-grid,
+    .sub-edit-pickers {
+        grid-template-columns: 1fr;
+    }
+
+    .sub-edit-create-row {
+        grid-template-columns: 1fr;
+    }
+
+    .sub-edit-check-field {
+        padding-top: 0;
+    }
+}
+
 .admin-confirm-change-btn {
     padding: 0.5rem 1.25rem;
     background: #DC2626;

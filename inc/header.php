@@ -209,8 +209,8 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
             </ul>
         </nav>
         <div class="header-main-btns-promo">
-            <!-- <a href="submitChatbot.php" class="header-main-btn-submit">Submit Chatbot</a>
-            <a href="advertise.php" class="header-main-btn-advertise">Advertise</a> -->
+            <a href="submitChatbot.php" class="header-main-btn-submit">Submit Chatbot</a>
+            <a href="advertise.php" class="header-main-btn-advertise">Advertise</a>
         </div>
         <div class="header-main-right">
             <?php if (!$isLoggedIn): ?>

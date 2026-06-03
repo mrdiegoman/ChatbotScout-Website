@@ -17,6 +17,18 @@ function nlToBr(str) {
     return escHtml(str).replace(/\n/g, '<br>');
 }
 
+function adminAssetSrc(path) {
+    if (!path) return '';
+    const value = String(path);
+    if (/^(https?:)?\/\//i.test(value) || value.startsWith('/') || value.startsWith('data:') || value.startsWith('../')) {
+        return value;
+    }
+    if (value.startsWith('public/')) {
+        return `../${value}`;
+    }
+    return value;
+}
+
 // ============================================
 // STATE — offset pre každú sekciu
 // ============================================
@@ -213,7 +225,7 @@ function buildSubmissionCard(sub) {
     const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
  
     const logoHtml = sub.logo_url
-        ? `<img src="../${escHtml(sub.logo_url)}" alt="logo" class="admin-submission-logo">`
+        ? `<img src="${escHtml(adminAssetSrc(sub.logo_url))}" alt="logo" class="admin-submission-logo">`
         : `<div class="admin-submission-logo admin-submission-logo--placeholder">🤖</div>`;
  
     const accessNoteBlock = sub.access_note
@@ -285,6 +297,7 @@ function buildSubmissionCard(sub) {
         <div class="admin-message-actions">
             <div class="admin-status-actions">${actionButtons}</div>
             <div class="admin-toggle-actions">
+                <button class="admin-toggle-btn admin-edit-listing-btn" onclick="openSubmissionEditPopup('${id}')">Edit Listing</button>
                 <button class="admin-toggle-btn" onclick="toggleSection(this, 'sub-notes-${id}')">📝 Notes</button>
                 ${blockBtn}
             </div>

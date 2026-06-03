@@ -660,23 +660,36 @@ require '../inc/header.php';
 
 <!-- Delete Account Modal -->
 <div id="delete-account-modal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Delete Account</h2>
+    <div class="modal-content delete-account-modal__content">
+        <div class="modal-header delete-account-modal__header">
+            <div>
+                <span class="delete-account-modal__eyebrow">Permanent action</span>
+                <h2>Delete Account</h2>
+            </div>
             <button class="modal-close">&times;</button>
         </div>
-        <div class="modal-body">
-            <div class="warning-message danger">
-                ⚠️ This action cannot be undone. Your account will be permanently deleted.
+        <div class="modal-body delete-account-modal__body">
+            <div class="delete-account-modal__warning">
+                <span class="delete-account-modal__warning-icon">!</span>
+                <div class="delete-account-modal__warning-copy">
+                    <strong>This cannot be undone.</strong>
+                    <span>Your profile, saved account details, and active access will be removed.</span>
+                </div>
             </div>
-            <p>If you want to recover your account later, please contact support instead.</p>
+            <div class="delete-account-modal__details">
+                <p>Before continuing, make sure you do not need this account anymore.</p>
+                <ul>
+                    <li>Your account will be disabled immediately.</li>
+                    <li>Active subscriptions will be cancelled.</li>
+                </ul>
+            </div>
             
-            <div class="form-group">
-                <p class="info-field-static-label">Type "DELETE" to confirm:</p>
-                <input type="text" id="delete-confirmation-input" placeholder="DELETE">
+            <div class="form-group delete-account-modal__confirm">
+                <label class="info-field-static-label" for="delete-confirmation-input">Type DELETE to confirm</label>
+                <input type="text" id="delete-confirmation-input" placeholder="DELETE" autocomplete="off">
             </div>
 
-            <div class="modal-actions" style="flex-direction:row;justify-content:space-between;gap:12px;">
+            <div class="modal-actions delete-account-modal__actions">
                 <button class="cancel-btn modal-close">Cancel</button>
                 <button class="danger-btn" id="confirm-delete-btn" disabled>Delete My Account</button>
             </div>

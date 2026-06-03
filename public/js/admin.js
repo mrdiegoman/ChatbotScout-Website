@@ -1232,6 +1232,652 @@ function resolveDelistPopup(confirmed) {
 }
 
 // ============================================
+// SUBMISSIONS - EDIT LISTING POPUP
+// ============================================
+
+const SUBMISSION_PRICING_MODELS = [
+    ['free', 'Free'],
+    ['freemium', 'Freemium'],
+    ['recurring', 'Recurring'],
+    ['one-time', 'One-time'],
+    ['usage-based', 'Usage-based'],
+    ['custom', 'Custom'],
+];
+
+const SUBMISSION_CURRENCIES = ['USD', 'EUR', 'GBP'];
+
+function submissionEditAssetSrc(path) {
+    if (!path) return '';
+    const value = String(path);
+    if (/^(https?:)?\/\//i.test(value) || value.startsWith('/') || value.startsWith('data:') || value.startsWith('../')) {
+        return value;
+    }
+    if (value.startsWith('public/')) {
+        return `../${value}`;
+    }
+    return value;
+}
+
+function checkedAttr(value) {
+    return value ? ' checked' : '';
+}
+
+function selectedAttr(current, value) {
+    return String(current || '') === value ? ' selected' : '';
+}
+
+function normalizeSubmissionEditName(name) {
+    return String(name || '').trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function buildSubmissionEditOption(kind, item, selected) {
+    const isFeature = kind === 'feature';
+    const checkClass = isFeature ? 'sub-edit-feature-check' : 'sub-edit-integration-check';
+    const usageCount = Number(item.usage_count || 0);
+    const badge = isFeature && item.advanced
+        ? '<span class="sub-edit-option-badge">Advanced</span>'
+        : '';
+    const usedBadge = isFeature && usageCount > 0
+        ? `<span class="sub-edit-option-badge">Used ${usageCount}</span>`
+        : '';
+    const deleteTitle = usageCount > 0
+        ? `Used by ${usageCount} chatbot(s). Remove it from all chatbots before deleting.`
+        : 'Delete this unused feature';
+    const deleteClass = usageCount > 0 ? ' sub-edit-delete-feature-btn--locked' : '';
+    const deleteAction = usageCount > 0
+        ? `event.preventDefault(); event.stopPropagation(); showNotification('This feature is used by ${usageCount} chatbot(s).', 'info')`
+        : `deleteSubmissionEditFeature('${escapeAttr(item.id)}', this, event)`;
+    const deleteButton = isFeature
+        ? `<button type="button"
+                   class="sub-edit-delete-feature-btn${deleteClass}"
+                   title="${escapeAttr(deleteTitle)}"
+                   aria-disabled="${usageCount > 0 ? 'true' : 'false'}"
+                   onclick="${deleteAction}">
+               Delete
+           </button>`
+        : '';
+    const selectedClass = selected ? ' sub-edit-option--selected' : '';
+
+    return `
+        <label class="sub-edit-option${selectedClass}" data-name-key="${escapeAttr(normalizeSubmissionEditName(item.name))}">
+            <input type="checkbox"
+                   class="${checkClass}"
+                   data-id="${escapeAttr(item.id)}"
+                   onchange="handleSubmissionEditOptionToggle(this)"
+                   ${checkedAttr(selected)}>
+            <span class="sub-edit-option-name">${escapeHtml(item.name)}</span>
+            ${badge}
+            ${usedBadge}
+            ${deleteButton}
+        </label>`;
+}
+
+function buildSubmissionEditSelector(kind, title, items, selectedIds) {
+    const isFeature = kind === 'features';
+    const selectedSet = new Set(selectedIds || []);
+    const rows = (items || []).map(item => {
+        return buildSubmissionEditOption(isFeature ? 'feature' : 'integration', item, selectedSet.has(item.id));
+    }).join('');
+
+    return `
+        <section class="sub-edit-picker">
+            <div class="sub-edit-picker-head">
+                <h4>${title}</h4>
+                <span id="sub-edit-${kind}-count">0 selected</span>
+            </div>
+            <input type="search"
+                   id="sub-edit-${kind}-search"
+                   class="sub-edit-search"
+                   data-sub-edit-search="${kind}"
+                   placeholder="Search ${title.toLowerCase()}...">
+            <div class="sub-edit-create-row">
+                <input type="text"
+                       id="sub-edit-new-${isFeature ? 'feature' : 'integration'}"
+                       maxlength="100"
+                       placeholder="Create new ${isFeature ? 'feature' : 'integration'}">
+                ${isFeature ? `
+                    <label class="sub-edit-advanced-toggle">
+                        <span>Advanced</span>
+                        <span class="toggle-switch">
+                            <input type="checkbox" id="sub-edit-new-feature-advanced">
+                            <span class="toggle-slider"></span>
+                        </span>
+                    </label>` : ''}
+                <button type="button" onclick="addSubmissionEditItem('${kind}')">Add</button>
+            </div>
+            <div class="sub-edit-options" id="sub-edit-${kind}-list">
+                ${rows || '<div class="sub-edit-empty-option">No items yet.</div>'}
+            </div>
+        </section>`;
+}
+
+function buildSubmissionValidationSummary(validation) {
+    const rules = validation?.rules || [];
+    if (!rules.length) return '';
+
+    const rulesHtml = rules.map(rule => {
+        const cls = rule.skip ? 'accept-rule-skip' : (rule.ok ? 'accept-rule-ok' : 'accept-rule-fail');
+        const icon = rule.skip ? '-' : (rule.ok ? 'OK' : '!');
+        return `<div class="accept-rule-item ${cls}">${icon} ${escapeHtml(rule.label)}</div>`;
+    }).join('');
+
+    return `
+        <section class="sub-edit-validation">
+            <h4>Accept requirements</h4>
+            <div class="accept-rules-list">${rulesHtml}</div>
+        </section>`;
+}
+
+async function openSubmissionEditPopup(id) {
+    document.getElementById('sub-edit-popup')?.remove();
+
+    const popup = document.createElement('div');
+    popup.id = 'sub-edit-popup';
+    popup.className = 'sub-popup-overlay';
+    popup.innerHTML = `
+        <div class="sub-popup-box sub-edit-popup-box">
+            <div class="sub-popup-header">
+                <h3>Edit Listing</h3>
+                <button class="sub-popup-close" onclick="closeSubmissionEditPopup()">&times;</button>
+            </div>
+            <div class="sub-popup-body sub-edit-popup-body">
+                <div class="sub-edit-loading">Loading listing details...</div>
+            </div>
+        </div>`;
+
+    document.body.appendChild(popup);
+    requestAnimationFrame(() => popup.classList.add('visible'));
+
+    try {
+        const res = await fetch('../app/adminSubmissionActions.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'get_edit_data', id }),
+        });
+        const result = await res.json();
+
+        if (!result.success) {
+            showNotification(result.message || 'Could not load listing details.', 'error');
+            closeSubmissionEditPopup();
+            return;
+        }
+
+        renderSubmissionEditPopup(result.data);
+    } catch (err) {
+        console.error(err);
+        showNotification('Could not load listing details.', 'error');
+        closeSubmissionEditPopup();
+    }
+}
+
+function renderSubmissionEditPopup(data) {
+    const popup = document.getElementById('sub-edit-popup');
+    if (!popup) return;
+
+    const c = data.chatbot || {};
+    const pricingOptions = SUBMISSION_PRICING_MODELS.map(([value, label]) => {
+        return `<option value="${value}"${selectedAttr(c.pricing_model, value)}>${label}</option>`;
+    }).join('');
+    const currencyOptions = SUBMISSION_CURRENCIES.map(currency => {
+        return `<option value="${currency}"${selectedAttr(c.pricing_currency || 'USD', currency)}>${currency}</option>`;
+    }).join('');
+    const commissionOptions = [
+        ['', 'Not set'],
+        ['percentage', 'Percentage'],
+        ['flat', 'Flat'],
+        ['cpa', 'CPA'],
+    ].map(([value, label]) => {
+        return `<option value="${value}"${selectedAttr(c.affiliate_commission_type || '', value)}>${label}</option>`;
+    }).join('');
+
+    popup.innerHTML = `
+        <div class="sub-popup-box sub-edit-popup-box">
+            <div class="sub-popup-header">
+                <h3>Edit Listing</h3>
+                <button class="sub-popup-close" onclick="closeSubmissionEditPopup()">&times;</button>
+            </div>
+            <form id="sub-edit-form" data-chatbot-id="${escapeAttr(c.id)}" onsubmit="saveSubmissionEdit(event, '${escapeAttr(c.id)}')">
+                <div class="sub-popup-body sub-edit-popup-body">
+                    <section class="sub-edit-section">
+                        <h4>Core details</h4>
+                        <div class="sub-edit-grid">
+                            <label class="sub-edit-field">
+                                <span>Name</span>
+                                <input name="name" type="text" maxlength="200" required value="${escapeAttr(c.name || '')}">
+                            </label>
+                            <label class="sub-edit-field">
+                                <span>Website URL</span>
+                                <input name="website_url" type="url" maxlength="500" required value="${escapeAttr(c.website_url || '')}">
+                            </label>
+                            <label class="sub-edit-field sub-edit-field--wide">
+                                <span>Description</span>
+                                <textarea name="description" maxlength="150" rows="3">${escapeHtml(c.description || '')}</textarea>
+                            </label>
+                            <label class="sub-edit-field">
+                                <span>Logo URL or path</span>
+                                <input name="logo_url" type="text" maxlength="500" placeholder="img/websiteLogos/ChatbotScout_logo.png or https://example.com/logo.png" value="${escapeAttr(c.logo_url || '')}">
+                            </label>
+                            <label class="sub-edit-field">
+                                <span>Pricing URL</span>
+                                <input name="pricing_url" type="url" maxlength="500" value="${escapeAttr(c.pricing_url || '')}">
+                            </label>
+                        </div>
+                    </section>
+
+                    <section class="sub-edit-section">
+                        <h4>Affiliate</h4>
+                        <div class="sub-edit-grid">
+                            <label class="sub-edit-toggle-field">
+                                <span>Affiliate program enabled</span>
+                                <span class="toggle-switch">
+                                    <input name="has_affiliate_program" type="checkbox"${checkedAttr(c.has_affiliate_program || c.affiliate_link)}>
+                                    <span class="toggle-slider"></span>
+                                </span>
+                            </label>
+                            <label class="sub-edit-field sub-edit-field--wide">
+                                <span>Affiliate link</span>
+                                <input name="affiliate_link" type="url" maxlength="1000" value="${escapeAttr(c.affiliate_link || '')}">
+                            </label>
+                            <label class="sub-edit-field">
+                                <span>Commission rate</span>
+                                <input name="affiliate_commission_rate" type="number" min="0" max="999.99" step="0.01" value="${escapeAttr(c.affiliate_commission_rate || '')}">
+                            </label>
+                            <label class="sub-edit-field">
+                                <span>Commission type</span>
+                                <select name="affiliate_commission_type">${commissionOptions}</select>
+                            </label>
+                            <label class="sub-edit-field">
+                                <span>Cookie duration days</span>
+                                <input name="affiliate_cookie_duration" type="number" min="0" max="3650" step="1" value="${escapeAttr(c.affiliate_cookie_duration || '')}">
+                            </label>
+                        </div>
+                    </section>
+
+                    <section class="sub-edit-section">
+                        <h4>Pricing</h4>
+                        <div class="sub-edit-grid">
+                            <label class="sub-edit-field">
+                                <span>Pricing model</span>
+                                <select name="pricing_model">${pricingOptions}</select>
+                            </label>
+                            <label class="sub-edit-field">
+                                <span>Starting price</span>
+                                <input name="starting_price" type="number" min="0" step="0.01" value="${escapeAttr(c.starting_price || '0.00')}">
+                            </label>
+                            <label class="sub-edit-field">
+                                <span>Currency</span>
+                                <select name="pricing_currency">${currencyOptions}</select>
+                            </label>
+                            <label class="sub-edit-toggle-field">
+                                <span>Free trial available</span>
+                                <span class="toggle-switch">
+                                    <input name="has_free_trial" type="checkbox"${checkedAttr(c.has_free_trial)}>
+                                    <span class="toggle-slider"></span>
+                                </span>
+                            </label>
+                            <label class="sub-edit-field">
+                                <span>Free trial days</span>
+                                <input name="free_trial_days" type="number" min="1" max="3650" step="1" value="${escapeAttr(c.free_trial_days || '')}">
+                            </label>
+                        </div>
+                    </section>
+
+                    <div class="sub-edit-pickers">
+                        ${buildSubmissionEditSelector('features', 'Features', data.features || [], data.selectedFeatureIds || [])}
+                        ${buildSubmissionEditSelector('integrations', 'Integrations', data.integrations || [], data.selectedIntegrationIds || [])}
+                    </div>
+
+                    ${buildSubmissionValidationSummary(data.validation)}
+                </div>
+                <div class="sub-popup-footer">
+                    <button type="submit" class="admin-save-btn" data-sub-edit-save>Save Listing</button>
+                </div>
+            </form>
+        </div>`;
+
+    updateSubmissionEditCounts();
+    bindSubmissionEditSearchHandlers();
+}
+
+function closeSubmissionEditPopup() {
+    const popup = document.getElementById('sub-edit-popup');
+    if (!popup) return;
+
+    popup.classList.remove('visible');
+    setTimeout(() => popup.remove(), 200);
+}
+
+function filterSubmissionEditList(kind, value) {
+    const list = document.getElementById(`sub-edit-${kind}-list`);
+    if (!list) return;
+
+    const term = normalizeSubmissionEditName(value);
+    list.querySelectorAll('.sub-edit-option').forEach(option => {
+        const nameKey = option.dataset.nameKey || normalizeSubmissionEditName(option.textContent);
+        option.style.display = term === '' || nameKey.includes(term) ? '' : 'none';
+    });
+}
+
+function bindSubmissionEditSearchHandlers() {
+    document.querySelectorAll('[data-sub-edit-search]').forEach(input => {
+        if (input.dataset.bound === '1') return;
+
+        input.dataset.bound = '1';
+        input.addEventListener('input', () => {
+            filterSubmissionEditList(input.dataset.subEditSearch, input.value);
+        });
+        input.addEventListener('keydown', event => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+            }
+        });
+    });
+}
+
+function handleSubmissionEditOptionToggle(checkbox) {
+    const option = checkbox.closest('.sub-edit-option');
+    if (option) {
+        option.classList.toggle('sub-edit-option--selected', checkbox.checked);
+    }
+    updateSubmissionEditCounts();
+}
+
+function addSubmissionEditItem(kind) {
+    const isFeature = kind === 'features';
+    const input = document.getElementById(isFeature ? 'sub-edit-new-feature' : 'sub-edit-new-integration');
+    const list = document.getElementById(`sub-edit-${kind}-list`);
+    if (!input || !list) return;
+
+    const name = input.value.trim();
+    if (!name) {
+        showNotification(`Enter a ${isFeature ? 'feature' : 'integration'} name first.`, 'error');
+        return;
+    }
+    if (name.length > 100) {
+        showNotification('Name can be max 100 characters.', 'error');
+        return;
+    }
+
+    const key = normalizeSubmissionEditName(name);
+    const existing = Array.from(list.querySelectorAll('.sub-edit-option'))
+        .find(option => option.dataset.nameKey === key);
+
+    if (existing) {
+        const checkbox = existing.querySelector('input[type="checkbox"]');
+        if (checkbox) checkbox.checked = true;
+        existing.hidden = false;
+        existing.scrollIntoView({ block: 'nearest' });
+        updateSubmissionEditCounts();
+        input.value = '';
+        return;
+    }
+
+    list.querySelector('.sub-edit-empty-option')?.remove();
+
+    const label = document.createElement('label');
+    label.className = 'sub-edit-option sub-edit-option--new';
+    label.dataset.nameKey = key;
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = true;
+    checkbox.className = isFeature ? 'sub-edit-feature-check' : 'sub-edit-integration-check';
+    checkbox.dataset.newName = name;
+    checkbox.addEventListener('change', () => handleSubmissionEditOptionToggle(checkbox));
+
+    if (isFeature) {
+        const advanced = document.getElementById('sub-edit-new-feature-advanced')?.checked || false;
+        checkbox.dataset.advanced = advanced ? '1' : '0';
+    }
+
+    const text = document.createElement('span');
+    text.className = 'sub-edit-option-name';
+    text.textContent = name;
+
+    const badge = document.createElement('span');
+    badge.className = 'sub-edit-option-badge sub-edit-option-badge--new';
+    badge.textContent = 'New';
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'sub-edit-delete-item-btn';
+    deleteBtn.title = `Remove this new ${isFeature ? 'feature' : 'integration'}`;
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.addEventListener('click', event => deleteSubmissionEditNewItem(deleteBtn, event));
+
+    label.append(checkbox, text, badge);
+    if (isFeature && checkbox.dataset.advanced === '1') {
+        const advancedBadge = document.createElement('span');
+        advancedBadge.className = 'sub-edit-option-badge';
+        advancedBadge.textContent = 'Advanced';
+        label.appendChild(advancedBadge);
+    }
+    label.appendChild(deleteBtn);
+
+    list.prepend(label);
+    input.value = '';
+    if (isFeature) {
+        const advancedInput = document.getElementById('sub-edit-new-feature-advanced');
+        if (advancedInput) advancedInput.checked = false;
+    }
+    updateSubmissionEditCounts();
+}
+
+function updateSubmissionEditCounts() {
+    document.querySelectorAll('.sub-edit-option input[type="checkbox"]').forEach(checkbox => {
+        checkbox.closest('.sub-edit-option')?.classList.toggle('sub-edit-option--selected', checkbox.checked);
+    });
+
+    const featureCount = document.querySelectorAll('#sub-edit-features-list .sub-edit-feature-check:checked').length;
+    const integrationCount = document.querySelectorAll('#sub-edit-integrations-list .sub-edit-integration-check:checked').length;
+
+    const featureCounter = document.getElementById('sub-edit-features-count');
+    const integrationCounter = document.getElementById('sub-edit-integrations-count');
+
+    if (featureCounter) featureCounter.textContent = `${featureCount} selected`;
+    if (integrationCounter) integrationCounter.textContent = `${integrationCount} selected`;
+}
+
+async function deleteSubmissionEditFeature(featureId, btn, event) {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    if (btn.disabled) return;
+
+    const option = btn.closest('.sub-edit-option');
+    const featureName = option?.querySelector('.sub-edit-option-name')?.textContent?.trim() || 'this feature';
+    const form = document.getElementById('sub-edit-form');
+    const chatbotId = form?.dataset.chatbotId || '';
+
+    if (!chatbotId) {
+        showNotification('Could not find the current chatbot.', 'error');
+        return;
+    }
+
+    if (!confirm(`Delete feature "${featureName}"?`)) {
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Deleting...';
+
+    try {
+        const res = await fetch('../app/adminSubmissionActions.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete_feature', id: chatbotId, feature_id: featureId }),
+        });
+        const result = await res.json();
+
+        if (!result.success) {
+            showNotification(result.message || 'Could not delete feature.', 'error');
+            btn.disabled = false;
+            btn.textContent = 'Delete';
+            return;
+        }
+
+        option?.remove();
+        updateSubmissionEditCounts();
+        showNotification('Feature deleted.', 'success');
+    } catch (err) {
+        console.error(err);
+        showNotification('Could not delete feature.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Delete';
+    }
+}
+
+function deleteSubmissionEditNewItem(btn, event) {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    const option = btn.closest('.sub-edit-option');
+    if (!option) return;
+
+    const itemName = option.querySelector('.sub-edit-option-name')?.textContent?.trim() || 'this item';
+    if (!confirm(`Remove "${itemName}" from this edit?`)) {
+        return;
+    }
+
+    option.remove();
+    updateSubmissionEditCounts();
+}
+
+async function saveSubmissionEdit(event, id) {
+    event.preventDefault();
+
+    const form = document.getElementById('sub-edit-form');
+    if (!form) return;
+
+    const saveBtn = form.querySelector('[data-sub-edit-save]');
+    const featureIds = [];
+    const integrationIds = [];
+    const newFeatures = [];
+    const newIntegrations = [];
+
+    form.querySelectorAll('.sub-edit-feature-check:checked').forEach(checkbox => {
+        if (checkbox.dataset.id) {
+            featureIds.push(checkbox.dataset.id);
+        } else if (checkbox.dataset.newName) {
+            newFeatures.push({
+                name: checkbox.dataset.newName,
+                advanced: checkbox.dataset.advanced === '1',
+            });
+        }
+    });
+
+    form.querySelectorAll('.sub-edit-integration-check:checked').forEach(checkbox => {
+        if (checkbox.dataset.id) {
+            integrationIds.push(checkbox.dataset.id);
+        } else if (checkbox.dataset.newName) {
+            newIntegrations.push({ name: checkbox.dataset.newName });
+        }
+    });
+
+    const payload = {
+        action: 'save_edit_data',
+        id,
+        fields: {
+            name: form.elements['name'].value.trim(),
+            website_url: form.elements['website_url'].value.trim(),
+            description: form.elements['description'].value.trim(),
+            logo_url: form.elements['logo_url'].value.trim(),
+            pricing_url: form.elements['pricing_url'].value.trim(),
+            has_affiliate_program: form.elements['has_affiliate_program'].checked,
+            affiliate_link: form.elements['affiliate_link'].value.trim(),
+            affiliate_commission_rate: form.elements['affiliate_commission_rate'].value.trim(),
+            affiliate_commission_type: form.elements['affiliate_commission_type'].value,
+            affiliate_cookie_duration: form.elements['affiliate_cookie_duration'].value.trim(),
+            pricing_model: form.elements['pricing_model'].value,
+            starting_price: form.elements['starting_price'].value.trim(),
+            pricing_currency: form.elements['pricing_currency'].value,
+            has_free_trial: form.elements['has_free_trial'].checked,
+            free_trial_days: form.elements['free_trial_days'].value.trim(),
+        },
+        feature_ids: featureIds,
+        integration_ids: integrationIds,
+        new_features: newFeatures,
+        new_integrations: newIntegrations,
+    };
+
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+    }
+
+    try {
+        const res = await fetch('../app/adminSubmissionActions.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        const result = await res.json();
+
+        if (!result.success) {
+            showNotification(result.message || 'Could not save listing details.', 'error');
+            return;
+        }
+
+        const body = document.querySelector('#sub-edit-popup .sub-edit-popup-body');
+        const scrollTop = body ? body.scrollTop : 0;
+
+        updateSubmissionCardAfterEdit(id, result.data.chatbot);
+        renderSubmissionEditPopup(result.data);
+
+        requestAnimationFrame(() => {
+            const nextBody = document.querySelector('#sub-edit-popup .sub-edit-popup-body');
+            if (nextBody) nextBody.scrollTop = scrollTop;
+        });
+
+        const ready = !!result.data.validation?.valid;
+        showNotification(
+            ready ? 'Listing saved.' : 'Listing saved. Some accept requirements are still missing.',
+            ready ? 'success' : 'info'
+        );
+    } catch (err) {
+        console.error(err);
+        showNotification('Could not save listing details.', 'error');
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save Listing';
+        }
+    }
+}
+
+function updateSubmissionCardAfterEdit(id, chatbot) {
+    const card = document.querySelector(`#submissions-tab .admin-message-card[data-id="${id}"]`);
+    if (!card || !chatbot) return;
+
+    const nameEl = card.querySelector('.admin-message-sender');
+    if (nameEl) nameEl.textContent = chatbot.name || '';
+
+    const linkEl = card.querySelector('.admin-message-subject a');
+    if (linkEl) {
+        linkEl.href = chatbot.website_url || '#';
+        linkEl.textContent = chatbot.website_url || '';
+    }
+
+    const row = card.querySelector('.admin-message-sender-row');
+    const currentLogo = row?.querySelector('.admin-submission-logo');
+    if (!row || !currentLogo) return;
+
+    let nextLogo;
+    if (chatbot.logo_url) {
+        nextLogo = document.createElement('img');
+        nextLogo.src = submissionEditAssetSrc(chatbot.logo_url);
+        nextLogo.alt = 'logo';
+        nextLogo.className = 'admin-submission-logo';
+    } else {
+        nextLogo = document.createElement('div');
+        nextLogo.className = 'admin-submission-logo admin-submission-logo--placeholder';
+        nextLogo.textContent = 'Bot';
+    }
+
+    currentLogo.replaceWith(nextLogo);
+}
+
+// ============================================
 // HELPER: Update card status in DOM
 // ============================================
 
