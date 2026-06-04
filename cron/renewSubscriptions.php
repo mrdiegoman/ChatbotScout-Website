@@ -63,6 +63,7 @@ try {
         WHERE s.status              = 'active'
           AND s.auto_renew          = TRUE
           AND s.cancel_at_period_end = FALSE
+          AND s.stripe_subscription_id IS NULL
           AND s.end_date            < DATE_ADD(NOW(), INTERVAL 1 DAY)
     ");
     $stmt->execute();

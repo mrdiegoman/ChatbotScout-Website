@@ -21,7 +21,7 @@ const payBtnText    = document.getElementById('payBtnText');
 const payBtnLoader  = document.getElementById('payBtnLoader');
 const errorDiv      = document.getElementById('checkoutError');
 
-// ── Init: fetch PaymentIntent client_secret ───────────────────────────────────
+// ── Init: fetch the first subscription invoice PaymentIntent client_secret ───
 async function init() {
     try {
         const res  = await fetch('app/stripeActions.php?action=create_payment_intent', {

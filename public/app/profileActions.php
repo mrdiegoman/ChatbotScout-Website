@@ -11,6 +11,7 @@ ini_set('log_errors', 1);
 
 require '../../inc/bootstrap.php';
 require __DIR__ . '/auth.php';
+require_once __DIR__ . '/../../inc/stripePaymentFinalizer.php';
 
 $action = $_GET['action'] ?? '';
 
@@ -55,6 +56,26 @@ function deleteLocalProfilePicture(?string $profilePictureUrl): void
 
     if (!unlink($targetPath)) {
         throw new RuntimeException('Failed to delete profile picture file');
+    }
+}
+
+function profileReturnUrl(string $tab = 'profile'): string
+{
+    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+    $scheme = $isHttps ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $publicPath = rtrim(str_replace('\\', '/', dirname(dirname($_SERVER['SCRIPT_NAME'] ?? '/'))), '/');
+
+    return $scheme . '://' . $host . $publicPath . '/profile.php?tab=' . rawurlencode($tab);
+}
+
+function configureStripeForProfileActions(): void
+{
+    $stripeConfig = require __DIR__ . '/../../config/stripe.php';
+    \Stripe\Stripe::setApiKey($stripeConfig['secret_key']);
+    if (!empty($stripeConfig['api_version'])) {
+        \Stripe\Stripe::setApiVersion($stripeConfig['api_version']);
     }
 }
 
@@ -382,17 +403,153 @@ if ($action === 'update_marketing_emails') {
 // ============================================
 
 if ($action === 'stripe_customer_portal') {
+    $data = json_decode(file_get_contents('php://input'), true) ?: [];
+    $subscriptionId = trim($data['subscription_id'] ?? $data['subscriptionId'] ?? '');
+
     $db = Database::getInstance()->getConnection();
-    $stmt = $db->prepare("SELECT stripe_customer_id FROM subscriptions WHERE user_id = :user_id AND status = 'active' LIMIT 1");
-    $stmt->execute(['user_id' => $user['id']]);
+    if ($subscriptionId) {
+        $stmt = $db->prepare("
+            SELECT stripe_customer_id, stripe_subscription_id
+            FROM subscriptions
+            WHERE id = :subscription_id
+              AND user_id = :user_id
+              AND status IN ('active', 'trialing', 'past_due')
+            LIMIT 1
+        ");
+        $stmt->execute([
+            'subscription_id' => $subscriptionId,
+            'user_id' => $user['id'],
+        ]);
+    } else {
+        $stmt = $db->prepare("
+            SELECT stripe_customer_id, stripe_subscription_id
+            FROM subscriptions
+            WHERE user_id = :user_id
+              AND status IN ('active', 'trialing', 'past_due')
+            ORDER BY created_at DESC
+            LIMIT 1
+        ");
+        $stmt->execute(['user_id' => $user['id']]);
+    }
     $sub = $stmt->fetch();
     
     if (!$sub || !$sub['stripe_customer_id']) {
         echo json_encode(['success' => false, 'message' => 'No active subscription found']);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Stripe integration not yet configured']);
+        try {
+            configureStripeForProfileActions();
+
+            $portalSession = \Stripe\BillingPortal\Session::create([
+                'customer' => $sub['stripe_customer_id'],
+                'return_url' => profileReturnUrl('profile'),
+            ]);
+
+            echo json_encode(['success' => true, 'url' => $portalSession->url]);
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            error_log('Stripe customer portal error: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Stripe customer portal error: ' . $e->getMessage(),
+            ]);
+        }
     }
     
+    exit;
+}
+
+// ============================================
+// RENEW SUBSCRIPTION
+// ============================================
+
+if ($action === 'renew_subscription') {
+    $data = json_decode(file_get_contents('php://input'), true) ?: [];
+    $subscriptionId = trim($data['subscription_id'] ?? $data['subscriptionId'] ?? '');
+
+    if (!$subscriptionId) {
+        echo json_encode(['success' => false, 'message' => 'Missing subscription']);
+        exit;
+    }
+
+    $db = Database::getInstance()->getConnection();
+    $stmt = $db->prepare("
+        SELECT id, status, cancel_at_period_end, stripe_subscription_id
+        FROM subscriptions
+        WHERE id = :subscription_id
+          AND user_id = :user_id
+          AND status IN ('active', 'trialing', 'past_due')
+        LIMIT 1
+    ");
+    $stmt->execute([
+        'subscription_id' => $subscriptionId,
+        'user_id' => $user['id'],
+    ]);
+    $sub = $stmt->fetch();
+
+    if (!$sub) {
+        echo json_encode(['success' => false, 'message' => 'No active subscription found']);
+        exit;
+    }
+
+    if (empty($sub['stripe_subscription_id'])) {
+        echo json_encode(['success' => false, 'message' => 'Stripe subscription was not found']);
+        exit;
+    }
+
+    try {
+        configureStripeForProfileActions();
+
+        $stripeSubscription = \Stripe\Subscription::retrieve($sub['stripe_subscription_id']);
+        $stripeStatus = (string) ($stripeSubscription->status ?? '');
+
+        if (in_array($stripeStatus, ['canceled', 'incomplete_expired'], true)) {
+            syncStripeSubscriptionStatus($db, $stripeSubscription);
+            echo json_encode(['success' => false, 'message' => 'This subscription has already ended and cannot be renewed.']);
+            exit;
+        }
+
+        if (empty($stripeSubscription->cancel_at_period_end) && empty($sub['cancel_at_period_end'])) {
+            syncStripeSubscriptionStatus($db, $stripeSubscription);
+            echo json_encode(['success' => true, 'message' => 'Subscription is already renewed.']);
+            exit;
+        }
+
+        $stripeSubscription = \Stripe\Subscription::update($sub['stripe_subscription_id'], [
+            'cancel_at_period_end' => false,
+        ]);
+
+        syncStripeSubscriptionStatus($db, $stripeSubscription);
+
+        $db->prepare("
+            UPDATE subscriptions
+            SET cancel_at_period_end = FALSE,
+                auto_renew = CASE
+                    WHEN status IN ('active', 'trialing') THEN TRUE
+                    ELSE auto_renew
+                END,
+                cancelled_at = NULL,
+                cancellation_reason = NULL,
+                updated_at = NOW()
+            WHERE stripe_subscription_id = :stripe_subscription_id
+              AND user_id = :user_id
+        ")->execute([
+            'stripe_subscription_id' => $sub['stripe_subscription_id'],
+            'user_id' => $user['id'],
+        ]);
+
+        AuditLog::log('subscription', $sub['id'], 'updated',
+            ['cancel_at_period_end' => true],
+            ['cancel_at_period_end' => false, 'auto_renew' => true]
+        );
+
+        echo json_encode(['success' => true, 'message' => 'Subscription renewed.']);
+    } catch (\Stripe\Exception\ApiErrorException $e) {
+        error_log('Stripe renew subscription error: ' . $e->getMessage());
+        echo json_encode([
+            'success' => false,
+            'message' => 'Stripe could not renew this subscription: ' . $e->getMessage(),
+        ]);
+    }
+
     exit;
 }
 
@@ -402,26 +559,135 @@ if ($action === 'stripe_customer_portal') {
 
 if ($action === 'cancel_subscription') {
     $data = json_decode(file_get_contents('php://input'), true);
+    $subscriptionId = trim($data['subscription_id'] ?? $data['subscriptionId'] ?? '');
     $cancelType = $data['cancelType'] ?? 'at-period-end';
     $reason = $data['reason'] ?? null;
+
+    if (!in_array($cancelType, ['at-period-end', 'immediately'], true)) {
+        $cancelType = 'at-period-end';
+    }
+
+    $reason = is_string($reason) ? trim($reason) : null;
+    if ($reason === '') {
+        $reason = null;
+    }
+
+    if (!$subscriptionId) {
+        echo json_encode(['success' => false, 'message' => 'Missing subscription']);
+        exit;
+    }
     
     $db = Database::getInstance()->getConnection();
-    $stmt = $db->prepare("SELECT id, end_date FROM subscriptions WHERE user_id = :user_id AND status = 'active' LIMIT 1");
-    $stmt->execute(['user_id' => $user['id']]);
+    $stmt = $db->prepare("
+        SELECT id, status, end_date, cancel_at_period_end, stripe_subscription_id
+        FROM subscriptions
+        WHERE id = :subscription_id
+          AND user_id = :user_id
+          AND status IN ('active', 'trialing', 'past_due')
+        LIMIT 1
+    ");
+    $stmt->execute([
+        'subscription_id' => $subscriptionId,
+        'user_id' => $user['id'],
+    ]);
     $sub = $stmt->fetch();
     
     if (!$sub) {
         echo json_encode(['success' => false, 'message' => 'No active subscription found']);
         exit;
     }
-    
-    if ($cancelType === 'immediately') {
-        $stmt = $db->prepare("UPDATE subscriptions SET status = 'cancelled', cancelled_at = NOW(), end_date = NOW(), cancellation_reason = :reason WHERE id = :id");
-    } else {
-        $stmt = $db->prepare("UPDATE subscriptions SET cancel_at_period_end = TRUE, auto_renew = FALSE, cancelled_at = NOW(), cancellation_reason = :reason WHERE id = :id");
+
+    if (!empty($sub['cancel_at_period_end']) && $cancelType !== 'immediately') {
+        echo json_encode(['success' => true, 'message' => 'Subscription is already scheduled for cancellation.']);
+        exit;
+    }
+
+    if (empty($sub['stripe_subscription_id'])) {
+        echo json_encode(['success' => false, 'message' => 'Stripe subscription was not found']);
+        exit;
+    }
+
+    try {
+        configureStripeForProfileActions();
+
+        $stripeSubscription = \Stripe\Subscription::retrieve($sub['stripe_subscription_id']);
+        $stripeStatus = (string) ($stripeSubscription->status ?? '');
+
+        if (in_array($stripeStatus, ['canceled', 'incomplete_expired'], true)) {
+            syncStripeSubscriptionStatus($db, $stripeSubscription);
+
+            $db->prepare("
+                UPDATE subscriptions
+                SET status = 'cancelled',
+                    auto_renew = FALSE,
+                    cancel_at_period_end = FALSE,
+                    cancelled_at = COALESCE(cancelled_at, NOW()),
+                    cancellation_reason = COALESCE(:reason, cancellation_reason),
+                    updated_at = NOW()
+                WHERE stripe_subscription_id = :stripe_subscription_id
+                  AND user_id = :user_id
+            ")->execute([
+                'reason' => $reason,
+                'stripe_subscription_id' => $sub['stripe_subscription_id'],
+                'user_id' => $user['id'],
+            ]);
+
+            echo json_encode(['success' => true, 'message' => 'Subscription was already cancelled in Stripe.']);
+            exit;
+        }
+
+        if ($cancelType === 'immediately') {
+            $stripeSubscription = $stripeSubscription->cancel();
+        } else {
+            if (!empty($stripeSubscription->cancel_at_period_end)) {
+                syncStripeSubscriptionStatus($db, $stripeSubscription);
+                echo json_encode(['success' => true, 'message' => 'Subscription is already scheduled for cancellation.']);
+                exit;
+            }
+
+            $stripeSubscription = \Stripe\Subscription::update($sub['stripe_subscription_id'], [
+                'cancel_at_period_end' => true,
+            ]);
+        }
+
+        syncStripeSubscriptionStatus($db, $stripeSubscription);
+    } catch (\Stripe\Exception\ApiErrorException $e) {
+        error_log('Stripe cancel subscription error: ' . $e->getMessage());
+        echo json_encode([
+            'success' => false,
+            'message' => 'Stripe could not cancel this subscription: ' . $e->getMessage(),
+        ]);
+        exit;
     }
     
-    $stmt->execute(['reason' => $reason, 'id' => $sub['id']]);
+    if ($cancelType === 'immediately') {
+        $stmt = $db->prepare("
+            UPDATE subscriptions
+            SET status = 'cancelled',
+                auto_renew = FALSE,
+                cancelled_at = NOW(),
+                end_date = NOW(),
+                cancellation_reason = :reason
+            WHERE stripe_subscription_id = :stripe_subscription_id
+              AND user_id = :user_id
+        ");
+    } else {
+        $stmt = $db->prepare("
+            UPDATE subscriptions
+            SET cancel_at_period_end = TRUE,
+                auto_renew = FALSE,
+                cancelled_at = NOW(),
+                cancellation_reason = :reason
+            WHERE stripe_subscription_id = :stripe_subscription_id
+              AND user_id = :user_id
+        ");
+    }
+    
+    $stmt->execute([
+        'reason' => $reason,
+        'stripe_subscription_id' => $sub['stripe_subscription_id'],
+        'user_id' => $user['id'],
+    ]);
 
     AuditLog::log('subscription', $sub['id'], 'updated',
         ['status' => 'active', 'cancel_at_period_end' => false],
@@ -444,10 +710,32 @@ if ($action === 'delete_account') {
     $db = Database::getInstance()->getConnection();
  
     try {
-        $db->beginTransaction();
- 
         $userId    = $user['id'];
         $anonymousEmail = 'deleted_' . $userId . '@deleted.invalid';
+
+        $stripeSubStmt = $db->prepare("
+            SELECT DISTINCT stripe_subscription_id
+            FROM subscriptions
+            WHERE user_id = :user_id
+              AND status IN ('active', 'trialing', 'past_due')
+              AND stripe_subscription_id IS NOT NULL
+        ");
+        $stripeSubStmt->execute(['user_id' => $userId]);
+        $stripeSubscriptionIds = $stripeSubStmt->fetchAll(PDO::FETCH_COLUMN);
+
+        if (!empty($stripeSubscriptionIds)) {
+            configureStripeForProfileActions();
+            foreach ($stripeSubscriptionIds as $stripeSubscriptionId) {
+                $stripeSubscription = \Stripe\Subscription::retrieve($stripeSubscriptionId);
+                $stripeSubscription->cancel([
+                    'cancellation_details' => [
+                        'comment' => 'Account deleted by user',
+                    ],
+                ]);
+            }
+        }
+
+        $db->beginTransaction();
 
         $pictureStmt = $db->prepare("
             SELECT profile_picture_url
@@ -516,7 +804,9 @@ if ($action === 'delete_account') {
         $db->commit();
  
     } catch (Exception $e) {
-        $db->rollBack();
+        if ($db->inTransaction()) {
+            $db->rollBack();
+        }
         error_log('delete_account error: ' . $e->getMessage());
         echo json_encode(['success' => false, 'message' => 'Deletion failed. Please try again.']);
         exit;

@@ -574,7 +574,7 @@ CREATE TABLE IF NOT EXISTS `subscriptions` (
   `cancellation_reason` TEXT NULL COMMENT 'Cancellation reason, e.g., "Too expensive", "Not getting enough traffic", "Found better alternative"',
 
   -- Stripe Integration
-  `stripe_subscription_id` VARCHAR(255) NULL UNIQUE COMMENT 'Stripe subscription ID, e.g., "sub_1OXKqYAbCD1234567890", "sub_1PQRSTab1234567890AB"',
+  `stripe_subscription_id` VARCHAR(255) NULL COMMENT 'Stripe subscription ID, e.g., "sub_1OXKqYAbCD1234567890", "sub_1PQRSTab1234567890AB"',
   `stripe_customer_id` VARCHAR(255) NULL COMMENT 'Stripe customer ID, e.g., "cus_P1Q2R3S4T5U6V7W8", "cus_AbCdEfGhIjKlMnOp"',
 
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created at, e.g., "2025-01-15 10:00:00", "2025-02-01 08:30:00"',
@@ -586,6 +586,7 @@ CREATE TABLE IF NOT EXISTS `subscriptions` (
   KEY `idx_expiring` (`status`, `end_date`),
   KEY `idx_active_chatbot` (`chatbot_id`, `status`, `end_date`),
   KEY `idx_stripe_customer` (`stripe_customer_id`),
+  KEY `idx_stripe_subscription` (`stripe_subscription_id`),
   KEY `idx_promotions` (`promotions_id`),
 
   CONSTRAINT `fk_subscriptions_user` FOREIGN KEY (`user_id`)
@@ -651,7 +652,7 @@ CREATE TABLE IF NOT EXISTS `payments` (
   `failed_at` TIMESTAMP NULL COMMENT 'Failed at, e.g., "2025-01-15 12:02:00", NULL',
 
   PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_stripe_payment_intent` (`stripe_payment_intent_id`),
+  KEY `idx_stripe_payment_intent` (`stripe_payment_intent_id`),
   UNIQUE KEY `idx_transaction` (`transaction_id`),
   KEY `idx_user_status_date` (`user_id`, `status`, `created_at`),
   KEY `idx_subscription` (`subscription_id`),

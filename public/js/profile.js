@@ -100,7 +100,7 @@ if (avatarUpload) {
         formData.append('avatar', file);
         
         try {
-            const response = await fetch('../app/profileActions.php?action=upload_avatar', {
+            const response = await fetch('app/profileActions.php?action=upload_avatar', {
                 method: 'POST',
                 body: formData
             });
@@ -208,7 +208,7 @@ if (saveNameBtn) {
         }
         
         try {
-            const response = await fetch('../app/profileActions.php?action=update_name', {
+            const response = await fetch('app/profileActions.php?action=update_name', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ firstName, lastName })
@@ -285,7 +285,7 @@ if (savePasswordBtn) {
         }
         
         try {
-            const response = await fetch('../app/profileActions.php?action=change_password', {
+            const response = await fetch('app/profileActions.php?action=change_password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ currentPassword, newPassword })
@@ -332,7 +332,7 @@ if (marketingToggle) {
         e.target.disabled = true;
         
         try {
-            const response = await fetch('../app/profileActions.php?action=update_marketing_emails', {
+            const response = await fetch('app/profileActions.php?action=update_marketing_emails', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ enabled })
@@ -501,12 +501,78 @@ document.addEventListener('keydown', (e) => {
 // MANAGE SUBSCRIPTION MODAL
 // ============================================
 
-const manageSubBtn = document.getElementById('manage-subscription-btn');
-if (manageSubBtn) {
-    manageSubBtn.addEventListener('click', () => {
+let selectedSubscription = null;
+
+function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value || '-';
+}
+
+async function readJsonResponse(response) {
+    const text = await response.text();
+    try {
+        return JSON.parse(text);
+    } catch (error) {
+        const cleaned = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        throw new Error(cleaned || `Request failed with status ${response.status}`);
+    }
+}
+
+function friendlyRequestError(error, fallback) {
+    const message = error?.message?.trim();
+    if (!message) {
+        return fallback;
+    }
+
+    return message.length > 180 ? `${message.slice(0, 177)}...` : message;
+}
+
+document.querySelectorAll('.manage-subscription-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        selectedSubscription = {
+            id: btn.dataset.subscriptionId || '',
+            plan: btn.dataset.plan || '-',
+            chatbot: btn.dataset.chatbot || '-',
+            price: btn.dataset.price || '-',
+            period: btn.dataset.period || '',
+            periodEnd: btn.dataset.periodEnd || '-',
+            periodEndLabel: btn.dataset.periodEndLabel || 'Period end',
+            autoRenew: btn.dataset.autoRenew || '-',
+            status: btn.dataset.status || '-',
+            canCancel: btn.dataset.canCancel === '1',
+            cancelAtPeriodEnd: btn.dataset.cancelAtPeriodEnd === '1',
+            invoiceUrl: btn.dataset.invoiceUrl || ''
+        };
+
+        document.getElementById('selected-subscription-id').value = selectedSubscription.id;
+        document.getElementById('selected-subscription-can-cancel').value = selectedSubscription.canCancel ? '1' : '0';
+        document.getElementById('selected-subscription-invoice-url').value = selectedSubscription.invoiceUrl;
+
+        setText('modal-subscription-plan', selectedSubscription.plan);
+        setText('modal-subscription-chatbot', selectedSubscription.chatbot);
+        setText('modal-subscription-price', `${selectedSubscription.price} / ${selectedSubscription.period}`);
+        setText('modal-subscription-period-end-label', selectedSubscription.periodEndLabel);
+        setText('modal-subscription-next-billing', selectedSubscription.periodEnd);
+        setText('modal-subscription-auto-renew', selectedSubscription.autoRenew);
+        setText('modal-subscription-status', selectedSubscription.status);
+
+        const cancelBtn = document.getElementById('cancel-subscription-modal-btn');
+        if (cancelBtn) {
+            cancelBtn.disabled = !selectedSubscription.canCancel;
+            cancelBtn.textContent = selectedSubscription.cancelAtPeriodEnd
+                ? 'Cancel Immediately'
+                : (selectedSubscription.canCancel ? 'Cancel Subscription' : 'Cancellation unavailable');
+        }
+
+        const renewBtn = document.getElementById('renew-subscription-btn');
+        if (renewBtn) {
+            renewBtn.style.display = selectedSubscription.cancelAtPeriodEnd ? '' : 'none';
+            renewBtn.disabled = !selectedSubscription.cancelAtPeriodEnd;
+        }
+
         openModal('manage-subscription-modal');
     });
-}
+});
 
 // Change Plan
 const changePlanBtn = document.getElementById('change-plan-btn');
@@ -522,19 +588,21 @@ const updatePaymentBtn = document.getElementById('update-payment-btn');
 if (updatePaymentBtn) {
     updatePaymentBtn.addEventListener('click', async () => {
         try {
-            const response = await fetch('../app/profileActions.php?action=stripe_customer_portal', {
-                method: 'POST'
+            const response = await fetch('app/profileActions.php?action=stripe_customer_portal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subscription_id: selectedSubscription?.id || '' })
             });
             
-            const result = await response.json();
+            const result = await readJsonResponse(response);
             
             if (result.success && result.url) {
                 window.location.href = result.url;
             } else {
-                showNotification('Failed to open payment portal', 'error');
+                showNotification(result.message || 'Failed to open payment portal', 'error');
             }
         } catch (error) {
-            showNotification('Error opening payment portal', 'error');
+            showNotification(friendlyRequestError(error, 'Error opening payment portal'), 'error');
             console.error('Portal error:', error);
         }
     });
@@ -544,9 +612,54 @@ if (updatePaymentBtn) {
 const viewInvoiceBtn = document.getElementById('view-invoice-btn');
 if (viewInvoiceBtn) {
     viewInvoiceBtn.addEventListener('click', () => {
-        // Switch to billing tab and show latest invoice
+        const invoiceUrl = selectedSubscription?.invoiceUrl || '';
+        if (invoiceUrl) {
+            window.open(invoiceUrl, '_blank', 'noopener');
+            return;
+        }
+
         document.querySelector('[data-tab="billing"]').click();
         closeModal('manage-subscription-modal');
+    });
+}
+
+// Renew Subscription
+const renewSubscriptionBtn = document.getElementById('renew-subscription-btn');
+if (renewSubscriptionBtn) {
+    renewSubscriptionBtn.addEventListener('click', async () => {
+        if (!selectedSubscription?.cancelAtPeriodEnd) {
+            showNotification('This subscription is already set to renew.', 'info');
+            return;
+        }
+
+        const confirmed = await showConfirm(
+            'Renew Subscription?',
+            'Your subscription will continue renewing automatically after the current period.'
+        );
+        if (!confirmed) return;
+
+        renewSubscriptionBtn.disabled = true;
+
+        try {
+            const response = await fetch('app/profileActions.php?action=renew_subscription', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subscription_id: selectedSubscription.id })
+            });
+            const result = await readJsonResponse(response);
+
+            if (result.success) {
+                showNotification(result.message || 'Subscription renewed', 'success');
+                closeModal('manage-subscription-modal');
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showNotification(result.message || 'Renewal failed', 'error');
+                renewSubscriptionBtn.disabled = false;
+            }
+        } catch (error) {
+            showNotification(friendlyRequestError(error, 'Renewal failed. Please try again.'), 'error');
+            renewSubscriptionBtn.disabled = false;
+        }
     });
 }
 
@@ -554,6 +667,30 @@ if (viewInvoiceBtn) {
 const cancelSubModalBtn = document.getElementById('cancel-subscription-modal-btn');
 if (cancelSubModalBtn) {
     cancelSubModalBtn.addEventListener('click', () => {
+        if (!selectedSubscription?.canCancel) {
+            showNotification('This subscription cannot be cancelled from here right now.', 'error');
+            return;
+        }
+
+        const periodEndRadio = document.querySelector('input[name="cancel-type"][value="at-period-end"]');
+        const immediateRadio = document.querySelector('input[name="cancel-type"][value="immediately"]');
+        const periodEndOption = periodEndRadio?.closest('.radio-option');
+
+        if (periodEndRadio && immediateRadio) {
+            periodEndRadio.disabled = selectedSubscription.cancelAtPeriodEnd;
+            periodEndOption?.classList.toggle('disabled', selectedSubscription.cancelAtPeriodEnd);
+
+            if (selectedSubscription.cancelAtPeriodEnd) {
+                immediateRadio.checked = true;
+            } else {
+                periodEndRadio.checked = true;
+            }
+        }
+
+        const periodEndText = selectedSubscription.cancelAtPeriodEnd
+            ? `Already scheduled for ${selectedSubscription.periodEnd}.`
+            : `(${selectedSubscription.periodEnd})`;
+        setText('cancel-period-end-date', periodEndText);
         closeModal('manage-subscription-modal');
         openModal('cancel-subscription-modal');
     });
@@ -563,7 +700,9 @@ const KeepPlanBtn = document.getElementById('keep-plan-btn');
 if (KeepPlanBtn) {
     KeepPlanBtn.addEventListener('click', () => {
         closeModal('cancel-subscription-modal');
-        openModal('manage-subscription-modal');
+        if (selectedSubscription) {
+            openModal('manage-subscription-modal');
+        }
     });
 }
 
@@ -592,21 +731,25 @@ if (confirmCancelBtn) {
         if (!confirmed) return;
 
         try {
-            const response = await fetch('../app/profileActions.php?action=cancel_subscription', {
+            const response = await fetch('app/profileActions.php?action=cancel_subscription', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cancelType, reason })
+                body: JSON.stringify({
+                    subscription_id: selectedSubscription?.id || '',
+                    cancelType,
+                    reason
+                })
             });
-            const result = await response.json();
+            const result = await readJsonResponse(response);
             if (result.success) {
-                showNotification('Subscription cancelled', 'success');
+                showNotification(result.message || 'Subscription cancelled', 'success');
                 closeModal('cancel-subscription-modal');
                 setTimeout(() => window.location.reload(), 2000);
             } else {
                 showNotification(result.message || 'Cancellation failed', 'error');
             }
         } catch (error) {
-            showNotification('Cancellation failed. Please try again.', 'error');
+            showNotification(friendlyRequestError(error, 'Cancellation failed. Please try again.'), 'error');
         }
     });
 }
@@ -650,7 +793,7 @@ if (confirmDeleteBtn) {
         }
         
         try {
-            const response = await fetch('../app/profileActions.php?action=delete_account', {
+            const response = await fetch('app/profileActions.php?action=delete_account', {
                 method: 'POST'
             });
             

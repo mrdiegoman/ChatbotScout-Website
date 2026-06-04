@@ -12,7 +12,7 @@ if (!$isLoggedIn) {
     exit;
 }
 
-// Stripe redirectuje s ?payment_intent=pi_xxx
+// Stripe redirects back with ?payment_intent=pi_xxx from the invoice PaymentIntent.
 $paymentIntentId = trim($_GET['payment_intent'] ?? '');
 $paymentStatus = '';
 $paymentVerificationError = '';
@@ -22,7 +22,7 @@ $db = Database::getInstance()->getConnection();
 if ($paymentIntentId) {
     try {
         $localPaymentStmt = $db->prepare("
-            SELECT id
+            SELECT id, stripe_invoice_id
             FROM payments
             WHERE stripe_payment_intent_id = :pi_id
               AND user_id = :user_id
@@ -33,19 +33,31 @@ if ($paymentIntentId) {
             'user_id' => $user['id'],
         ]);
 
-        if ($localPaymentStmt->fetch(PDO::FETCH_ASSOC)) {
+        $localPayment = $localPaymentStmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($localPayment) {
             $stripeConfig = require '../config/stripe.php';
             \Stripe\Stripe::setApiKey($stripeConfig['secret_key']);
+            if (!empty($stripeConfig['api_version'])) {
+                \Stripe\Stripe::setApiVersion($stripeConfig['api_version']);
+            }
 
-            $paymentIntent = \Stripe\PaymentIntent::retrieve($paymentIntentId);
-            $paymentStatus = (string) ($paymentIntent->status ?? '');
-            $stripeBillingPeriodType = promotionNormalizeBillingPeriod(
-                stripePaymentMetadataValue($paymentIntent->metadata ?? null, 'period_type', ''),
-                ''
-            );
+            if (!empty($localPayment['stripe_invoice_id'])) {
+                $invoice = \Stripe\Invoice::retrieve($localPayment['stripe_invoice_id']);
+                $paymentStatus = (string) ($invoice->status ?? '');
 
-            if ($paymentStatus === 'succeeded') {
-                finalizeStripeSucceededPayment($db, $paymentIntent, $user['id']);
+                if ($paymentStatus === 'paid' || !empty($invoice->paid)) {
+                    $finalized = finalizeStripePaidInvoice($db, $invoice, $user['id']);
+                    $stripeBillingPeriodType = promotionNormalizeBillingPeriod(
+                        stripePaymentMetadataValue($invoice->metadata ?? null, 'period_type', ''),
+                        ''
+                    );
+                    if (!$stripeBillingPeriodType && !empty($finalized['subscription_ids'])) {
+                        $stripeBillingPeriodType = '';
+                    }
+                }
+            } else {
+                $paymentVerificationError = 'Stripe invoice is not available yet.';
             }
         } else {
             $paymentVerificationError = 'Payment could not be matched to your account.';
@@ -61,15 +73,16 @@ $orderDetails = null;
 if ($paymentIntentId) {
     $stmt = $db->prepare("
         SELECT
-            pr.slot_type,
-            bp.type         AS plan_billing_period_type,
-            c.symbol        AS currency_symbol,
-            pay.amount      AS payment_amount,
-            pay.metadata    AS payment_metadata,
-            ch.name         AS chatbot_name,
-            s.status        AS subscription_status,
-            s.start_date,
-            s.end_date
+            GROUP_CONCAT(pr.slot_type ORDER BY pr.slot_type SEPARATOR ',') AS slot_types,
+            COUNT(*) AS line_count,
+            MIN(bp.type) AS plan_billing_period_type,
+            MIN(c.symbol) AS currency_symbol,
+            SUM(pay.amount) AS payment_amount,
+            MAX(pay.metadata) AS payment_metadata,
+            MAX(ch.name) AS chatbot_name,
+            MAX(s.status) AS subscription_status,
+            MIN(s.start_date) AS start_date,
+            MAX(s.end_date) AS end_date
         FROM payments pay
         JOIN subscriptions   s   ON s.id  = pay.subscription_id
         JOIN promotions      pr  ON pr.id = s.promotions_id
@@ -78,6 +91,7 @@ if ($paymentIntentId) {
         JOIN chatbots        ch  ON ch.id = pay.chatbot_id
         WHERE pay.stripe_payment_intent_id = :pi_id
           AND pay.user_id                  = :user_id
+        GROUP BY pay.stripe_invoice_id, pay.stripe_payment_intent_id
         LIMIT 1
     ");
     $stmt->execute([
@@ -106,11 +120,14 @@ if ($paymentIntentId) {
 
 $slotLabel = '';
 if ($orderDetails) {
-    $slotLabel = match($orderDetails['slot_type']) {
-        'Homepage'      => 'Homepage Visibility',
-        'Chatbots page' => 'Chatbots Page Visibility',
-        default         => $orderDetails['slot_type']
-    };
+    $slotTypes = array_filter(explode(',', (string) ($orderDetails['slot_types'] ?? '')));
+    $slotLabel = ((int) ($orderDetails['line_count'] ?? 1) > 1)
+        ? 'Full Bundle'
+        : match($slotTypes[0] ?? '') {
+            'Homepage'      => 'Homepage Visibility',
+            'Chatbots page' => 'Chatbots Page Visibility',
+            default         => $slotTypes[0] ?? 'Promotion'
+        };
 }
 
 $isVerifiedSuccess = $orderDetails && !$paymentVerificationError;

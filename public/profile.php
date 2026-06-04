@@ -22,7 +22,8 @@ if (!in_array($activeTab, $allowedTabs)) {
     $activeTab = 'profile';
 }
 
-// Load user's active subscription (if any)
+// Load user's active subscriptions (if any)
+$subscriptions = [];
 $subscription = null;
 $db = Database::getInstance()->getConnection();
 
@@ -41,7 +42,10 @@ try {
         $stripeConfig = require '../config/stripe.php';
         if (!empty($stripeConfig['secret_key'])) {
             \Stripe\Stripe::setApiKey($stripeConfig['secret_key']);
-            syncRecentSucceededStripePaymentsForUser($db, $user['id']);
+            if (!empty($stripeConfig['api_version'])) {
+                \Stripe\Stripe::setApiVersion($stripeConfig['api_version']);
+            }
+            syncRecentPaidStripeInvoicesForUser($db, $user['id']);
         }
     }
 } catch (Exception $e) {
@@ -64,28 +68,78 @@ $subStmt = $db->prepare("
               AND pay.status = 'succeeded'
             ORDER BY COALESCE(pay.succeeded_at, pay.created_at) DESC
             LIMIT 1
-        ), p.price) AS current_period_price
+        ), p.price) AS current_period_price,
+        (
+            SELECT COALESCE(pay.invoice_url, pay.receipt_url)
+            FROM payments pay
+            WHERE pay.subscription_id = s.id
+              AND pay.status = 'succeeded'
+            ORDER BY COALESCE(pay.succeeded_at, pay.created_at) DESC
+            LIMIT 1
+        ) AS latest_invoice_url,
+        (
+            SELECT COALESCE(
+                JSON_UNQUOTE(JSON_EXTRACT(pay.metadata, '$.billing_period')),
+                JSON_UNQUOTE(JSON_EXTRACT(pay.metadata, '$.period_type'))
+            )
+            FROM payments pay
+            WHERE pay.subscription_id = s.id
+              AND pay.status = 'succeeded'
+            ORDER BY COALESCE(pay.succeeded_at, pay.created_at) DESC
+            LIMIT 1
+        ) AS latest_payment_billing_period
     FROM subscriptions s
     JOIN promotions     p  ON s.promotions_id     = p.id
     JOIN currencies     c  ON p.currency_id        = c.id
     JOIN billing_periods bp ON p.billing_period_id = bp.id
     JOIN chatbots       ch ON s.chatbot_id         = ch.id
     WHERE s.user_id          = :user_id
-      AND s.status           IN ('active', 'past_due', 'pending')
+      AND s.status           IN ('active', 'trialing', 'past_due', 'pending')
       AND s.subscription_type = 'promotion'
-    ORDER BY s.created_at DESC
-    LIMIT 1
+    ORDER BY
+        CASE s.status
+            WHEN 'active' THEN 1
+            WHEN 'past_due' THEN 2
+            WHEN 'pending' THEN 3
+            ELSE 4
+        END,
+        s.created_at DESC
 ");
 $subStmt->execute(['user_id' => $user['id']]);
-$subscription = $subStmt->fetch();
+$subscriptions = $subStmt->fetchAll();
 
-if ($subscription) {
-    $subscription['billing_period'] = promotionBillingPeriodFromDates(
-        $subscription['start_date'] ?? null,
-        $subscription['end_date'] ?? null,
-        $subscription['billing_period'] ?? 'monthly'
+foreach ($subscriptions as &$sub) {
+    $planBillingPeriod = promotionNormalizeBillingPeriod($sub['billing_period'] ?? 'monthly');
+    $paymentBillingPeriod = promotionNormalizeBillingPeriod($sub['latest_payment_billing_period'] ?? '', '');
+    $dateBillingPeriod = promotionBillingPeriodFromDates(
+        $sub['start_date'] ?? null,
+        $sub['end_date'] ?? null,
+        $planBillingPeriod
     );
+    $sub['billing_period'] = $paymentBillingPeriod
+        ?: (in_array($dateBillingPeriod, ['monthly', 'yearly'], true) ? $dateBillingPeriod : $planBillingPeriod);
+    $sub['display_plan_name'] = match($sub['plan_name'] ?? '') {
+        'Homepage'      => 'Homepage Visibility',
+        'Chatbots page' => 'Chatbots Page Visibility',
+        default         => $sub['plan_name'] ?: 'Promotion',
+    };
+    $sub['status_class'] = match($sub['status']) {
+        'past_due' => 'past-due',
+        'pending'  => 'pending',
+        'trialing' => 'pending',
+        default    => 'active',
+    };
+    $sub['status_label'] = match($sub['status']) {
+        'past_due' => 'Payment Failed',
+        'pending'  => 'Pending Payment',
+        'trialing' => 'Trialing',
+        default    => !empty($sub['cancel_at_period_end']) ? 'Cancels at period end' : 'Active Subscription',
+    };
+    $sub['period_price'] = floatval($sub['current_period_price'] ?? $sub['price']);
 }
+unset($sub);
+
+$subscription = $subscriptions[0] ?? null;
 
 // Load billing history
 $payments = [];
@@ -93,15 +147,56 @@ $payments = [];
         SELECT
             p.*,
             c.symbol AS currency_symbol,
-            c.code AS currency_code
+            c.code AS currency_code,
+            COALESCE(pr.slot_type, metadata_pr.slot_type) AS package_slot_type,
+            COALESCE(ch.name, payment_ch.name) AS package_chatbot_name,
+            COALESCE(
+                JSON_UNQUOTE(JSON_EXTRACT(p.metadata, '$.billing_period')),
+                JSON_UNQUOTE(JSON_EXTRACT(p.metadata, '$.period_type'))
+            ) AS package_metadata_billing_period,
+            COALESCE(bp.type, metadata_bp.type) AS package_plan_billing_period,
+            s.start_date AS package_start_date,
+            s.end_date AS package_end_date
         FROM payments p
         JOIN currencies c ON p.currency_id = c.id
+        LEFT JOIN subscriptions s ON p.subscription_id = s.id
+        LEFT JOIN promotions pr ON s.promotions_id = pr.id
+        LEFT JOIN billing_periods bp ON pr.billing_period_id = bp.id
+        LEFT JOIN promotions metadata_pr ON metadata_pr.id = JSON_UNQUOTE(JSON_EXTRACT(p.metadata, '$.promotion_id'))
+        LEFT JOIN billing_periods metadata_bp ON metadata_pr.billing_period_id = metadata_bp.id
+        LEFT JOIN chatbots ch ON s.chatbot_id = ch.id
+        LEFT JOIN chatbots payment_ch ON p.chatbot_id = payment_ch.id
         WHERE p.user_id = :user_id
         ORDER BY p.created_at DESC
         LIMIT 50
     ");
     $paymentStmt->execute(['user_id' => $user['id']]);
     $payments = $paymentStmt->fetchAll();
+
+    foreach ($payments as &$payment) {
+        $packageName = match($payment['package_slot_type'] ?? '') {
+            'Homepage'      => 'Homepage Visibility',
+            'Chatbots page' => 'Chatbots Page Visibility',
+            default         => $payment['package_slot_type'] ?: 'Promotion',
+        };
+        $billingPeriod = promotionNormalizeBillingPeriod($payment['package_metadata_billing_period'] ?? '', '');
+        if (!$billingPeriod) {
+            $billingPeriod = promotionBillingPeriodFromDates(
+                $payment['package_start_date'] ?? null,
+                $payment['package_end_date'] ?? null,
+                $payment['package_plan_billing_period'] ?? ''
+            );
+        }
+
+        $packageMeta = array_filter([
+            $payment['package_chatbot_name'] ?? '',
+            $billingPeriod ? promotionBillingPeriodLabel($billingPeriod) : '',
+        ]);
+
+        $payment['package_name'] = $packageName;
+        $payment['package_meta'] = implode(' · ', $packageMeta);
+    }
+    unset($payment);
 
 require '../inc/header.php';
 ?>
@@ -115,8 +210,7 @@ require '../inc/header.php';
         <!-- Page Header -->
         <div class="profile-header">
             <h1>My Account</h1>
-            <p>Manage your profile, and settings</p>
-            <!-- <p>Manage your profile, billing, and settings</p> -->
+            <p>Manage your profile, billing, and settings</p>
         </div>
 
         <!-- Tab Navigation -->
@@ -125,11 +219,10 @@ require '../inc/header.php';
                     data-tab="profile">
                 Profile
             </button>
-            <!-- Disabled button for billing info for now -->
-            <!-- <button class="tab-btn <?php echo $activeTab === 'billing' ? 'active' : ''; ?>" 
+            <button class="tab-btn <?php echo $activeTab === 'billing' ? 'active' : ''; ?>"
                     data-tab="billing">
                 Billing Info
-            </button> -->
+            </button>
             <button class="tab-btn <?php echo $activeTab === 'settings' ? 'active' : ''; ?>" 
                     data-tab="settings">
                 Settings
@@ -308,8 +401,85 @@ require '../inc/header.php';
                         </div>
                     </div>
 
+                    <!-- Subscriptions -->
+                    <div class="profile-card subscriptions-card">
+                        <div class="subscriptions-card__header">
+                            <div>
+                                <p class="info-field-static-label">Subscriptions</p>
+                                <h2>Your Promotions</h2>
+                            </div>
+                            <?php $subscriptionCount = count($subscriptions); ?>
+                            <span class="subscription-count">
+                                <?php echo $subscriptionCount; ?> <?php echo $subscriptionCount === 1 ? 'promotion' : 'promotions'; ?>
+                            </span>
+                        </div>
+
+                        <?php if (empty($subscriptions)): ?>
+                            <div class="subscriptions-empty">
+                                <strong>No active promotions yet</strong>
+                                <span>Your active paid promotion packages will appear here.</span>
+                            </div>
+                        <?php else: ?>
+                            <div class="subscription-list">
+                                <?php foreach ($subscriptions as $sub): ?>
+                                    <?php
+                                        $periodEnd = $sub['status'] === 'pending'
+                                            ? 'Awaiting payment confirmation'
+                                            : date('M d, Y', strtotime($sub['end_date']));
+                                        $periodEndLabel = $sub['status'] === 'pending'
+                                            ? 'Payment'
+                                            : (!empty($sub['auto_renew']) ? 'Current period ends' : 'Subscription ends');
+                                        $autoRenewLabel = !empty($sub['auto_renew']) ? 'On' : 'Off';
+                                        $canCancel = in_array($sub['status'], ['active', 'trialing', 'past_due'], true);
+                                    ?>
+                                    <article class="subscription-card <?php echo htmlspecialchars($sub['status_class']); ?>">
+                                        <div class="subscription-card__top">
+                                            <span class="subscription-status-pill status-<?php echo htmlspecialchars($sub['status']); ?>">
+                                                <?php echo htmlspecialchars($sub['status_label']); ?>
+                                            </span>
+                                            <span class="subscription-card__period"><?php echo htmlspecialchars(promotionBillingPeriodLabel($sub['billing_period'])); ?></span>
+                                        </div>
+
+                                        <div class="subscription-card__body">
+                                            <h3><?php echo htmlspecialchars($sub['display_plan_name']); ?></h3>
+                                            <p><?php echo htmlspecialchars($sub['chatbot_name']); ?></p>
+                                            <strong>
+                                                <?php echo $sub['currency_symbol']; ?><?php echo number_format($sub['period_price'], 2); ?>
+                                                <span>/ <?php echo strtolower($sub['billing_period']); ?></span>
+                                            </strong>
+                                        </div>
+
+                                        <div class="subscription-card__meta">
+                                            <span><?php echo htmlspecialchars($periodEndLabel); ?> <b><?php echo htmlspecialchars($periodEnd); ?></b></span>
+                                            <span>Auto-renew <b><?php echo htmlspecialchars($autoRenewLabel); ?></b></span>
+                                        </div>
+
+                                        <button
+                                            class="primary-btn manage-subscription-btn"
+                                            type="button"
+                                            data-subscription-id="<?php echo htmlspecialchars($sub['id'], ENT_QUOTES, 'UTF-8'); ?>"
+                                            data-plan="<?php echo htmlspecialchars($sub['display_plan_name'], ENT_QUOTES, 'UTF-8'); ?>"
+                                            data-chatbot="<?php echo htmlspecialchars($sub['chatbot_name'], ENT_QUOTES, 'UTF-8'); ?>"
+                                            data-price="<?php echo htmlspecialchars($sub['currency_symbol'] . number_format($sub['period_price'], 2), ENT_QUOTES, 'UTF-8'); ?>"
+                                            data-period="<?php echo htmlspecialchars(strtolower($sub['billing_period']), ENT_QUOTES, 'UTF-8'); ?>"
+                                            data-period-end="<?php echo htmlspecialchars($periodEnd, ENT_QUOTES, 'UTF-8'); ?>"
+                                            data-period-end-label="<?php echo htmlspecialchars($periodEndLabel, ENT_QUOTES, 'UTF-8'); ?>"
+                                            data-auto-renew="<?php echo htmlspecialchars($autoRenewLabel, ENT_QUOTES, 'UTF-8'); ?>"
+                                            data-status="<?php echo htmlspecialchars($sub['status_label'], ENT_QUOTES, 'UTF-8'); ?>"
+                                            data-can-cancel="<?php echo $canCancel ? '1' : '0'; ?>"
+                                            data-cancel-at-period-end="<?php echo !empty($sub['cancel_at_period_end']) ? '1' : '0'; ?>"
+                                            data-invoice-url="<?php echo htmlspecialchars($sub['latest_invoice_url'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                        >
+                                            Manage
+                                        </button>
+                                    </article>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
                     <!-- Active Subscription Card -->
-                    <?php if ($subscription): ?>
+                    <?php if (false && $subscription): ?>
                     <?php
                         $subStatusClass = match($subscription['status']) {
                             'past_due' => 'past-due',
@@ -364,8 +534,9 @@ require '../inc/header.php';
                     <?php endif; ?>
 
                     <!-- Delete Account -->
-                    <div class="profile-card danger-card">
-                        
+                    <div class="profile-card account-danger-card">
+                        <!-- <p class="info-field-static-label">Danger zone</p> -->
+                        <h2>Delete Account</h2>
                         <p>Once you delete your account, there is no going back. Please be certain.</p>
                         <button class="danger-btn" id="delete-account-btn">Delete Account</button>
                     </div>
@@ -418,6 +589,7 @@ require '../inc/header.php';
                             <thead>
                                 <tr>
                                     <th>Date</th>
+                                    <th>Package</th>
                                     <th>Method</th>
                                     <th>Amount</th>
                                     <th>Status</th>
@@ -427,7 +599,7 @@ require '../inc/header.php';
                             <tbody id="payments-tbody">
                                 <?php if (empty($payments)): ?>
                                 <tr>
-                                    <td colspan="5" class="no-payments">No payment history yet</td>
+                                    <td colspan="6" class="no-payments">No payment history yet</td>
                                 </tr>
                                 <?php else: ?>
                                     <?php foreach ($payments as $payment): ?>
@@ -435,6 +607,12 @@ require '../inc/header.php';
                                         data-status="<?php echo $payment['status']; ?>" 
                                         data-method="<?php echo $payment['payment_method']; ?>">
                                         <td><?php echo date('M d, Y', strtotime($payment['created_at'])); ?></td>
+                                        <td class="payment-package-cell">
+                                            <strong><?php echo htmlspecialchars($payment['package_name']); ?></strong>
+                                            <?php if (!empty($payment['package_meta'])): ?>
+                                                <span><?php echo htmlspecialchars($payment['package_meta']); ?></span>
+                                            <?php endif; ?>
+                                        </td>
                                         <td><?php echo ucfirst(str_replace('_', ' ', $payment['payment_method'])); ?></td>
                                         <td><?php echo $payment['currency_symbol'] . number_format($payment['amount'], 2); ?></td>
                                         <td>
@@ -596,7 +774,55 @@ require '../inc/header.php';
             <button class="modal-close">&times;</button>
         </div>
         <div class="modal-body">
-            <?php if ($subscription): ?>
+            <input type="hidden" id="selected-subscription-id" value="">
+            <input type="hidden" id="selected-subscription-can-cancel" value="0">
+            <input type="hidden" id="selected-subscription-invoice-url" value="">
+
+            <div class="subscription-info subscription-info--dynamic">
+                <div class="info-row">
+                    <span class="label">Plan</span>
+                    <span class="value" id="modal-subscription-plan">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Chatbot</span>
+                    <span class="value" id="modal-subscription-chatbot">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Price</span>
+                    <span class="value" id="modal-subscription-price">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="label" id="modal-subscription-period-end-label">Period end</span>
+                    <span class="value" id="modal-subscription-next-billing">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Auto-renew</span>
+                    <span class="value" id="modal-subscription-auto-renew">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Status</span>
+                    <span class="value" id="modal-subscription-status">-</span>
+                </div>
+            </div>
+
+            <div class="modal-actions modal-actions--dynamic">
+                <button class="modal-action-btn" id="change-plan-btn">
+                    Change Plan
+                </button>
+                <button class="modal-action-btn" id="update-payment-btn">
+                    Update Payment Method
+                </button>
+                <button class="modal-action-btn" id="renew-subscription-btn" style="display: none;">
+                    Renew Subscription
+                </button>
+                <button class="modal-action-btn" id="view-invoice-btn">
+                    View Latest Invoice
+                </button>
+                <button class="modal-action-btn danger" id="cancel-subscription-modal-btn">
+                    Cancel Subscription
+                </button>
+            </div>
+            <?php if (false && $subscription): ?>
                 <div class="subscription-info">
                     <div class="info-row">
                         <span class="label">📦 Plan</span>
@@ -656,10 +882,8 @@ require '../inc/header.php';
                     <div class="option-content">
                         <div class="option-title">Cancel at end of billing period</div>
                         <div class="option-description">
-                            <?php if ($subscription): ?>
-                                (<?php echo date('F j, Y', strtotime($subscription['end_date'])); ?>)
-                                <br>You'll keep access until then.
-                            <?php endif; ?>
+                            <span id="cancel-period-end-date"></span>
+                            <br>You'll keep access until then.
                         </div>
                     </div>
                 </label>
@@ -685,7 +909,7 @@ require '../inc/header.php';
                     <option value="technical-issues">Technical issues</option>
                     <option value="other">Other</option>
                 </select>
-                <textarea id="cancel-reason-other" placeholder="Please tell us more..." style="display:none;margin-top:10px;width:100%;min-height:80px;padding:10px;border:1px solid var(--profile-border);border-radius:6px;font-size:14px;resize:vertical;"></textarea>
+                <textarea id="cancel-reason-other" placeholder="Please tell us more..." style="display:none;margin-top:10px;width:100%;min-height:80px;min-height:300px;padding:10px;border:1px solid var(--profile-border);border-radius:6px;font-size:14px;resize:vertical;"></textarea>
             </div>
 
 

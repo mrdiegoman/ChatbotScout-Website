@@ -232,6 +232,26 @@ require '../inc/header.php';
 
                     $popularChatbots = [];
                     $tagNames        = [];
+                    $homepageLogoSrc = static function (?string $path): string {
+                        $value = trim((string) $path);
+                        if ($value === '') {
+                            return '';
+                        }
+
+                        if (preg_match('/^(https?:)?\/\//i', $value) || str_starts_with($value, '/') || str_starts_with($value, 'data:') || str_starts_with($value, '../')) {
+                            return $value;
+                        }
+
+                        if (str_starts_with($value, 'websiteLogos/')) {
+                            return 'img/' . $value;
+                        }
+
+                        if (str_starts_with($value, 'public/')) {
+                            return '../' . $value;
+                        }
+
+                        return $value;
+                    };
 
                     try {
                         error_log('tu1');
@@ -289,7 +309,7 @@ require '../inc/header.php';
                         $emptyStars = 5 - $fullStars;
                         $tagColor   = $tagColors[$i % count($tagColors)];
                         $botTags    = $tagNames[$bot['id']] ?? [];
-                        $logoUrl    = !empty($bot['logo_url']) ? '../' . htmlspecialchars($bot['logo_url']) : null;
+                        $logoUrl    = $homepageLogoSrc($bot['logo_url'] ?? '');
                     ?>
                     <a href="chatbotShowcase.php?search=<?= urlencode($bot['name']) ?>" class="hp-pop-card">
                         <div class="hp-pop-tags">
@@ -317,7 +337,12 @@ require '../inc/header.php';
                         </div>
                         <div class="hp-pop-logo">
                             <?php if ($logoUrl): ?>
-                                <img src="<?= $logoUrl ?>" alt="<?= htmlspecialchars($bot['name']) ?>" style="width:100%;height:100%;object-fit:contain;border-radius:10px;">
+                                <img
+                                    src="<?= htmlspecialchars($logoUrl, ENT_QUOTES, 'UTF-8') ?>"
+                                    alt="<?= htmlspecialchars($bot['name'], ENT_QUOTES, 'UTF-8') ?>"
+                                    onerror="this.onerror=null;this.src='img/ChatbotScout_logo.png';"
+                                    style="width:100%;height:100%;object-fit:contain;border-radius:10px;"
+                                >
                             <?php else: ?>
                                 <i class="fa-solid fa-robot"></i>
                             <?php endif; ?>
