@@ -52,11 +52,49 @@ try {
     error_log('Profile Stripe payment sync error: ' . $e->getMessage());
 }
 
+try {
+    $scheduledPromotionRepairStmt = $db->prepare("
+        UPDATE subscriptions scheduled
+        JOIN (
+            SELECT
+                user_id,
+                chatbot_id,
+                stripe_subscription_id,
+                MAX(end_date) AS max_end_date
+            FROM subscriptions
+            WHERE user_id = :repair_group_user_id
+              AND subscription_type = 'promotion'
+              AND stripe_subscription_id IS NOT NULL
+              AND status IN ('active', 'trialing', 'past_due', 'pending')
+              AND end_date >= NOW()
+            GROUP BY user_id, chatbot_id, stripe_subscription_id
+        ) active_group
+          ON active_group.user_id = scheduled.user_id
+         AND active_group.chatbot_id = scheduled.chatbot_id
+         AND active_group.stripe_subscription_id = scheduled.stripe_subscription_id
+        SET scheduled.end_date = active_group.max_end_date,
+            scheduled.updated_at = NOW()
+        WHERE scheduled.user_id = :repair_user_id
+          AND scheduled.subscription_type = 'promotion'
+          AND scheduled.cancel_at_period_end = TRUE
+          AND scheduled.auto_renew = FALSE
+          AND scheduled.stripe_subscription_id IS NOT NULL
+          AND scheduled.end_date < active_group.max_end_date
+    ");
+    $scheduledPromotionRepairStmt->execute([
+        'repair_group_user_id' => $user['id'],
+        'repair_user_id' => $user['id'],
+    ]);
+} catch (Exception $e) {
+    error_log('Profile scheduled promotion period repair error: ' . $e->getMessage());
+}
+
 $subStmt = $db->prepare("
     SELECT 
         s.*,
         p.slot_type        AS plan_name,
         p.price,
+        p.discount_percentage,
         c.symbol      AS currency_symbol,
         c.code        AS currency_code,
         bp.type       AS billing_period,
@@ -87,15 +125,31 @@ $subStmt = $db->prepare("
               AND pay.status = 'succeeded'
             ORDER BY COALESCE(pay.succeeded_at, pay.created_at) DESC
             LIMIT 1
-        ) AS latest_payment_billing_period
+        ) AS latest_payment_billing_period,
+        (
+            SELECT COUNT(DISTINCT sibling.promotions_id)
+            FROM subscriptions sibling
+            WHERE sibling.user_id = s.user_id
+              AND sibling.chatbot_id = s.chatbot_id
+              AND sibling.subscription_type = 'promotion'
+              AND sibling.status IN ('active', 'trialing', 'past_due', 'pending')
+              AND sibling.stripe_subscription_id IS NOT NULL
+              AND sibling.stripe_subscription_id = s.stripe_subscription_id
+        ) AS stripe_subscription_line_count
     FROM subscriptions s
     JOIN promotions     p  ON s.promotions_id     = p.id
     JOIN currencies     c  ON p.currency_id        = c.id
     JOIN billing_periods bp ON p.billing_period_id = bp.id
     JOIN chatbots       ch ON s.chatbot_id         = ch.id
     WHERE s.user_id          = :user_id
-      AND s.status           IN ('active', 'trialing', 'past_due', 'pending')
+      AND (
+          s.status IN ('active', 'trialing', 'past_due', 'pending')
+      )
       AND s.subscription_type = 'promotion'
+      AND (
+          s.status = 'pending'
+          OR s.end_date >= NOW()
+      )
     ORDER BY
         CASE s.status
             WHEN 'active' THEN 1
@@ -107,6 +161,38 @@ $subStmt = $db->prepare("
 ");
 $subStmt->execute(['user_id' => $user['id']]);
 $subscriptions = $subStmt->fetchAll();
+
+$dedupedSubscriptions = [];
+$seenSubscriptionSlots = [];
+foreach ($subscriptions as $sub) {
+    $slotKey = !empty($sub['stripe_subscription_id'])
+        ? $sub['stripe_subscription_id'] . '|' . $sub['chatbot_id'] . '|' . ($sub['plan_name'] ?? '')
+        : $sub['id'];
+
+    if (isset($seenSubscriptionSlots[$slotKey])) {
+        continue;
+    }
+
+    $seenSubscriptionSlots[$slotKey] = true;
+    $dedupedSubscriptions[] = $sub;
+}
+$subscriptions = $dedupedSubscriptions;
+
+$subscriptionGroupStates = [];
+foreach ($subscriptions as $sub) {
+    $groupKey = !empty($sub['stripe_subscription_id']) ? $sub['stripe_subscription_id'] : $sub['id'];
+    if (!isset($subscriptionGroupStates[$groupKey])) {
+        $subscriptionGroupStates[$groupKey] = [
+            'line_count' => 0,
+            'has_scheduled_cancel' => false,
+        ];
+    }
+
+    $subscriptionGroupStates[$groupKey]['line_count']++;
+    if (!empty($sub['cancel_at_period_end'])) {
+        $subscriptionGroupStates[$groupKey]['has_scheduled_cancel'] = true;
+    }
+}
 
 foreach ($subscriptions as &$sub) {
     $planBillingPeriod = promotionNormalizeBillingPeriod($sub['billing_period'] ?? 'monthly');
@@ -135,7 +221,57 @@ foreach ($subscriptions as &$sub) {
         'trialing' => 'Trialing',
         default    => !empty($sub['cancel_at_period_end']) ? 'Cancels at period end' : 'Active Subscription',
     };
-    $sub['period_price'] = floatval($sub['current_period_price'] ?? $sub['price']);
+    $isBundleStripeSubscription = !empty($sub['stripe_subscription_id'])
+        && (int) ($sub['stripe_subscription_line_count'] ?? 0) > 1;
+    $groupKey = !empty($sub['stripe_subscription_id']) ? $sub['stripe_subscription_id'] : $sub['id'];
+    $groupHasScheduledCancel = !empty($subscriptionGroupStates[$groupKey]['has_scheduled_cancel']);
+    $standalonePeriodPrice = promotionSingleTotalPrice(
+        (float) $sub['price'],
+        (float) ($sub['discount_percentage'] ?? 0),
+        $sub['billing_period']
+    );
+    $bundleLinePrice = promotionBundleLineTotalPrice((float) $sub['price'], $sub['billing_period']);
+    $sub['period_price'] = $isBundleStripeSubscription
+        ? $bundleLinePrice
+        : $standalonePeriodPrice;
+    $sub['price_note'] = '';
+
+    if ($isBundleStripeSubscription && $groupHasScheduledCancel && empty($sub['cancel_at_period_end']) && !empty($sub['auto_renew'])) {
+        $sub['period_price'] = $standalonePeriodPrice;
+        $sub['price_note'] = 'Next renewal price without bundle discount';
+    }
+}
+unset($sub);
+
+$subscriptionCancelGroups = [];
+foreach ($subscriptions as $sub) {
+    $groupKey = !empty($sub['stripe_subscription_id']) ? $sub['stripe_subscription_id'] : $sub['id'];
+    if (!isset($subscriptionCancelGroups[$groupKey])) {
+        $subscriptionCancelGroups[$groupKey] = [];
+    }
+
+    $subscriptionCancelGroups[$groupKey][] = [
+        'id' => $sub['id'],
+        'promotion_id' => $sub['promotions_id'],
+        'slot_type' => $sub['plan_name'],
+        'plan' => $sub['display_plan_name'],
+        'chatbot' => $sub['chatbot_name'],
+        'price' => $sub['currency_symbol'] . number_format($sub['period_price'], 2),
+        'standalone_price' => $sub['currency_symbol'] . number_format(
+            promotionSingleTotalPrice(
+                (float) $sub['price'],
+                (float) ($sub['discount_percentage'] ?? 0),
+                $sub['billing_period']
+            ),
+            2
+        ),
+        'period' => strtolower($sub['billing_period']),
+    ];
+}
+
+foreach ($subscriptions as &$sub) {
+    $groupKey = !empty($sub['stripe_subscription_id']) ? $sub['stripe_subscription_id'] : $sub['id'];
+    $sub['cancel_items'] = $subscriptionCancelGroups[$groupKey] ?? [];
 }
 unset($sub);
 
@@ -430,7 +566,8 @@ require '../inc/header.php';
                                             ? 'Payment'
                                             : (!empty($sub['auto_renew']) ? 'Current period ends' : 'Subscription ends');
                                         $autoRenewLabel = !empty($sub['auto_renew']) ? 'On' : 'Off';
-                                        $canCancel = in_array($sub['status'], ['active', 'trialing', 'past_due'], true);
+                                        $isScheduledEnd = !empty($sub['cancel_at_period_end']) && strtotime($sub['end_date']) >= time();
+                                        $canCancel = in_array($sub['status'], ['active', 'trialing', 'past_due'], true) || $isScheduledEnd;
                                     ?>
                                     <article class="subscription-card <?php echo htmlspecialchars($sub['status_class']); ?>">
                                         <div class="subscription-card__top">
@@ -447,6 +584,11 @@ require '../inc/header.php';
                                                 <?php echo $sub['currency_symbol']; ?><?php echo number_format($sub['period_price'], 2); ?>
                                                 <span>/ <?php echo strtolower($sub['billing_period']); ?></span>
                                             </strong>
+                                            <?php if (!empty($sub['price_note'])): ?>
+                                                <small class="subscription-card__price-note">
+                                                    <?php echo htmlspecialchars($sub['price_note']); ?>
+                                                </small>
+                                            <?php endif; ?>
                                         </div>
 
                                         <div class="subscription-card__meta">
@@ -469,6 +611,7 @@ require '../inc/header.php';
                                             data-can-cancel="<?php echo $canCancel ? '1' : '0'; ?>"
                                             data-cancel-at-period-end="<?php echo !empty($sub['cancel_at_period_end']) ? '1' : '0'; ?>"
                                             data-invoice-url="<?php echo htmlspecialchars($sub['latest_invoice_url'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                            data-cancel-items="<?php echo htmlspecialchars(json_encode($sub['cancel_items'] ?? []), ENT_QUOTES, 'UTF-8'); ?>"
                                         >
                                             Manage
                                         </button>
@@ -512,7 +655,7 @@ require '../inc/header.php';
                             <div class="sub-plan"><?php echo htmlspecialchars($subscription['plan_name']); ?></div>
                             <div class="sub-chatbot">🤖 <?php echo htmlspecialchars($subscription['chatbot_name']); ?></div>
                             <div class="sub-price">
-                                <?php echo $subscription['currency_symbol']; ?><?php echo number_format(floatval($subscription['current_period_price'] ?? $subscription['price']), 2); ?>
+                                <?php echo $subscription['currency_symbol']; ?><?php echo number_format(floatval($subscription['period_price'] ?? $subscription['price']), 2); ?>
                                 / <?php echo strtolower($subscription['billing_period']); ?>
                             </div>
                             <?php if ($subscription['status'] === 'past_due'): ?>
@@ -831,7 +974,7 @@ require '../inc/header.php';
                     <div class="info-row">
                         <span class="label">💰 Price</span>
                         <span class="value">
-                            <?php echo $subscription['currency_symbol']; ?><?php echo number_format(floatval($subscription['current_period_price'] ?? $subscription['price']), 2); ?>
+                            <?php echo $subscription['currency_symbol']; ?><?php echo number_format(floatval($subscription['period_price'] ?? $subscription['price']), 2); ?>
                             / <?php echo strtolower($subscription['billing_period']); ?>
                         </span>
                     </div>
@@ -872,10 +1015,15 @@ require '../inc/header.php';
             <button class="modal-close">&times;</button>
         </div>
         <div class="modal-body">
-            <div class="warning-message">
-                ⚠️ Are you sure you want to cancel your subscription?
+            <div id="cancel-subscription-items" class="cancel-confirm-summary"></div>
+            <div id="cancel-processing-state" class="cancel-processing-state" hidden>
+                <span class="cancel-processing-state__spinner" aria-hidden="true"></span>
+                <div>
+                    <strong id="cancel-processing-title">Updating subscription</strong>
+                    <p id="cancel-processing-message">Please wait while we update your subscription.</p>
+                </div>
             </div>
-            
+
             <div class="cancel-options">
                 <label class="radio-option">
                     <input type="radio" name="cancel-type" value="at-period-end" checked>
@@ -898,20 +1046,6 @@ require '../inc/header.php';
                     </div>
                 </label>
             </div>
-
-            <div class="form-group">
-                <p class="info-field-static-label">Optional: Why are you cancelling?</p>
-                <select id="cancel-reason">
-                    <option value="">Select a reason...</option>
-                    <option value="too-expensive">Too expensive</option>
-                    <option value="not-useful">Not getting enough value</option>
-                    <option value="found-alternative">Found a better alternative</option>
-                    <option value="technical-issues">Technical issues</option>
-                    <option value="other">Other</option>
-                </select>
-                <textarea id="cancel-reason-other" placeholder="Please tell us more..." style="display:none;margin-top:10px;width:100%;min-height:80px;min-height:300px;padding:10px;border:1px solid var(--profile-border);border-radius:6px;font-size:14px;resize:vertical;"></textarea>
-            </div>
-
 
             <div class="modal-actions" style="flex-direction:row; justify-content:flex-end;">
                 <button class="cancel-btn" id="keep-plan-btn">Keep Plan</button>
@@ -962,12 +1096,13 @@ require '../inc/header.php';
 
 <!-- Custom Confirm Modal -->
 <div id="confirm-modal" class="modal" style="display:none;">
-    <div class="modal-content" style="max-width:400px;">
+    <div class="modal-content" style="max-width:520px;">
         <div class="modal-header">
             <h2 id="confirm-modal-title">Are you sure?</h2>
         </div>
         <div class="modal-body">
             <p id="confirm-modal-message" style="color:var(--profile-text);font-size:15px;margin:0 0 24px 0;"></p>
+            <div id="confirm-modal-extra"></div>
             <div class="modal-actions" style="flex-direction:row;justify-content:flex-end;gap:12px;">
                 <button class="cancel-btn" id="confirm-modal-cancel">Go Back</button>
                 <button class="danger-btn" id="confirm-modal-confirm">Yes, Cancel</button>

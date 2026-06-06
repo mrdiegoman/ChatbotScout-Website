@@ -70,6 +70,37 @@ function profileReturnUrl(string $tab = 'profile'): string
     return $scheme . '://' . $host . $publicPath . '/profile.php?tab=' . rawurlencode($tab);
 }
 
+function profileSafeReturnUrl(?string $requestedUrl, string $fallbackTab = 'profile'): string
+{
+    $fallback = profileReturnUrl($fallbackTab);
+    $requestedUrl = is_string($requestedUrl) ? trim($requestedUrl) : '';
+    if ($requestedUrl === '') {
+        return $fallback;
+    }
+
+    $parts = parse_url($requestedUrl);
+    if (!$parts || empty($parts['host']) || empty($parts['scheme'])) {
+        return $fallback;
+    }
+
+    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+    $scheme = $isHttps ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $publicPath = rtrim(str_replace('\\', '/', dirname(dirname($_SERVER['SCRIPT_NAME'] ?? '/'))), '/');
+    $path = $parts['path'] ?? '';
+
+    if (strcasecmp($parts['host'], $host) !== 0 || strtolower($parts['scheme']) !== $scheme) {
+        return $fallback;
+    }
+
+    if (strpos($path, $publicPath . '/') !== 0) {
+        return $fallback;
+    }
+
+    return $requestedUrl;
+}
+
 function configureStripeForProfileActions(): void
 {
     $stripeConfig = require __DIR__ . '/../../config/stripe.php';
@@ -77,6 +108,551 @@ function configureStripeForProfileActions(): void
     if (!empty($stripeConfig['api_version'])) {
         \Stripe\Stripe::setApiVersion($stripeConfig['api_version']);
     }
+}
+
+function profileStripeAmountToCents(float $amount): int
+{
+    return (int) round($amount * 100);
+}
+
+function profileStripePromotionProductId(string $promotionId): string
+{
+    return 'cs_promo_' . substr(str_replace('-', '', strtolower($promotionId)), 0, 24);
+}
+
+function profileStripePromotionLabel(string $slotType): string
+{
+    return match ($slotType) {
+        'Homepage' => 'Homepage Visibility',
+        'Chatbots page' => 'Chatbots Page Visibility',
+        default => $slotType ?: 'Promotion',
+    };
+}
+
+function profileGetOrCreateStripePromotionProduct(array $promotion): string
+{
+    $promotionId = (string) ($promotion['promotion_id'] ?? $promotion['promotions_id'] ?? $promotion['id'] ?? '');
+    if ($promotionId === '') {
+        throw new RuntimeException('Promotion ID is missing for Stripe product.');
+    }
+
+    $productId = profileStripePromotionProductId($promotionId);
+    $label = profileStripePromotionLabel((string) ($promotion['slot_type'] ?? $promotion['plan_name'] ?? ''));
+
+    try {
+        \Stripe\Product::retrieve($productId);
+    } catch (\Stripe\Exception\InvalidRequestException $e) {
+        \Stripe\Product::create([
+            'id' => $productId,
+            'name' => 'ChatbotScout - ' . $label,
+            'metadata' => [
+                'promotion_id' => $promotionId,
+                'slot_type' => (string) ($promotion['slot_type'] ?? $promotion['plan_name'] ?? ''),
+            ],
+        ]);
+    }
+
+    return $productId;
+}
+
+function profileCreateStripePromotionPrice(array $promotion, float $amount, string $currency, string $interval, string $pricingMode): string
+{
+    $promotionId = (string) ($promotion['promotion_id'] ?? $promotion['promotions_id'] ?? $promotion['id'] ?? '');
+    $productId = profileGetOrCreateStripePromotionProduct($promotion);
+
+    $price = \Stripe\Price::create([
+        'currency' => strtolower($currency),
+        'product' => $productId,
+        'unit_amount' => profileStripeAmountToCents($amount),
+        'recurring' => ['interval' => $interval],
+        'tax_behavior' => 'exclusive',
+        'metadata' => [
+            'promotion_id' => $promotionId,
+            'slot_type' => (string) ($promotion['slot_type'] ?? $promotion['plan_name'] ?? ''),
+            'pricing_mode' => $pricingMode,
+        ],
+    ]);
+
+    return $price->id;
+}
+
+function profileFindStripeSubscriptionItemId($stripeSubscription, string $promotionId, string $subscriptionId): ?string
+{
+    $items = $stripeSubscription->items->data ?? [];
+    foreach ($items as $item) {
+        $metadata = $item->metadata ?? null;
+        $priceMetadata = $item->price->metadata ?? null;
+        $productId = stripeObjectId($item->price->product ?? null);
+
+        $itemPromotionId = $metadata->promotion_id ?? ($priceMetadata->promotion_id ?? null);
+        $itemSubscriptionId = $metadata->subscription_id ?? null;
+
+        if ((string) $itemPromotionId === $promotionId || (string) $itemSubscriptionId === $subscriptionId) {
+            return (string) $item->id;
+        }
+
+        if ($productId && $productId === profileStripePromotionProductId($promotionId)) {
+            return (string) $item->id;
+        }
+    }
+
+    return null;
+}
+
+function profilePromotionDisplayName(string $slotType): string
+{
+    return match ($slotType) {
+        'Homepage' => 'Homepage Visibility',
+        'Chatbots page' => 'Chatbots Page Visibility',
+        default => $slotType ?: 'Promotion',
+    };
+}
+
+function profileLoadPromotionSubscriptionGroup(PDO $db, string $userId, string $subscriptionId): array
+{
+    $stmt = $db->prepare("
+        SELECT
+            s.id,
+            s.user_id,
+            s.chatbot_id,
+            s.promotions_id,
+            s.status,
+            s.start_date,
+            s.end_date,
+            s.cancel_at_period_end,
+            s.stripe_subscription_id,
+            s.stripe_customer_id,
+            p.slot_type,
+            p.price,
+            p.discount_percentage,
+            c.code AS currency_code,
+            c.id AS currency_id,
+            bp.type AS plan_billing_period,
+            (
+                SELECT COALESCE(
+                    JSON_UNQUOTE(JSON_EXTRACT(pay.metadata, '$.billing_period')),
+                    JSON_UNQUOTE(JSON_EXTRACT(pay.metadata, '$.period_type'))
+                )
+                FROM payments pay
+                WHERE pay.subscription_id = s.id
+                  AND pay.status = 'succeeded'
+                ORDER BY COALESCE(pay.succeeded_at, pay.created_at) DESC
+                LIMIT 1
+            ) AS latest_payment_billing_period
+        FROM subscriptions s
+        JOIN promotions p ON p.id = s.promotions_id
+        JOIN currencies c ON c.id = p.currency_id
+        JOIN billing_periods bp ON bp.id = p.billing_period_id
+        WHERE s.id = :subscription_id
+          AND s.user_id = :user_id
+          AND s.status IN ('active', 'trialing', 'past_due')
+          AND s.subscription_type = 'promotion'
+        LIMIT 1
+    ");
+    $stmt->execute([
+        'subscription_id' => $subscriptionId,
+        'user_id' => $userId,
+    ]);
+    $selected = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$selected || empty($selected['stripe_subscription_id'])) {
+        return [];
+    }
+
+    $groupStmt = $db->prepare("
+        SELECT
+            s.id,
+            s.user_id,
+            s.chatbot_id,
+            s.promotions_id,
+            s.status,
+            s.start_date,
+            s.end_date,
+            s.cancel_at_period_end,
+            s.stripe_subscription_id,
+            s.stripe_customer_id,
+            p.slot_type,
+            p.price,
+            p.discount_percentage,
+            c.code AS currency_code,
+            c.id AS currency_id,
+            bp.type AS plan_billing_period,
+            (
+                SELECT COALESCE(
+                    JSON_UNQUOTE(JSON_EXTRACT(pay.metadata, '$.billing_period')),
+                    JSON_UNQUOTE(JSON_EXTRACT(pay.metadata, '$.period_type'))
+                )
+                FROM payments pay
+                WHERE pay.subscription_id = s.id
+                  AND pay.status = 'succeeded'
+                ORDER BY COALESCE(pay.succeeded_at, pay.created_at) DESC
+                LIMIT 1
+            ) AS latest_payment_billing_period
+        FROM subscriptions s
+        JOIN promotions p ON p.id = s.promotions_id
+        JOIN currencies c ON c.id = p.currency_id
+        JOIN billing_periods bp ON bp.id = p.billing_period_id
+        WHERE s.user_id = :user_id
+          AND s.chatbot_id = :chatbot_id
+          AND s.stripe_subscription_id = :stripe_subscription_id
+          AND s.status IN ('active', 'trialing', 'past_due')
+          AND s.subscription_type = 'promotion'
+        ORDER BY p.slot_type
+    ");
+    $groupStmt->execute([
+        'user_id' => $userId,
+        'chatbot_id' => $selected['chatbot_id'],
+        'stripe_subscription_id' => $selected['stripe_subscription_id'],
+    ]);
+
+    $rows = $groupStmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($rows as &$row) {
+        $planPeriod = promotionNormalizeBillingPeriod($row['plan_billing_period'] ?? 'monthly');
+        $paymentPeriod = promotionNormalizeBillingPeriod($row['latest_payment_billing_period'] ?? '', '');
+        $datePeriod = promotionBillingPeriodFromDates($row['start_date'] ?? null, $row['end_date'] ?? null, $planPeriod);
+        $row['billing_period'] = $paymentPeriod
+            ?: (in_array($datePeriod, ['monthly', 'yearly'], true) ? $datePeriod : $planPeriod);
+        $row['display_plan_name'] = profilePromotionDisplayName((string) ($row['slot_type'] ?? ''));
+        $row['standalone_amount'] = promotionSingleTotalPrice(
+            (float) $row['price'],
+            (float) ($row['discount_percentage'] ?? 0),
+            $row['billing_period']
+        );
+        $row['bundle_amount'] = promotionBundleLineTotalPrice((float) $row['price'], $row['billing_period']);
+    }
+    unset($row);
+
+    return $rows;
+}
+
+function profileSubscriptionGroupMetadata(array $rows, string $billingPeriod, bool $isBundle, array $extra = []): array
+{
+    $promotionIds = array_map(static fn ($row) => (string) $row['promotions_id'], $rows);
+    $subscriptionIds = array_map(static fn ($row) => (string) $row['id'], $rows);
+    $lineAmounts = array_map(static function ($row) use ($isBundle) {
+        $amount = $isBundle ? (float) $row['bundle_amount'] : (float) $row['standalone_amount'];
+        return number_format($amount, 2, '.', '');
+    }, $rows);
+    $totalAmount = array_sum(array_map('floatval', $lineAmounts));
+
+    return array_merge([
+        'user_id' => (string) ($rows[0]['user_id'] ?? ''),
+        'chatbot_id' => (string) ($rows[0]['chatbot_id'] ?? ''),
+        'promotion_ids' => implode(',', $promotionIds),
+        'subscription_ids' => implode(',', $subscriptionIds),
+        'line_amounts' => implode(',', $lineAmounts),
+        'total_amount' => number_format($totalAmount, 2, '.', ''),
+        'period_type' => $billingPeriod,
+        'currency_id' => (string) ($rows[0]['currency_id'] ?? ''),
+        'is_bundle' => $isBundle ? '1' : '0',
+    ], $extra);
+}
+
+function profileStripeSubscriptionPhaseItems($stripeSubscription): array
+{
+    $items = [];
+    foreach (($stripeSubscription->items->data ?? []) as $item) {
+        $priceId = stripeObjectId($item->price ?? null);
+        if (!$priceId) {
+            continue;
+        }
+
+        $items[] = [
+            'price' => $priceId,
+            'quantity' => (int) ($item->quantity ?? 1),
+        ];
+    }
+
+    return $items;
+}
+
+function profileStripeIntervalForBillingPeriod(string $billingPeriod): string
+{
+    return $billingPeriod === 'yearly' ? 'year' : 'month';
+}
+
+function profileCurrentPeriodEndTimestampForGroup(array $rows, $stripeSubscription): int
+{
+    $timestamps = [];
+    $stripeEnd = stripeObjectValue($stripeSubscription, 'current_period_end');
+    if (is_numeric($stripeEnd) && (int) $stripeEnd > 0) {
+        $timestamps[] = (int) $stripeEnd;
+    }
+
+    foreach ($rows as $row) {
+        $timestamp = strtotime((string) ($row['end_date'] ?? ''));
+        if ($timestamp !== false && $timestamp > 0) {
+            $timestamps[] = $timestamp;
+        }
+    }
+
+    return max($timestamps ?: [time()]);
+}
+
+function profileCurrentPeriodEndDateForGroup(array $rows, $stripeSubscription): string
+{
+    return stripeUnixToMysql(profileCurrentPeriodEndTimestampForGroup($rows, $stripeSubscription));
+}
+
+function profileRowsById(array $rows): array
+{
+    $byId = [];
+    foreach ($rows as $row) {
+        $byId[(string) $row['id']] = $row;
+    }
+    return $byId;
+}
+
+function profileApplyPartialCancelDbState(PDO $db, array $selectedRows, array $remainingRows, string $cancelType, ?string $reason, $stripeSubscription): void
+{
+    $selectedIds = array_map(static fn ($row) => (string) $row['id'], $selectedRows);
+    $remainingIds = array_map(static fn ($row) => (string) $row['id'], $remainingRows);
+    $periodEndDate = profileCurrentPeriodEndDateForGroup(array_merge($selectedRows, $remainingRows), $stripeSubscription);
+
+    if (!empty($selectedIds)) {
+        $placeholders = [];
+        $params = [
+            'reason' => $reason,
+        ];
+        foreach ($selectedIds as $index => $id) {
+            $key = 'selected_' . $index;
+            $placeholders[] = ':' . $key;
+            $params[$key] = $id;
+        }
+
+        if ($cancelType === 'immediately') {
+            $sql = "
+                UPDATE subscriptions
+                SET status = 'cancelled',
+                    auto_renew = FALSE,
+                    cancel_at_period_end = FALSE,
+                    cancelled_at = NOW(),
+                    end_date = NOW(),
+                    cancellation_reason = :reason,
+                    updated_at = NOW()
+                WHERE id IN (" . implode(',', $placeholders) . ")
+            ";
+        } else {
+            $params['end_date'] = $periodEndDate;
+            $sql = "
+                UPDATE subscriptions
+                SET auto_renew = FALSE,
+                    cancel_at_period_end = TRUE,
+                    cancelled_at = COALESCE(cancelled_at, NOW()),
+                    end_date = :end_date,
+                    cancellation_reason = :reason,
+                    updated_at = NOW()
+                WHERE id IN (" . implode(',', $placeholders) . ")
+            ";
+        }
+
+        $db->prepare($sql)->execute($params);
+    }
+
+    if (!empty($remainingIds)) {
+        $placeholders = [];
+        $params = [
+            'end_date' => $periodEndDate,
+        ];
+        foreach ($remainingIds as $index => $id) {
+            $key = 'remaining_' . $index;
+            $placeholders[] = ':' . $key;
+            $params[$key] = $id;
+        }
+
+        $db->prepare("
+            UPDATE subscriptions
+            SET status = CASE WHEN status = 'cancelled' THEN 'active' ELSE status END,
+                end_date = :end_date,
+                auto_renew = TRUE,
+                cancel_at_period_end = FALSE,
+                cancelled_at = NULL,
+                cancellation_reason = NULL,
+                updated_at = NOW()
+            WHERE id IN (" . implode(',', $placeholders) . ")
+        ")->execute($params);
+    }
+}
+
+function profileUpdateStripeSubscriptionMetadata(string $stripeSubscriptionId, array $metadata): void
+{
+    \Stripe\Subscription::update($stripeSubscriptionId, [
+        'metadata' => $metadata,
+    ]);
+}
+
+function profileSchedulePartialCancelAtPeriodEnd($stripeSubscription, array $selectedRows, array $remainingRows, string $billingPeriod): void
+{
+    $stripeSubscriptionId = stripeObjectId($stripeSubscription);
+    if (!$stripeSubscriptionId) {
+        throw new RuntimeException('Stripe subscription ID is missing.');
+    }
+
+    $currentStart = (int) (stripeObjectValue($stripeSubscription, 'current_period_start') ?: time());
+    $currentEnd = profileCurrentPeriodEndTimestampForGroup(array_merge($selectedRows, $remainingRows), $stripeSubscription);
+    if ($currentEnd <= time()) {
+        throw new RuntimeException('Current billing period has already ended.');
+    }
+
+    $currency = strtolower((string) ($remainingRows[0]['currency_code'] ?? 'eur'));
+    $interval = profileStripeIntervalForBillingPeriod($billingPeriod);
+    $remainingIsBundle = count($remainingRows) > 1;
+
+    $futureItems = [];
+    foreach ($remainingRows as $row) {
+        $amount = $remainingIsBundle ? (float) $row['bundle_amount'] : (float) $row['standalone_amount'];
+        $futureItems[] = [
+            'price' => profileCreateStripePromotionPrice($row, $amount, $currency, $interval, $remainingIsBundle ? 'bundle' : 'single'),
+            'quantity' => 1,
+        ];
+    }
+
+    $pendingMetadata = profileSubscriptionGroupMetadata(
+        array_merge($selectedRows, $remainingRows),
+        $billingPeriod,
+        true,
+        [
+            'partial_cancel_subscription_ids' => implode(',', array_map(static fn ($row) => (string) $row['id'], $selectedRows)),
+            'partial_cancel_effective_at' => (string) $currentEnd,
+        ]
+    );
+    profileUpdateStripeSubscriptionMetadata($stripeSubscriptionId, $pendingMetadata);
+
+    $futureMetadata = profileSubscriptionGroupMetadata(
+        $remainingRows,
+        $billingPeriod,
+        $remainingIsBundle,
+        [
+            'partial_cancel_subscription_ids' => '',
+            'partial_cancel_effective_at' => '',
+        ]
+    );
+
+    $scheduleRef = stripeObjectValue($stripeSubscription, 'schedule');
+    $scheduleId = stripeObjectId($scheduleRef);
+    if ($scheduleId) {
+        $schedule = \Stripe\SubscriptionSchedule::retrieve($scheduleId);
+    } else {
+        $schedule = \Stripe\SubscriptionSchedule::create([
+            'from_subscription' => $stripeSubscriptionId,
+        ]);
+        $scheduleId = (string) $schedule->id;
+    }
+
+    $currentItems = profileStripeSubscriptionPhaseItems($stripeSubscription);
+    if (empty($currentItems)) {
+        throw new RuntimeException('Stripe subscription items are missing.');
+    }
+
+    \Stripe\SubscriptionSchedule::update($scheduleId, [
+        'end_behavior' => 'release',
+        'proration_behavior' => 'none',
+        'phases' => [
+            [
+                'start_date' => $currentStart,
+                'end_date' => $currentEnd,
+                'items' => $currentItems,
+                'metadata' => $pendingMetadata,
+            ],
+            [
+                'start_date' => $currentEnd,
+                'iterations' => 1,
+                'items' => $futureItems,
+                'metadata' => $futureMetadata,
+                'proration_behavior' => 'none',
+            ],
+        ],
+    ]);
+
+    stripeCheckoutLog('partial_cancel.schedule_updated', [
+        'stripe_subscription_id' => $stripeSubscriptionId,
+        'schedule_id' => $scheduleId,
+        'selected_subscription_ids' => implode(',', array_map(static fn ($row) => (string) $row['id'], $selectedRows)),
+        'remaining_subscription_ids' => implode(',', array_map(static fn ($row) => (string) $row['id'], $remainingRows)),
+    ]);
+}
+
+function profileApplyPartialCancelImmediately($stripeSubscription, array $selectedRows, array $remainingRows, string $billingPeriod)
+{
+    $stripeSubscriptionId = stripeObjectId($stripeSubscription);
+    if (!$stripeSubscriptionId) {
+        throw new RuntimeException('Stripe subscription ID is missing.');
+    }
+
+    $scheduleId = stripeObjectId(stripeObjectValue($stripeSubscription, 'schedule'));
+    if ($scheduleId) {
+        try {
+            $schedule = \Stripe\SubscriptionSchedule::retrieve($scheduleId);
+            $schedule->release();
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            stripeCheckoutLog('partial_cancel.schedule_release_failed', stripeCheckoutExceptionContext($e) + [
+                'stripe_subscription_id' => $stripeSubscriptionId,
+                'schedule_id' => $scheduleId,
+            ]);
+        }
+
+        $stripeSubscription = \Stripe\Subscription::retrieve([
+            'id' => $stripeSubscriptionId,
+            'expand' => ['items.data.price.product'],
+        ]);
+    }
+
+    $currency = strtolower((string) ($remainingRows[0]['currency_code'] ?? 'eur'));
+    $interval = profileStripeIntervalForBillingPeriod($billingPeriod);
+    $remainingIsBundle = count($remainingRows) > 1;
+    $items = [];
+
+    foreach ($remainingRows as $row) {
+        $itemId = profileFindStripeSubscriptionItemId($stripeSubscription, (string) $row['promotions_id'], (string) $row['id']);
+        if (!$itemId) {
+            throw new RuntimeException('Could not find remaining Stripe subscription item.');
+        }
+
+        $amount = $remainingIsBundle ? (float) $row['bundle_amount'] : (float) $row['standalone_amount'];
+        $items[] = [
+            'id' => $itemId,
+            'price' => profileCreateStripePromotionPrice($row, $amount, $currency, $interval, $remainingIsBundle ? 'bundle' : 'single'),
+            'quantity' => 1,
+        ];
+    }
+
+    foreach ($selectedRows as $row) {
+        $itemId = profileFindStripeSubscriptionItemId($stripeSubscription, (string) $row['promotions_id'], (string) $row['id']);
+        if (!$itemId) {
+            throw new RuntimeException('Could not find cancelled Stripe subscription item.');
+        }
+
+        $items[] = [
+            'id' => $itemId,
+            'deleted' => true,
+        ];
+    }
+
+    $metadata = profileSubscriptionGroupMetadata(
+        $remainingRows,
+        $billingPeriod,
+        $remainingIsBundle,
+        [
+            'partial_cancel_subscription_ids' => '',
+            'partial_cancel_effective_at' => '',
+        ]
+    );
+
+    $updatedSubscription = \Stripe\Subscription::update($stripeSubscriptionId, [
+        'items' => $items,
+        'metadata' => $metadata,
+        'proration_behavior' => 'none',
+        'payment_behavior' => 'allow_incomplete',
+        'expand' => ['items.data.price.product'],
+    ]);
+
+    stripeCheckoutLog('partial_cancel.immediate_updated', [
+        'stripe_subscription_id' => $stripeSubscriptionId,
+        'selected_subscription_ids' => implode(',', array_map(static fn ($row) => (string) $row['id'], $selectedRows)),
+        'remaining_subscription_ids' => implode(',', array_map(static fn ($row) => (string) $row['id'], $remainingRows)),
+    ]);
+
+    return $updatedSubscription;
 }
 
 // ============================================
@@ -405,6 +981,13 @@ if ($action === 'update_marketing_emails') {
 if ($action === 'stripe_customer_portal') {
     $data = json_decode(file_get_contents('php://input'), true) ?: [];
     $subscriptionId = trim($data['subscription_id'] ?? $data['subscriptionId'] ?? '');
+    $returnUrl = profileSafeReturnUrl($data['return_url'] ?? null, 'profile');
+
+    stripeCheckoutLog('customer_portal.request', [
+        'user_id' => $user['id'] ?? null,
+        'subscription_id' => $subscriptionId,
+        'return_url' => $returnUrl,
+    ]);
 
     $db = Database::getInstance()->getConnection();
     if ($subscriptionId) {
@@ -441,12 +1024,20 @@ if ($action === 'stripe_customer_portal') {
 
             $portalSession = \Stripe\BillingPortal\Session::create([
                 'customer' => $sub['stripe_customer_id'],
-                'return_url' => profileReturnUrl('profile'),
+                'return_url' => $returnUrl,
+            ]);
+
+            stripeCheckoutLog('customer_portal.response', [
+                'user_id' => $user['id'] ?? null,
+                'subscription_id' => $subscriptionId,
+                'stripe_customer_id' => $sub['stripe_customer_id'],
+                'stripe_subscription_id' => $sub['stripe_subscription_id'],
             ]);
 
             echo json_encode(['success' => true, 'url' => $portalSession->url]);
         } catch (\Stripe\Exception\ApiErrorException $e) {
             error_log('Stripe customer portal error: ' . $e->getMessage());
+            stripeCheckoutLog('customer_portal.stripe_error', stripeCheckoutExceptionContext($e));
             echo json_encode([
                 'success' => false,
                 'message' => 'Stripe customer portal error: ' . $e->getMessage(),
@@ -507,6 +1098,58 @@ if ($action === 'renew_subscription') {
             exit;
         }
 
+        $scheduleId = stripeObjectId(stripeObjectValue($stripeSubscription, 'schedule'));
+        if (!empty($sub['cancel_at_period_end']) && empty($stripeSubscription->cancel_at_period_end) && $scheduleId) {
+            $groupRows = profileLoadPromotionSubscriptionGroup($db, $user['id'], $subscriptionId);
+            if (empty($groupRows)) {
+                echo json_encode(['success' => false, 'message' => 'No active subscription found']);
+                exit;
+            }
+
+            $billingPeriod = (string) ($groupRows[0]['billing_period'] ?? 'monthly');
+            $isBundle = count($groupRows) > 1;
+
+            $schedule = \Stripe\SubscriptionSchedule::retrieve($scheduleId);
+            $schedule->release();
+
+            $stripeSubscription = \Stripe\Subscription::update($sub['stripe_subscription_id'], [
+                'metadata' => profileSubscriptionGroupMetadata($groupRows, $billingPeriod, $isBundle, [
+                    'partial_cancel_subscription_ids' => '',
+                    'partial_cancel_effective_at' => '',
+                ]),
+            ]);
+
+            syncStripeSubscriptionStatus($db, $stripeSubscription);
+
+            $db->prepare("
+                UPDATE subscriptions
+                SET status = CASE WHEN status = 'cancelled' THEN 'active' ELSE status END,
+                    cancel_at_period_end = FALSE,
+                    auto_renew = CASE
+                        WHEN status IN ('active', 'trialing') THEN TRUE
+                        WHEN status = 'cancelled' THEN TRUE
+                        ELSE auto_renew
+                    END,
+                    cancelled_at = NULL,
+                    cancellation_reason = NULL,
+                    updated_at = NOW()
+                WHERE stripe_subscription_id = :stripe_subscription_id
+                  AND user_id = :user_id
+            ")->execute([
+                'stripe_subscription_id' => $sub['stripe_subscription_id'],
+                'user_id' => $user['id'],
+            ]);
+
+            stripeCheckoutLog('partial_cancel.renewed', [
+                'user_id' => $user['id'] ?? null,
+                'stripe_subscription_id' => $sub['stripe_subscription_id'],
+                'schedule_id' => $scheduleId,
+            ]);
+
+            echo json_encode(['success' => true, 'message' => 'Subscription renewed.']);
+            exit;
+        }
+
         if (empty($stripeSubscription->cancel_at_period_end) && empty($sub['cancel_at_period_end'])) {
             syncStripeSubscriptionStatus($db, $stripeSubscription);
             echo json_encode(['success' => true, 'message' => 'Subscription is already renewed.']);
@@ -521,9 +1164,11 @@ if ($action === 'renew_subscription') {
 
         $db->prepare("
             UPDATE subscriptions
-            SET cancel_at_period_end = FALSE,
+            SET status = CASE WHEN status = 'cancelled' THEN 'active' ELSE status END,
+                cancel_at_period_end = FALSE,
                 auto_renew = CASE
                     WHEN status IN ('active', 'trialing') THEN TRUE
+                    WHEN status = 'cancelled' THEN TRUE
                     ELSE auto_renew
                 END,
                 cancelled_at = NULL,
@@ -562,10 +1207,18 @@ if ($action === 'cancel_subscription') {
     $subscriptionId = trim($data['subscription_id'] ?? $data['subscriptionId'] ?? '');
     $cancelType = $data['cancelType'] ?? 'at-period-end';
     $reason = $data['reason'] ?? null;
+    $cancelItemIds = $data['cancel_item_ids'] ?? $data['cancelItemIds'] ?? [];
 
     if (!in_array($cancelType, ['at-period-end', 'immediately'], true)) {
         $cancelType = 'at-period-end';
     }
+
+    if (!is_array($cancelItemIds)) {
+        $cancelItemIds = [];
+    }
+    $cancelItemIds = array_values(array_unique(array_filter(array_map(static function ($id) {
+        return is_string($id) ? trim($id) : '';
+    }, $cancelItemIds))));
 
     $reason = is_string($reason) ? trim($reason) : null;
     if ($reason === '') {
@@ -578,27 +1231,12 @@ if ($action === 'cancel_subscription') {
     }
     
     $db = Database::getInstance()->getConnection();
-    $stmt = $db->prepare("
-        SELECT id, status, end_date, cancel_at_period_end, stripe_subscription_id
-        FROM subscriptions
-        WHERE id = :subscription_id
-          AND user_id = :user_id
-          AND status IN ('active', 'trialing', 'past_due')
-        LIMIT 1
-    ");
-    $stmt->execute([
-        'subscription_id' => $subscriptionId,
-        'user_id' => $user['id'],
-    ]);
-    $sub = $stmt->fetch();
+    $groupRows = profileLoadPromotionSubscriptionGroup($db, $user['id'], $subscriptionId);
+    $rowsById = profileRowsById($groupRows);
+    $sub = $rowsById[$subscriptionId] ?? ($groupRows[0] ?? null);
     
     if (!$sub) {
         echo json_encode(['success' => false, 'message' => 'No active subscription found']);
-        exit;
-    }
-
-    if (!empty($sub['cancel_at_period_end']) && $cancelType !== 'immediately') {
-        echo json_encode(['success' => true, 'message' => 'Subscription is already scheduled for cancellation.']);
         exit;
     }
 
@@ -607,14 +1245,42 @@ if ($action === 'cancel_subscription') {
         exit;
     }
 
+    if (empty($cancelItemIds)) {
+        $cancelItemIds = [$subscriptionId];
+    }
+
+    $cancelItemIds = array_values(array_filter($cancelItemIds, static fn ($id) => isset($rowsById[$id])));
+    if (empty($cancelItemIds)) {
+        echo json_encode(['success' => false, 'message' => 'Choose at least one promotion to cancel.']);
+        exit;
+    }
+
+    $selectedRows = array_values(array_map(static fn ($id) => $rowsById[$id], $cancelItemIds));
+    $remainingRows = array_values(array_filter($groupRows, static fn ($row) => !in_array((string) $row['id'], $cancelItemIds, true)));
+    $isPartialCancel = count($groupRows) > 1 && !empty($remainingRows);
+
     try {
         configureStripeForProfileActions();
 
-        $stripeSubscription = \Stripe\Subscription::retrieve($sub['stripe_subscription_id']);
+        $stripeSubscription = \Stripe\Subscription::retrieve([
+            'id' => $sub['stripe_subscription_id'],
+            'expand' => ['items.data.price.product'],
+        ]);
         $stripeStatus = (string) ($stripeSubscription->status ?? '');
 
         if (in_array($stripeStatus, ['canceled', 'incomplete_expired'], true)) {
             syncStripeSubscriptionStatus($db, $stripeSubscription);
+
+            $cancelledPlaceholders = [];
+            $cancelledParams = [
+                'reason' => $reason,
+                'user_id' => $user['id'],
+            ];
+            foreach ($selectedRows as $index => $row) {
+                $key = 'cancelled_id_' . $index;
+                $cancelledPlaceholders[] = ':' . $key;
+                $cancelledParams[$key] = (string) $row['id'];
+            }
 
             $db->prepare("
                 UPDATE subscriptions
@@ -624,17 +1290,75 @@ if ($action === 'cancel_subscription') {
                     cancelled_at = COALESCE(cancelled_at, NOW()),
                     cancellation_reason = COALESCE(:reason, cancellation_reason),
                     updated_at = NOW()
-                WHERE stripe_subscription_id = :stripe_subscription_id
+                WHERE id IN (" . implode(',', $cancelledPlaceholders) . ")
                   AND user_id = :user_id
-            ")->execute([
-                'reason' => $reason,
-                'stripe_subscription_id' => $sub['stripe_subscription_id'],
-                'user_id' => $user['id'],
-            ]);
+            ")->execute($cancelledParams);
 
             echo json_encode(['success' => true, 'message' => 'Subscription was already cancelled in Stripe.']);
             exit;
         }
+
+        if ($isPartialCancel) {
+            $billingPeriod = (string) ($sub['billing_period'] ?? 'monthly');
+            stripeCheckoutLog('partial_cancel.start', [
+                'user_id' => $user['id'] ?? null,
+                'stripe_subscription_id' => $sub['stripe_subscription_id'],
+                'cancel_type' => $cancelType,
+                'selected_subscription_ids' => implode(',', $cancelItemIds),
+                'remaining_subscription_ids' => implode(',', array_map(static fn ($row) => (string) $row['id'], $remainingRows)),
+            ]);
+
+            if ($cancelType === 'immediately') {
+                $stripeSubscription = profileApplyPartialCancelImmediately($stripeSubscription, $selectedRows, $remainingRows, $billingPeriod);
+                syncStripeSubscriptionStatus($db, $stripeSubscription);
+            } else {
+                $alreadyScheduled = !empty($selectedRows) && count(array_filter(
+                    $selectedRows,
+                    static fn ($row) => !empty($row['cancel_at_period_end'])
+                )) === count($selectedRows);
+
+                if ($alreadyScheduled) {
+                    echo json_encode(['success' => true, 'message' => 'Selected promotion is already scheduled for cancellation.']);
+                    exit;
+                }
+
+                profileSchedulePartialCancelAtPeriodEnd($stripeSubscription, $selectedRows, $remainingRows, $billingPeriod);
+            }
+
+            profileApplyPartialCancelDbState($db, $selectedRows, $remainingRows, $cancelType, $reason, $stripeSubscription);
+
+            AuditLog::log('subscription', $sub['id'], 'updated',
+                ['status' => 'active', 'cancel_at_period_end' => false],
+                [
+                    'partial_cancel' => true,
+                    'cancel_type' => $cancelType,
+                    'cancel_item_ids' => $cancelItemIds,
+                    'remaining_item_ids' => array_map(static fn ($row) => (string) $row['id'], $remainingRows),
+                ]
+            );
+
+            echo json_encode([
+                'success' => true,
+                'message' => $cancelType === 'immediately'
+                    ? 'Selected promotion cancelled. Remaining promotion will continue at its standalone price.'
+                    : 'Selected promotion will end after this billing period. Remaining promotion will renew at its standalone price.',
+            ]);
+            exit;
+        }
+
+        if (!empty($sub['cancel_at_period_end']) && $cancelType !== 'immediately') {
+            echo json_encode(['success' => true, 'message' => 'Subscription is already scheduled for cancellation.']);
+            exit;
+        }
+
+        $nonPartialBillingPeriod = (string) ($selectedRows[0]['billing_period'] ?? $sub['billing_period'] ?? 'monthly');
+        profileUpdateStripeSubscriptionMetadata(
+            $sub['stripe_subscription_id'],
+            profileSubscriptionGroupMetadata($selectedRows, $nonPartialBillingPeriod, count($selectedRows) > 1, [
+                'partial_cancel_subscription_ids' => '',
+                'partial_cancel_effective_at' => '',
+            ])
+        );
 
         if ($cancelType === 'immediately') {
             $stripeSubscription = $stripeSubscription->cancel();
@@ -660,6 +1384,17 @@ if ($action === 'cancel_subscription') {
         exit;
     }
     
+    $targetCancelPlaceholders = [];
+    $targetCancelParams = [
+        'reason' => $reason,
+        'user_id' => $user['id'],
+    ];
+    foreach ($selectedRows as $index => $row) {
+        $key = 'target_id_' . $index;
+        $targetCancelPlaceholders[] = ':' . $key;
+        $targetCancelParams[$key] = (string) $row['id'];
+    }
+
     if ($cancelType === 'immediately') {
         $stmt = $db->prepare("
             UPDATE subscriptions
@@ -668,7 +1403,7 @@ if ($action === 'cancel_subscription') {
                 cancelled_at = NOW(),
                 end_date = NOW(),
                 cancellation_reason = :reason
-            WHERE stripe_subscription_id = :stripe_subscription_id
+            WHERE id IN (" . implode(',', $targetCancelPlaceholders) . ")
               AND user_id = :user_id
         ");
     } else {
@@ -678,16 +1413,12 @@ if ($action === 'cancel_subscription') {
                 auto_renew = FALSE,
                 cancelled_at = NOW(),
                 cancellation_reason = :reason
-            WHERE stripe_subscription_id = :stripe_subscription_id
+            WHERE id IN (" . implode(',', $targetCancelPlaceholders) . ")
               AND user_id = :user_id
         ");
     }
     
-    $stmt->execute([
-        'reason' => $reason,
-        'stripe_subscription_id' => $sub['stripe_subscription_id'],
-        'user_id' => $user['id'],
-    ]);
+    $stmt->execute($targetCancelParams);
 
     AuditLog::log('subscription', $sub['id'], 'updated',
         ['status' => 'active', 'cancel_at_period_end' => false],
@@ -701,11 +1432,115 @@ if ($action === 'cancel_subscription') {
 }
 
 // ============================================
+// SAVE CANCELLATION FEEDBACK
+// ============================================
+
+if ($action === 'save_cancellation_feedback') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $subscriptionId = trim($data['subscription_id'] ?? $data['subscriptionId'] ?? '');
+    $reason = $data['reason'] ?? null;
+    $cancelItemIds = $data['cancel_item_ids'] ?? $data['cancelItemIds'] ?? [];
+    $reason = is_string($reason) ? trim($reason) : '';
+
+    if (!is_array($cancelItemIds)) {
+        $cancelItemIds = [];
+    }
+    $cancelItemIds = array_values(array_unique(array_filter(array_map(static function ($id) {
+        return is_string($id) ? trim($id) : '';
+    }, $cancelItemIds))));
+
+    if (!$subscriptionId || $reason === '') {
+        echo json_encode(['success' => false, 'message' => 'Missing cancellation feedback']);
+        exit;
+    }
+
+    if (mb_strlen($reason) > 2000) {
+        echo json_encode(['success' => false, 'message' => 'Cancellation feedback is too long']);
+        exit;
+    }
+
+    $db = Database::getInstance()->getConnection();
+    $stmt = $db->prepare("
+        SELECT id, stripe_subscription_id, cancellation_reason
+        FROM subscriptions
+        WHERE id = :subscription_id
+          AND user_id = :user_id
+        LIMIT 1
+    ");
+    $stmt->execute([
+        'subscription_id' => $subscriptionId,
+        'user_id' => $user['id'],
+    ]);
+    $sub = $stmt->fetch();
+
+    if (!$sub) {
+        echo json_encode(['success' => false, 'message' => 'Subscription was not found']);
+        exit;
+    }
+
+    if (!empty($cancelItemIds)) {
+        $placeholders = [];
+        $params = [
+            'reason' => $reason,
+            'user_id' => $user['id'],
+        ];
+        foreach ($cancelItemIds as $index => $id) {
+            $key = 'cancel_item_' . $index;
+            $placeholders[] = ':' . $key;
+            $params[$key] = $id;
+        }
+
+        $stmt = $db->prepare("
+            UPDATE subscriptions
+            SET cancellation_reason = :reason,
+                updated_at = NOW()
+            WHERE id IN (" . implode(',', $placeholders) . ")
+              AND user_id = :user_id
+        ");
+        $stmt->execute($params);
+    } elseif (!empty($sub['stripe_subscription_id'])) {
+        $stmt = $db->prepare("
+            UPDATE subscriptions
+            SET cancellation_reason = :reason,
+                updated_at = NOW()
+            WHERE stripe_subscription_id = :stripe_subscription_id
+              AND user_id = :user_id
+        ");
+        $stmt->execute([
+            'reason' => $reason,
+            'stripe_subscription_id' => $sub['stripe_subscription_id'],
+            'user_id' => $user['id'],
+        ]);
+    } else {
+        $stmt = $db->prepare("
+            UPDATE subscriptions
+            SET cancellation_reason = :reason,
+                updated_at = NOW()
+            WHERE id = :subscription_id
+              AND user_id = :user_id
+        ");
+        $stmt->execute([
+            'reason' => $reason,
+            'subscription_id' => $subscriptionId,
+            'user_id' => $user['id'],
+        ]);
+    }
+
+    AuditLog::log('subscription', $sub['id'], 'updated',
+        ['cancellation_reason' => $sub['cancellation_reason'] ?? null],
+        ['cancellation_reason' => $reason]
+    );
+
+    echo json_encode(['success' => true, 'message' => 'Cancellation feedback saved']);
+    exit;
+}
+
+// ============================================
 // DELETE ACCOUNT — GDPR compliant
 // Anonymizuje osobné údaje namiesto soft delete.
 // Zachová len účtovné záznamy (payments) pre právne účely.
 // ============================================
- 
+
 if ($action === 'delete_account') {
     $db = Database::getInstance()->getConnection();
  

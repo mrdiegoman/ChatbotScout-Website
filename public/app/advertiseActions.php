@@ -24,6 +24,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $action = $_GET['action'] ?? '';
 
+function repairScheduledPromotionPeriods(PDO $db, string $userId): void
+{
+    $stmt = $db->prepare("
+        UPDATE subscriptions scheduled
+        JOIN (
+            SELECT
+                user_id,
+                chatbot_id,
+                stripe_subscription_id,
+                MAX(end_date) AS max_end_date
+            FROM subscriptions
+            WHERE user_id = :repair_group_user_id
+              AND subscription_type = 'promotion'
+              AND stripe_subscription_id IS NOT NULL
+              AND status IN ('active', 'trialing', 'past_due', 'pending')
+              AND end_date >= NOW()
+            GROUP BY user_id, chatbot_id, stripe_subscription_id
+        ) active_group
+          ON active_group.user_id = scheduled.user_id
+         AND active_group.chatbot_id = scheduled.chatbot_id
+         AND active_group.stripe_subscription_id = scheduled.stripe_subscription_id
+        SET scheduled.end_date = active_group.max_end_date,
+            scheduled.updated_at = NOW()
+        WHERE scheduled.user_id = :repair_user_id
+          AND scheduled.subscription_type = 'promotion'
+          AND scheduled.cancel_at_period_end = TRUE
+          AND scheduled.auto_renew = FALSE
+          AND scheduled.stripe_subscription_id IS NOT NULL
+          AND scheduled.end_date < active_group.max_end_date
+    ");
+    $stmt->execute([
+        'repair_group_user_id' => $userId,
+        'repair_user_id' => $userId,
+    ]);
+}
+
 switch ($action) {
 
     // ─── Check if user has active listing ───────────────────────────────────
@@ -63,6 +99,8 @@ switch ($action) {
             $db = Database::getInstance()->getConnection();
 
             // ── Verify chatbot belongs to user and is active ─────────────────
+            repairScheduledPromotionPeriods($db, $user['id']);
+
             $chatbotStmt = $db->prepare("
                 SELECT c.id
                 FROM chatbots c
@@ -112,7 +150,8 @@ switch ($action) {
                 WHERE s.user_id           = :user_id
                   AND s.chatbot_id        = :chatbot_id
                   AND s.subscription_type = 'promotion'
-                  AND s.status            = 'active'
+                  AND s.end_date          >= NOW()
+                  AND s.status IN ('active', 'trialing', 'past_due')
                   AND pr.slot_type        = :slot_type
                 LIMIT 1
             ");
@@ -157,25 +196,65 @@ switch ($action) {
         try {
             $db = Database::getInstance()->getConnection();
  
+            repairScheduledPromotionPeriods($db, $user['id']);
+
             $stmt = $db->prepare("
-                SELECT pr.slot_type
+                SELECT
+                    s.id AS subscription_id,
+                    s.stripe_subscription_id,
+                    s.status,
+                    s.start_date,
+                    s.end_date,
+                    s.cancel_at_period_end,
+                    pr.id AS promotion_id,
+                    pr.slot_type,
+                    bp.type AS plan_billing_period,
+                    (
+                        SELECT COALESCE(
+                            JSON_UNQUOTE(JSON_EXTRACT(pay.metadata, '$.billing_period')),
+                            JSON_UNQUOTE(JSON_EXTRACT(pay.metadata, '$.period_type'))
+                        )
+                        FROM payments pay
+                        WHERE pay.subscription_id = s.id
+                          AND pay.status = 'succeeded'
+                        ORDER BY COALESCE(pay.succeeded_at, pay.created_at) DESC
+                        LIMIT 1
+                    ) AS latest_payment_billing_period
                 FROM subscriptions s
                 JOIN promotions pr ON s.promotions_id = pr.id
+                JOIN billing_periods bp ON pr.billing_period_id = bp.id
                 WHERE s.user_id           = :user_id
                   AND s.chatbot_id        = :chatbot_id
                   AND s.subscription_type = 'promotion'
-                  AND s.status            = 'active'
+                  AND s.end_date          >= NOW()
+                  AND s.status IN ('active', 'trialing', 'past_due')
             ");
             $stmt->execute([
                 'user_id'    => $user['id'],
                 'chatbot_id' => $chatbotId,
             ]);
  
-            $activeSlots = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            $activePromotions = [];
+            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                $planBillingPeriod = promotionNormalizeBillingPeriod($row['plan_billing_period'] ?? 'monthly');
+                $paymentBillingPeriod = promotionNormalizeBillingPeriod($row['latest_payment_billing_period'] ?? '', '');
+                $dateBillingPeriod = promotionBillingPeriodFromDates(
+                    $row['start_date'] ?? null,
+                    $row['end_date'] ?? null,
+                    $planBillingPeriod
+                );
+
+                $row['billing_period'] = $paymentBillingPeriod
+                    ?: (in_array($dateBillingPeriod, ['monthly', 'yearly'], true) ? $dateBillingPeriod : $planBillingPeriod);
+                $activePromotions[] = $row;
+            }
+
+            $activeSlots = array_values(array_unique(array_column($activePromotions, 'slot_type')));
  
             echo json_encode([
-                'success'      => true,
-                'active_slots' => $activeSlots, // napr. ["Homepage"] alebo ["Homepage", "Chatbots page"]
+                'success'           => true,
+                'active_slots'      => $activeSlots, // napr. ["Homepage"] alebo ["Homepage", "Chatbots page"]
+                'active_promotions' => $activePromotions,
             ]);
  
         } catch (Exception $e) {

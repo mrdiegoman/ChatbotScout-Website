@@ -368,16 +368,21 @@ if (marketingToggle) {
 // CUSTOM CONFIRM POPUP
 // ============================================
 
-function showConfirm(title, message) {
+function showConfirm(title, message, options = {}) {
     return new Promise((resolve) => {
         const modal      = document.getElementById('confirm-modal');
         const titleEl    = document.getElementById('confirm-modal-title');
         const msgEl      = document.getElementById('confirm-modal-message');
+        const extraEl    = document.getElementById('confirm-modal-extra');
         const confirmBtn = document.getElementById('confirm-modal-confirm');
         const cancelBtn  = document.getElementById('confirm-modal-cancel');
 
         titleEl.textContent = title;
         msgEl.textContent   = message;
+        if (extraEl) extraEl.innerHTML = '';
+        cancelBtn.textContent = options.cancelText || 'Go Back';
+        confirmBtn.textContent = options.confirmText || 'Yes, Cancel';
+        confirmBtn.disabled = false;
         modal.style.display = 'flex';
         lockScroll();
 
@@ -502,6 +507,8 @@ document.addEventListener('keydown', (e) => {
 // ============================================
 
 let selectedSubscription = null;
+let selectedCancelItemIds = [];
+let cancelProcessing = false;
 
 function setText(id, value) {
     const el = document.getElementById(id);
@@ -527,6 +534,224 @@ function friendlyRequestError(error, fallback) {
     return message.length > 180 ? `${message.slice(0, 177)}...` : message;
 }
 
+function parseCancelItems(rawValue) {
+    if (!rawValue) {
+        return [];
+    }
+
+    try {
+        const parsed = JSON.parse(rawValue);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        return [];
+    }
+}
+
+function normalizeCancelItem(item) {
+    return {
+        id: item?.id ? String(item.id) : '',
+        promotionId: item?.promotion_id ? String(item.promotion_id) : '',
+        slotType: item?.slot_type || '',
+        plan: item?.plan || 'Promotion',
+        chatbot: item?.chatbot || '',
+        price: item?.price || '',
+        standalonePrice: item?.standalone_price || item?.price || '',
+        period: item?.period || ''
+    };
+}
+
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function getSelectedCancelItems() {
+    const items = selectedSubscription?.cancelItems?.length
+        ? selectedSubscription.cancelItems
+        : [{
+            id: selectedSubscription?.id || '',
+            plan: selectedSubscription?.plan || 'Subscription',
+            chatbot: selectedSubscription?.chatbot || '',
+            price: selectedSubscription?.price || '',
+            standalonePrice: selectedSubscription?.price || '',
+            period: selectedSubscription?.period || ''
+        }];
+
+    if (!selectedCancelItemIds.length) {
+        return [];
+    }
+
+    return items.filter(item => selectedCancelItemIds.includes(String(item.id)));
+}
+
+function getRemainingCancelItems() {
+    const items = selectedSubscription?.cancelItems?.length
+        ? selectedSubscription.cancelItems
+        : [];
+
+    return items.filter(item => !selectedCancelItemIds.includes(String(item.id)));
+}
+
+function selectedCancelModeLabel() {
+    const selectedItems = getSelectedCancelItems();
+    if (!selectedItems.length) {
+        return 'Choose at least one promotion to cancel:';
+    }
+
+    return selectedItems.length > 1
+        ? 'These promotions will be cancelled:'
+        : 'This promotion will be cancelled:';
+}
+
+function partialCancelPriceNotice() {
+    const remainingItems = getRemainingCancelItems();
+    if (!selectedSubscription?.cancelItems?.length || remainingItems.length !== 1 || !selectedCancelItemIds.length) {
+        return '';
+    }
+
+    const remaining = remainingItems[0];
+    return `
+        <div class="cancel-confirm-summary__notice">
+            The remaining ${escapeHtml(remaining.plan)} will continue without the bundle discount.
+            New renewal price: <strong>${escapeHtml(remaining.standalonePrice || remaining.price || '')} / ${escapeHtml(remaining.period || '')}</strong>.
+        </div>
+    `;
+}
+
+function renderCancelItemsSummary(items, labelText) {
+    return `
+        <span class="cancel-confirm-summary__label">
+            ${escapeHtml(labelText)}
+        </span>
+        <div class="cancel-confirm-summary__hint">
+            Choose exactly what should stop renewing.
+        </div>
+        <ul class="cancel-confirm-summary__list cancel-confirm-summary__list--selectable">
+            ${items.map(item => `
+                <li>
+                    <label class="cancel-item-toggle">
+                        <span class="cancel-item-toggle__copy">
+                            <strong>${escapeHtml(item.plan || 'Promotion')}</strong>
+                            <span>${escapeHtml(item.chatbot || '')}${item.price ? ` - ${escapeHtml(item.price)} / ${escapeHtml(item.period || '')}` : ''}</span>
+                        </span>
+                        <span class="toggle-switch cancel-item-toggle__switch">
+                            <input type="checkbox" class="cancel-item-checkbox" value="${escapeHtml(item.id || '')}" ${selectedCancelItemIds.includes(String(item.id)) ? 'checked' : ''}>
+                            <span class="toggle-slider"></span>
+                        </span>
+                    </label>
+                </li>
+            `).join('')}
+        </ul>
+        ${partialCancelPriceNotice()}
+    `;
+}
+
+function updateCancelSubscriptionSummary() {
+    const summaryEl = document.getElementById('cancel-subscription-items');
+    if (!summaryEl) return;
+
+    const allItems = selectedSubscription?.cancelItems?.length
+        ? selectedSubscription.cancelItems
+        : getSelectedCancelItems();
+    summaryEl.innerHTML = renderCancelItemsSummary(
+        allItems,
+        selectedCancelModeLabel()
+    );
+
+    summaryEl.querySelectorAll('.cancel-item-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            const id = String(checkbox.value || '');
+            if (!id) return;
+
+            if (checkbox.checked) {
+                if (!selectedCancelItemIds.includes(id)) {
+                    selectedCancelItemIds.push(id);
+                }
+            } else {
+                selectedCancelItemIds = selectedCancelItemIds.filter(itemId => itemId !== id);
+            }
+
+            updateCancelSubscriptionSummary();
+        });
+    });
+
+    const confirmBtn = document.getElementById('confirm-cancel-btn');
+    if (confirmBtn) {
+        confirmBtn.disabled = cancelProcessing || selectedCancelItemIds.length === 0;
+    }
+}
+
+function setCancelProcessing(isProcessing, message = 'Please wait while we update your subscription.') {
+    cancelProcessing = isProcessing;
+
+    const processingState = document.getElementById('cancel-processing-state');
+    const processingMessage = document.getElementById('cancel-processing-message');
+    const confirmBtn = document.getElementById('confirm-cancel-btn');
+    const keepBtn = document.getElementById('keep-plan-btn');
+    const cancelOptions = document.querySelector('#cancel-subscription-modal .cancel-options');
+    const cancelSummary = document.getElementById('cancel-subscription-items');
+
+    if (processingState) {
+        processingState.hidden = !isProcessing;
+    }
+
+    if (processingMessage) {
+        processingMessage.textContent = message;
+    }
+
+    if (confirmBtn) {
+        confirmBtn.disabled = isProcessing || selectedCancelItemIds.length === 0;
+        confirmBtn.textContent = isProcessing ? 'Updating...' : 'Cancel Subscription';
+    }
+
+    if (keepBtn) {
+        keepBtn.disabled = isProcessing;
+    }
+
+    cancelOptions?.classList.toggle('is-muted', isProcessing);
+    cancelSummary?.classList.toggle('is-muted', isProcessing);
+    document.querySelectorAll('.cancel-item-checkbox, input[name="cancel-type"]').forEach(input => {
+        input.disabled = isProcessing;
+    });
+}
+
+function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function defaultCancelItemIdsForSelectedSubscription() {
+    const items = selectedSubscription?.cancelItems?.length ? selectedSubscription.cancelItems : [];
+    if (!items.length) {
+        return selectedSubscription?.id ? [String(selectedSubscription.id)] : [];
+    }
+
+    const isFullBundleEntry = /full bundle/i.test(selectedSubscription?.plan || '');
+    if (isFullBundleEntry) {
+        return items.map(item => String(item.id)).filter(Boolean);
+    }
+
+    const openedItem = items.find(item => String(item.id) === String(selectedSubscription?.id || ''));
+    return openedItem?.id ? [String(openedItem.id)] : [String(items[0].id)];
+}
+
+function cancelConfirmationMessage(cancelType) {
+    const selectedItems = getSelectedCancelItems();
+    const itemNames = selectedItems.map(item => item.plan).join(', ');
+    const cancelTimingDescription = cancelType === 'immediately'
+        ? 'immediately. Access to the selected promotions will end now.'
+        : 'at the end of your billing period.';
+    const remainingItems = getRemainingCancelItems();
+    const priceNotice = remainingItems.length === 1 && selectedItems.length > 0
+        ? ` The remaining ${remainingItems[0].plan} will renew without the bundle discount at ${remainingItems[0].standalonePrice || remainingItems[0].price} / ${remainingItems[0].period}.`
+        : '';
+
+    return `${itemNames || 'Selected promotions'} will be cancelled ${cancelTimingDescription}${priceNotice}`;
+}
+
 document.querySelectorAll('.manage-subscription-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         selectedSubscription = {
@@ -541,7 +766,8 @@ document.querySelectorAll('.manage-subscription-btn').forEach(btn => {
             status: btn.dataset.status || '-',
             canCancel: btn.dataset.canCancel === '1',
             cancelAtPeriodEnd: btn.dataset.cancelAtPeriodEnd === '1',
-            invoiceUrl: btn.dataset.invoiceUrl || ''
+            invoiceUrl: btn.dataset.invoiceUrl || '',
+            cancelItems: parseCancelItems(btn.dataset.cancelItems).map(normalizeCancelItem)
         };
 
         document.getElementById('selected-subscription-id').value = selectedSubscription.id;
@@ -575,13 +801,11 @@ document.querySelectorAll('.manage-subscription-btn').forEach(btn => {
 });
 
 // Change Plan
-const changePlanBtn = document.getElementById('change-plan-btn');
-if (changePlanBtn) {
+document.querySelectorAll('#change-plan-btn').forEach(changePlanBtn => {
     changePlanBtn.addEventListener('click', () => {
-        // Redirect to pricing/plans page
-        window.location.href = 'advertise.php';
+        window.location.href = 'advertise.php#plans';
     });
-}
+});
 
 // Update Payment Method (Stripe Customer Portal)
 const updatePaymentBtn = document.getElementById('update-payment-btn');
@@ -691,6 +915,8 @@ if (cancelSubModalBtn) {
             ? `Already scheduled for ${selectedSubscription.periodEnd}.`
             : `(${selectedSubscription.periodEnd})`;
         setText('cancel-period-end-date', periodEndText);
+        selectedCancelItemIds = defaultCancelItemIdsForSelectedSubscription();
+        updateCancelSubscriptionSummary();
         closeModal('manage-subscription-modal');
         openModal('cancel-subscription-modal');
     });
@@ -714,21 +940,24 @@ const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
 if (confirmCancelBtn) {
     confirmCancelBtn.addEventListener('click', async () => {
         const cancelType = document.querySelector('input[name="cancel-type"]:checked').value;
-        let reason = document.getElementById('cancel-reason').value;
-        if (reason === 'other') {
-            const otherText = document.getElementById('cancel-reason-other')?.value.trim();
-            if (otherText) reason = otherText;
+
+        if (!selectedCancelItemIds.length) {
+            showNotification('Choose at least one promotion to cancel.', 'error');
+            return;
         }
 
-        const label = cancelType === 'immediately'
-            ? 'immediately — you will lose access now'
-            : 'at the end of your billing period';
-
         const confirmed = await showConfirm(
-            'Cancel Subscription?',
-            `Your subscription will be cancelled ${label}.`
+            'Confirm Cancellation?',
+            cancelConfirmationMessage(cancelType),
+            {
+                cancelText: 'Go Back',
+                confirmText: 'Cancel Subscription'
+            }
         );
+
         if (!confirmed) return;
+
+        setCancelProcessing(true);
 
         try {
             const response = await fetch('app/profileActions.php?action=cancel_subscription', {
@@ -737,32 +966,154 @@ if (confirmCancelBtn) {
                 body: JSON.stringify({
                     subscription_id: selectedSubscription?.id || '',
                     cancelType,
-                    reason
+                    cancel_item_ids: selectedCancelItemIds
                 })
             });
             const result = await readJsonResponse(response);
             if (result.success) {
+                setCancelProcessing(true, 'Your subscription was updated. Opening feedback...');
                 showNotification(result.message || 'Subscription cancelled', 'success');
+                await wait(500);
                 closeModal('cancel-subscription-modal');
-                setTimeout(() => window.location.reload(), 2000);
+                setCancelProcessing(false);
+
+                const feedback = await showCancelFeedbackForm(
+                    'Why are you cancelling?',
+                    'Your cancellation is saved. Your feedback helps us improve the promotion experience.'
+                );
+
+                if (feedback.confirmed) {
+                    await saveCancellationFeedback(feedback.reason);
+                }
+
+                setTimeout(() => window.location.reload(), 1000);
             } else {
+                setCancelProcessing(false);
                 showNotification(result.message || 'Cancellation failed', 'error');
             }
         } catch (error) {
+            setCancelProcessing(false);
             showNotification(friendlyRequestError(error, 'Cancellation failed. Please try again.'), 'error');
         }
     });
 }
 
-const cancelReasonSelect = document.getElementById('cancel-reason');
-const cancelReasonOther  = document.getElementById('cancel-reason-other');
-if (cancelReasonSelect) {
-    cancelReasonSelect.addEventListener('change', () => {
-        if (cancelReasonOther) {
-            cancelReasonOther.style.display =
-                cancelReasonSelect.value === 'other' ? 'block' : 'none';
+function showCancelFeedbackForm(title, message) {
+    return new Promise((resolve) => {
+        const modal      = document.getElementById('confirm-modal');
+        const titleEl    = document.getElementById('confirm-modal-title');
+        const msgEl      = document.getElementById('confirm-modal-message');
+        const extraEl    = document.getElementById('confirm-modal-extra');
+        const confirmBtn = document.getElementById('confirm-modal-confirm');
+        const cancelBtn  = document.getElementById('confirm-modal-cancel');
+
+        titleEl.textContent = title;
+        msgEl.textContent = message;
+        cancelBtn.textContent = 'No thanks';
+        confirmBtn.textContent = 'Submit feedback';
+        confirmBtn.disabled = true;
+
+        extraEl.innerHTML = `
+            <div class="cancel-confirm-reason">
+                <label class="info-field-static-label" for="confirm-cancel-reason">Why are you cancelling?</label>
+                <select id="confirm-cancel-reason">
+                    <option value="">Select a reason...</option>
+                    <option value="too-expensive">Too expensive</option>
+                    <option value="not-useful">Not getting enough value</option>
+                    <option value="found-alternative">Found a better alternative</option>
+                    <option value="technical-issues">Technical issues</option>
+                    <option value="other">Other</option>
+                </select>
+                <textarea id="confirm-cancel-reason-other" placeholder="Please tell us more..."></textarea>
+            </div>
+        `;
+
+        const reasonSelect = document.getElementById('confirm-cancel-reason');
+        const reasonOther = document.getElementById('confirm-cancel-reason-other');
+        reasonOther.style.display = 'none';
+
+        function updateSubmitState() {
+            if (reasonSelect.value === 'other') {
+                confirmBtn.disabled = reasonOther.value.trim().length === 0;
+                return;
+            }
+
+            confirmBtn.disabled = reasonSelect.value === '';
         }
+
+        function onReasonChange() {
+            const showOther = reasonSelect.value === 'other';
+            reasonOther.style.display = showOther ? 'block' : 'none';
+            if (showOther) {
+                reasonOther.focus();
+            } else {
+                reasonOther.value = '';
+            }
+            updateSubmitState();
+        }
+
+        function currentReason() {
+            if (reasonSelect.value === 'other') {
+                return reasonOther.value.trim();
+            }
+            return reasonSelect.value;
+        }
+
+        function cleanup(result) {
+            modal.style.display = 'none';
+            unlockScroll();
+            titleEl.textContent = 'Are you sure?';
+            msgEl.textContent = '';
+            cancelBtn.textContent = 'Go Back';
+            confirmBtn.textContent = 'Yes, Cancel';
+            confirmBtn.disabled = false;
+            extraEl.innerHTML = '';
+            confirmBtn.removeEventListener('click', onConfirm);
+            cancelBtn.removeEventListener('click', onCancel);
+            reasonSelect.removeEventListener('change', onReasonChange);
+            reasonOther.removeEventListener('input', updateSubmitState);
+            resolve(result);
+        }
+
+        function onConfirm() {
+            const reason = currentReason();
+            if (!reason) return;
+            cleanup({ confirmed: true, reason });
+        }
+
+        function onCancel() {
+            cleanup({ confirmed: false, reason: '' });
+        }
+
+        reasonSelect.addEventListener('change', onReasonChange);
+        reasonOther.addEventListener('input', updateSubmitState);
+        confirmBtn.addEventListener('click', onConfirm);
+        cancelBtn.addEventListener('click', onCancel);
+        modal.style.display = 'flex';
+        lockScroll();
+        reasonSelect.focus();
     });
+}
+
+async function saveCancellationFeedback(reason) {
+    try {
+        const response = await fetch('app/profileActions.php?action=save_cancellation_feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                subscription_id: selectedSubscription?.id || '',
+                reason,
+                cancel_item_ids: selectedCancelItemIds
+            })
+        });
+        const result = await readJsonResponse(response);
+
+        if (!result.success) {
+            showNotification(result.message || 'Cancellation saved, but feedback was not saved.', 'error');
+        }
+    } catch (error) {
+        showNotification(friendlyRequestError(error, 'Cancellation saved, but feedback was not saved.'), 'error');
+    }
 }
 
 // ============================================

@@ -18,6 +18,7 @@ $chatbotId    = trim($_GET['chatbot_id']    ?? '');
 $promotionId  = trim($_GET['promotion_id']  ?? '');
 $promotionId2 = trim($_GET['promotion_id_2'] ?? '');
 $requestedBillingPeriod = trim($_GET['billing_period'] ?? '');
+$upgradeFromSubscriptionId = trim($_GET['upgrade_from_subscription_id'] ?? '');
 
 if (!$chatbotId || !$promotionId) {
     header('Location: advertise.php');
@@ -109,6 +110,75 @@ if ($orderDetails2) {
     );
 }
 
+$upgradeContext = null;
+if ($upgradeFromSubscriptionId !== '') {
+    if ($promotionId2) {
+        header('Location: advertise.php');
+        exit;
+    }
+
+    $upgradeStmt = $db->prepare("
+        SELECT
+            s.id AS subscription_id,
+            s.stripe_subscription_id,
+            s.start_date,
+            s.end_date,
+            p.id AS existing_promotion_id,
+            p.slot_type AS existing_slot_type,
+            p.price AS existing_price,
+            p.discount_percentage AS existing_discount_percentage,
+            bp.type AS existing_plan_billing_period,
+            (
+                SELECT COALESCE(
+                    JSON_UNQUOTE(JSON_EXTRACT(pay.metadata, '$.billing_period')),
+                    JSON_UNQUOTE(JSON_EXTRACT(pay.metadata, '$.period_type'))
+                )
+                FROM payments pay
+                WHERE pay.subscription_id = s.id
+                  AND pay.status = 'succeeded'
+                ORDER BY COALESCE(pay.succeeded_at, pay.created_at) DESC
+                LIMIT 1
+            ) AS latest_payment_billing_period
+        FROM subscriptions s
+        JOIN promotions p ON p.id = s.promotions_id
+        JOIN billing_periods bp ON bp.id = p.billing_period_id
+        WHERE s.id = :subscription_id
+          AND s.user_id = :user_id
+          AND s.chatbot_id = :chatbot_id
+          AND s.subscription_type = 'promotion'
+          AND s.status IN ('active', 'trialing', 'past_due')
+        LIMIT 1
+    ");
+    $upgradeStmt->execute([
+        'subscription_id' => $upgradeFromSubscriptionId,
+        'user_id' => $user['id'],
+        'chatbot_id' => $chatbotId,
+    ]);
+    $upgradeContext = $upgradeStmt->fetch(PDO::FETCH_ASSOC) ?: null;
+
+    if (!$upgradeContext || empty($upgradeContext['stripe_subscription_id'])) {
+        header('Location: advertise.php');
+        exit;
+    }
+
+    $existingPlanBillingPeriod = promotionNormalizeBillingPeriod($upgradeContext['existing_plan_billing_period'] ?? 'monthly');
+    $existingPaymentBillingPeriod = promotionNormalizeBillingPeriod($upgradeContext['latest_payment_billing_period'] ?? '', '');
+    $existingDateBillingPeriod = promotionBillingPeriodFromDates(
+        $upgradeContext['start_date'] ?? null,
+        $upgradeContext['end_date'] ?? null,
+        $existingPlanBillingPeriod
+    );
+    $existingBillingPeriod = $existingPaymentBillingPeriod
+        ?: (in_array($existingDateBillingPeriod, ['monthly', 'yearly'], true) ? $existingDateBillingPeriod : $existingPlanBillingPeriod);
+
+    $missingSlot = $upgradeContext['existing_slot_type'] === 'Homepage' ? 'Chatbots page' : 'Homepage';
+    if ($existingBillingPeriod !== $billingPeriod || $orderDetails['slot_type'] !== $missingSlot) {
+        header('Location: advertise.php');
+        exit;
+    }
+}
+
+$isBundleUpgrade = (bool) $upgradeContext;
 $totalPrice = $finalPrice + $finalPrice2;
 
 $stripeConfig   = require '../config/stripe.php';
@@ -124,6 +194,12 @@ $slotLabel2 = $orderDetails2 ? match($orderDetails2['slot_type']) {
     'Homepage'      => 'Homepage Visibility',
     'Chatbots page' => 'Chatbots Page Visibility',
     default         => $orderDetails2['slot_type'],
+} : '';
+
+$existingUpgradeSlotLabel = $upgradeContext ? match($upgradeContext['existing_slot_type']) {
+    'Homepage'      => 'Homepage Visibility',
+    'Chatbots page' => 'Chatbots Page Visibility',
+    default         => $upgradeContext['existing_slot_type'],
 } : '';
 
 $periodLabel = $billingPeriod === 'yearly' ? 'Annual' : 'Monthly';
@@ -152,9 +228,12 @@ $periodLabel = $billingPeriod === 'yearly' ? 'Annual' : 'Monthly';
             <div class="checkout-summary__item">
                 <div class="checkout-summary__item-icon" aria-hidden="true"></div>
                 <div class="checkout-summary__item-info">
-                    <strong><?php echo htmlspecialchars($slotLabel); ?></strong>
+                    <strong><?php echo htmlspecialchars($isBundleUpgrade ? 'Full Bundle Upgrade' : $slotLabel); ?></strong>
                     <span>For: <b><?php echo htmlspecialchars($orderDetails['chatbot_name']); ?></b></span>
                     <span>Type: <b class="checkout-summary__period"><?php echo htmlspecialchars($periodLabel); ?> subscription</b></span>
+                    <?php if ($isBundleUpgrade): ?>
+                    <span>Converts: <b><?php echo htmlspecialchars($existingUpgradeSlotLabel); ?></b> + <b><?php echo htmlspecialchars($slotLabel); ?></b></span>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -173,8 +252,14 @@ $periodLabel = $billingPeriod === 'yearly' ? 'Annual' : 'Monthly';
 
             <div class="checkout-summary__total">
                 <span>Total due today</span>
-                <strong><?php echo $orderDetails['currency_symbol'] . number_format($totalPrice, 2); ?></strong>
+                <strong id="checkoutTotalDue"><?php echo $isBundleUpgrade ? 'Calculated by Stripe' : $orderDetails['currency_symbol'] . number_format($totalPrice, 2); ?></strong>
             </div>
+
+            <?php if ($isBundleUpgrade): ?>
+            <div class="checkout-summary__upgrade-note">
+                Starts today. Your renewal date stays aligned with your current subscription.
+            </div>
+            <?php endif; ?>
 
             <div class="checkout-summary__renew" data-renew-label="Renews automatically every <?php echo $billingPeriod === 'yearly' ? 'year' : 'month'; ?>" aria-label="Renews automatically every <?php echo $billingPeriod === 'yearly' ? 'year' : 'month'; ?>"></div>
 
@@ -185,16 +270,37 @@ $periodLabel = $billingPeriod === 'yearly' ? 'Annual' : 'Monthly';
         <div class="checkout-payment">
             <h2 class="checkout-payment__title">Payment details</h2>
             <p class="checkout-payment__secured" aria-label="Secured by Stripe"></p>
+            <?php if ($isBundleUpgrade): ?>
+            <div id="saved-payment-method" class="checkout-payment__saved-card" hidden>
+                <div class="checkout-payment__saved-card-icon" aria-hidden="true"></div>
+                <div class="checkout-payment__saved-card-main">
+                    <span class="checkout-payment__saved-card-label">Payment method</span>
+                    <strong id="saved-payment-method-title">Saved card</strong>
+                    <span id="saved-payment-method-meta"></span>
+                </div>
+                <button id="manage-payment-method-btn" class="checkout-payment__saved-card-action" type="button">
+                    Change or add card
+                </button>
+            </div>
+            <div id="missing-payment-method" class="checkout-payment__saved-card checkout-payment__saved-card--empty" hidden>
+                <div class="checkout-payment__saved-card-icon" aria-hidden="true"></div>
+                <div class="checkout-payment__saved-card-main">
+                    <span class="checkout-payment__saved-card-label">Payment method</span>
+                    <strong>No saved card yet</strong>
+                    <span>A Stripe payment form will open after you continue.</span>
+                </div>
+            </div>
+            <?php endif; ?>
 
             <div id="stripe-loading">
-                <p style="color:#6b7280;font-size:14px;">Loading payment form...</p>
+                <p style="color:#6b7280;font-size:14px;"><?php echo $isBundleUpgrade ? 'Calculating upgrade amount...' : 'Loading payment form...'; ?></p>
             </div>
             <div id="payment-element" style="display:none;"></div>
 
             <div id="checkoutError" class="checkout-payment__error" style="display:none;"></div>
 
             <button id="payBtn" class="checkout-payment__btn">
-                <span id="payBtnText">Pay <?php echo $orderDetails['currency_symbol'] . number_format($totalPrice, 2); ?></span>
+                <span id="payBtnText"><?php echo $isBundleUpgrade ? 'Continue to secure payment' : 'Pay ' . $orderDetails['currency_symbol'] . number_format($totalPrice, 2); ?></span>
                 <span id="payBtnLoader" style="display:none;">Processing...</span>
             </button>
 
@@ -214,6 +320,8 @@ window.checkoutData = {
     promotionId:   <?php echo json_encode($promotionId); ?>,
     promotionId2:  <?php echo json_encode($promotionId2 ?: null); ?>,
     billingPeriod: <?php echo json_encode($billingPeriod); ?>,
+    upgradeFromSubscriptionId: <?php echo json_encode($upgradeFromSubscriptionId ?: null); ?>,
+    isUpgrade: <?php echo json_encode($isBundleUpgrade); ?>,
     stripePubKey:  <?php echo json_encode($publishableKey); ?>,
 };
 </script>

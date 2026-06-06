@@ -17,6 +17,8 @@ const state = {
     chatbotSelectRendered: false,
     confirmBlockedReason: '',
     activeSlots:    [],     // slot_types ktoré má vybraný chatbot aktívne
+    activePromotions: [],
+    pendingUpgrade: null,
 };
 
 // ── DOM ──────────────────────────────────────────────────────────────────────
@@ -32,6 +34,7 @@ const chatbotSelectTrigger = $('chatbotSelectTrigger');
 const chatbotSelectTriggerText = $('chatbotSelectTriggerText');
 const chatbotSelectMenu = $('chatbotSelectMenu');
 const periodGrid      = $('modalPeriodGrid');
+const upgradeNote     = $('modalUpgradeNote');
 const modalError      = $('modalError');
 const confirmBtn      = $('modalConfirmBtn');
 const confirmText     = $('modalConfirmText');
@@ -358,6 +361,14 @@ function packageTotalPrice(plan, period) {
     return packageMonthlyPrice(plan, period) * billingMultiplier(period);
 }
 
+function planCurrencySymbol(plan) {
+    return plan?.currency_symbol || '$';
+}
+
+function formatMoney(price, symbol = '$') {
+    return `${symbol}${formatPrice(price)}`;
+}
+
 function bundleBaseMonthlyTotal(hero, cat) {
     return toNumber(hero?.price) + toNumber(cat?.price);
 }
@@ -374,7 +385,97 @@ function formatPrice(price) {
     return toNumber(price).toFixed(2);
 }
 
+function parsePromotionDate(value) {
+    if (!value) return null;
+    const parsed = Date.parse(String(value).replace(' ', 'T'));
+    return Number.isFinite(parsed) ? parsed : null;
+}
+
+function formatPromotionDate(value) {
+    const timestamp = parsePromotionDate(value);
+    if (!timestamp) {
+        return '';
+    }
+
+    return new Intl.DateTimeFormat(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    }).format(new Date(timestamp));
+}
+
+function remainingPeriodRatio(promotion) {
+    const start = parsePromotionDate(promotion?.start_date);
+    const end = parsePromotionDate(promotion?.end_date);
+    const now = Date.now();
+
+    if (!start || !end || end <= start) {
+        return 1;
+    }
+
+    return Math.max(0, Math.min(1, (end - now) / (end - start)));
+}
+
+function getUpgradePricePreview(period) {
+    const upgrade = state.pendingUpgrade;
+    if (!upgrade) {
+        return null;
+    }
+
+    if (period !== upgrade.billingPeriod) {
+        return null;
+    }
+
+    const hero = getBasePlan('Homepage');
+    const cat = getBasePlan('Chatbots_Page');
+    const existingPlan = getBasePlan(upgrade.existingSlot);
+    const missingPlan = getBasePlan(upgrade.missingSlot);
+    const existingPromotion = activePromotionForSlot(upgrade.existingSlot);
+
+    if (!hero || !cat || !existingPlan || !missingPlan) {
+        return null;
+    }
+
+    const bundleTotal = bundleTotalPrice(hero, cat, period);
+    const existingSingleTotal = packageTotalPrice(existingPlan, period);
+    const missingSingleTotal = packageTotalPrice(missingPlan, period);
+    const fullDifference = Math.max(0, bundleTotal - existingSingleTotal);
+    const estimateToday = fullDifference * remainingPeriodRatio(existingPromotion);
+    const originalDisplayTotal = state.selectedSlot === 'bundle'
+        ? bundleTotal
+        : missingSingleTotal;
+
+    return {
+        estimateToday,
+        originalDisplayTotal,
+        bundleTotal,
+        symbol: planCurrencySymbol(missingPlan),
+    };
+}
+
 // ── Modal setup ──────────────────────────────────────────────────────────────
+function updateUpgradeNote() {
+    if (!upgradeNote) {
+        return;
+    }
+
+    if (!state.pendingUpgrade) {
+        upgradeNote.hidden = true;
+        upgradeNote.textContent = '';
+        return;
+    }
+
+    const existingPromotion = activePromotionForSlot(state.pendingUpgrade.existingSlot);
+    const endLabel = formatPromotionDate(existingPromotion?.end_date);
+    const untilText = endLabel ? ` until ${endLabel}` : ' for the rest of your current promotion period';
+
+    upgradeNote.innerHTML = `
+        <strong>This is a prorated bundle upgrade${untilText}.</strong>
+        You pay only the remaining difference today. After that, your promotion renews as Full Bundle.
+    `;
+    upgradeNote.hidden = false;
+}
+
 function setupModal() {
     // Open buttons
     ['Homepage', 'Chatbots_Page', 'bundle'].forEach(slot => {
@@ -398,6 +499,8 @@ function setupModal() {
     chatbotSelect.addEventListener('change', async () => {
         const botId = chatbotSelect.value;
         state.activeSlots = [];
+        state.activePromotions = [];
+        state.pendingUpgrade = null;
         state.confirmBlockedReason = '';
  
         if (botId) {
@@ -405,6 +508,7 @@ function setupModal() {
         }
  
         applySlotRestrictions();
+        populatePeriodOptions(state.selectedSlot);
         updateSummary();
         updateChatbotSelectTrigger();
     });
@@ -442,6 +546,8 @@ async function openModal(slot) {
 
     state.selectedSlot = slot;
     state.activeSlots = [];
+    state.activePromotions = [];
+    state.pendingUpgrade = null;
     state.confirmBlockedReason = '';
     modalError.textContent = '';
 
@@ -481,9 +587,11 @@ function closeModal() {
     state.selectedSlot   = null;
     state.selectedPlanId = null;
     state.selectedPlanIdAlt = null;
+    state.pendingUpgrade = null;
     state.confirmBlockedReason = '';
     closeChatbotSelectMenu();
     modalError.textContent = '';
+    updateUpgradeNote();
 }
 
 function populateChatbotSelect() {
@@ -631,13 +739,27 @@ function populatePeriodOptions(slot) {
                 period
             )
             : packageTotalPrice(plan, period);
+        const upgradePreview = getUpgradePricePreview(period);
+        const currencySymbol = upgradePreview?.symbol || planCurrencySymbol(plan);
+        const priceMarkup = upgradePreview
+            ? `
+                <div class="adv-period-option__badge">Bundle upgrade</div>
+                <div class="adv-period-option__price adv-period-option__price--upgrade">
+                    <span class="adv-period-option__old">${formatMoney(upgradePreview.originalDisplayTotal, currencySymbol)}</span>
+                    <span class="adv-period-option__rough">~${formatMoney(upgradePreview.estimateToday, currencySymbol)}</span>
+                </div>
+                <div class="adv-period-option__hint">Estimated today</div>
+            `
+            : `<div class="adv-period-option__price">${formatMoney(finalPrice, currencySymbol)}</div>`;
 
         const div = document.createElement('div');
-        div.className = 'adv-period-option' + (period === state.selectedPeriod ? ' selected' : '');
+        div.className = 'adv-period-option'
+            + (period === state.selectedPeriod ? ' selected' : '')
+            + (upgradePreview ? ' adv-period-option--upgrade' : '');
         div.dataset.period = period;
         div.innerHTML = `
             <div class="adv-period-option__name">${periodLabel[period]}</div>
-            <div class="adv-period-option__price">$${formatPrice(finalPrice)}</div>
+            ${priceMarkup}
             <div class="adv-period-option__sub">${periodSub[period]}</div>
         `;
 
@@ -651,6 +773,8 @@ function populatePeriodOptions(slot) {
                 b.classList.toggle('active', b.dataset.period === period);
             });
             updatePriceDisplay();
+            applySlotRestrictions();
+            populatePeriodOptions(state.selectedSlot);
             updateSummary();
         });
 
@@ -665,9 +789,11 @@ async function checkActivePromotions(chatbotId) {
         const data = await res.json();
         if (data.success) {
             state.activeSlots = data.active_slots || [];
+            state.activePromotions = data.active_promotions || [];
         }
     } catch (e) {
         state.activeSlots = [];
+        state.activePromotions = [];
     }
 }
  
@@ -683,6 +809,71 @@ function blockConfirm(message) {
     state.confirmBlockedReason = message;
     modalError.textContent = message;
     setConfirmDisabled(true, message);
+}
+
+function normalizeSlotKey(slotType) {
+    return slotType === 'Chatbots page' ? 'Chatbots_Page' : slotType;
+}
+
+function displaySlotLabel(slotKey) {
+    return {
+        Homepage: 'Homepage Visibility',
+        Chatbots_Page: 'Chatbots Page Visibility',
+    }[slotKey] || slotKey;
+}
+
+function oppositeSlot(slotKey) {
+    if (slotKey === 'Homepage') return 'Chatbots_Page';
+    if (slotKey === 'Chatbots_Page') return 'Homepage';
+    return '';
+}
+
+function activePromotionForSlot(slotKey) {
+    return state.activePromotions.find(promo => normalizeSlotKey(promo.slot_type) === slotKey) || null;
+}
+
+function getBundleUpgradeOpportunity() {
+    if (!chatbotSelect.value || !state.selectedSlot) {
+        return null;
+    }
+
+    const homepage = activePromotionForSlot('Homepage');
+    const chatbots = activePromotionForSlot('Chatbots_Page');
+    if (homepage && chatbots) {
+        return null;
+    }
+
+    let existing = null;
+    let missingSlot = '';
+
+    if (state.selectedSlot === 'bundle') {
+        existing = homepage || chatbots;
+        missingSlot = homepage ? 'Chatbots_Page' : (chatbots ? 'Homepage' : '');
+    } else {
+        existing = activePromotionForSlot(oppositeSlot(state.selectedSlot));
+        missingSlot = state.selectedSlot;
+    }
+
+    if (!existing || !missingSlot) {
+        return null;
+    }
+
+    const existingPeriod = String(existing.billing_period || '').toLowerCase();
+    if (existingPeriod !== state.selectedPeriod) {
+        return null;
+    }
+
+    if (!existing.subscription_id || !existing.stripe_subscription_id) {
+        return null;
+    }
+
+    return {
+        existingSubscriptionId: existing.subscription_id,
+        existingPromotionId: existing.promotion_id,
+        existingSlot: normalizeSlotKey(existing.slot_type),
+        missingSlot,
+        billingPeriod: existingPeriod,
+    };
 }
 
 function getActivePromotionBlockMessage() {
@@ -715,8 +906,16 @@ function applySlotRestrictions() {
  
     // Reset
     modalError.textContent = '';
+    state.pendingUpgrade = null;
     state.confirmBlockedReason = '';
     setConfirmDisabled(false);
+    const titles = {
+        Homepage:      'Get Homepage Visibility',
+        Chatbots_Page: 'Get Chatbots Page Visibility',
+        bundle:        'Get Full Bundle'
+    };
+    $('modalTitle').textContent = titles[slot] || 'Get Promotion';
+    $('modalSubtitle').textContent = 'Select your chatbot and billing period';
  
     // Obe aktívne → zablokovať
     if (hasBoth) {
@@ -737,6 +936,15 @@ function applySlotRestrictions() {
     }
  
     // Bundle + má Homepage → prepnúť na Chatbots Page
+    const upgrade = getBundleUpgradeOpportunity();
+    if (upgrade) {
+        state.pendingUpgrade = upgrade;
+        $('modalTitle').textContent = 'Upgrade to Full Bundle';
+        $('modalSubtitle').textContent =
+            `${displaySlotLabel(upgrade.existingSlot)} will convert to Full Bundle. Stripe charges only the prorated difference today.`;
+        return;
+    }
+
     if (slot === 'bundle' && hasHomepage && !hasChatbots) {
         state.selectedSlot = 'Chatbots_Page';
         $('modalTitle').textContent    = 'Get Chatbots Page Visibility';
@@ -771,7 +979,7 @@ function updateSummary() {
     };
     const periodNames = { monthly: 'Monthly', yearly: 'Yearly' };
 
-    $('summaryPlan').textContent    = slotNames[slot] || slot;
+    $('summaryPlan').textContent    = state.pendingUpgrade ? 'Full Bundle upgrade' : (slotNames[slot] || slot);
     $('summaryBilling').textContent = periodNames[period] || period;
 
     const selectedBot = state.chatbots.find(b => b.id === botId);
@@ -781,7 +989,16 @@ function updateSummary() {
     state.selectedPlanId    = null;
     state.selectedPlanIdAlt = null;
 
-    if (slot === 'bundle') {
+    if (state.pendingUpgrade) {
+        const missingPlan = getBasePlan(state.pendingUpgrade.missingSlot);
+        if (missingPlan) {
+            const preview = getUpgradePricePreview(period);
+            total = preview
+                ? `~${formatMoney(preview.estimateToday, preview.symbol)} today`
+                : 'Prorated by Stripe';
+            state.selectedPlanId = missingPlan.id;
+        }
+    } else if (slot === 'bundle') {
         const hero = getBasePlan('Homepage');
         const cat  = getBasePlan('Chatbots_Page');
         if (hero && cat) {
@@ -797,9 +1014,15 @@ function updateSummary() {
         }
     }
 
-    $('summaryTotal').textContent = total + ' ' + (period === 'yearly' ? '/yr' : '/mo');
+    $('summaryTotal').textContent = state.pendingUpgrade
+        ? total
+        : total + ' ' + (period === 'yearly' ? '/yr' : '/mo');
 
     const canConfirm = botId && state.selectedPlanId && !state.confirmBlockedReason;
+    if (confirmText) {
+        confirmText.textContent = state.pendingUpgrade ? 'Upgrade to Full Bundle' : 'Continue to Payment';
+    }
+    updateUpgradeNote();
     setConfirmDisabled(!canConfirm, state.confirmBlockedReason);
 }
 
@@ -829,7 +1052,17 @@ async function handleConfirm() {
     setConfirmDisabled(true);
 
     try {
-        if (state.selectedSlot === 'bundle') {
+        if (state.pendingUpgrade) {
+            const result = await createPromotion(botId, state.selectedPlanId);
+
+            if (!result.success) throw new Error(result.message || 'Failed to validate bundle upgrade');
+
+            document.getElementById('stripeRedirectOverlay').classList.add('active');
+            window.location.href = 'checkout.php?chatbot_id=' + result.chatbot_id
+                                + '&promotion_id=' + result.promotion_id
+                                + '&billing_period=' + encodeURIComponent(state.selectedPeriod)
+                                + '&upgrade_from_subscription_id=' + encodeURIComponent(state.pendingUpgrade.existingSubscriptionId);
+        } else if (state.selectedSlot === 'bundle') {
             // Create both promotions, get first subscription_id for checkout
             const result1 = await createPromotion(botId, state.selectedPlanId);
             const result2 = await createPromotion(botId, state.selectedPlanIdAlt);

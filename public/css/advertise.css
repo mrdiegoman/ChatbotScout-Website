@@ -647,8 +647,7 @@
 .adv-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.55);
-    backdrop-filter: blur(4px);
+    background: rgba(17,24,39,0.58);
     z-index: 9000;
     display: none;
     align-items: center;
@@ -671,7 +670,7 @@
     border-radius: 20px;
     width: 100%;
     max-width: 520px;
-    box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+    box-shadow: 0 18px 48px rgba(17,24,39,0.18);
     position: relative;
     animation: slideUp 0.25s ease;
     max-height: 90vh;
@@ -790,10 +789,13 @@
     font-family: outfit-medium, sans-serif;
     text-align: left;
     cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
 }
 
-.adv-modal__select-trigger:hover,
+.adv-modal__select-trigger:hover {
+    border-color: var(--adv-purple);
+}
+
 .adv-modal__select-trigger:focus {
     border-color: var(--adv-purple);
     box-shadow: 0 0 0 3px rgba(107, 63, 246, 0.12);
@@ -827,7 +829,7 @@
     border: 1px solid var(--adv-border);
     border-top: none;
     border-radius: 0 0 10px 10px;
-    box-shadow: 0 16px 28px rgba(17, 24, 39, 0.14);
+    box-shadow: 0 10px 20px rgba(17, 24, 39, 0.12);
 }
 
 .adv-modal__select-menu.open {
@@ -862,8 +864,9 @@
 /* Period grid */
 .adv-modal__period-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
+    padding-top: 0.8rem;
 }
 
 .adv-period-option {
@@ -872,8 +875,13 @@
     padding: 1.4rem 1rem;
     text-align: center;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: border-color 0.16s ease, background-color 0.16s ease;
     background: #fff;
+    min-height: 9.6rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .adv-period-option:hover { border-color: var(--adv-purple-light); }
@@ -881,6 +889,10 @@
 .adv-period-option.selected {
     border-color: var(--adv-purple);
     background: #f5f0ff;
+}
+
+.adv-period-option--upgrade {
+    position: relative;
 }
 
 .adv-period-option__name {
@@ -897,10 +909,83 @@
     color: var(--adv-purple);
 }
 
+.adv-period-option__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: -0.78rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(76%, 15rem);
+    margin: 0;
+    padding: 0.28rem 0.9rem;
+    border-radius: 5px;
+    background: linear-gradient(90deg, var(--adv-yellow), #ef4444);
+    color: #fff;
+    font-family: outfit-semibold, sans-serif;
+    font-size: 0.78rem;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.adv-period-option__price--upgrade {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.adv-period-option__old {
+    color: var(--adv-text-muted);
+    font-family: outfit-semibold, sans-serif;
+    font-size: 1rem;
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+    text-decoration-color: rgba(107, 114, 128, 0.75);
+    text-underline-offset: -0.18em;
+}
+
+.adv-period-option__rough {
+    color: var(--adv-purple);
+    font-family: outfit-bold, sans-serif;
+    font-size: 1.28rem;
+}
+
+.adv-period-option__hint {
+    margin-top: 0.16rem;
+    color: var(--adv-text-muted);
+    font-size: 0.82rem;
+    font-family: outfit-medium, sans-serif;
+}
+
 .adv-period-option__sub {
     font-size: 0.8rem;
     color: var(--adv-text-muted);
     margin-top: 2px;
+}
+
+.adv-modal__upgrade-note {
+    margin: 0.2rem 0 0;
+    padding: 1rem 1.1rem;
+    border: 1px solid #fed7aa;
+    border-radius: 8px;
+    background: #fff7ed;
+    color: #7c2d12;
+    font-size: 0.92rem;
+    line-height: 1.45;
+}
+
+.adv-modal__upgrade-note[hidden] {
+    display: none;
+}
+
+.adv-modal__upgrade-note strong {
+    display: block;
+    color: #9a3412;
+    font-family: outfit-semibold, sans-serif;
+    margin-bottom: 0.25rem;
 }
 
 /* Summary */
@@ -963,7 +1048,7 @@
     font-family: outfit-semibold, sans-serif;
     color: var(--adv-text-muted);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: border-color 0.16s ease, color 0.16s ease, background-color 0.16s ease;
 }
 
 .adv-modal__cancel:hover {
@@ -981,7 +1066,7 @@
     font-size: 1.05rem;
     font-family: outfit-semibold, sans-serif;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: background-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
 }
 
 .adv-modal__confirm:hover:not(:disabled) {

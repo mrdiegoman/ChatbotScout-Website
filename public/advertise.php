@@ -300,6 +300,7 @@ require 'app/auth.php';
                 <div class="adv-modal__period-grid" id="modalPeriodGrid">
                     <!-- Filled by JS -->
                 </div>
+                <p class="adv-modal__upgrade-note" id="modalUpgradeNote" hidden></p>
             </div>
 
             <!-- Step 3: Summary -->

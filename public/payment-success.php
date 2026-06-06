@@ -119,15 +119,21 @@ if ($paymentIntentId) {
 }
 
 $slotLabel = '';
+$isBundleUpgradePayment = false;
 if ($orderDetails) {
+    $paymentMetadata = json_decode((string) ($orderDetails['payment_metadata'] ?? ''), true);
+    $isBundleUpgradePayment = is_array($paymentMetadata)
+        && (($paymentMetadata['upgrade_type'] ?? '') === 'bundle_upgrade');
     $slotTypes = array_filter(explode(',', (string) ($orderDetails['slot_types'] ?? '')));
-    $slotLabel = ((int) ($orderDetails['line_count'] ?? 1) > 1)
+    $slotLabel = $isBundleUpgradePayment
+        ? 'Full Bundle upgrade'
+        : (((int) ($orderDetails['line_count'] ?? 1) > 1)
         ? 'Full Bundle'
         : match($slotTypes[0] ?? '') {
             'Homepage'      => 'Homepage Visibility',
             'Chatbots page' => 'Chatbots Page Visibility',
             default         => $slotTypes[0] ?? 'Promotion'
-        };
+        });
 }
 
 $isVerifiedSuccess = $orderDetails && !$paymentVerificationError;

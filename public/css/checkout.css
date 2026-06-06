@@ -220,6 +220,16 @@
     font-size: 1.05rem;
 }
 
+.checkout-summary__upgrade-note {
+    color: #eeeaff;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    font-size: 1rem;
+    line-height: 1.45;
+}
+
 .checkout-summary__cancel {
     color: rgba(255,255,255,0.7);
     font-size: 1.5rem;
@@ -282,6 +292,91 @@
     content: "Secured by Stripe";
     font-family: outfit-semibold, sans-serif;
     font-size: 1.1rem;
+}
+
+.checkout-payment__saved-card {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    margin: -0.8rem 0 0;
+    padding: 1.2rem 1.3rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+.checkout-payment__saved-card[hidden] {
+    display: none;
+}
+
+.checkout-payment__saved-card--empty {
+    grid-template-columns: auto 1fr;
+}
+
+.checkout-payment__saved-card-icon {
+    width: 2.7rem;
+    height: 2.7rem;
+    border-radius: 10px;
+    background: #ede9fe;
+    position: relative;
+}
+
+.checkout-payment__saved-card-icon::before {
+    content: "";
+    position: absolute;
+    inset: 0.68rem;
+    background: #6b3ff6;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='20' height='14' x='2' y='5' rx='2'/%3E%3Cpath d='M2 10h20'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='20' height='14' x='2' y='5' rx='2'/%3E%3Cpath d='M2 10h20'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.checkout-payment__saved-card-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.checkout-payment__saved-card-label {
+    color: #7b8494;
+    font-size: 0.88rem;
+    font-family: outfit-semibold, sans-serif;
+    text-transform: uppercase;
+}
+
+.checkout-payment__saved-card-main strong {
+    color: #1a1a2e;
+    font-family: outfit-semibold, sans-serif;
+    font-size: 1.1rem;
+}
+
+.checkout-payment__saved-card-main span:last-child {
+    color: #5f6b7a;
+    font-size: 0.96rem;
+}
+
+.checkout-payment__saved-card-action {
+    border: 1px solid #d7dce5;
+    border-radius: 9px;
+    background: #fff;
+    color: #4f2edb;
+    cursor: pointer;
+    font-family: outfit-semibold, sans-serif;
+    font-size: 0.95rem;
+    padding: 0.75rem 0.95rem;
+    white-space: nowrap;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.checkout-payment__saved-card-action:hover {
+    background: #f3f0ff;
+    border-color: #b9a8ff;
+}
+
+.checkout-payment__saved-card-action:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 #payment-element {
@@ -373,5 +468,14 @@
 
     .checkout-payment {
         padding: 3.2rem 2.4rem;
+    }
+
+    .checkout-payment__saved-card {
+        grid-template-columns: auto 1fr;
+    }
+
+    .checkout-payment__saved-card-action {
+        grid-column: 1 / -1;
+        width: 100%;
     }
 }
