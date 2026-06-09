@@ -309,6 +309,11 @@ $upgradeNote = $isUpgradeCancelsAtPeriodEnd
 
             <div id="checkoutError" class="checkout-payment__error" style="display:none;"></div>
 
+            <div class="checkout-payment__refund-notice">
+                <strong>Promotion purchase note</strong>
+                Promotion purchases are <strong>non-refundable</strong>. Please review your chatbot, placement, billing period, and total before paying.
+            </div>
+
             <button id="payBtn" class="checkout-payment__btn">
                 <span id="payBtnText"><?php echo $isBundleUpgrade ? 'Continue to secure payment' : 'Pay ' . $orderDetails['currency_symbol'] . number_format($totalPrice, 2); ?></span>
                 <span id="payBtnLoader" style="display:none;">Processing...</span>

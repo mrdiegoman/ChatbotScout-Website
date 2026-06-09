@@ -26,6 +26,25 @@ if (!in_array($activeTab, $allowedTabs)) {
 $subscriptions = [];
 $subscription = null;
 $db = Database::getInstance()->getConnection();
+$hasApprovedPromotionChatbot = false;
+
+try {
+    $approvedChatbotStmt = $db->prepare("
+        SELECT COUNT(*)
+        FROM chatbots
+        WHERE owner_user_id = :user_id
+          AND deleted_at IS NULL
+          AND status = 'active'
+    ");
+    $approvedChatbotStmt->execute(['user_id' => $user['id']]);
+    $hasApprovedPromotionChatbot = (int) $approvedChatbotStmt->fetchColumn() > 0;
+} catch (Exception $e) {
+    error_log('Profile approved chatbot check error: ' . $e->getMessage());
+}
+
+if (!$hasApprovedPromotionChatbot && $activeTab === 'billing') {
+    $activeTab = 'profile';
+}
 
 try {
     $pendingStripeStmt = $db->prepare("
@@ -357,10 +376,12 @@ require '../inc/header.php';
                     data-tab="profile">
                 Profile
             </button>
+            <?php if ($hasApprovedPromotionChatbot): ?>
             <button class="tab-btn <?php echo $activeTab === 'billing' ? 'active' : ''; ?>"
                     data-tab="billing">
                 Billing Info
             </button>
+            <?php endif; ?>
             <button class="tab-btn <?php echo $activeTab === 'settings' ? 'active' : ''; ?>" 
                     data-tab="settings">
                 Settings
@@ -539,6 +560,7 @@ require '../inc/header.php';
                         </div>
                     </div>
 
+                    <?php if ($hasApprovedPromotionChatbot): ?>
                     <!-- Subscriptions -->
                     <div class="profile-card subscriptions-card">
                         <div class="subscriptions-card__header">
@@ -555,7 +577,10 @@ require '../inc/header.php';
                         <?php if (empty($subscriptions)): ?>
                             <div class="subscriptions-empty">
                                 <strong>No active promotions yet</strong>
-                                <span>Your active paid promotion packages will appear here.</span>
+                                <span>Promote your approved chatbot on the homepage or Chatbots page.</span>
+                                <a href="advertise.php#plans" class="subscriptions-empty__action">
+                                    View Promotion Plans
+                                </a>
                             </div>
                         <?php else: ?>
                             <div class="subscription-list">
@@ -622,6 +647,7 @@ require '../inc/header.php';
                             </div>
                         <?php endif; ?>
                     </div>
+                    <?php endif; ?>
 
                     <!-- Active Subscription Card -->
                     <?php if (false && $subscription): ?>
@@ -689,6 +715,7 @@ require '../inc/header.php';
                 </div>
             </div>
 
+            <?php if ($hasApprovedPromotionChatbot): ?>
             <!-- BILLING INFO TAB -->
             <div class="tab-pane <?php echo $activeTab === 'billing' ? 'active' : ''; ?>" 
                  id="billing-tab">
@@ -794,6 +821,7 @@ require '../inc/header.php';
 
                 </div>
             </div>
+            <?php endif; ?>
 
             <!-- SETTINGS TAB -->
             <div class="tab-pane <?php echo $activeTab === 'settings' ? 'active' : ''; ?>" 

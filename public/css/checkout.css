@@ -394,6 +394,30 @@
     line-height: 1.45;
 }
 
+.checkout-payment__refund-notice {
+    margin: 0;
+    padding: 1rem 1.2rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f9fafb;
+    color: #5f6b7a;
+    font-size: 0.98rem;
+    line-height: 1.45;
+}
+
+.checkout-payment__refund-notice strong {
+    color: #1a1a2e;
+    font-family: outfit-semibold, sans-serif;
+    font-weight: 600;
+}
+
+.checkout-payment__refund-notice > strong:first-child {
+    display: block;
+    color: #1a1a2e;
+    font-family: outfit-semibold, sans-serif;
+    margin-bottom: 0.2rem;
+}
+
 .checkout-payment__btn {
     width: 100%;
     padding: 1.6rem;

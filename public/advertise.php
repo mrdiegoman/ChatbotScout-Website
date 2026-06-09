@@ -323,6 +323,11 @@ require 'app/auth.php';
                 </div>
             </div>
 
+            <div class="adv-modal__refund-notice">
+                <strong>Promotion purchase note</strong>
+                Promotion purchases are <strong>non-refundable</strong>. Please review the chatbot, placement, billing period, and total before continuing.
+            </div>
+
             <p class="adv-modal__error" id="modalError"></p>
         </div>
 

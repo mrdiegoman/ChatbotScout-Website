@@ -534,10 +534,50 @@
     font-size: 1.3rem;
 }
 
+.subscriptions-empty__action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1.4rem;
+    min-height: 4rem;
+    padding: 0 1.8rem;
+    border-radius: 6px;
+    background: var(--profile-accent);
+    color: #fff;
+    font-family: outfit-semibold, sans-serif;
+    font-size: 1.3rem;
+    text-decoration: none;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.subscriptions-empty__action:hover {
+    background: #3c9f43;
+    transform: translateY(-1px);
+}
+
 .subscription-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    display: flex;
+    align-items: stretch;
     gap: 1.6rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.2rem 0 1rem;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    scrollbar-color: #cfd5dd transparent;
+}
+
+.subscription-list::-webkit-scrollbar {
+    height: 0.8rem;
+}
+
+.subscription-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.subscription-list::-webkit-scrollbar-thumb {
+    background: #cfd5dd;
+    border-radius: 999px;
 }
 
 .subscription-card {
@@ -551,6 +591,9 @@
 .subscription-list > .subscription-card {
     display: flex;
     flex-direction: column;
+    flex: 0 0 min(36rem, 86vw);
+    max-width: 36rem;
+    scroll-snap-align: start;
 }
 
 .subscription-card.active {

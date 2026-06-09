@@ -411,6 +411,10 @@ const methodFilter = document.getElementById('method-filter');
 const resetFiltersBtn = document.getElementById('reset-filters');
 
 function filterPayments() {
+    if (!dateFilter || !statusFilter || !methodFilter) {
+        return;
+    }
+
     const dateValue = dateFilter.value;
     const statusValue = statusFilter.value;
     const methodValue = methodFilter.value;
@@ -449,11 +453,13 @@ function filterPayments() {
     });
 }
 
-if (dateFilter) dateFilter.addEventListener('change', filterPayments);
-if (statusFilter) statusFilter.addEventListener('change', filterPayments);
-if (methodFilter) methodFilter.addEventListener('change', filterPayments);
+if (dateFilter && statusFilter && methodFilter) {
+    dateFilter.addEventListener('change', filterPayments);
+    statusFilter.addEventListener('change', filterPayments);
+    methodFilter.addEventListener('change', filterPayments);
+}
 
-if (resetFiltersBtn) {
+if (resetFiltersBtn && dateFilter && statusFilter && methodFilter) {
     resetFiltersBtn.addEventListener('click', () => {
         dateFilter.value = 'all';
         statusFilter.value = 'all';
