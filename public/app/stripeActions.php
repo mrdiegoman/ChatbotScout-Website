@@ -705,7 +705,6 @@ function previewStripeBundleUpgradePayment(
         throw new RuntimeException('Could not find the existing Stripe subscription item for upgrade preview.');
     }
 
-    $existingBundleAmount = promotionBundleLineTotalPrice((float) $existingPromotion['price'], $billingPeriod);
     $missingBundleAmount = promotionBundleLineTotalPrice((float) $missingPromotion['price'], $billingPeriod);
     $amount = 0.0;
     $source = 'stripe';
@@ -717,20 +716,9 @@ function previewStripeBundleUpgradePayment(
             'subscription_details' => [
                 'items' => [
                     [
-                        'id' => $existingItemId,
                         'price_data' => [
                             'currency' => $currency,
-                            'product' => stripePromotionProductId($existingPromotion['promotion_id']),
-                            'unit_amount' => stripeAmountToCents($existingBundleAmount),
-                            'recurring' => ['interval' => $interval],
-                            'tax_behavior' => 'exclusive',
-                        ],
-                        'quantity' => 1,
-                    ],
-                    [
-                        'price_data' => [
-                            'currency' => $currency,
-                            'product' => stripePromotionProductId($missingPromotion['id']),
+                            'product' => getOrCreateStripePromotionProduct($missingPromotion),
                             'unit_amount' => stripeAmountToCents($missingBundleAmount),
                             'recurring' => ['interval' => $interval],
                             'tax_behavior' => 'exclusive',
@@ -748,6 +736,7 @@ function previewStripeBundleUpgradePayment(
             'amount' => $amount,
             'currency' => strtoupper($missingPromotion['currency_code']),
             'preview_invoice_id' => $preview->id ?? null,
+            'missing_bundle_amount' => $missingBundleAmount,
         ]);
     } catch (\Stripe\Exception\ApiErrorException $e) {
         error_log('Stripe upgrade preview fallback used: ' . $e->getMessage());
@@ -860,6 +849,8 @@ function createStripeBundleUpgradePayment(
         return ['success' => false, 'message' => 'A previous subscription update is still pending payment. Please finish or retry that checkout first.'];
     }
 
+    $preserveCancelAtPeriodEnd = !empty($stripeSubscription->cancel_at_period_end);
+
     $existingItemId = findStripeSubscriptionItemId(
         $stripeSubscription,
         $existingPromotion['promotion_id'],
@@ -883,7 +874,6 @@ function createStripeBundleUpgradePayment(
         'existing_subscription_id' => $existingSubscriptionId,
     ]);
 
-    $existingPriceId = createStripePromotionPrice($existingPromotion, $existingBundleAmount, $currency, $interval, 'bundle');
     $missingPriceId = createStripePromotionPrice($missingPromotion, $missingBundleAmount, $currency, $interval, 'bundle');
 
     $upgradeMetadata = [
@@ -900,6 +890,7 @@ function createStripeBundleUpgradePayment(
         'currency_id' => $missingPromotion['currency_id'],
         'is_bundle' => '1',
         'upgrade_type' => 'bundle_upgrade',
+        'upgrade_pricing_version' => 'missing_bundle_only',
         'upgrade_existing_subscription_id' => $existingSubscriptionId,
         'upgrade_new_subscription_id' => $newSubscriptionId,
         'upgrade_existing_promotion_id' => $existingPromotion['promotion_id'],
@@ -911,25 +902,42 @@ function createStripeBundleUpgradePayment(
         'stripe_subscription_id' => $stripeSubscriptionId,
         'payment_id' => $paymentId,
         'existing_item_id' => $existingItemId,
+        'cancel_at_period_end' => $preserveCancelAtPeriodEnd,
+        'existing_bundle_amount' => $existingBundleAmount,
+        'missing_bundle_amount' => $missingBundleAmount,
     ]);
 
-    $updatedSubscription = \Stripe\Subscription::update($stripeSubscriptionId, [
+    $subscriptionUpdateParams = [
         'items' => [
-            [
-                'id' => $existingItemId,
-                'price' => $existingPriceId,
-                'quantity' => 1,
-            ],
             [
                 'price' => $missingPriceId,
                 'quantity' => 1,
+                'metadata' => [
+                    'promotion_id' => $missingPromotion['id'],
+                    'subscription_id' => $newSubscriptionId,
+                    'pricing_mode' => 'bundle',
+                ],
             ],
         ],
         'metadata' => $upgradeMetadata,
         'payment_behavior' => 'pending_if_incomplete',
         'proration_behavior' => 'always_invoice',
         'expand' => ['latest_invoice.payment_intent', 'items.data.price'],
-    ]);
+    ];
+
+    $updatedSubscription = \Stripe\Subscription::update($stripeSubscriptionId, $subscriptionUpdateParams);
+    if ($preserveCancelAtPeriodEnd && empty($updatedSubscription->cancel_at_period_end)) {
+        try {
+            $updatedSubscription = \Stripe\Subscription::update($stripeSubscriptionId, [
+                'cancel_at_period_end' => true,
+                'expand' => ['latest_invoice.payment_intent', 'items.data.price'],
+            ]);
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            stripeCheckoutLog('bundle_upgrade.payment.cancel_restore_deferred', stripeCheckoutExceptionContext($e) + [
+                'stripe_subscription_id' => $stripeSubscriptionId,
+            ]);
+        }
+    }
 
     $latestInvoice = $updatedSubscription->latest_invoice ?? null;
     if (is_string($latestInvoice)) {
@@ -971,6 +979,7 @@ function createStripeBundleUpgradePayment(
 
     $paymentMetadata = json_encode([
         'upgrade_type' => 'bundle_upgrade',
+        'upgrade_pricing_version' => 'missing_bundle_only',
         'billing_period' => $billingPeriod,
         'period_type' => $billingPeriod,
         'duration_days' => $durationDays,
@@ -1222,15 +1231,7 @@ function stripeDefaultPaymentMethodSummary($stripeSubscription, string $stripeCu
 }
 
 function stripeLocalBundleUpgradeEstimateAmount(array $existingPromotion, array $missingPromotion, string $billingPeriod): float {
-    $existingSingleAmount = promotionSingleTotalPrice(
-        (float) $existingPromotion['price'],
-        (float) ($existingPromotion['discount_percentage'] ?? 0),
-        $billingPeriod
-    );
-    $existingBundleAmount = promotionBundleLineTotalPrice((float) $existingPromotion['price'], $billingPeriod);
     $missingBundleAmount = promotionBundleLineTotalPrice((float) $missingPromotion['price'], $billingPeriod);
-    $bundleCredit = max(0.0, $existingSingleAmount - $existingBundleAmount);
-    $fullPeriodUpgradeAmount = max(0.0, $missingBundleAmount - $bundleCredit);
 
     $startTs = !empty($existingPromotion['start_date']) ? strtotime((string) $existingPromotion['start_date']) : false;
     $endTs = !empty($existingPromotion['end_date']) ? strtotime((string) $existingPromotion['end_date']) : false;
@@ -1240,7 +1241,7 @@ function stripeLocalBundleUpgradeEstimateAmount(array $existingPromotion, array 
         $remainingRatio = max(0.0, min(1.0, ($endTs - time()) / ($endTs - $startTs)));
     }
 
-    return round($fullPeriodUpgradeAmount * $remainingRatio, 2);
+    return round($missingBundleAmount * $remainingRatio, 2);
 }
 
 function findReusableStripeUpgradeCheckout(
@@ -1267,6 +1268,7 @@ function findReusableStripeUpgradeCheckout(
           AND status IN ('pending', 'processing')
           AND created_at >= :created_after
           AND JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.upgrade_type')) = 'bundle_upgrade'
+          AND JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.upgrade_pricing_version')) = 'missing_bundle_only'
           AND JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.upgrade_from_subscription_id')) = :existing_subscription_id
           AND JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.promotion_id')) = :missing_promotion_id
           AND COALESCE(

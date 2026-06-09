@@ -139,12 +139,16 @@ async function loadChatbots() {
 function setupBillingToggle() {
     billingToggle.querySelectorAll('.adv-billing-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            billingToggle.querySelectorAll('.adv-billing-btn')
-                .forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
             state.selectedPeriod = btn.dataset.period;
+            syncBillingToggle();
             updatePriceDisplay();
         });
+    });
+}
+
+function syncBillingToggle() {
+    billingToggle.querySelectorAll('.adv-billing-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.period === state.selectedPeriod);
     });
 }
 
@@ -437,10 +441,9 @@ function getUpgradePricePreview(period) {
     }
 
     const bundleTotal = bundleTotalPrice(hero, cat, period);
-    const existingSingleTotal = packageTotalPrice(existingPlan, period);
+    const missingBundleTotal = discountedMonthlyPrice(missingPlan.price, bundleDiscount(period)) * billingMultiplier(period);
     const missingSingleTotal = packageTotalPrice(missingPlan, period);
-    const fullDifference = Math.max(0, bundleTotal - existingSingleTotal);
-    const estimateToday = fullDifference * remainingPeriodRatio(existingPromotion);
+    const estimateToday = missingBundleTotal * remainingPeriodRatio(existingPromotion);
     const originalDisplayTotal = state.selectedSlot === 'bundle'
         ? bundleTotal
         : missingSingleTotal;
@@ -468,10 +471,27 @@ function updateUpgradeNote() {
     const existingPromotion = activePromotionForSlot(state.pendingUpgrade.existingSlot);
     const endLabel = formatPromotionDate(existingPromotion?.end_date);
     const untilText = endLabel ? ` until ${endLabel}` : ' for the rest of your current promotion period';
+    const upgradePeriodLabel = state.pendingUpgrade.billingPeriod === 'yearly' ? 'Yearly' : 'Monthly';
+
+    if (!isBundleUpgradeSelected()) {
+        upgradeNote.innerHTML = `
+            <strong>Full Bundle upgrade is available on ${upgradePeriodLabel}.</strong>
+            Select ${upgradePeriodLabel} to convert your active promotion to a prorated bundle upgrade. The selected ${state.selectedPeriod === 'yearly' ? 'Yearly' : 'Monthly'} option continues as a separate promotion without bundle discount.
+        `;
+        upgradeNote.hidden = false;
+        return;
+    }
+
+    const existingCancelsAtPeriodEnd = ['1', 'true', 'yes'].includes(
+        String(existingPromotion?.cancel_at_period_end ?? '').toLowerCase()
+    );
+    const renewalText = existingCancelsAtPeriodEnd
+        ? `Bundle pricing applies${untilText}. After that, ${displaySlotLabel(state.pendingUpgrade.missingSlot)} renews separately unless you renew the existing promotion.`
+        : 'After that, your promotion renews as Full Bundle.';
 
     upgradeNote.innerHTML = `
         <strong>This is a prorated bundle upgrade${untilText}.</strong>
-        You pay only the remaining difference today. After that, your promotion renews as Full Bundle.
+        You pay only the remaining difference today. ${renewalText}
     `;
     upgradeNote.hidden = false;
 }
@@ -715,8 +735,15 @@ function populatePeriodOptions(slot) {
 
     periods.forEach(period => {
         let plan = null;
+        const standaloneMissingPeriod = Boolean(
+            slot === 'bundle'
+            && state.pendingUpgrade
+            && period !== state.pendingUpgrade.billingPeriod
+        );
 
-        if (slot === 'bundle') {
+        if (standaloneMissingPeriod) {
+            plan = getBasePlan(state.pendingUpgrade.missingSlot);
+        } else if (slot === 'bundle') {
             const hero = getBasePlan('Homepage');
             const cat  = getBasePlan('Chatbots_Page');
             if (hero && cat) {
@@ -732,7 +759,7 @@ function populatePeriodOptions(slot) {
 
         if (!plan) return;
 
-        const finalPrice = slot === 'bundle'
+        const finalPrice = slot === 'bundle' && !standaloneMissingPeriod
             ? bundleTotalPrice(
                 getBasePlan('Homepage'),
                 getBasePlan('Chatbots_Page'),
@@ -769,9 +796,7 @@ function populatePeriodOptions(slot) {
             div.classList.add('selected');
             state.selectedPeriod = period;
 
-            billingToggle.querySelectorAll('.adv-billing-btn').forEach(b => {
-                b.classList.toggle('active', b.dataset.period === period);
-            });
+            syncBillingToggle();
             updatePriceDisplay();
             applySlotRestrictions();
             populatePeriodOptions(state.selectedSlot);
@@ -859,7 +884,7 @@ function getBundleUpgradeOpportunity() {
     }
 
     const existingPeriod = String(existing.billing_period || '').toLowerCase();
-    if (existingPeriod !== state.selectedPeriod) {
+    if (!['monthly', 'yearly'].includes(existingPeriod)) {
         return null;
     }
 
@@ -874,6 +899,18 @@ function getBundleUpgradeOpportunity() {
         missingSlot,
         billingPeriod: existingPeriod,
     };
+}
+
+function isBundleUpgradeSelected(period = state.selectedPeriod) {
+    return Boolean(state.pendingUpgrade && period === state.pendingUpgrade.billingPeriod);
+}
+
+function effectivePurchaseSlot() {
+    if (state.pendingUpgrade && !isBundleUpgradeSelected() && state.selectedSlot === 'bundle') {
+        return state.pendingUpgrade.missingSlot;
+    }
+
+    return state.selectedSlot;
 }
 
 function getActivePromotionBlockMessage() {
@@ -939,9 +976,20 @@ function applySlotRestrictions() {
     const upgrade = getBundleUpgradeOpportunity();
     if (upgrade) {
         state.pendingUpgrade = upgrade;
-        $('modalTitle').textContent = 'Upgrade to Full Bundle';
-        $('modalSubtitle').textContent =
-            `${displaySlotLabel(upgrade.existingSlot)} will convert to Full Bundle. Stripe charges only the prorated difference today.`;
+        if (isBundleUpgradeSelected()) {
+            $('modalTitle').textContent = 'Upgrade to Full Bundle';
+            $('modalSubtitle').textContent =
+                `${displaySlotLabel(upgrade.existingSlot)} will convert to Full Bundle. Stripe charges only the prorated difference today.`;
+        } else {
+            const standaloneTitle = slot === 'bundle'
+                ? `Get ${displaySlotLabel(upgrade.missingSlot)}`
+                : (titles[slot] || 'Get Promotion');
+            const upgradePeriodLabel = upgrade.billingPeriod === 'yearly' ? 'Yearly' : 'Monthly';
+
+            $('modalTitle').textContent = standaloneTitle;
+            $('modalSubtitle').textContent =
+                `${displaySlotLabel(upgrade.existingSlot)} is already active. Select ${upgradePeriodLabel} to upgrade to Full Bundle.`;
+        }
         return;
     }
 
@@ -966,9 +1014,10 @@ function applySlotRestrictions() {
 }
 
 function updateSummary() {
-    const slot   = state.selectedSlot;
+    const slot   = effectivePurchaseSlot();
     const period = state.selectedPeriod;
     const botId  = chatbotSelect.value;
+    const upgradeSelected = isBundleUpgradeSelected();
 
     if (!slot) return;
 
@@ -979,7 +1028,7 @@ function updateSummary() {
     };
     const periodNames = { monthly: 'Monthly', yearly: 'Yearly' };
 
-    $('summaryPlan').textContent    = state.pendingUpgrade ? 'Full Bundle upgrade' : (slotNames[slot] || slot);
+    $('summaryPlan').textContent    = upgradeSelected ? 'Full Bundle upgrade' : (slotNames[slot] || slot);
     $('summaryBilling').textContent = periodNames[period] || period;
 
     const selectedBot = state.chatbots.find(b => b.id === botId);
@@ -989,7 +1038,7 @@ function updateSummary() {
     state.selectedPlanId    = null;
     state.selectedPlanIdAlt = null;
 
-    if (state.pendingUpgrade) {
+    if (upgradeSelected) {
         const missingPlan = getBasePlan(state.pendingUpgrade.missingSlot);
         if (missingPlan) {
             const preview = getUpgradePricePreview(period);
@@ -1014,13 +1063,13 @@ function updateSummary() {
         }
     }
 
-    $('summaryTotal').textContent = state.pendingUpgrade
+    $('summaryTotal').textContent = upgradeSelected
         ? total
         : total + ' ' + (period === 'yearly' ? '/yr' : '/mo');
 
     const canConfirm = botId && state.selectedPlanId && !state.confirmBlockedReason;
     if (confirmText) {
-        confirmText.textContent = state.pendingUpgrade ? 'Upgrade to Full Bundle' : 'Continue to Payment';
+        confirmText.textContent = upgradeSelected ? 'Upgrade to Full Bundle' : 'Continue to Payment';
     }
     updateUpgradeNote();
     setConfirmDisabled(!canConfirm, state.confirmBlockedReason);
@@ -1052,17 +1101,18 @@ async function handleConfirm() {
     setConfirmDisabled(true);
 
     try {
-        if (state.pendingUpgrade) {
+        if (isBundleUpgradeSelected()) {
             const result = await createPromotion(botId, state.selectedPlanId);
 
             if (!result.success) throw new Error(result.message || 'Failed to validate bundle upgrade');
 
+            const upgradeBillingPeriod = state.pendingUpgrade.billingPeriod || state.selectedPeriod;
             document.getElementById('stripeRedirectOverlay').classList.add('active');
             window.location.href = 'checkout.php?chatbot_id=' + result.chatbot_id
                                 + '&promotion_id=' + result.promotion_id
-                                + '&billing_period=' + encodeURIComponent(state.selectedPeriod)
+                                + '&billing_period=' + encodeURIComponent(upgradeBillingPeriod)
                                 + '&upgrade_from_subscription_id=' + encodeURIComponent(state.pendingUpgrade.existingSubscriptionId);
-        } else if (state.selectedSlot === 'bundle') {
+        } else if (state.selectedSlot === 'bundle' && !state.pendingUpgrade) {
             // Create both promotions, get first subscription_id for checkout
             const result1 = await createPromotion(botId, state.selectedPlanId);
             const result2 = await createPromotion(botId, state.selectedPlanIdAlt);

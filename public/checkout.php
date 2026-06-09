@@ -123,6 +123,7 @@ if ($upgradeFromSubscriptionId !== '') {
             s.stripe_subscription_id,
             s.start_date,
             s.end_date,
+            s.cancel_at_period_end,
             p.id AS existing_promotion_id,
             p.slot_type AS existing_slot_type,
             p.price AS existing_price,
@@ -203,6 +204,15 @@ $existingUpgradeSlotLabel = $upgradeContext ? match($upgradeContext['existing_sl
 } : '';
 
 $periodLabel = $billingPeriod === 'yearly' ? 'Annual' : 'Monthly';
+$renewIntervalLabel = $billingPeriod === 'yearly' ? 'year' : 'month';
+$standalonePeriodLabel = $billingPeriod === 'yearly' ? 'annual' : 'monthly';
+$isUpgradeCancelsAtPeriodEnd = $isBundleUpgrade && !empty($upgradeContext['cancel_at_period_end']);
+$renewSummaryLabel = $isUpgradeCancelsAtPeriodEnd
+    ? $slotLabel . ' renews every ' . $renewIntervalLabel
+    : 'Renews automatically every ' . $renewIntervalLabel;
+$upgradeNote = $isUpgradeCancelsAtPeriodEnd
+    ? 'Bundle pricing applies until your current period ends. After that, ' . $slotLabel . ' renews at its standalone ' . $standalonePeriodLabel . ' price.'
+    : 'Starts today. Your renewal date stays aligned with your current subscription.';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -257,11 +267,11 @@ $periodLabel = $billingPeriod === 'yearly' ? 'Annual' : 'Monthly';
 
             <?php if ($isBundleUpgrade): ?>
             <div class="checkout-summary__upgrade-note">
-                Starts today. Your renewal date stays aligned with your current subscription.
+                <?php echo htmlspecialchars($upgradeNote); ?>
             </div>
             <?php endif; ?>
 
-            <div class="checkout-summary__renew" data-renew-label="Renews automatically every <?php echo $billingPeriod === 'yearly' ? 'year' : 'month'; ?>" aria-label="Renews automatically every <?php echo $billingPeriod === 'yearly' ? 'year' : 'month'; ?>"></div>
+            <div class="checkout-summary__renew" data-renew-label="<?php echo htmlspecialchars($renewSummaryLabel); ?>" aria-label="<?php echo htmlspecialchars($renewSummaryLabel); ?>"></div>
 
             <a href="advertise.php" class="checkout-summary__back">&larr; Cancel and go back</a>
         </div>

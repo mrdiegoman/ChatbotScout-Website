@@ -127,6 +127,23 @@ function stripeSubscriptionMetadata($stripeSubscription, $invoice) {
     return stripeObjectValue($invoice, 'metadata', []);
 }
 
+function stripeInvoiceSubscriptionDetailsMetadata($invoice) {
+    $parent = stripeObjectValue($invoice, 'parent');
+    $subscriptionDetails = stripeObjectValue($parent, 'subscription_details');
+
+    return stripeObjectValue($subscriptionDetails, 'metadata', []);
+}
+
+function stripeFirstMetadataWithValue(array $metadataObjects, string $key) {
+    foreach ($metadataObjects as $metadata) {
+        if ((string) stripePaymentMetadataValue($metadata, $key, '') !== '') {
+            return $metadata;
+        }
+    }
+
+    return [];
+}
+
 function stripeSubscriptionPeriod($stripeSubscription, $invoice, string $periodType): array {
     $start = stripeObjectValue($stripeSubscription, 'current_period_start')
         ?: stripeObjectValue($invoice, 'period_start')
@@ -193,9 +210,11 @@ function finalizeStripePaidInvoice(PDO $db, $invoice, ?string $expectedUserId = 
     ]);
     $metadata = stripeSubscriptionMetadata($stripeSubscription, $invoice);
     $invoiceMetadata = stripeObjectValue($invoice, 'metadata', []);
-    $upgradeMetadata = stripePaymentMetadataValue($invoiceMetadata, 'upgrade_type', '')
-        ? $invoiceMetadata
-        : $metadata;
+    $invoiceSubscriptionMetadata = stripeInvoiceSubscriptionDetailsMetadata($invoice);
+    $upgradeMetadata = stripeFirstMetadataWithValue(
+        [$invoiceMetadata, $invoiceSubscriptionMetadata, $metadata],
+        'upgrade_type'
+    ) ?: $metadata;
 
     if ((string) stripePaymentMetadataValue($upgradeMetadata, 'upgrade_type', '') === 'bundle_upgrade') {
         stripeCheckoutLog('finalize_invoice.bundle_upgrade_detected', [
@@ -534,7 +553,7 @@ function finalizeStripeBundleUpgradeInvoice(PDO $db, $invoice, $stripeSubscripti
     $chargeId = stripePaymentIntentChargeId($paymentIntentId);
     $stripeStatus = (string) stripeObjectValue($stripeSubscription, 'status', 'active');
     $localStatus = stripeLocalSubscriptionStatus($stripeStatus);
-    $cancelAtPeriodEnd = false;
+    $stripeCancelAtPeriodEnd = (bool) stripeObjectValue($stripeSubscription, 'cancel_at_period_end', false);
     $endDate = stripeUnixToMysql(stripeObjectValue($stripeSubscription, 'current_period_end') ?: time());
     $paidAt = stripeObjectValue(stripeObjectValue($invoice, 'status_transitions'), 'paid_at')
         ?: stripeObjectValue($invoice, 'created')
@@ -557,11 +576,42 @@ function finalizeStripeBundleUpgradeInvoice(PDO $db, $invoice, $stripeSubscripti
         $currencyId = (string) $currencyStmt->fetchColumn();
     }
 
+    $alreadyFinalized = stripeBundleUpgradeAlreadyFinalized(
+        $db,
+        $userId,
+        $existingSubscriptionId,
+        $newSubscriptionId,
+        $paymentId,
+        $stripeInvoiceId,
+        $paymentIntentId
+    );
+    if ($alreadyFinalized) {
+        stripeCheckoutLog('bundle_upgrade.finalize.idempotent_success', [
+            'user_id' => $userId,
+            'chatbot_id' => $chatbotId,
+            'payment_id' => $alreadyFinalized['payment_id'],
+            'existing_subscription_id' => $existingSubscriptionId,
+            'new_subscription_id' => $newSubscriptionId,
+            'stripe_subscription_id' => $stripeSubscriptionId,
+            'stripe_invoice_id' => $stripeInvoiceId,
+        ]);
+
+        return [
+            'finalized' => true,
+            'status' => 'paid',
+            'payment_ids' => [$alreadyFinalized['payment_id']],
+            'subscription_ids' => [$existingSubscriptionId, $newSubscriptionId],
+            'stripe_subscription_id' => $stripeSubscriptionId,
+            'stripe_invoice_id' => $stripeInvoiceId,
+            'invoice_url' => $invoiceUrl,
+        ];
+    }
+
     $db->beginTransaction();
 
     try {
         $existingStmt = $db->prepare("
-            SELECT id
+            SELECT id, auto_renew, cancel_at_period_end
             FROM subscriptions
             WHERE id = :id
               AND user_id = :user_id
@@ -572,12 +622,25 @@ function finalizeStripeBundleUpgradeInvoice(PDO $db, $invoice, $stripeSubscripti
             'id' => $existingSubscriptionId,
             'user_id' => $userId,
         ]);
+        $existingRow = $existingStmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$existingStmt->fetchColumn()) {
+        if (!$existingRow) {
             throw new RuntimeException('Existing local subscription for bundle upgrade was not found.');
         }
 
-        $cancellationSql = ($localStatus === 'cancelled' || $cancelAtPeriodEnd)
+        $existingCancelAtPeriodEnd = !empty($existingRow['cancel_at_period_end']) || $stripeCancelAtPeriodEnd;
+        $existingAutoRenew = $existingCancelAtPeriodEnd ? 0 : (!empty($existingRow['auto_renew']) ? 1 : 0);
+        $newCancelAtPeriodEnd = false;
+        $newAutoRenew = $localStatus === 'cancelled' ? 0 : 1;
+
+        $existingCancellationSql = ($localStatus === 'cancelled' || $existingCancelAtPeriodEnd)
+            ? "cancelled_at = COALESCE(cancelled_at, NOW()),"
+            : "
+                cancelled_at = NULL,
+                cancellation_reason = NULL,
+            ";
+
+        $newCancellationSql = ($localStatus === 'cancelled' || $newCancelAtPeriodEnd)
             ? "cancelled_at = COALESCE(cancelled_at, NOW()),"
             : "
                 cancelled_at = NULL,
@@ -592,15 +655,15 @@ function finalizeStripeBundleUpgradeInvoice(PDO $db, $invoice, $stripeSubscripti
                 cancel_at_period_end = :cancel_at_period_end,
                 stripe_subscription_id = :stripe_subscription_id,
                 stripe_customer_id = :stripe_customer_id,
-                {$cancellationSql}
+                {$existingCancellationSql}
                 updated_at = NOW()
             WHERE id = :id
               AND user_id = :user_id
         ")->execute([
             'status' => $localStatus,
             'end_date' => $endDate,
-            'auto_renew' => $cancelAtPeriodEnd ? 0 : 1,
-            'cancel_at_period_end' => $cancelAtPeriodEnd ? 1 : 0,
+            'auto_renew' => $existingAutoRenew,
+            'cancel_at_period_end' => $existingCancelAtPeriodEnd ? 1 : 0,
             'stripe_subscription_id' => $stripeSubscriptionId,
             'stripe_customer_id' => $stripeCustomerId,
             'id' => $existingSubscriptionId,
@@ -671,7 +734,7 @@ function finalizeStripeBundleUpgradeInvoice(PDO $db, $invoice, $stripeSubscripti
                     cancel_at_period_end = :cancel_at_period_end,
                     stripe_subscription_id = :stripe_subscription_id,
                     stripe_customer_id = :stripe_customer_id,
-                    {$cancellationSql}
+                    {$newCancellationSql}
                     updated_at = NOW()
                 WHERE id = :id
                   AND user_id = :user_id
@@ -681,8 +744,8 @@ function finalizeStripeBundleUpgradeInvoice(PDO $db, $invoice, $stripeSubscripti
                 'status' => $localStatus,
                 'start_date' => $upgradeStartDate,
                 'end_date' => $endDate,
-                'auto_renew' => $cancelAtPeriodEnd ? 0 : 1,
-                'cancel_at_period_end' => $cancelAtPeriodEnd ? 1 : 0,
+                'auto_renew' => $newAutoRenew,
+                'cancel_at_period_end' => $newCancelAtPeriodEnd ? 1 : 0,
                 'stripe_subscription_id' => $stripeSubscriptionId,
                 'stripe_customer_id' => $stripeCustomerId,
                 'id' => $newSubscriptionId,
@@ -709,8 +772,8 @@ function finalizeStripeBundleUpgradeInvoice(PDO $db, $invoice, $stripeSubscripti
                 'status' => $localStatus,
                 'start_date' => $upgradeStartDate,
                 'end_date' => $endDate,
-                'auto_renew' => $cancelAtPeriodEnd ? 0 : 1,
-                'cancel_at_period_end' => $cancelAtPeriodEnd ? 1 : 0,
+                'auto_renew' => $newAutoRenew,
+                'cancel_at_period_end' => $newCancelAtPeriodEnd ? 1 : 0,
                 'stripe_subscription_id' => $stripeSubscriptionId,
                 'stripe_customer_id' => $stripeCustomerId,
             ]);
@@ -733,6 +796,7 @@ function finalizeStripeBundleUpgradeInvoice(PDO $db, $invoice, $stripeSubscripti
 
         $paymentMetadata = json_encode([
             'upgrade_type' => 'bundle_upgrade',
+            'upgrade_pricing_version' => 'missing_bundle_only',
             'promotion_id' => $newPromotionId,
             'existing_promotion_id' => $existingPromotionId,
             'billing_period' => $periodType,
@@ -845,21 +909,49 @@ function finalizeStripeBundleUpgradeInvoice(PDO $db, $invoice, $stripeSubscripti
             $userId
         );
 
-        $db->commit();
-
-        stripeFinalizeBundleUpgradeMetadata(
+        $scheduleRows = stripeFinalizerLoadBundleUpgradeScheduleRows(
             $db,
-            $stripeSubscriptionId,
             $userId,
             $chatbotId,
             $existingSubscriptionId,
             $newSubscriptionId,
-            $existingPromotionId,
-            $newPromotionId,
-            $periodType,
-            $currencyId,
-            $metadata
+            $periodType
         );
+
+        stripeFinalizeBundleUpgradeCurrentBundlePrices(
+            $stripeSubscriptionId,
+            [$scheduleRows[$existingSubscriptionId], $scheduleRows[$newSubscriptionId]],
+            $periodType
+        );
+
+        $shouldSchedulePartialRenewal = $existingCancelAtPeriodEnd && $localStatus !== 'cancelled';
+        if ($shouldSchedulePartialRenewal) {
+            stripeScheduleBundleUpgradePartialRenewal(
+                $stripeSubscriptionId,
+                [$scheduleRows[$existingSubscriptionId]],
+                [$scheduleRows[$newSubscriptionId]],
+                $periodType,
+                $metadata
+            );
+        }
+
+        $db->commit();
+
+        if (!$shouldSchedulePartialRenewal) {
+            stripeFinalizeBundleUpgradeMetadata(
+                $db,
+                $stripeSubscriptionId,
+                $userId,
+                $chatbotId,
+                $existingSubscriptionId,
+                $newSubscriptionId,
+                $existingPromotionId,
+                $newPromotionId,
+                $periodType,
+                $currencyId,
+                $metadata
+            );
+        }
 
         stripeCheckoutLog('bundle_upgrade.finalize.success', [
             'user_id' => $userId,
@@ -870,6 +962,7 @@ function finalizeStripeBundleUpgradeInvoice(PDO $db, $invoice, $stripeSubscripti
             'stripe_subscription_id' => $stripeSubscriptionId,
             'stripe_invoice_id' => $stripeInvoiceId,
             'amount' => $amount,
+            'partial_renewal_scheduled' => $shouldSchedulePartialRenewal,
         ]);
 
         return [
@@ -904,6 +997,58 @@ function stripeInvoicePaidAmountDecimal($invoice): float {
     }
 
     return ((int) $amount) / 100;
+}
+
+function stripeBundleUpgradeAlreadyFinalized(
+    PDO $db,
+    string $userId,
+    string $existingSubscriptionId,
+    string $newSubscriptionId,
+    string $paymentId,
+    string $stripeInvoiceId,
+    ?string $paymentIntentId
+): ?array {
+    $stmt = $db->prepare("
+        SELECT p.id AS payment_id
+        FROM payments p
+        WHERE p.user_id = :user_id
+          AND p.subscription_id = :new_subscription_id
+          AND p.status = 'succeeded'
+          AND (
+              (:payment_id_filter <> '' AND p.id = :payment_id_match)
+              OR (:stripe_invoice_id_filter <> '' AND p.stripe_invoice_id = :stripe_invoice_id_match)
+              OR (:payment_intent_id_filter <> '' AND p.stripe_payment_intent_id = :payment_intent_id_match)
+          )
+          AND EXISTS (
+              SELECT 1
+              FROM subscriptions s_existing
+              WHERE s_existing.id = :existing_subscription_id
+                AND s_existing.user_id = p.user_id
+          )
+          AND EXISTS (
+              SELECT 1
+              FROM subscriptions s_new
+              WHERE s_new.id = :new_subscription_id_exists
+                AND s_new.user_id = p.user_id
+                AND s_new.status IN ('active', 'trialing', 'past_due')
+          )
+        LIMIT 1
+    ");
+    $stmt->execute([
+        'user_id' => $userId,
+        'new_subscription_id' => $newSubscriptionId,
+        'payment_id_filter' => $paymentId,
+        'payment_id_match' => $paymentId,
+        'stripe_invoice_id_filter' => $stripeInvoiceId,
+        'stripe_invoice_id_match' => $stripeInvoiceId,
+        'payment_intent_id_filter' => (string) ($paymentIntentId ?? ''),
+        'payment_intent_id_match' => (string) ($paymentIntentId ?? ''),
+        'existing_subscription_id' => $existingSubscriptionId,
+        'new_subscription_id_exists' => $newSubscriptionId,
+    ]);
+
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $row ?: null;
 }
 
 function stripeCancelDuplicateBundlePromotionRows(
@@ -958,6 +1103,404 @@ function stripeCancelDuplicateBundlePromotionRows(
     ")->execute($params);
 }
 
+function stripeFinalizerPromotionLabel(string $slotType): string {
+    return match ($slotType) {
+        'Homepage' => 'Homepage Visibility',
+        'Chatbots page' => 'Chatbots Page Visibility',
+        default => $slotType ?: 'Promotion',
+    };
+}
+
+function stripeFinalizerPromotionProductId(string $promotionId): string {
+    return 'cs_promo_' . substr(str_replace('-', '', strtolower($promotionId)), 0, 24);
+}
+
+function stripeFinalizerGetOrCreateStripePromotionProduct(array $promotion): string {
+    $promotionId = (string) ($promotion['promotion_id'] ?? $promotion['promotions_id'] ?? $promotion['id'] ?? '');
+    if ($promotionId === '') {
+        throw new RuntimeException('Promotion ID is missing for Stripe product.');
+    }
+
+    $productId = stripeFinalizerPromotionProductId($promotionId);
+    $slotType = (string) ($promotion['slot_type'] ?? $promotion['plan_name'] ?? '');
+    $label = stripeFinalizerPromotionLabel($slotType);
+
+    try {
+        $product = \Stripe\Product::retrieve($productId);
+        if (!empty($product->id) && empty($product->deleted)) {
+            return (string) $product->id;
+        }
+    } catch (\Stripe\Exception\InvalidRequestException $e) {
+        // Product does not exist yet.
+    }
+
+    $createParams = [
+        'id' => $productId,
+        'name' => 'ChatbotScout - ' . $label,
+        'metadata' => [
+            'promotion_id' => $promotionId,
+            'slot_type' => $slotType,
+        ],
+    ];
+
+    try {
+        $product = \Stripe\Product::create($createParams);
+    } catch (\Stripe\Exception\InvalidRequestException $e) {
+        unset($createParams['id']);
+        $product = \Stripe\Product::create($createParams);
+    }
+
+    return (string) $product->id;
+}
+
+function stripeFinalizerStripeAmountToCents(float $amount): int {
+    return (int) round($amount * 100);
+}
+
+function stripeFinalizerCreatePromotionPrice(array $promotion, float $amount, string $currency, string $interval, string $pricingMode): string {
+    $promotionId = (string) ($promotion['promotion_id'] ?? $promotion['promotions_id'] ?? $promotion['id'] ?? '');
+    $productId = stripeFinalizerGetOrCreateStripePromotionProduct($promotion);
+
+    $price = \Stripe\Price::create([
+        'currency' => strtolower($currency),
+        'product' => $productId,
+        'unit_amount' => stripeFinalizerStripeAmountToCents($amount),
+        'recurring' => ['interval' => $interval],
+        'tax_behavior' => 'exclusive',
+        'metadata' => [
+            'promotion_id' => $promotionId,
+            'slot_type' => (string) ($promotion['slot_type'] ?? $promotion['plan_name'] ?? ''),
+            'pricing_mode' => $pricingMode,
+        ],
+    ]);
+
+    return (string) $price->id;
+}
+
+function stripeFinalizerIntervalForBillingPeriod(string $billingPeriod): string {
+    return $billingPeriod === 'yearly' ? 'year' : 'month';
+}
+
+function stripeFinalizerFindStripeSubscriptionItemId($stripeSubscription, string $promotionId, string $subscriptionId): ?string {
+    foreach (($stripeSubscription->items->data ?? []) as $item) {
+        $metadata = $item->metadata ?? null;
+        $priceMetadata = $item->price->metadata ?? null;
+        $productId = stripeObjectId($item->price->product ?? null);
+
+        $itemPromotionId = $metadata->promotion_id ?? ($priceMetadata->promotion_id ?? null);
+        $itemSubscriptionId = $metadata->subscription_id ?? null;
+
+        if ((string) $itemPromotionId === $promotionId || (string) $itemSubscriptionId === $subscriptionId) {
+            return (string) $item->id;
+        }
+
+        if ($productId && $productId === stripeFinalizerPromotionProductId($promotionId)) {
+            return (string) $item->id;
+        }
+    }
+
+    return null;
+}
+
+function stripeFinalizeBundleUpgradeCurrentBundlePrices(
+    string $stripeSubscriptionId,
+    array $rows,
+    string $billingPeriod
+): void {
+    $stripeSubscription = \Stripe\Subscription::retrieve([
+        'id' => $stripeSubscriptionId,
+        'expand' => ['items.data.price.product'],
+    ]);
+
+    $currency = strtolower((string) ($rows[0]['currency_code'] ?? 'eur'));
+    $interval = stripeFinalizerIntervalForBillingPeriod($billingPeriod);
+    $items = [];
+
+    foreach ($rows as $row) {
+        $promotionId = (string) ($row['promotions_id'] ?? $row['promotion_id'] ?? '');
+        $subscriptionId = (string) ($row['id'] ?? '');
+        $itemId = stripeFinalizerFindStripeSubscriptionItemId($stripeSubscription, $promotionId, $subscriptionId);
+        if (!$itemId) {
+            throw new RuntimeException('Could not find Stripe subscription item for bundle repricing.');
+        }
+
+        $items[] = [
+            'id' => $itemId,
+            'price' => stripeFinalizerCreatePromotionPrice(
+                $row,
+                (float) $row['bundle_amount'],
+                $currency,
+                $interval,
+                'bundle'
+            ),
+            'quantity' => 1,
+            'metadata' => [
+                'promotion_id' => $promotionId,
+                'subscription_id' => $subscriptionId,
+                'pricing_mode' => 'bundle',
+            ],
+        ];
+    }
+
+    if (empty($items)) {
+        return;
+    }
+
+    \Stripe\Subscription::update($stripeSubscriptionId, [
+        'items' => $items,
+        'proration_behavior' => 'none',
+        'payment_behavior' => 'allow_incomplete',
+        'expand' => ['items.data.price.product'],
+    ]);
+
+    stripeCheckoutLog('bundle_upgrade.current_items_repriced_without_proration', [
+        'stripe_subscription_id' => $stripeSubscriptionId,
+        'subscription_ids' => implode(',', array_map(static fn ($row) => (string) ($row['id'] ?? ''), $rows)),
+        'billing_period' => $billingPeriod,
+    ]);
+}
+
+function stripeFinalizerSubscriptionPhaseItems($stripeSubscription): array {
+    $items = [];
+    foreach (($stripeSubscription->items->data ?? []) as $item) {
+        $priceId = stripeObjectId($item->price ?? null);
+        if (!$priceId) {
+            continue;
+        }
+
+        $items[] = [
+            'price' => $priceId,
+            'quantity' => (int) ($item->quantity ?? 1),
+        ];
+    }
+
+    return $items;
+}
+
+function stripeFinalizerCurrentPeriodEndTimestampForRows(array $rows, $stripeSubscription): int {
+    $timestamps = [];
+    $stripeEnd = stripeObjectValue($stripeSubscription, 'current_period_end');
+    if (is_numeric($stripeEnd) && (int) $stripeEnd > 0) {
+        $timestamps[] = (int) $stripeEnd;
+    }
+
+    foreach ($rows as $row) {
+        $timestamp = strtotime((string) ($row['end_date'] ?? ''));
+        if ($timestamp !== false && $timestamp > 0) {
+            $timestamps[] = $timestamp;
+        }
+    }
+
+    return max($timestamps ?: [time()]);
+}
+
+function stripeFinalizerSubscriptionGroupMetadata(array $rows, string $billingPeriod, bool $isBundle, array $extra = []): array {
+    $promotionIds = array_map(static fn ($row) => (string) $row['promotions_id'], $rows);
+    $subscriptionIds = array_map(static fn ($row) => (string) $row['id'], $rows);
+    $lineAmounts = array_map(static function ($row) use ($isBundle) {
+        $amount = $isBundle ? (float) $row['bundle_amount'] : (float) $row['standalone_amount'];
+        return number_format($amount, 2, '.', '');
+    }, $rows);
+    $totalAmount = array_sum(array_map('floatval', $lineAmounts));
+
+    return array_merge([
+        'user_id' => (string) ($rows[0]['user_id'] ?? ''),
+        'chatbot_id' => (string) ($rows[0]['chatbot_id'] ?? ''),
+        'promotion_ids' => implode(',', $promotionIds),
+        'subscription_ids' => implode(',', $subscriptionIds),
+        'line_amounts' => implode(',', $lineAmounts),
+        'total_amount' => number_format((float) $totalAmount, 2, '.', ''),
+        'period_type' => $billingPeriod,
+        'currency_id' => (string) ($rows[0]['currency_id'] ?? ''),
+        'is_bundle' => $isBundle ? '1' : '0',
+    ], $extra);
+}
+
+function stripeFinalizerLoadBundleUpgradeScheduleRows(
+    PDO $db,
+    string $userId,
+    string $chatbotId,
+    string $existingSubscriptionId,
+    string $newSubscriptionId,
+    string $periodType
+): array {
+    $stmt = $db->prepare("
+        SELECT
+            s.id,
+            s.user_id,
+            s.chatbot_id,
+            s.promotions_id,
+            s.end_date,
+            p.slot_type,
+            p.price,
+            p.discount_percentage,
+            p.currency_id,
+            c.code AS currency_code
+        FROM subscriptions s
+        JOIN promotions p ON p.id = s.promotions_id
+        JOIN currencies c ON c.id = p.currency_id
+        WHERE s.id IN (:existing_subscription_id, :new_subscription_id)
+          AND s.user_id = :user_id
+          AND s.chatbot_id = :chatbot_id
+          AND s.subscription_type = 'promotion'
+        FOR UPDATE
+    ");
+    $stmt->execute([
+        'existing_subscription_id' => $existingSubscriptionId,
+        'new_subscription_id' => $newSubscriptionId,
+        'user_id' => $userId,
+        'chatbot_id' => $chatbotId,
+    ]);
+
+    $rows = [];
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $row['promotion_id'] = (string) $row['promotions_id'];
+        $row['billing_period'] = $periodType;
+        $row['standalone_amount'] = promotionSingleTotalPrice(
+            (float) $row['price'],
+            (float) ($row['discount_percentage'] ?? 0),
+            $periodType
+        );
+        $row['bundle_amount'] = promotionBundleLineTotalPrice((float) $row['price'], $periodType);
+        $rows[(string) $row['id']] = $row;
+    }
+
+    if (empty($rows[$existingSubscriptionId]) || empty($rows[$newSubscriptionId])) {
+        throw new RuntimeException('Bundle upgrade subscription rows are missing for Stripe renewal schedule.');
+    }
+
+    return $rows;
+}
+
+function stripeScheduleBundleUpgradePartialRenewal(
+    string $stripeSubscriptionId,
+    array $selectedRows,
+    array $remainingRows,
+    string $billingPeriod,
+    $upgradeMetadata
+): void {
+    if (!$stripeSubscriptionId) {
+        throw new RuntimeException('Stripe subscription ID is missing for bundle upgrade schedule.');
+    }
+
+    $stripeSubscription = \Stripe\Subscription::retrieve([
+        'id' => $stripeSubscriptionId,
+        'expand' => ['items.data.price'],
+    ]);
+
+    if (!empty($stripeSubscription->cancel_at_period_end)) {
+        $stripeSubscription = \Stripe\Subscription::update($stripeSubscriptionId, [
+            'cancel_at_period_end' => false,
+            'expand' => ['items.data.price'],
+        ]);
+    }
+
+    $allRows = array_merge($selectedRows, $remainingRows);
+    $currentStart = (int) (stripeObjectValue($stripeSubscription, 'current_period_start') ?: time());
+    $currentEnd = stripeFinalizerCurrentPeriodEndTimestampForRows($allRows, $stripeSubscription);
+    if ($currentEnd <= time()) {
+        throw new RuntimeException('Current billing period has already ended.');
+    }
+
+    $currentItems = stripeFinalizerSubscriptionPhaseItems($stripeSubscription);
+    if (empty($currentItems)) {
+        throw new RuntimeException('Stripe subscription items are missing for bundle upgrade schedule.');
+    }
+
+    $currency = strtolower((string) ($remainingRows[0]['currency_code'] ?? 'eur'));
+    $interval = stripeFinalizerIntervalForBillingPeriod($billingPeriod);
+    $remainingIsBundle = count($remainingRows) > 1;
+    $futureItems = [];
+
+    foreach ($remainingRows as $row) {
+        $amount = $remainingIsBundle ? (float) $row['bundle_amount'] : (float) $row['standalone_amount'];
+        $futureItems[] = [
+            'price' => stripeFinalizerCreatePromotionPrice(
+                $row,
+                $amount,
+                $currency,
+                $interval,
+                $remainingIsBundle ? 'bundle' : 'single'
+            ),
+            'quantity' => 1,
+        ];
+    }
+
+    $clearUpgradeMetadata = [
+        'chatbot_name' => (string) stripePaymentMetadataValue($upgradeMetadata, 'chatbot_name', ''),
+        'payment_ids' => '',
+        'duration_days' => (string) stripePaymentMetadataValue($upgradeMetadata, 'duration_days', ($billingPeriod === 'yearly' ? '365' : '30')),
+        'upgrade_type' => '',
+        'upgrade_existing_subscription_id' => '',
+        'upgrade_new_subscription_id' => '',
+        'upgrade_existing_promotion_id' => '',
+        'upgrade_new_promotion_id' => '',
+        'upgrade_payment_id' => '',
+    ];
+
+    $pendingMetadata = stripeFinalizerSubscriptionGroupMetadata(
+        $allRows,
+        $billingPeriod,
+        true,
+        array_merge($clearUpgradeMetadata, [
+            'partial_cancel_subscription_ids' => implode(',', array_map(static fn ($row) => (string) $row['id'], $selectedRows)),
+            'partial_cancel_effective_at' => (string) $currentEnd,
+        ])
+    );
+
+    $futureMetadata = stripeFinalizerSubscriptionGroupMetadata(
+        $remainingRows,
+        $billingPeriod,
+        $remainingIsBundle,
+        array_merge($clearUpgradeMetadata, [
+            'partial_cancel_subscription_ids' => '',
+            'partial_cancel_effective_at' => '',
+        ])
+    );
+
+    $scheduleId = stripeObjectId(stripeObjectValue($stripeSubscription, 'schedule'));
+    if ($scheduleId) {
+        \Stripe\SubscriptionSchedule::retrieve($scheduleId);
+    } else {
+        $schedule = \Stripe\SubscriptionSchedule::create([
+            'from_subscription' => $stripeSubscriptionId,
+        ]);
+        $scheduleId = (string) $schedule->id;
+    }
+
+    \Stripe\SubscriptionSchedule::update($scheduleId, [
+        'end_behavior' => 'release',
+        'proration_behavior' => 'none',
+        'phases' => [
+            [
+                'start_date' => $currentStart,
+                'end_date' => $currentEnd,
+                'items' => $currentItems,
+                'metadata' => $pendingMetadata,
+            ],
+            [
+                'start_date' => $currentEnd,
+                'iterations' => 1,
+                'items' => $futureItems,
+                'metadata' => $futureMetadata,
+                'proration_behavior' => 'none',
+            ],
+        ],
+    ]);
+
+    \Stripe\Subscription::update($stripeSubscriptionId, [
+        'metadata' => $pendingMetadata,
+    ]);
+
+    stripeCheckoutLog('bundle_upgrade.partial_renewal_schedule_updated', [
+        'stripe_subscription_id' => $stripeSubscriptionId,
+        'schedule_id' => $scheduleId,
+        'selected_subscription_ids' => implode(',', array_map(static fn ($row) => (string) $row['id'], $selectedRows)),
+        'remaining_subscription_ids' => implode(',', array_map(static fn ($row) => (string) $row['id'], $remainingRows)),
+        'future_pricing_mode' => $remainingIsBundle ? 'bundle' : 'single',
+    ]);
+}
+
 function stripeFinalizeBundleUpgradeMetadata(
     PDO $db,
     string $stripeSubscriptionId,
@@ -1002,7 +1545,6 @@ function stripeFinalizeBundleUpgradeMetadata(
         ];
 
         \Stripe\Subscription::update($stripeSubscriptionId, [
-            'cancel_at_period_end' => false,
             'metadata' => $metadata,
         ]);
     } catch (Exception $e) {
@@ -1055,6 +1597,12 @@ function syncStripeSubscriptionStatus(PDO $db, $stripeSubscription): void {
     $endDate = stripeUnixToMysql(stripeObjectValue($stripeSubscription, 'current_period_end') ?: time());
 
     if (!$userId && empty($localSubscriptionIds)) {
+        return;
+    }
+
+    if ((string) stripePaymentMetadataValue($metadata, 'upgrade_type', '') === 'bundle_upgrade'
+        && $status !== 'cancelled'
+    ) {
         return;
     }
 

@@ -220,6 +220,7 @@ function profileLoadPromotionSubscriptionGroup(PDO $db, string $userId, string $
             s.start_date,
             s.end_date,
             s.cancel_at_period_end,
+            s.auto_renew,
             s.stripe_subscription_id,
             s.stripe_customer_id,
             p.slot_type,
@@ -269,6 +270,7 @@ function profileLoadPromotionSubscriptionGroup(PDO $db, string $userId, string $
             s.start_date,
             s.end_date,
             s.cancel_at_period_end,
+            s.auto_renew,
             s.stripe_subscription_id,
             s.stripe_customer_id,
             p.slot_type,
@@ -403,10 +405,17 @@ function profileRowsById(array $rows): array
     return $byId;
 }
 
+function profileRowWillRenewAtPeriodEnd(array $row): bool
+{
+    return empty($row['cancel_at_period_end'])
+        && (!array_key_exists('auto_renew', $row) || !empty($row['auto_renew']));
+}
+
 function profileApplyPartialCancelDbState(PDO $db, array $selectedRows, array $remainingRows, string $cancelType, ?string $reason, $stripeSubscription): void
 {
     $selectedIds = array_map(static fn ($row) => (string) $row['id'], $selectedRows);
-    $remainingIds = array_map(static fn ($row) => (string) $row['id'], $remainingRows);
+    $remainingRenewRows = array_values(array_filter($remainingRows, static fn ($row) => profileRowWillRenewAtPeriodEnd($row)));
+    $remainingCancelRows = array_values(array_filter($remainingRows, static fn ($row) => !profileRowWillRenewAtPeriodEnd($row)));
     $periodEndDate = profileCurrentPeriodEndDateForGroup(array_merge($selectedRows, $remainingRows), $stripeSubscription);
 
     if (!empty($selectedIds)) {
@@ -449,15 +458,15 @@ function profileApplyPartialCancelDbState(PDO $db, array $selectedRows, array $r
         $db->prepare($sql)->execute($params);
     }
 
-    if (!empty($remainingIds)) {
+    if (!empty($remainingRenewRows)) {
         $placeholders = [];
         $params = [
             'end_date' => $periodEndDate,
         ];
-        foreach ($remainingIds as $index => $id) {
+        foreach ($remainingRenewRows as $index => $row) {
             $key = 'remaining_' . $index;
             $placeholders[] = ':' . $key;
-            $params[$key] = $id;
+            $params[$key] = (string) $row['id'];
         }
 
         $db->prepare("
@@ -472,6 +481,29 @@ function profileApplyPartialCancelDbState(PDO $db, array $selectedRows, array $r
             WHERE id IN (" . implode(',', $placeholders) . ")
         ")->execute($params);
     }
+
+    if (!empty($remainingCancelRows)) {
+        $placeholders = [];
+        $params = [
+            'end_date' => $periodEndDate,
+        ];
+        foreach ($remainingCancelRows as $index => $row) {
+            $key = 'remaining_cancel_' . $index;
+            $placeholders[] = ':' . $key;
+            $params[$key] = (string) $row['id'];
+        }
+
+        $db->prepare("
+            UPDATE subscriptions
+            SET status = CASE WHEN status = 'cancelled' THEN 'active' ELSE status END,
+                end_date = :end_date,
+                auto_renew = FALSE,
+                cancel_at_period_end = TRUE,
+                cancelled_at = COALESCE(cancelled_at, NOW()),
+                updated_at = NOW()
+            WHERE id IN (" . implode(',', $placeholders) . ")
+        ")->execute($params);
+    }
 }
 
 function profileUpdateStripeSubscriptionMetadata(string $stripeSubscriptionId, array $metadata): void
@@ -479,6 +511,85 @@ function profileUpdateStripeSubscriptionMetadata(string $stripeSubscriptionId, a
     \Stripe\Subscription::update($stripeSubscriptionId, [
         'metadata' => $metadata,
     ]);
+}
+
+function profileReleaseSubscriptionScheduleIfNeeded($stripeSubscription, string $logEvent)
+{
+    $stripeSubscriptionId = stripeObjectId($stripeSubscription);
+    if (!$stripeSubscriptionId) {
+        throw new RuntimeException('Stripe subscription ID is missing.');
+    }
+
+    $scheduleId = stripeObjectId(stripeObjectValue($stripeSubscription, 'schedule'));
+    if (!$scheduleId) {
+        return $stripeSubscription;
+    }
+
+    try {
+        $schedule = \Stripe\SubscriptionSchedule::retrieve($scheduleId);
+        $schedule->release();
+
+        stripeCheckoutLog('partial_cancel.schedule_released', [
+            'stripe_subscription_id' => $stripeSubscriptionId,
+            'schedule_id' => $scheduleId,
+        ]);
+    } catch (\Stripe\Exception\ApiErrorException $e) {
+        stripeCheckoutLog($logEvent, stripeCheckoutExceptionContext($e) + [
+            'stripe_subscription_id' => $stripeSubscriptionId,
+            'schedule_id' => $scheduleId,
+        ]);
+    }
+
+    return \Stripe\Subscription::retrieve([
+        'id' => $stripeSubscriptionId,
+        'expand' => ['items.data.price.product'],
+    ]);
+}
+
+function profileScheduleWholeGroupCancelAtPeriodEnd($stripeSubscription, array $groupRows, string $billingPeriod)
+{
+    $stripeSubscriptionId = stripeObjectId($stripeSubscription);
+    if (!$stripeSubscriptionId) {
+        throw new RuntimeException('Stripe subscription ID is missing.');
+    }
+
+    if (empty($groupRows)) {
+        throw new RuntimeException('Subscription group is missing.');
+    }
+
+    $currentEnd = profileCurrentPeriodEndTimestampForGroup($groupRows, $stripeSubscription);
+    if ($currentEnd <= time()) {
+        throw new RuntimeException('Current billing period has already ended.');
+    }
+
+    $stripeSubscription = profileReleaseSubscriptionScheduleIfNeeded(
+        $stripeSubscription,
+        'partial_cancel.whole_group_schedule_release_failed'
+    );
+
+    $metadata = profileSubscriptionGroupMetadata(
+        $groupRows,
+        $billingPeriod,
+        count($groupRows) > 1,
+        [
+            'partial_cancel_subscription_ids' => '',
+            'partial_cancel_effective_at' => '',
+        ]
+    );
+
+    $updatedSubscription = \Stripe\Subscription::update($stripeSubscriptionId, [
+        'cancel_at_period_end' => true,
+        'metadata' => $metadata,
+        'expand' => ['items.data.price.product'],
+    ]);
+
+    stripeCheckoutLog('partial_cancel.whole_group_period_end_updated', [
+        'stripe_subscription_id' => $stripeSubscriptionId,
+        'subscription_ids' => implode(',', array_map(static fn ($row) => (string) $row['id'], $groupRows)),
+        'effective_at' => (string) $currentEnd,
+    ]);
+
+    return $updatedSubscription;
 }
 
 function profileSchedulePartialCancelAtPeriodEnd($stripeSubscription, array $selectedRows, array $remainingRows, string $billingPeriod): void
@@ -579,27 +690,16 @@ function profileApplyPartialCancelImmediately($stripeSubscription, array $select
         throw new RuntimeException('Stripe subscription ID is missing.');
     }
 
-    $scheduleId = stripeObjectId(stripeObjectValue($stripeSubscription, 'schedule'));
-    if ($scheduleId) {
-        try {
-            $schedule = \Stripe\SubscriptionSchedule::retrieve($scheduleId);
-            $schedule->release();
-        } catch (\Stripe\Exception\ApiErrorException $e) {
-            stripeCheckoutLog('partial_cancel.schedule_release_failed', stripeCheckoutExceptionContext($e) + [
-                'stripe_subscription_id' => $stripeSubscriptionId,
-                'schedule_id' => $scheduleId,
-            ]);
-        }
-
-        $stripeSubscription = \Stripe\Subscription::retrieve([
-            'id' => $stripeSubscriptionId,
-            'expand' => ['items.data.price.product'],
-        ]);
-    }
+    $stripeSubscription = profileReleaseSubscriptionScheduleIfNeeded(
+        $stripeSubscription,
+        'partial_cancel.schedule_release_failed'
+    );
 
     $currency = strtolower((string) ($remainingRows[0]['currency_code'] ?? 'eur'));
     $interval = profileStripeIntervalForBillingPeriod($billingPeriod);
     $remainingIsBundle = count($remainingRows) > 1;
+    $remainingRenewRows = array_values(array_filter($remainingRows, static fn ($row) => profileRowWillRenewAtPeriodEnd($row)));
+    $remainingCancelRows = array_values(array_filter($remainingRows, static fn ($row) => !profileRowWillRenewAtPeriodEnd($row)));
     $items = [];
 
     foreach ($remainingRows as $row) {
@@ -646,10 +746,29 @@ function profileApplyPartialCancelImmediately($stripeSubscription, array $select
         'expand' => ['items.data.price.product'],
     ]);
 
+    if (!empty($remainingCancelRows) && empty($remainingRenewRows)) {
+        $updatedSubscription = \Stripe\Subscription::update($stripeSubscriptionId, [
+            'cancel_at_period_end' => true,
+            'expand' => ['items.data.price.product'],
+        ]);
+    } elseif (!empty($remainingCancelRows)) {
+        profileSchedulePartialCancelAtPeriodEnd($updatedSubscription, $remainingCancelRows, $remainingRenewRows, $billingPeriod);
+        $updatedSubscription = \Stripe\Subscription::retrieve([
+            'id' => $stripeSubscriptionId,
+            'expand' => ['items.data.price.product'],
+        ]);
+    } elseif (!empty($updatedSubscription->cancel_at_period_end)) {
+        $updatedSubscription = \Stripe\Subscription::update($stripeSubscriptionId, [
+            'cancel_at_period_end' => false,
+            'expand' => ['items.data.price.product'],
+        ]);
+    }
+
     stripeCheckoutLog('partial_cancel.immediate_updated', [
         'stripe_subscription_id' => $stripeSubscriptionId,
         'selected_subscription_ids' => implode(',', array_map(static fn ($row) => (string) $row['id'], $selectedRows)),
         'remaining_subscription_ids' => implode(',', array_map(static fn ($row) => (string) $row['id'], $remainingRows)),
+        'remaining_cancel_at_period_end_ids' => implode(',', array_map(static fn ($row) => (string) $row['id'], $remainingCancelRows)),
     ]);
 
     return $updatedSubscription;
@@ -1300,12 +1419,16 @@ if ($action === 'cancel_subscription') {
 
         if ($isPartialCancel) {
             $billingPeriod = (string) ($sub['billing_period'] ?? 'monthly');
+            $remainingRenewRows = array_values(array_filter($remainingRows, static fn ($row) => profileRowWillRenewAtPeriodEnd($row)));
+            $remainingCancelRows = array_values(array_filter($remainingRows, static fn ($row) => !profileRowWillRenewAtPeriodEnd($row)));
             stripeCheckoutLog('partial_cancel.start', [
                 'user_id' => $user['id'] ?? null,
                 'stripe_subscription_id' => $sub['stripe_subscription_id'],
                 'cancel_type' => $cancelType,
                 'selected_subscription_ids' => implode(',', $cancelItemIds),
                 'remaining_subscription_ids' => implode(',', array_map(static fn ($row) => (string) $row['id'], $remainingRows)),
+                'remaining_renew_subscription_ids' => implode(',', array_map(static fn ($row) => (string) $row['id'], $remainingRenewRows)),
+                'remaining_cancel_subscription_ids' => implode(',', array_map(static fn ($row) => (string) $row['id'], $remainingCancelRows)),
             ]);
 
             if ($cancelType === 'immediately') {
@@ -1322,7 +1445,13 @@ if ($action === 'cancel_subscription') {
                     exit;
                 }
 
-                profileSchedulePartialCancelAtPeriodEnd($stripeSubscription, $selectedRows, $remainingRows, $billingPeriod);
+                if (empty($remainingRenewRows)) {
+                    $stripeSubscription = profileScheduleWholeGroupCancelAtPeriodEnd($stripeSubscription, $groupRows, $billingPeriod);
+                    syncStripeSubscriptionStatus($db, $stripeSubscription);
+                } else {
+                    $periodEndCancelRows = array_merge($selectedRows, $remainingCancelRows);
+                    profileSchedulePartialCancelAtPeriodEnd($stripeSubscription, $periodEndCancelRows, $remainingRenewRows, $billingPeriod);
+                }
             }
 
             profileApplyPartialCancelDbState($db, $selectedRows, $remainingRows, $cancelType, $reason, $stripeSubscription);
@@ -1337,11 +1466,25 @@ if ($action === 'cancel_subscription') {
                 ]
             );
 
+            $remainingNoRenewCount = count(array_filter(
+                $remainingRows,
+                static fn ($row) => !profileRowWillRenewAtPeriodEnd($row)
+            ));
+            $allRemainingCancelAtPeriodEnd = !empty($remainingRows)
+                && $remainingNoRenewCount === count($remainingRows);
+            if ($cancelType === 'immediately') {
+                $partialCancelMessage = $allRemainingCancelAtPeriodEnd
+                    ? 'Selected promotion cancelled. Remaining promotion will still end after this billing period.'
+                    : 'Selected promotion cancelled. Remaining promotion will continue at its standalone price.';
+            } else {
+                $partialCancelMessage = $allRemainingCancelAtPeriodEnd
+                    ? 'Selected promotion will end after this billing period. All promotions for this chatbot will end then.'
+                    : 'Selected promotion will end after this billing period. Remaining promotion will renew at its standalone price.';
+            }
+
             echo json_encode([
                 'success' => true,
-                'message' => $cancelType === 'immediately'
-                    ? 'Selected promotion cancelled. Remaining promotion will continue at its standalone price.'
-                    : 'Selected promotion will end after this billing period. Remaining promotion will renew at its standalone price.',
+                'message' => $partialCancelMessage,
             ]);
             exit;
         }

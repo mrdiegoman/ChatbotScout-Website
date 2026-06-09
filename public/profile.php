@@ -266,6 +266,8 @@ foreach ($subscriptions as $sub) {
             2
         ),
         'period' => strtolower($sub['billing_period']),
+        'auto_renew' => !empty($sub['auto_renew']),
+        'cancel_at_period_end' => !empty($sub['cancel_at_period_end']),
     ];
 }
 

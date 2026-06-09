@@ -547,7 +547,14 @@ function parseCancelItems(rawValue) {
     }
 }
 
+function boolish(value) {
+    return value === true || value === 1 || value === '1' || value === 'true';
+}
+
 function normalizeCancelItem(item) {
+    const hasAutoRenew = Object.prototype.hasOwnProperty.call(item || {}, 'auto_renew')
+        || Object.prototype.hasOwnProperty.call(item || {}, 'autoRenew');
+
     return {
         id: item?.id ? String(item.id) : '',
         promotionId: item?.promotion_id ? String(item.promotion_id) : '',
@@ -556,7 +563,9 @@ function normalizeCancelItem(item) {
         chatbot: item?.chatbot || '',
         price: item?.price || '',
         standalonePrice: item?.standalone_price || item?.price || '',
-        period: item?.period || ''
+        period: item?.period || '',
+        autoRenew: hasAutoRenew ? boolish(item?.auto_renew ?? item?.autoRenew) : true,
+        cancelAtPeriodEnd: boolish(item?.cancel_at_period_end ?? item?.cancelAtPeriodEnd)
     };
 }
 
@@ -614,6 +623,15 @@ function partialCancelPriceNotice() {
     }
 
     const remaining = remainingItems[0];
+    if (remaining.cancelAtPeriodEnd || remaining.autoRenew === false) {
+        return `
+            <div class="cancel-confirm-summary__notice">
+                The remaining ${escapeHtml(remaining.plan)} is already scheduled to end after this billing period.
+                No promotion in this bundle will renew after that.
+            </div>
+        `;
+    }
+
     return `
         <div class="cancel-confirm-summary__notice">
             The remaining ${escapeHtml(remaining.plan)} will continue without the bundle discount.
@@ -745,9 +763,13 @@ function cancelConfirmationMessage(cancelType) {
         ? 'immediately. Access to the selected promotions will end now.'
         : 'at the end of your billing period.';
     const remainingItems = getRemainingCancelItems();
-    const priceNotice = remainingItems.length === 1 && selectedItems.length > 0
-        ? ` The remaining ${remainingItems[0].plan} will renew without the bundle discount at ${remainingItems[0].standalonePrice || remainingItems[0].price} / ${remainingItems[0].period}.`
-        : '';
+    let priceNotice = '';
+    if (remainingItems.length === 1 && selectedItems.length > 0) {
+        const remaining = remainingItems[0];
+        priceNotice = remaining.cancelAtPeriodEnd || remaining.autoRenew === false
+            ? ` The remaining ${remaining.plan} is already scheduled to end after this billing period.`
+            : ` The remaining ${remaining.plan} will renew without the bundle discount at ${remaining.standalonePrice || remaining.price} / ${remaining.period}.`;
+    }
 
     return `${itemNames || 'Selected promotions'} will be cancelled ${cancelTimingDescription}${priceNotice}`;
 }
