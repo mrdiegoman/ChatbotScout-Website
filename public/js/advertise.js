@@ -36,6 +36,7 @@ const chatbotSelectMenu = $('chatbotSelectMenu');
 const periodGrid      = $('modalPeriodGrid');
 const upgradeNote     = $('modalUpgradeNote');
 const modalError      = $('modalError');
+const subscriptionsBtn = $('modalSubscriptionsBtn');
 const confirmBtn      = $('modalConfirmBtn');
 const confirmText     = $('modalConfirmText');
 const confirmLoader   = $('modalConfirmLoader');
@@ -516,22 +517,7 @@ function setupModal() {
     });
 
     // Chatbot select
-    chatbotSelect.addEventListener('change', async () => {
-        const botId = chatbotSelect.value;
-        state.activeSlots = [];
-        state.activePromotions = [];
-        state.pendingUpgrade = null;
-        state.confirmBlockedReason = '';
- 
-        if (botId) {
-            await checkActivePromotions(botId);
-        }
- 
-        applySlotRestrictions();
-        populatePeriodOptions(state.selectedSlot);
-        updateSummary();
-        updateChatbotSelectTrigger();
-    });
+    chatbotSelect.addEventListener('change', handleChatbotSelectionChange);
 
     chatbotSelectTrigger.addEventListener('click', () => {
         if (chatbotSelectTrigger.disabled) return;
@@ -556,6 +542,43 @@ function setupModal() {
 
     // Confirm
     confirmBtn.addEventListener('click', handleConfirm);
+    if (subscriptionsBtn) {
+        subscriptionsBtn.addEventListener('click', () => {
+            window.location.href = 'profile.php?tab=profile#your-promotions';
+        });
+    }
+}
+
+async function handleChatbotSelectionChange() {
+    const botId = chatbotSelect.value;
+    state.activeSlots = [];
+    state.activePromotions = [];
+    state.pendingUpgrade = null;
+    state.confirmBlockedReason = '';
+    syncSubscriptionsShortcut('');
+
+    if (botId) {
+        await checkActivePromotions(botId);
+    }
+
+    applySlotRestrictions();
+    populatePeriodOptions(state.selectedSlot);
+    updateSummary();
+    updateChatbotSelectTrigger();
+}
+
+async function selectInitialChatbot() {
+    if (!state.chatbotsLoaded || state.chatbots.length === 0) {
+        return;
+    }
+
+    const firstChatbotId = String(state.chatbots[0]?.id || '');
+    if (!firstChatbotId) {
+        return;
+    }
+
+    chatbotSelect.value = firstChatbotId;
+    await handleChatbotSelectionChange();
 }
 
 async function openModal(slot) {
@@ -570,6 +593,7 @@ async function openModal(slot) {
     state.pendingUpgrade = null;
     state.confirmBlockedReason = '';
     modalError.textContent = '';
+    syncSubscriptionsShortcut('');
 
     // Set title
     const titles = {
@@ -597,7 +621,10 @@ async function openModal(slot) {
         setChatbotSelectTriggerText('Loading chatbots...');
         await loadChatbots();
         populateChatbotSelect();
+        await selectInitialChatbot();
         updateSummary();
+    } else {
+        await selectInitialChatbot();
     }
 }
 
@@ -611,18 +638,12 @@ function closeModal() {
     state.confirmBlockedReason = '';
     closeChatbotSelectMenu();
     modalError.textContent = '';
+    syncSubscriptionsShortcut('');
     updateUpgradeNote();
 }
 
 function populateChatbotSelect() {
     closeChatbotSelectMenu();
-
-    if (state.chatbotsLoaded && state.chatbots.length > 0 && state.chatbotSelectRendered) {
-        chatbotSelect.value = '';
-        chatbotSelectTrigger.disabled = false;
-        updateChatbotSelectTrigger();
-        return;
-    }
 
     chatbotSelect.innerHTML = '';
 
@@ -648,11 +669,8 @@ function populateChatbotSelect() {
         return;
     }
 
-    const placeholder = document.createElement('option');
-    placeholder.value = '';
-    placeholder.textContent = 'Select a chatbot...';
-    chatbotSelect.appendChild(placeholder);
     const menuItems = [];
+    const firstChatbotId = String(state.chatbots[0]?.id || '');
 
     state.chatbots.forEach(bot => {
         const opt = document.createElement('option');
@@ -661,6 +679,10 @@ function populateChatbotSelect() {
         chatbotSelect.appendChild(opt);
         menuItems.push({ value: bot.id, label: opt.textContent, disabled: false });
     });
+
+    if (firstChatbotId) {
+        chatbotSelect.value = firstChatbotId;
+    }
 
     renderChatbotSelectMenu(menuItems);
     chatbotSelectTrigger.disabled = false;
@@ -830,9 +852,15 @@ function setConfirmDisabled(disabled, reason = '') {
     confirmBtn.setAttribute('aria-disabled', disabled ? 'true' : 'false');
 }
 
+function syncSubscriptionsShortcut(message = '') {
+    if (!subscriptionsBtn) return;
+    subscriptionsBtn.hidden = !/all promotions active/i.test(message);
+}
+
 function blockConfirm(message) {
     state.confirmBlockedReason = message;
     modalError.textContent = message;
+    syncSubscriptionsShortcut(message);
     setConfirmDisabled(true, message);
 }
 
@@ -943,6 +971,7 @@ function applySlotRestrictions() {
  
     // Reset
     modalError.textContent = '';
+    syncSubscriptionsShortcut('');
     state.pendingUpgrade = null;
     state.confirmBlockedReason = '';
     setConfirmDisabled(false);
@@ -1079,6 +1108,7 @@ function updateSummary() {
 async function handleConfirm() {
     const botId = chatbotSelect.value;
     modalError.textContent = '';
+    syncSubscriptionsShortcut('');
 
     const blockMessage = state.confirmBlockedReason || getActivePromotionBlockMessage();
     if (blockMessage) {

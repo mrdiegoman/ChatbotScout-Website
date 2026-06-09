@@ -20,6 +20,7 @@ let clientSecret = null;
 let paymentFormReady = false;
 let upgradePaymentCreated = false;
 let isProcessing = false;
+let savedPaymentMethodForCheckout = null;
 
 const stripeLoading = document.getElementById('stripe-loading');
 const paymentEl = document.getElementById('payment-element');
@@ -81,6 +82,7 @@ async function initPaymentIntent() {
         }
 
         updateAmount(data);
+        renderPaymentMethod(data.payment_method || null);
 
         if (data.paid) {
             handleAlreadyPaidCheckout(data);
@@ -91,6 +93,14 @@ async function initPaymentIntent() {
         if (!clientSecret) {
             showError('Payment form is not available for this invoice. Please refresh and try again.');
             stripeLoading.style.display = 'none';
+            syncPayButton();
+            return;
+        }
+
+        if (savedPaymentMethodForCheckout) {
+            stripeLoading.style.display = 'none';
+            paymentEl.style.display = 'none';
+            paymentFormReady = false;
             syncPayButton();
             return;
         }
@@ -110,6 +120,11 @@ payBtn.addEventListener('click', async () => {
         return;
     }
 
+    if (savedPaymentMethodForCheckout && clientSecret) {
+        await confirmSavedPaymentMethod();
+        return;
+    }
+
     if (!elements || !clientSecret || !paymentFormReady) return;
 
     setLoading(true);
@@ -118,7 +133,7 @@ payBtn.addEventListener('click', async () => {
     const { error } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-            return_url: new URL('payment-success.php', window.location.href).href,
+            return_url: paymentSuccessReturnUrl(),
         },
     });
 
@@ -146,6 +161,7 @@ async function startUpgradePayment() {
         }
 
         updateAmount(data);
+        renderPaymentMethod(data.payment_method || savedPaymentMethodForCheckout);
 
         if (data.paid) {
             handleAlreadyPaidCheckout(data);
@@ -160,6 +176,13 @@ async function startUpgradePayment() {
         }
 
         upgradePaymentCreated = true;
+        if (savedPaymentMethodForCheckout) {
+            stripeLoading.style.display = 'none';
+            paymentEl.style.display = 'none';
+            await confirmSavedPaymentMethod();
+            return;
+        }
+
         stripeLoading.innerHTML = '<p style="color:#6b7280;font-size:14px;">Loading payment form...</p>';
         stripeLoading.style.display = 'block';
         mountPaymentElement();
@@ -204,6 +227,7 @@ async function fetchStripeAction(action) {
 
 function mountPaymentElement() {
     paymentFormReady = false;
+    savedPaymentMethodForCheckout = null;
     syncPayButton();
 
     elements = stripe.elements({
@@ -241,7 +265,8 @@ function setLoading(loading) {
 }
 
 function syncPayButton() {
-    const needsReadyPaymentForm = clientSecret && !paymentFormReady;
+    const usingSavedPaymentMethod = Boolean(savedPaymentMethodForCheckout && clientSecret);
+    const needsReadyPaymentForm = clientSecret && !paymentFormReady && !usingSavedPaymentMethod;
     const waitingForInitialForm = !isUpgradeCheckout && !clientSecret;
     payBtn.disabled = isProcessing || waitingForInitialForm || needsReadyPaymentForm;
     if (managePaymentMethodBtn) {
@@ -273,7 +298,7 @@ function handleAlreadyPaidCheckout(data) {
     payBtnLoader.style.display = 'none';
     payBtnText.textContent = 'Payment confirmed';
 
-    const redirectUrl = data.redirect_url || 'profile.php?tab=billing';
+    const redirectUrl = data.redirect_url || profileSubscriptionsUrl();
     window.setTimeout(() => {
         window.location.href = new URL(redirectUrl, window.location.href).href;
     }, 700);
@@ -285,11 +310,13 @@ function renderPaymentMethod(paymentMethod) {
     }
 
     if (!paymentMethod) {
+        savedPaymentMethodForCheckout = null;
         savedPaymentMethod.hidden = true;
         missingPaymentMethod.hidden = false;
         return;
     }
 
+    savedPaymentMethodForCheckout = paymentMethod;
     missingPaymentMethod.hidden = true;
     savedPaymentMethod.hidden = false;
 
@@ -305,10 +332,6 @@ function renderPaymentMethod(paymentMethod) {
 }
 
 async function openPaymentMethodPortal() {
-    if (!upgradeFromSubscriptionId) {
-        return;
-    }
-
     managePaymentMethodBtn.disabled = true;
     clearError();
 
@@ -317,7 +340,7 @@ async function openPaymentMethodPortal() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                subscription_id: upgradeFromSubscriptionId,
+                subscription_id: upgradeFromSubscriptionId || '',
                 return_url: window.location.href,
             }),
         });
@@ -341,6 +364,51 @@ async function openPaymentMethodPortal() {
         managePaymentMethodBtn.disabled = false;
         console.error(e);
     }
+}
+
+async function confirmSavedPaymentMethod() {
+    if (!clientSecret || !savedPaymentMethodForCheckout?.id) {
+        return;
+    }
+
+    setLoading(true);
+    clearError();
+
+    try {
+        const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+            payment_method: savedPaymentMethodForCheckout.id,
+            return_url: paymentSuccessReturnUrl(),
+        });
+
+        if (error) {
+            showError(error.message || 'Payment could not be completed with the saved card.');
+            setLoading(false);
+            return;
+        }
+
+        if (paymentIntent?.id) {
+            window.location.href = new URL(
+                `payment-success.php?payment_intent=${encodeURIComponent(paymentIntent.id)}&redirect=profile`,
+                window.location.href
+            ).href;
+            return;
+        }
+
+        showError('Payment could not be verified. Please refresh and try again.');
+        setLoading(false);
+    } catch (e) {
+        showError('Payment could not be completed with the saved card.');
+        setLoading(false);
+        console.error(e);
+    }
+}
+
+function paymentSuccessReturnUrl() {
+    return new URL('payment-success.php?redirect=profile', window.location.href).href;
+}
+
+function profileSubscriptionsUrl() {
+    return 'profile.php?tab=profile#your-promotions';
 }
 
 function showError(msg) {

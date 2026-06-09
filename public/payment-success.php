@@ -18,6 +18,8 @@ $paymentStatus = '';
 $paymentVerificationError = '';
 $stripeBillingPeriodType = '';
 $db = Database::getInstance()->getConnection();
+$redirectAfterSuccess = ($_GET['redirect'] ?? '') === 'profile';
+$profileSubscriptionsUrl = 'profile.php?tab=profile#your-promotions';
 
 if ($paymentIntentId) {
     try {
@@ -153,6 +155,11 @@ if ($isVerifiedSuccess) {
     $resultIconClass = 'success-card__icon success-card__icon--error';
     $resultNote = 'Your subscription will not be activated unless Stripe confirms that the payment succeeded.';
 }
+
+if ($isVerifiedSuccess && $redirectAfterSuccess) {
+    header('Location: ' . $profileSubscriptionsUrl);
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -195,7 +202,7 @@ if ($isVerifiedSuccess) {
         <?php endif; ?>
 
         <div class="success-card__actions">
-            <a href="profile.php?tab=billing" class="success-card__btn success-card__btn--primary">
+            <a href="<?php echo htmlspecialchars($profileSubscriptionsUrl, ENT_QUOTES, 'UTF-8'); ?>" class="success-card__btn success-card__btn--primary">
                 View My Subscriptions
             </a>
             <a href="chatbotShowcase.php" class="success-card__btn success-card__btn--secondary">

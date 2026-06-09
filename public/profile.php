@@ -562,7 +562,7 @@ require '../inc/header.php';
 
                     <?php if ($hasApprovedPromotionChatbot): ?>
                     <!-- Subscriptions -->
-                    <div class="profile-card subscriptions-card">
+                    <div class="profile-card subscriptions-card" id="your-promotions">
                         <div class="subscriptions-card__header">
                             <div>
                                 <p class="info-field-static-label">Subscriptions</p>
@@ -980,13 +980,13 @@ require '../inc/header.php';
 
             <div class="modal-actions modal-actions--dynamic">
                 <button class="modal-action-btn" id="change-plan-btn">
-                    Change Plan
+                    Upgrade Plan
                 </button>
                 <button class="modal-action-btn" id="update-payment-btn">
                     Update Payment Method
                 </button>
                 <button class="modal-action-btn" id="renew-subscription-btn" style="display: none;">
-                    Renew Subscription
+                    Renew Promotion
                 </button>
                 <button class="modal-action-btn" id="view-invoice-btn">
                     View Latest Invoice
@@ -1045,41 +1045,44 @@ require '../inc/header.php';
             <button class="modal-close">&times;</button>
         </div>
         <div class="modal-body">
-            <div id="cancel-subscription-items" class="cancel-confirm-summary"></div>
+            <div id="cancel-form-state" class="cancel-form-state">
+                <div id="cancel-subscription-items" class="cancel-confirm-summary"></div>
+
+                <div class="cancel-options">
+                    <label class="radio-option">
+                        <input type="radio" name="cancel-type" value="at-period-end" checked>
+                        <div class="option-content">
+                            <div class="option-title">Cancel at end of billing period</div>
+                            <div class="option-description">
+                                <span id="cancel-period-end-date"></span>
+                                <br>You'll keep access until then.
+                            </div>
+                        </div>
+                    </label>
+
+                    <label class="radio-option">
+                        <input type="radio" name="cancel-type" value="immediately">
+                        <div class="option-content">
+                            <div class="option-title">Cancel immediately</div>
+                            <div class="option-description">
+                                You'll lose access now. No refund for remaining days.
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="modal-actions" style="flex-direction:row; justify-content:flex-end;">
+                    <button class="cancel-btn" id="keep-plan-btn">Keep Plan</button>
+                    <button class="danger-btn" id="confirm-cancel-btn">Cancel Subscription</button>
+                </div>
+            </div>
+
             <div id="cancel-processing-state" class="cancel-processing-state" hidden>
                 <span class="cancel-processing-state__spinner" aria-hidden="true"></span>
                 <div>
                     <strong id="cancel-processing-title">Updating subscription</strong>
                     <p id="cancel-processing-message">Please wait while we update your subscription.</p>
                 </div>
-            </div>
-
-            <div class="cancel-options">
-                <label class="radio-option">
-                    <input type="radio" name="cancel-type" value="at-period-end" checked>
-                    <div class="option-content">
-                        <div class="option-title">Cancel at end of billing period</div>
-                        <div class="option-description">
-                            <span id="cancel-period-end-date"></span>
-                            <br>You'll keep access until then.
-                        </div>
-                    </div>
-                </label>
-
-                <label class="radio-option">
-                    <input type="radio" name="cancel-type" value="immediately">
-                    <div class="option-content">
-                        <div class="option-title">Cancel immediately</div>
-                        <div class="option-description">
-                            You'll lose access now. No refund for remaining days.
-                        </div>
-                    </div>
-                </label>
-            </div>
-
-            <div class="modal-actions" style="flex-direction:row; justify-content:flex-end;">
-                <button class="cancel-btn" id="keep-plan-btn">Keep Plan</button>
-                <button class="danger-btn" id="confirm-cancel-btn">Cancel Subscription</button>
             </div>
         </div>
     </div>

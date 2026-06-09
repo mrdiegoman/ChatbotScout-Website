@@ -1048,11 +1048,53 @@
     margin-bottom: 0.25rem;
 }
 
+.adv-modal__message-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 3.4rem;
+}
+
 .adv-modal__error {
     font-size: 1rem;
     color: #EF233C;
     font-family: outfit-semibold, sans-serif;
+    flex: 1;
+    min-width: 0;
     min-height: 20px;
+    margin: 0;
+}
+
+.adv-modal__profile-link {
+    flex: 0 0 auto;
+    min-height: 3.4rem;
+    padding: 0 1.2rem;
+    border: 1px solid #d6dce7;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--adv-purple);
+    font-family: outfit-semibold, sans-serif;
+    font-size: 0.98rem;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s, transform 0.2s;
+}
+
+.adv-modal__profile-link:hover {
+    border-color: var(--adv-purple);
+    background: #f5f0ff;
+    transform: translateY(-1px);
+}
+
+.adv-modal__profile-link[hidden] {
+    display: none;
+}
+
+@media (max-width: 560px) {
+    .adv-modal__message-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
 }
 
 .adv-modal__footer {

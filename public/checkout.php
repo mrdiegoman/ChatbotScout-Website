@@ -280,7 +280,6 @@ $upgradeNote = $isUpgradeCancelsAtPeriodEnd
         <div class="checkout-payment">
             <h2 class="checkout-payment__title">Payment details</h2>
             <p class="checkout-payment__secured" aria-label="Secured by Stripe"></p>
-            <?php if ($isBundleUpgrade): ?>
             <div id="saved-payment-method" class="checkout-payment__saved-card" hidden>
                 <div class="checkout-payment__saved-card-icon" aria-hidden="true"></div>
                 <div class="checkout-payment__saved-card-main">
@@ -300,7 +299,6 @@ $upgradeNote = $isUpgradeCancelsAtPeriodEnd
                     <span>A Stripe payment form will open after you continue.</span>
                 </div>
             </div>
-            <?php endif; ?>
 
             <div id="stripe-loading">
                 <p style="color:#6b7280;font-size:14px;"><?php echo $isBundleUpgrade ? 'Calculating upgrade amount...' : 'Loading payment form...'; ?></p>

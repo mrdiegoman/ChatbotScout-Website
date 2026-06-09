@@ -538,6 +538,7 @@ function profileReleaseSubscriptionScheduleIfNeeded($stripeSubscription, string 
             'stripe_subscription_id' => $stripeSubscriptionId,
             'schedule_id' => $scheduleId,
         ]);
+        throw $e;
     }
 
     return \Stripe\Subscription::retrieve([
@@ -599,6 +600,15 @@ function profileSchedulePartialCancelAtPeriodEnd($stripeSubscription, array $sel
         throw new RuntimeException('Stripe subscription ID is missing.');
     }
 
+    if (empty($selectedRows) || empty($remainingRows)) {
+        throw new RuntimeException('Partial cancellation rows are incomplete.');
+    }
+
+    $stripeSubscription = profileReleaseSubscriptionScheduleIfNeeded(
+        $stripeSubscription,
+        'partial_cancel.schedule_release_failed'
+    );
+
     $currentStart = (int) (stripeObjectValue($stripeSubscription, 'current_period_start') ?: time());
     $currentEnd = profileCurrentPeriodEndTimestampForGroup(array_merge($selectedRows, $remainingRows), $stripeSubscription);
     if ($currentEnd <= time()) {
@@ -627,7 +637,6 @@ function profileSchedulePartialCancelAtPeriodEnd($stripeSubscription, array $sel
             'partial_cancel_effective_at' => (string) $currentEnd,
         ]
     );
-    profileUpdateStripeSubscriptionMetadata($stripeSubscriptionId, $pendingMetadata);
 
     $futureMetadata = profileSubscriptionGroupMetadata(
         $remainingRows,
@@ -639,16 +648,10 @@ function profileSchedulePartialCancelAtPeriodEnd($stripeSubscription, array $sel
         ]
     );
 
-    $scheduleRef = stripeObjectValue($stripeSubscription, 'schedule');
-    $scheduleId = stripeObjectId($scheduleRef);
-    if ($scheduleId) {
-        $schedule = \Stripe\SubscriptionSchedule::retrieve($scheduleId);
-    } else {
-        $schedule = \Stripe\SubscriptionSchedule::create([
-            'from_subscription' => $stripeSubscriptionId,
-        ]);
-        $scheduleId = (string) $schedule->id;
-    }
+    $schedule = \Stripe\SubscriptionSchedule::create([
+        'from_subscription' => $stripeSubscriptionId,
+    ]);
+    $scheduleId = (string) $schedule->id;
 
     $currentItems = profileStripeSubscriptionPhaseItems($stripeSubscription);
     if (empty($currentItems)) {
@@ -674,6 +677,7 @@ function profileSchedulePartialCancelAtPeriodEnd($stripeSubscription, array $sel
             ],
         ],
     ]);
+    profileUpdateStripeSubscriptionMetadata($stripeSubscriptionId, $pendingMetadata);
 
     stripeCheckoutLog('partial_cancel.schedule_updated', [
         'stripe_subscription_id' => $stripeSubscriptionId,
@@ -1134,9 +1138,26 @@ if ($action === 'stripe_customer_portal') {
         $stmt->execute(['user_id' => $user['id']]);
     }
     $sub = $stmt->fetch();
+
+    if (!$sub || empty($sub['stripe_customer_id'])) {
+        $userCustomerStmt = $db->prepare("
+            SELECT stripe_customer_id
+            FROM users
+            WHERE id = :user_id
+            LIMIT 1
+        ");
+        $userCustomerStmt->execute(['user_id' => $user['id']]);
+        $stripeCustomerId = (string) ($userCustomerStmt->fetchColumn() ?: '');
+        if ($stripeCustomerId !== '') {
+            $sub = [
+                'stripe_customer_id' => $stripeCustomerId,
+                'stripe_subscription_id' => null,
+            ];
+        }
+    }
     
     if (!$sub || !$sub['stripe_customer_id']) {
-        echo json_encode(['success' => false, 'message' => 'No active subscription found']);
+        echo json_encode(['success' => false, 'message' => 'No Stripe customer found']);
     } else {
         try {
             configureStripeForProfileActions();
@@ -1181,19 +1202,19 @@ if ($action === 'renew_subscription') {
     }
 
     $db = Database::getInstance()->getConnection();
-    $stmt = $db->prepare("
-        SELECT id, status, cancel_at_period_end, stripe_subscription_id
-        FROM subscriptions
-        WHERE id = :subscription_id
-          AND user_id = :user_id
-          AND status IN ('active', 'trialing', 'past_due')
-        LIMIT 1
-    ");
-    $stmt->execute([
-        'subscription_id' => $subscriptionId,
-        'user_id' => $user['id'],
-    ]);
-    $sub = $stmt->fetch();
+    $groupRows = profileLoadPromotionSubscriptionGroup($db, $user['id'], $subscriptionId);
+    if (empty($groupRows)) {
+        echo json_encode(['success' => false, 'message' => 'No active subscription found']);
+        exit;
+    }
+
+    $sub = null;
+    foreach ($groupRows as $row) {
+        if ((string) $row['id'] === $subscriptionId) {
+            $sub = $row;
+            break;
+        }
+    }
 
     if (!$sub) {
         echo json_encode(['success' => false, 'message' => 'No active subscription found']);
@@ -1208,7 +1229,11 @@ if ($action === 'renew_subscription') {
     try {
         configureStripeForProfileActions();
 
-        $stripeSubscription = \Stripe\Subscription::retrieve($sub['stripe_subscription_id']);
+        $stripeSubscriptionId = (string) $sub['stripe_subscription_id'];
+        $stripeSubscription = \Stripe\Subscription::retrieve([
+            'id' => $stripeSubscriptionId,
+            'expand' => ['items.data.price.product'],
+        ]);
         $stripeStatus = (string) ($stripeSubscription->status ?? '');
 
         if (in_array($stripeStatus, ['canceled', 'incomplete_expired'], true)) {
@@ -1217,87 +1242,68 @@ if ($action === 'renew_subscription') {
             exit;
         }
 
-        $scheduleId = stripeObjectId(stripeObjectValue($stripeSubscription, 'schedule'));
-        if (!empty($sub['cancel_at_period_end']) && empty($stripeSubscription->cancel_at_period_end) && $scheduleId) {
-            $groupRows = profileLoadPromotionSubscriptionGroup($db, $user['id'], $subscriptionId);
-            if (empty($groupRows)) {
-                echo json_encode(['success' => false, 'message' => 'No active subscription found']);
-                exit;
-            }
-
-            $billingPeriod = (string) ($groupRows[0]['billing_period'] ?? 'monthly');
-            $isBundle = count($groupRows) > 1;
-
-            $schedule = \Stripe\SubscriptionSchedule::retrieve($scheduleId);
-            $schedule->release();
-
-            $stripeSubscription = \Stripe\Subscription::update($sub['stripe_subscription_id'], [
-                'metadata' => profileSubscriptionGroupMetadata($groupRows, $billingPeriod, $isBundle, [
-                    'partial_cancel_subscription_ids' => '',
-                    'partial_cancel_effective_at' => '',
-                ]),
-            ]);
-
-            syncStripeSubscriptionStatus($db, $stripeSubscription);
-
-            $db->prepare("
-                UPDATE subscriptions
-                SET status = CASE WHEN status = 'cancelled' THEN 'active' ELSE status END,
-                    cancel_at_period_end = FALSE,
-                    auto_renew = CASE
-                        WHEN status IN ('active', 'trialing') THEN TRUE
-                        WHEN status = 'cancelled' THEN TRUE
-                        ELSE auto_renew
-                    END,
-                    cancelled_at = NULL,
-                    cancellation_reason = NULL,
-                    updated_at = NOW()
-                WHERE stripe_subscription_id = :stripe_subscription_id
-                  AND user_id = :user_id
-            ")->execute([
-                'stripe_subscription_id' => $sub['stripe_subscription_id'],
-                'user_id' => $user['id'],
-            ]);
-
-            stripeCheckoutLog('partial_cancel.renewed', [
-                'user_id' => $user['id'] ?? null,
-                'stripe_subscription_id' => $sub['stripe_subscription_id'],
-                'schedule_id' => $scheduleId,
-            ]);
-
-            echo json_encode(['success' => true, 'message' => 'Subscription renewed.']);
-            exit;
-        }
-
-        if (empty($stripeSubscription->cancel_at_period_end) && empty($sub['cancel_at_period_end'])) {
+        $stripeCancelsAtPeriodEnd = !empty($stripeSubscription->cancel_at_period_end);
+        if (profileRowWillRenewAtPeriodEnd($sub) && !$stripeCancelsAtPeriodEnd) {
             syncStripeSubscriptionStatus($db, $stripeSubscription);
             echo json_encode(['success' => true, 'message' => 'Subscription is already renewed.']);
             exit;
         }
 
-        $stripeSubscription = \Stripe\Subscription::update($sub['stripe_subscription_id'], [
-            'cancel_at_period_end' => false,
-        ]);
+        $billingPeriod = (string) ($sub['billing_period'] ?? $groupRows[0]['billing_period'] ?? 'monthly');
+        $renewRows = [];
+        $cancelRows = [];
+
+        foreach ($groupRows as $row) {
+            if ((string) $row['id'] === $subscriptionId || profileRowWillRenewAtPeriodEnd($row)) {
+                $row['cancel_at_period_end'] = false;
+                $row['auto_renew'] = true;
+                $renewRows[] = $row;
+            } else {
+                $cancelRows[] = $row;
+            }
+        }
+
+        if (empty($renewRows)) {
+            echo json_encode(['success' => false, 'message' => 'No promotion could be renewed.']);
+            exit;
+        }
+
+        if (empty($cancelRows)) {
+            $stripeSubscription = profileReleaseSubscriptionScheduleIfNeeded(
+                $stripeSubscription,
+                'partial_cancel.renew_schedule_release_failed'
+            );
+            $stripeSubscription = \Stripe\Subscription::update($sub['stripe_subscription_id'], [
+                'cancel_at_period_end' => false,
+                'metadata' => profileSubscriptionGroupMetadata($renewRows, $billingPeriod, count($renewRows) > 1, [
+                    'partial_cancel_subscription_ids' => '',
+                    'partial_cancel_effective_at' => '',
+                ]),
+                'expand' => ['items.data.price.product'],
+            ]);
+        } else {
+            if ($stripeCancelsAtPeriodEnd) {
+                $stripeSubscription = \Stripe\Subscription::update($stripeSubscriptionId, [
+                    'cancel_at_period_end' => false,
+                    'expand' => ['items.data.price.product'],
+                ]);
+            }
+
+            profileSchedulePartialCancelAtPeriodEnd($stripeSubscription, $cancelRows, $renewRows, $billingPeriod);
+            $stripeSubscription = \Stripe\Subscription::retrieve([
+                'id' => $stripeSubscriptionId,
+                'expand' => ['items.data.price.product'],
+            ]);
+        }
 
         syncStripeSubscriptionStatus($db, $stripeSubscription);
 
-        $db->prepare("
-            UPDATE subscriptions
-            SET status = CASE WHEN status = 'cancelled' THEN 'active' ELSE status END,
-                cancel_at_period_end = FALSE,
-                auto_renew = CASE
-                    WHEN status IN ('active', 'trialing') THEN TRUE
-                    WHEN status = 'cancelled' THEN TRUE
-                    ELSE auto_renew
-                END,
-                cancelled_at = NULL,
-                cancellation_reason = NULL,
-                updated_at = NOW()
-            WHERE stripe_subscription_id = :stripe_subscription_id
-              AND user_id = :user_id
-        ")->execute([
-            'stripe_subscription_id' => $sub['stripe_subscription_id'],
-            'user_id' => $user['id'],
+        stripeCheckoutLog('partial_cancel.renewed', [
+            'user_id' => $user['id'] ?? null,
+            'stripe_subscription_id' => $stripeSubscriptionId,
+            'renewed_subscription_id' => $subscriptionId,
+            'renew_subscription_ids' => implode(',', array_map(static fn ($row) => (string) $row['id'], $renewRows)),
+            'remaining_cancel_subscription_ids' => implode(',', array_map(static fn ($row) => (string) $row['id'], $cancelRows)),
         ]);
 
         AuditLog::log('subscription', $sub['id'], 'updated',
@@ -1305,12 +1311,18 @@ if ($action === 'renew_subscription') {
             ['cancel_at_period_end' => false, 'auto_renew' => true]
         );
 
-        echo json_encode(['success' => true, 'message' => 'Subscription renewed.']);
+        echo json_encode(['success' => true, 'message' => 'Promotion renewed.']);
     } catch (\Stripe\Exception\ApiErrorException $e) {
         error_log('Stripe renew subscription error: ' . $e->getMessage());
         echo json_encode([
             'success' => false,
             'message' => 'Stripe could not renew this subscription: ' . $e->getMessage(),
+        ]);
+    } catch (Exception $e) {
+        error_log('Renew subscription error: ' . $e->getMessage());
+        echo json_encode([
+            'success' => false,
+            'message' => 'Could not renew this promotion: ' . $e->getMessage(),
         ]);
     }
 
@@ -1441,8 +1453,11 @@ if ($action === 'cancel_subscription') {
                 )) === count($selectedRows);
 
                 if ($alreadyScheduled) {
-                    echo json_encode(['success' => true, 'message' => 'Selected promotion is already scheduled for cancellation.']);
-                    exit;
+                    stripeCheckoutLog('partial_cancel.already_scheduled_repair', [
+                        'user_id' => $user['id'] ?? null,
+                        'stripe_subscription_id' => $sub['stripe_subscription_id'],
+                        'selected_subscription_ids' => implode(',', $cancelItemIds),
+                    ]);
                 }
 
                 if (empty($remainingRenewRows)) {
@@ -1489,7 +1504,7 @@ if ($action === 'cancel_subscription') {
             exit;
         }
 
-        if (!empty($sub['cancel_at_period_end']) && $cancelType !== 'immediately') {
+        if (!empty($sub['cancel_at_period_end']) && $cancelType !== 'immediately' && !empty($stripeSubscription->cancel_at_period_end)) {
             echo json_encode(['success' => true, 'message' => 'Subscription is already scheduled for cancellation.']);
             exit;
         }
@@ -1523,6 +1538,13 @@ if ($action === 'cancel_subscription') {
         echo json_encode([
             'success' => false,
             'message' => 'Stripe could not cancel this subscription: ' . $e->getMessage(),
+        ]);
+        exit;
+    } catch (Exception $e) {
+        error_log('Cancel subscription error: ' . $e->getMessage());
+        echo json_encode([
+            'success' => false,
+            'message' => 'Could not cancel this subscription: ' . $e->getMessage(),
         ]);
         exit;
     }

@@ -485,6 +485,9 @@ function openModal(modalId) {
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
+        if (modal.classList.contains('is-processing')) {
+            return;
+        }
         modal.style.display = 'none';
         unlockScroll();
     }
@@ -670,7 +673,6 @@ function renderCancelItemsSummary(items, labelText) {
                 </li>
             `).join('')}
         </ul>
-        ${partialCancelPriceNotice()}
     `;
 }
 
@@ -712,12 +714,17 @@ function updateCancelSubscriptionSummary() {
 function setCancelProcessing(isProcessing, message = 'Please wait while we update your subscription.') {
     cancelProcessing = isProcessing;
 
+    const modal = document.getElementById('cancel-subscription-modal');
+    const formState = document.getElementById('cancel-form-state');
     const processingState = document.getElementById('cancel-processing-state');
     const processingMessage = document.getElementById('cancel-processing-message');
     const confirmBtn = document.getElementById('confirm-cancel-btn');
-    const keepBtn = document.getElementById('keep-plan-btn');
-    const cancelOptions = document.querySelector('#cancel-subscription-modal .cancel-options');
-    const cancelSummary = document.getElementById('cancel-subscription-items');
+
+    modal?.classList.toggle('is-processing', isProcessing);
+
+    if (formState) {
+        formState.hidden = isProcessing;
+    }
 
     if (processingState) {
         processingState.hidden = !isProcessing;
@@ -731,16 +738,6 @@ function setCancelProcessing(isProcessing, message = 'Please wait while we updat
         confirmBtn.disabled = isProcessing || selectedCancelItemIds.length === 0;
         confirmBtn.textContent = isProcessing ? 'Updating...' : 'Cancel Subscription';
     }
-
-    if (keepBtn) {
-        keepBtn.disabled = isProcessing;
-    }
-
-    cancelOptions?.classList.toggle('is-muted', isProcessing);
-    cancelSummary?.classList.toggle('is-muted', isProcessing);
-    document.querySelectorAll('.cancel-item-checkbox, input[name="cancel-type"]').forEach(input => {
-        input.disabled = isProcessing;
-    });
 }
 
 function wait(ms) {
@@ -875,7 +872,7 @@ if (viewInvoiceBtn) {
     });
 }
 
-// Renew Subscription
+// Renew Promotion
 const renewSubscriptionBtn = document.getElementById('renew-subscription-btn');
 if (renewSubscriptionBtn) {
     renewSubscriptionBtn.addEventListener('click', async () => {
@@ -885,8 +882,8 @@ if (renewSubscriptionBtn) {
         }
 
         const confirmed = await showConfirm(
-            'Renew Subscription?',
-            'Your subscription will continue renewing automatically after the current period.'
+            'Renew Promotion?',
+            'This promotion will continue renewing automatically after the current period.'
         );
         if (!confirmed) return;
 
@@ -901,7 +898,7 @@ if (renewSubscriptionBtn) {
             const result = await readJsonResponse(response);
 
             if (result.success) {
-                showNotification(result.message || 'Subscription renewed', 'success');
+                showNotification(result.message || 'Promotion renewed', 'success');
                 closeModal('manage-subscription-modal');
                 setTimeout(() => window.location.reload(), 1500);
             } else {
@@ -944,6 +941,7 @@ if (cancelSubModalBtn) {
             : `(${selectedSubscription.periodEnd})`;
         setText('cancel-period-end-date', periodEndText);
         selectedCancelItemIds = defaultCancelItemIdsForSelectedSubscription();
+        setCancelProcessing(false);
         updateCancelSubscriptionSummary();
         closeModal('manage-subscription-modal');
         openModal('cancel-subscription-modal');
@@ -1002,8 +1000,8 @@ if (confirmCancelBtn) {
                 setCancelProcessing(true, 'Your subscription was updated. Opening feedback...');
                 showNotification(result.message || 'Subscription cancelled', 'success');
                 await wait(500);
-                closeModal('cancel-subscription-modal');
                 setCancelProcessing(false);
+                closeModal('cancel-subscription-modal');
 
                 const feedback = await showCancelFeedbackForm(
                     'Why are you cancelling?',

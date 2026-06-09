@@ -328,7 +328,12 @@ require 'app/auth.php';
                 Promotion purchases are <strong>non-refundable</strong>. Please review the chatbot, placement, billing period, and total before continuing.
             </div>
 
-            <p class="adv-modal__error" id="modalError"></p>
+            <div class="adv-modal__message-row">
+                <p class="adv-modal__error" id="modalError"></p>
+                <button type="button" class="adv-modal__profile-link" id="modalSubscriptionsBtn" hidden>
+                    View My Promotions
+                </button>
+            </div>
         </div>
 
         <div class="adv-modal__footer">

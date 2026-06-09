@@ -304,6 +304,8 @@ if ($action === 'create_payment_intent') {
                 'user_id' => $userData['id'],
             ]);
         }
+        $savedPaymentMethod = stripeFindSavedPaymentMethod($stripeCustomerId);
+        $savedPaymentMethodSummary = stripePaymentMethodSummary($savedPaymentMethod);
 
         $lines = [];
         foreach ($selectedPromotions as $selectedPromo) {
@@ -343,6 +345,7 @@ if ($action === 'create_payment_intent') {
                 'currency' => $promo['currency_code'],
                 'stripe_subscription_id' => $reusableCheckout['stripe_subscription_id'],
                 'stripe_invoice_id' => $reusableCheckout['stripe_invoice_id'],
+                'payment_method' => $savedPaymentMethodSummary,
                 'reused' => true,
             ]);
             exit;
@@ -405,7 +408,7 @@ if ($action === 'create_payment_intent') {
             ]);
         }
 
-        $stripeSubscription = \Stripe\Subscription::create([
+        $subscriptionParams = [
             'customer' => $stripeCustomerId,
             'items' => $stripeItems,
             'payment_behavior' => 'default_incomplete',
@@ -427,7 +430,13 @@ if ($action === 'create_payment_intent') {
                 'is_bundle' => count($lines) > 1 ? '1' : '0',
             ],
             'expand' => ['latest_invoice.payment_intent'],
-        ]);
+        ];
+
+        if ($savedPaymentMethod && !empty($savedPaymentMethod->id)) {
+            $subscriptionParams['default_payment_method'] = (string) $savedPaymentMethod->id;
+        }
+
+        $stripeSubscription = \Stripe\Subscription::create($subscriptionParams);
 
         $latestInvoice = $stripeSubscription->latest_invoice ?? null;
         $paymentIntent = $latestInvoice ? ($latestInvoice->payment_intent ?? null) : null;
@@ -489,6 +498,7 @@ if ($action === 'create_payment_intent') {
             'stripe_invoice_id' => $stripeInvoiceId,
             'stripe_payment_intent_id' => $stripePaymentIntentId,
             'line_count' => count($lines),
+            'has_saved_payment_method' => (bool) $savedPaymentMethodSummary,
         ]);
 
         echo json_encode([
@@ -498,6 +508,7 @@ if ($action === 'create_payment_intent') {
             'currency' => $promo['currency_code'],
             'stripe_subscription_id' => $stripeSubscription->id,
             'stripe_invoice_id' => $stripeInvoiceId,
+            'payment_method' => $savedPaymentMethodSummary,
         ]);
     } catch (\Stripe\Exception\ApiErrorException $e) {
         error_log('Stripe subscription error: ' . $e->getMessage());
@@ -797,6 +808,7 @@ function createStripeBundleUpgradePayment(
 
     $existingPromotion = $context['existing'];
     $stripeSubscriptionId = $existingPromotion['stripe_subscription_id'];
+    $expectedStripeCustomerId = trim((string) ($existingPromotion['stripe_customer_id'] ?? '')) ?: $stripeCustomerId;
 
     stripeCheckoutLog('bundle_upgrade.payment.context_loaded', [
         'user_id' => $userData['id'],
@@ -831,6 +843,7 @@ function createStripeBundleUpgradePayment(
             'currency' => strtoupper($missingPromotion['currency_code']),
             'stripe_subscription_id' => $stripeSubscriptionId,
             'stripe_invoice_id' => $reusableCheckout['stripe_invoice_id'],
+            'payment_method' => stripePaymentMethodSummary(stripeFindSavedPaymentMethod($expectedStripeCustomerId)),
             'reused' => true,
         ];
     }
@@ -840,7 +853,6 @@ function createStripeBundleUpgradePayment(
         'expand' => ['items.data.price', 'latest_invoice.payment_intent'],
     ]);
 
-    $expectedStripeCustomerId = trim((string) ($existingPromotion['stripe_customer_id'] ?? '')) ?: $stripeCustomerId;
     if ((string) ($stripeSubscription->customer ?? '') !== $expectedStripeCustomerId) {
         return ['success' => false, 'message' => 'Stripe customer mismatch. Please contact support.'];
     }
@@ -1088,6 +1100,7 @@ function createStripeBundleUpgradePayment(
         'currency' => strtoupper($missingPromotion['currency_code']),
         'stripe_subscription_id' => $stripeSubscriptionId,
         'stripe_invoice_id' => $stripeInvoiceId,
+        'payment_method' => stripeDefaultPaymentMethodSummary($updatedSubscription, $expectedStripeCustomerId),
     ];
 }
 
@@ -1170,20 +1183,12 @@ function stripeInvoiceIsAlreadyPaid($invoice, $paymentIntent): bool {
 }
 
 function stripeCheckoutSuccessRedirectUrl(?string $paymentIntentId): string {
-    if ($paymentIntentId) {
-        return 'payment-success.php?payment_intent=' . rawurlencode($paymentIntentId);
-    }
-
-    return 'profile.php?tab=billing';
+    return 'profile.php?tab=profile#your-promotions';
 }
 
-function stripeDefaultPaymentMethodSummary($stripeSubscription, string $stripeCustomerId): ?array {
-    $paymentMethod = $stripeSubscription->default_payment_method ?? null;
-
-    if (is_string($paymentMethod) && $paymentMethod !== '') {
-        $paymentMethod = \Stripe\PaymentMethod::retrieve($paymentMethod);
-    }
-
+function stripeFindSavedPaymentMethod(string $stripeCustomerId, $stripeSubscription = null)
+{
+    $paymentMethod = $stripeSubscription ? ($stripeSubscription->default_payment_method ?? null) : null;
     if (!$paymentMethod && $stripeCustomerId !== '') {
         try {
             $customer = \Stripe\Customer::retrieve([
@@ -1199,6 +1204,32 @@ function stripeDefaultPaymentMethodSummary($stripeSubscription, string $stripeCu
         }
     }
 
+    if (is_string($paymentMethod) && $paymentMethod !== '') {
+        $paymentMethod = \Stripe\PaymentMethod::retrieve($paymentMethod);
+    }
+
+    if (!$paymentMethod && $stripeCustomerId !== '') {
+        try {
+            $methods = \Stripe\PaymentMethod::all([
+                'customer' => $stripeCustomerId,
+                'type' => 'card',
+                'limit' => 1,
+            ]);
+            $cards = $methods->data ?? [];
+            $paymentMethod = $cards[0] ?? null;
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            stripeCheckoutLog('payment_method.list_lookup_failed', stripeCheckoutExceptionContext($e));
+        }
+    }
+
+    return $paymentMethod;
+}
+
+function stripeDefaultPaymentMethodSummary($stripeSubscription, string $stripeCustomerId): ?array {
+    return stripePaymentMethodSummary(stripeFindSavedPaymentMethod($stripeCustomerId, $stripeSubscription));
+}
+
+function stripePaymentMethodSummary($paymentMethod): ?array {
     if (!$paymentMethod || empty($paymentMethod->id)) {
         return null;
     }
