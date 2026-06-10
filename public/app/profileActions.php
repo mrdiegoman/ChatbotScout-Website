@@ -1713,26 +1713,26 @@ if ($action === 'delete_account') {
         $userId    = $user['id'];
         $anonymousEmail = 'deleted_' . $userId . '@deleted.invalid';
 
-        $stripeSubStmt = $db->prepare("
-            SELECT DISTINCT stripe_subscription_id
+        $activeSubscriptionStmt = $db->prepare("
+            SELECT COUNT(*)
             FROM subscriptions
             WHERE user_id = :user_id
-              AND status IN ('active', 'trialing', 'past_due')
-              AND stripe_subscription_id IS NOT NULL
+              AND subscription_type = 'promotion'
+              AND (
+                  status = 'pending'
+                  OR (
+                      status IN ('active', 'trialing', 'past_due')
+                      AND end_date >= NOW()
+                  )
+              )
         ");
-        $stripeSubStmt->execute(['user_id' => $userId]);
-        $stripeSubscriptionIds = $stripeSubStmt->fetchAll(PDO::FETCH_COLUMN);
-
-        if (!empty($stripeSubscriptionIds)) {
-            configureStripeForProfileActions();
-            foreach ($stripeSubscriptionIds as $stripeSubscriptionId) {
-                $stripeSubscription = \Stripe\Subscription::retrieve($stripeSubscriptionId);
-                $stripeSubscription->cancel([
-                    'cancellation_details' => [
-                        'comment' => 'Account deleted by user',
-                    ],
-                ]);
-            }
+        $activeSubscriptionStmt->execute(['user_id' => $userId]);
+        if ((int) $activeSubscriptionStmt->fetchColumn() > 0) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Cancel active promotions before deleting your account.',
+            ]);
+            exit;
         }
 
         $db->beginTransaction();
@@ -1769,14 +1769,15 @@ if ($action === 'delete_account') {
             WHERE id = :id
         ")->execute(['email' => $anonymousEmail, 'id' => $userId]);
  
-        // 2. Zruš aktívne subscripcie
+        // 2. Mark any inactive/ended local subscriptions as cancelled for account cleanup.
         $db->prepare("
             UPDATE subscriptions
             SET status              = 'cancelled',
                 cancelled_at        = NOW(),
                 end_date            = NOW(),
                 cancellation_reason = 'Account deleted by user'
-            WHERE user_id = :user_id AND status = 'active'
+            WHERE user_id = :user_id
+              AND status IN ('active', 'trialing', 'past_due', 'pending')
         ")->execute(['user_id' => $userId]);
  
         // 3. Vymaž visitor_id cookie a visitor_user_links (tracking dáta)

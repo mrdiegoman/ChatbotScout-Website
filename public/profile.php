@@ -180,6 +180,7 @@ $subStmt = $db->prepare("
 ");
 $subStmt->execute(['user_id' => $user['id']]);
 $subscriptions = $subStmt->fetchAll();
+$hasBlockingActiveSubscriptions = !empty($subscriptions);
 
 $dedupedSubscriptions = [];
 $seenSubscriptionSlots = [];
@@ -1106,22 +1107,34 @@ require '../inc/header.php';
                     <span>Your profile, saved account details, and active access will be removed.</span>
                 </div>
             </div>
-            <div class="delete-account-modal__details">
-                <p>Before continuing, make sure you do not need this account anymore.</p>
-                <ul>
-                    <li>Your account will be disabled immediately.</li>
-                    <li>Active subscriptions will be cancelled.</li>
-                </ul>
+            <?php if ($hasBlockingActiveSubscriptions): ?>
+            <div class="delete-account-modal__condition">
+                <strong>You cannot delete this profile while promotions are active or pending.</strong>
+                <span>Cancel every active promotion first and wait until access ends. After no active or pending subscriptions remain, account deletion will be available.</span>
             </div>
+            <?php endif; ?>
             
             <div class="form-group delete-account-modal__confirm">
                 <label class="info-field-static-label" for="delete-confirmation-input">Type DELETE to confirm</label>
-                <input type="text" id="delete-confirmation-input" placeholder="DELETE" autocomplete="off">
+                <input
+                    type="text"
+                    id="delete-confirmation-input"
+                    placeholder="DELETE"
+                    autocomplete="off"
+                    <?php echo $hasBlockingActiveSubscriptions ? 'disabled' : ''; ?>
+                >
             </div>
 
             <div class="modal-actions delete-account-modal__actions">
-                <button class="cancel-btn modal-close">Cancel</button>
-                <button class="danger-btn" id="confirm-delete-btn" disabled>Delete My Account</button>
+                <button class="cancel-btn" id="delete-account-cancel-btn">Cancel</button>
+                <button
+                    class="danger-btn"
+                    id="confirm-delete-btn"
+                    disabled
+                    data-blocked-by-subscriptions="<?php echo $hasBlockingActiveSubscriptions ? '1' : '0'; ?>"
+                >
+                    Delete My Account
+                </button>
             </div>
         </div>
     </div>

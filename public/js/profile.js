@@ -1147,23 +1147,44 @@ async function saveCancellationFeedback(reason) {
 // ============================================
 
 const deleteAccountBtn = document.getElementById('delete-account-btn');
+const deleteAccountCancelBtn = document.getElementById('delete-account-cancel-btn');
 const deleteConfirmInput = document.getElementById('delete-confirmation-input');
 const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
 
 if (deleteAccountBtn) {
     deleteAccountBtn.addEventListener('click', () => {
+        if (deleteConfirmInput) {
+            deleteConfirmInput.value = '';
+        }
+        if (confirmDeleteBtn) {
+            confirmDeleteBtn.disabled = true;
+        }
         openModal('delete-account-modal');
     });
 }
 
 if (deleteConfirmInput) {
     deleteConfirmInput.addEventListener('input', (e) => {
+        if (confirmDeleteBtn?.dataset.blockedBySubscriptions === '1') {
+            confirmDeleteBtn.disabled = true;
+            return;
+        }
+
         confirmDeleteBtn.disabled = e.target.value !== 'DELETE';
     });
 }
 
+if (deleteAccountCancelBtn) {
+    deleteAccountCancelBtn.addEventListener('click', () => closeModal('delete-account-modal'));
+}
+
 if (confirmDeleteBtn) {
     confirmDeleteBtn.addEventListener('click', async () => {
+        if (confirmDeleteBtn.dataset.blockedBySubscriptions === '1') {
+            showNotification('Cancel active promotions before deleting your account.', 'error');
+            return;
+        }
+
         if (deleteConfirmInput.value !== 'DELETE') {
             showNotification('Please type DELETE to confirm', 'error');
             return;

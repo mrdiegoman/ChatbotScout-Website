@@ -1513,6 +1513,30 @@
     margin-top: 0.65rem;
 }
 
+.delete-account-modal__condition {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin: 0 0 2.2rem;
+    padding: 1.4rem 1.5rem;
+    border: 1px solid #fbbf24;
+    border-radius: 12px;
+    background: #fffbeb;
+}
+
+.delete-account-modal__condition strong {
+    color: #92400e;
+    font-family: outfit-semibold, sans-serif;
+    font-size: 1.35rem;
+    line-height: 1.35;
+}
+
+.delete-account-modal__condition span {
+    color: #7c2d12;
+    font-size: 1.25rem;
+    line-height: 1.5;
+}
+
 .delete-account-modal__confirm {
     margin-bottom: 2.8rem;
 }
