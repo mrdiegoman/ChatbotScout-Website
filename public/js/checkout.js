@@ -34,6 +34,7 @@ const missingPaymentMethod = document.getElementById('missing-payment-method');
 const savedPaymentMethodTitle = document.getElementById('saved-payment-method-title');
 const savedPaymentMethodMeta = document.getElementById('saved-payment-method-meta');
 const managePaymentMethodBtn = document.getElementById('manage-payment-method-btn');
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
 payBtn.disabled = true;
 
@@ -121,6 +122,7 @@ payBtn.addEventListener('click', async () => {
     }
 
     if (savedPaymentMethodForCheckout && clientSecret) {
+        if (!(await validateCheckoutBeforeConfirm())) return;
         await confirmSavedPaymentMethod();
         return;
     }
@@ -129,6 +131,11 @@ payBtn.addEventListener('click', async () => {
 
     setLoading(true);
     clearError();
+
+    if (!(await validateCheckoutBeforeConfirm())) {
+        setLoading(false);
+        return;
+    }
 
     const { error } = await stripe.confirmPayment({
         elements,
@@ -197,7 +204,10 @@ async function startUpgradePayment() {
 async function fetchStripeAction(action) {
     const res = await fetch(`app/stripeActions.php?action=${encodeURIComponent(action)}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
         body: JSON.stringify({
             chatbot_id: chatbotId,
             promotion_id: promotionId,
@@ -223,6 +233,16 @@ async function fetchStripeAction(action) {
     }
 
     return data;
+}
+
+async function validateCheckoutBeforeConfirm() {
+    const data = await fetchStripeAction('validate_checkout');
+    if (data.success) {
+        return true;
+    }
+
+    showError(data.message || 'This checkout is no longer available. Please refresh and try again.');
+    return false;
 }
 
 function mountPaymentElement() {

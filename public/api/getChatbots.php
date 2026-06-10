@@ -80,6 +80,17 @@ $search = trim($_GET['search'] ?? '');
 
 $dir = $direction === 'asc' ? 'ASC' : 'DESC';
 
+$activePromotionExistsSql = "
+    EXISTS (
+        SELECT 1
+        FROM subscriptions s_active_promotion
+        WHERE s_active_promotion.chatbot_id = c.id
+          AND s_active_promotion.subscription_type = 'promotion'
+          AND s_active_promotion.status IN ('active', 'trialing', 'past_due')
+          AND s_active_promotion.end_date > NOW()
+    )
+";
+
 $orderBy = match($sort) {
     'popularity'        => "(c.rating_average * LOG(c.click_count + 1)) $dir, c.click_count $dir, c.rating_count $dir, c.rating_average $dir",
     'alphabetical'      => "c.name " . ($direction === 'asc' ? 'DESC' : 'ASC'),
@@ -88,7 +99,7 @@ $orderBy = match($sort) {
     'price'             => "ISNULL(c.starting_price) ASC, c.starting_price $dir",
     default             => "c.click_count $dir",
 };
-$orderBy = "c.is_sponsored DESC, " . $orderBy . ", c.created_at DESC";
+$orderBy = "{$activePromotionExistsSql} DESC, " . $orderBy . ", c.created_at DESC";
 
 // ============================================
 // BUILD WHERE + PARAMS
@@ -161,6 +172,23 @@ $countStmt->execute();
 $total      = (int)$countStmt->fetchColumn();
 $totalPages = (int)ceil($total / $limit);
 
+// Popular is a computed badge, not a persisted chatbot_tags row.
+$popularStmt = $db->prepare("
+    SELECT c.id
+    FROM `chatbots` c
+    WHERE {$whereStr}
+      AND c.click_count > 0
+    ORDER BY (c.rating_average * LOG(c.click_count + 1)) DESC,
+             c.click_count DESC,
+             c.rating_count DESC,
+             c.rating_average DESC,
+             c.created_at DESC
+    LIMIT 5
+");
+foreach ($params as $k => $v) $popularStmt->bindValue($k, $v);
+$popularStmt->execute();
+$popularIdSet = array_fill_keys($popularStmt->fetchAll(PDO::FETCH_COLUMN), true);
+
 // ============================================
 // MAIN QUERY
 // ============================================
@@ -184,6 +212,7 @@ $sql = "
         c.rating_average, c.rating_count,
         c.click_count, c.favorite_count,
         c.is_sponsored, c.created_at,
+        {$activePromotionExistsSql} AS has_active_promotion,
         {$selectFav}
     FROM `chatbots` c
     {$joinFav}
@@ -233,6 +262,7 @@ $tagStmt = $db->prepare("
     FROM `chatbot_tags` ct
     JOIN `tags` t ON ct.tag_id = t.id
     WHERE ct.chatbot_id IN ({$placeholders})
+      AND t.name NOT IN ('Popular', 'Sponsored', 'Affiliate')
     ORDER BY t.name ASC
 ");
 $tagStmt->execute($chatbotIds);
@@ -289,12 +319,9 @@ foreach ($chatbots as $chatbot) {
     $id   = $chatbot['id'];
     $link = ($chatbot['has_affiliate_program'] && !empty($chatbot['affiliate_link']))
         ? $chatbot['affiliate_link'] : $chatbot['website_url'];
-
-    $isPopular    = false;
-    $isSponsored  = false;
-    foreach ($tagMap[$id] ?? [] as $tag) {
-        if ($tag['name'] === 'Popular')   $isPopular   = true;
-        if ($tag['name'] === 'Sponsored') $isSponsored = true;
+    $displayTags = $tagMap[$id] ?? [];
+    if (!empty($chatbot['has_affiliate_program'])) {
+        array_unshift($displayTags, ['name' => 'Affiliate']);
     }
 
     $result[] = [
@@ -310,9 +337,9 @@ foreach ($chatbots as $chatbot) {
         'is_favourited'  => (bool)$chatbot['is_favourited'],
         'pricing'        => buildPricingDisplay($chatbot),
         'features'       => $featureMap[$id] ?? [],
-        'is_sponsored'   => $isSponsored || (bool)$chatbot['is_sponsored'],
-        'is_popular'     => $isPopular,
-        'tags'           => $tagMap[$id] ?? [],
+        'is_sponsored'   => (bool)$chatbot['has_active_promotion'],
+        'is_popular'     => isset($popularIdSet[$id]),
+        'tags'           => $displayTags,
         'integrations'   => $integrationMap[$id] ?? [],
     ];
 }

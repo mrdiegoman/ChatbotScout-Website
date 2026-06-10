@@ -136,6 +136,114 @@ if ($action === 'preview_bundle_upgrade') {
     }
 }
 
+if ($action === 'validate_checkout') {
+    if (!$isLoggedIn) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit;
+    }
+
+    validateCsrfToken();
+
+    $input = json_decode(file_get_contents('php://input'), true) ?: [];
+    $chatbotId = trim($input['chatbot_id'] ?? '');
+    $promotionId = trim($input['promotion_id'] ?? '');
+    $promotionId2 = trim($input['promotion_id2'] ?? '');
+    $requestedBillingPeriod = trim($input['billing_period'] ?? '');
+    $upgradeFromSubscriptionId = trim($input['upgrade_from_subscription_id'] ?? '');
+
+    if (!$chatbotId || !$promotionId) {
+        echo json_encode(['success' => false, 'message' => 'Missing checkout details']);
+        exit;
+    }
+
+    try {
+        $db = Database::getInstance()->getConnection();
+
+        $chatbotStmt = $db->prepare("
+            SELECT id
+            FROM chatbots
+            WHERE id = :chatbot_id
+              AND owner_user_id = :user_id
+              AND deleted_at IS NULL
+              AND status = 'active'
+            LIMIT 1
+        ");
+        $chatbotStmt->execute([
+            'chatbot_id' => $chatbotId,
+            'user_id' => $user['id'],
+        ]);
+
+        if (!$chatbotStmt->fetchColumn()) {
+            echo json_encode(['success' => false, 'message' => 'Invalid chatbot or inactive listing']);
+            exit;
+        }
+
+        $promo = loadPromotionForStripe($db, $promotionId);
+        if (!$promo) {
+            echo json_encode(['success' => false, 'message' => 'Promotion plan not found']);
+            exit;
+        }
+
+        $billingPeriod = in_array($requestedBillingPeriod, ['monthly', 'yearly'], true)
+            ? $requestedBillingPeriod
+            : $promo['period_type'];
+
+        if ($upgradeFromSubscriptionId !== '') {
+            $context = loadStripeBundleUpgradeContext(
+                $db,
+                $user['id'],
+                $chatbotId,
+                $upgradeFromSubscriptionId,
+                $promo,
+                $billingPeriod
+            );
+
+            echo json_encode($context
+                ? ['success' => true]
+                : ['success' => false, 'message' => 'This bundle upgrade is no longer available. Refresh the page and choose only the missing promotion.']
+            );
+            exit;
+        }
+
+        $selectedPromotions = [$promo];
+        if ($promotionId2) {
+            $promo2 = loadPromotionForStripe($db, $promotionId2);
+            if (!$promo2 || $promo2['currency_id'] !== $promo['currency_id']) {
+                echo json_encode(['success' => false, 'message' => 'Invalid bundle promotion combination']);
+                exit;
+            }
+            $selectedPromotions[] = $promo2;
+        }
+
+        $selectedSlots = [];
+        foreach ($selectedPromotions as $selectedPromo) {
+            $slotType = (string) $selectedPromo['slot_type'];
+            if (isset($selectedSlots[$slotType])) {
+                echo json_encode(['success' => false, 'message' => 'This checkout contains duplicate promotion slots. Refresh and try again.']);
+                exit;
+            }
+            $selectedSlots[$slotType] = true;
+
+            if (chatbotHasActivePromotionSlot($db, $user['id'], $chatbotId, $slotType)) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'This chatbot already has ' . stripePromotionLabel($slotType) . ' active. Go back and choose another promotion.',
+                ]);
+                exit;
+            }
+        }
+
+        echo json_encode(['success' => true]);
+        exit;
+    } catch (Exception $e) {
+        error_log('Stripe checkout validation error: ' . $e->getMessage());
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Could not validate checkout. Please refresh and try again.']);
+        exit;
+    }
+}
+
 if ($action === 'create_payment_intent') {
     if (!$isLoggedIn) {
         http_response_code(401);
@@ -230,6 +338,7 @@ if ($action === 'create_payment_intent') {
             $selectedPromotions[] = $promo2;
         }
 
+        $selectedSlots = [];
         if ($upgradeFromSubscriptionId !== '') {
             if ($promo2) {
                 echo json_encode(['success' => false, 'message' => 'Invalid bundle upgrade request']);
@@ -277,6 +386,13 @@ if ($action === 'create_payment_intent') {
         }
 
         foreach ($selectedPromotions as $selectedPromo) {
+            $slotType = (string) $selectedPromo['slot_type'];
+            if (isset($selectedSlots[$slotType])) {
+                echo json_encode(['success' => false, 'message' => 'This checkout contains duplicate promotion slots. Refresh and try again.']);
+                exit;
+            }
+            $selectedSlots[$slotType] = true;
+
             if (chatbotHasActivePromotionSlot($db, $userData['id'], $chatbotId, $selectedPromo['slot_type'])) {
                 echo json_encode([
                     'success' => false,
@@ -1373,6 +1489,7 @@ function chatbotHasActivePromotionSlot(PDO $db, string $userId, string $chatbotI
           AND s.chatbot_id = :chatbot_id
           AND s.subscription_type = 'promotion'
           AND s.status IN ('active', 'trialing', 'past_due')
+          AND s.end_date > NOW()
           AND p.slot_type = :slot_type
         LIMIT 1
     ");

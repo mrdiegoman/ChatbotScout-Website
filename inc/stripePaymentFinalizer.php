@@ -236,6 +236,7 @@ function finalizeStripePaidInvoice(PDO $db, $invoice, ?string $expectedUserId = 
     $localSubscriptionIds = stripeMetadataCsv($metadata, 'subscription_ids');
     $initialPaymentIds = stripeMetadataCsv($metadata, 'payment_ids');
     $lineAmounts = array_map('floatval', stripeMetadataCsv($metadata, 'line_amounts'));
+    $promotionSlotMap = stripeFinalizerPromotionSlotMap($db, $promotionIds);
 
     if (!$userId || !$chatbotId || empty($promotionIds) || empty($localSubscriptionIds)) {
         throw new RuntimeException('Stripe subscription metadata is incomplete.');
@@ -256,16 +257,60 @@ function finalizeStripePaidInvoice(PDO $db, $invoice, ?string $expectedUserId = 
     $cancelAtPeriodEnd = (bool) stripeObjectValue($stripeSubscription, 'cancel_at_period_end', false);
     [$startDate, $endDate] = stripeSubscriptionPeriod($stripeSubscription, $invoice, $periodType);
 
-    $db->beginTransaction();
+    $promotionLockName = stripeFinalizerPromotionLockName($userId, $chatbotId);
+    $promotionLockAcquired = false;
 
     try {
+        $promotionLockAcquired = stripeFinalizerAcquirePromotionLock($db, $promotionLockName);
+        $db->beginTransaction();
+
         $finalizedPaymentIds = [];
         $finalizedSubscriptionIds = [];
+        $duplicateStripeItems = [];
 
         foreach ($localSubscriptionIds as $index => $localSubscriptionId) {
             $promotionId = $promotionIds[$index] ?? $promotionIds[0] ?? '';
             if (!$promotionId) {
                 continue;
+            }
+
+            $promotionSlot = $promotionSlotMap[$promotionId] ?? '';
+            if ($promotionSlot !== '') {
+                $duplicateConflict = stripeFinalizerActivePromotionSlotConflict(
+                    $db,
+                    $userId,
+                    $chatbotId,
+                    $promotionSlot,
+                    $localSubscriptionId
+                );
+
+                if ($duplicateConflict) {
+                    stripeCheckoutLog('finalize_invoice.duplicate_slot_skipped', [
+                        'user_id' => $userId,
+                        'chatbot_id' => $chatbotId,
+                        'promotion_id' => $promotionId,
+                        'slot_type' => $promotionSlot,
+                        'local_subscription_id' => $localSubscriptionId,
+                        'existing_subscription_id' => $duplicateConflict['id'] ?? '',
+                        'stripe_subscription_id' => $stripeSubscriptionId,
+                        'stripe_invoice_id' => $stripeInvoiceId,
+                    ]);
+
+                    stripeFinalizerCancelPendingDuplicatePayment(
+                        $db,
+                        $userId,
+                        $initialPaymentIds[$index] ?? '',
+                        $stripeInvoiceId,
+                        $invoiceUrl,
+                        'Duplicate promotion slot was already active for this chatbot.'
+                    );
+
+                    $duplicateStripeItems[] = [
+                        'promotion_id' => $promotionId,
+                        'subscription_id' => $localSubscriptionId,
+                    ];
+                    continue;
+                }
             }
 
             $amount = $lineAmounts[$index] ?? null;
@@ -489,6 +534,16 @@ function finalizeStripePaidInvoice(PDO $db, $invoice, ?string $expectedUserId = 
             $finalizedSubscriptionIds[] = $localSubscriptionId;
         }
 
+        if (!empty($duplicateStripeItems)) {
+            stripeFinalizerRemoveDuplicateStripeItems(
+                $stripeSubscriptionId,
+                $stripeSubscription,
+                $duplicateStripeItems
+            );
+        }
+
+        syncChatbotSponsoredTag($db, $chatbotId);
+
         $db->commit();
 
         return [
@@ -505,6 +560,10 @@ function finalizeStripePaidInvoice(PDO $db, $invoice, ?string $expectedUserId = 
             $db->rollBack();
         }
         throw $e;
+    } finally {
+        if ($promotionLockAcquired) {
+            stripeFinalizerReleasePromotionLock($db, $promotionLockName);
+        }
     }
 }
 
@@ -595,6 +654,8 @@ function finalizeStripeBundleUpgradeInvoice(PDO $db, $invoice, $stripeSubscripti
             'stripe_subscription_id' => $stripeSubscriptionId,
             'stripe_invoice_id' => $stripeInvoiceId,
         ]);
+
+        syncChatbotSponsoredTag($db, $chatbotId);
 
         return [
             'finalized' => true,
@@ -935,6 +996,8 @@ function finalizeStripeBundleUpgradeInvoice(PDO $db, $invoice, $stripeSubscripti
             );
         }
 
+        syncChatbotSponsoredTag($db, $chatbotId);
+
         $db->commit();
 
         if (!$shouldSchedulePartialRenewal) {
@@ -1101,6 +1164,176 @@ function stripeCancelDuplicateBundlePromotionRows(
           AND id NOT IN (" . implode(',', $keepPlaceholders) . ")
           AND status IN ('active', 'trialing', 'past_due', 'pending')
     ")->execute($params);
+}
+
+function stripeFinalizerPromotionSlotMap(PDO $db, array $promotionIds): array {
+    $promotionIds = array_values(array_filter(array_unique(array_map('strval', $promotionIds))));
+    if (empty($promotionIds)) {
+        return [];
+    }
+
+    $placeholders = implode(',', array_fill(0, count($promotionIds), '?'));
+    $stmt = $db->prepare("
+        SELECT id, slot_type
+        FROM promotions
+        WHERE id IN ({$placeholders})
+    ");
+    $stmt->execute($promotionIds);
+
+    $map = [];
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $map[(string) $row['id']] = (string) $row['slot_type'];
+    }
+
+    return $map;
+}
+
+function stripeFinalizerActivePromotionSlotConflict(
+    PDO $db,
+    string $userId,
+    string $chatbotId,
+    string $slotType,
+    string $excludeSubscriptionId = ''
+): ?array {
+    $params = [
+        'user_id' => $userId,
+        'chatbot_id' => $chatbotId,
+        'slot_type' => $slotType,
+    ];
+    $excludeSql = '';
+    if ($excludeSubscriptionId !== '') {
+        $excludeSql = 'AND s.id <> :exclude_subscription_id';
+        $params['exclude_subscription_id'] = $excludeSubscriptionId;
+    }
+
+    $stmt = $db->prepare("
+        SELECT s.id, s.stripe_subscription_id
+        FROM subscriptions s
+        JOIN promotions p ON p.id = s.promotions_id
+        WHERE s.user_id = :user_id
+          AND s.chatbot_id = :chatbot_id
+          AND s.subscription_type = 'promotion'
+          AND s.status IN ('active', 'trialing', 'past_due')
+          AND s.end_date > NOW()
+          AND p.slot_type = :slot_type
+          {$excludeSql}
+        ORDER BY s.created_at DESC
+        LIMIT 1
+    ");
+    $stmt->execute($params);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    return $row ?: null;
+}
+
+function stripeFinalizerCancelPendingDuplicatePayment(
+    PDO $db,
+    string $userId,
+    string $paymentId,
+    string $stripeInvoiceId,
+    ?string $invoiceUrl,
+    string $message
+): void {
+    if ($paymentId === '') {
+        return;
+    }
+
+    $db->prepare("
+        UPDATE payments
+        SET status = 'cancelled',
+            stripe_invoice_id = COALESCE(stripe_invoice_id, :stripe_invoice_id),
+            invoice_url = COALESCE(invoice_url, :invoice_url),
+            metadata = JSON_SET(COALESCE(metadata, JSON_OBJECT()), '$.duplicate_slot_cancelled', true),
+            failure_code = NULL,
+            failure_message = :failure_message,
+            updated_at = NOW()
+        WHERE id = :id
+          AND user_id = :user_id
+          AND status IN ('pending', 'processing')
+    ")->execute([
+        'stripe_invoice_id' => $stripeInvoiceId,
+        'invoice_url' => $invoiceUrl,
+        'failure_message' => $message,
+        'id' => $paymentId,
+        'user_id' => $userId,
+    ]);
+}
+
+function stripeFinalizerRemoveDuplicateStripeItems(
+    string $stripeSubscriptionId,
+    $stripeSubscription,
+    array $duplicateItems
+): void {
+    if ($stripeSubscriptionId === '' || empty($duplicateItems)) {
+        return;
+    }
+
+    $items = [];
+    foreach ($duplicateItems as $item) {
+        $itemId = stripeFinalizerFindStripeSubscriptionItemId(
+            $stripeSubscription,
+            (string) ($item['promotion_id'] ?? ''),
+            (string) ($item['subscription_id'] ?? '')
+        );
+
+        if ($itemId) {
+            $items[] = [
+                'id' => $itemId,
+                'deleted' => true,
+            ];
+        }
+    }
+
+    if (empty($items)) {
+        stripeCheckoutLog('finalize_invoice.duplicate_slot_stripe_cleanup_skipped', [
+            'stripe_subscription_id' => $stripeSubscriptionId,
+            'reason' => 'No matching Stripe subscription items found.',
+        ]);
+        return;
+    }
+
+    try {
+        \Stripe\Subscription::update($stripeSubscriptionId, [
+            'items' => $items,
+            'proration_behavior' => 'none',
+        ]);
+
+        stripeCheckoutLog('finalize_invoice.duplicate_slot_stripe_items_removed', [
+            'stripe_subscription_id' => $stripeSubscriptionId,
+            'item_count' => count($items),
+        ]);
+    } catch (\Stripe\Exception\ApiErrorException $e) {
+        stripeCheckoutLog('finalize_invoice.duplicate_slot_stripe_cleanup_failed', stripeCheckoutExceptionContext($e) + [
+            'stripe_subscription_id' => $stripeSubscriptionId,
+            'item_count' => count($items),
+        ]);
+    }
+}
+
+function stripeFinalizerPromotionLockName(string $userId, string $chatbotId): string {
+    return 'promotion-slot:' . substr(hash('sha256', $userId . ':' . $chatbotId), 0, 48);
+}
+
+function stripeFinalizerAcquirePromotionLock(PDO $db, string $lockName): bool {
+    $stmt = $db->prepare('SELECT GET_LOCK(:lock_name, 10)');
+    $stmt->execute(['lock_name' => $lockName]);
+
+    if ((int) $stmt->fetchColumn() !== 1) {
+        throw new RuntimeException('Could not lock promotion checkout finalization. Please retry.');
+    }
+
+    return true;
+}
+
+function stripeFinalizerReleasePromotionLock(PDO $db, string $lockName): void {
+    try {
+        $stmt = $db->prepare('SELECT RELEASE_LOCK(:lock_name)');
+        $stmt->execute(['lock_name' => $lockName]);
+    } catch (Throwable $e) {
+        stripeCheckoutLog('finalize_invoice.promotion_lock_release_failed', [
+            'message' => $e->getMessage(),
+        ]);
+    }
 }
 
 function stripeFinalizerPromotionLabel(string $slotType): string {
@@ -1691,6 +1924,8 @@ function syncStripeSubscriptionStatus(PDO $db, $stripeSubscription): void {
               AND status IN ('active', 'trialing', 'past_due')
         ")->execute($partialParams);
     }
+
+    syncChatbotsSponsoredTagsForStripeSubscription($db, $stripeSubscriptionId);
 }
 
 function markStripeInvoicePaymentFailed(PDO $db, $invoice): void {

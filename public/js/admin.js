@@ -109,7 +109,7 @@ function toggleSection(btn, sectionId) {
 
 async function updateStatus(id, status, clickedBtn) {
     try {
-        const res    = await fetch('../app/adminContactActions.php', {
+        const res    = await fetch('app/adminContactActions.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'update_status', id, status })
@@ -153,7 +153,7 @@ async function sendReply(id, btn) {
     btn.textContent = 'Sending...';
 
     try {
-        const res    = await fetch('../app/adminContactActions.php', {
+        const res    = await fetch('app/adminContactActions.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'send_reply', id, response })
@@ -204,7 +204,7 @@ async function saveNotes(id, btn) {
     btn.textContent = 'Saving...';
 
     try {
-        const res    = await fetch('../app/adminContactActions.php', {
+        const res    = await fetch('app/adminContactActions.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'save_notes', id, notes })
@@ -226,7 +226,7 @@ async function saveNotes(id, btn) {
 
 async function toggleHelpful(id, btn) {
     try {
-        const res    = await fetch('../app/adminContactActions.php', {
+        const res    = await fetch('app/adminContactActions.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'toggle_helpful', id })
@@ -250,7 +250,7 @@ async function toggleHelpful(id, btn) {
 
 async function updateReviewStatus(id, status, clickedBtn) {
     try {
-        const res    = await fetch('../app/adminReviewActions.php', {
+        const res    = await fetch('app/adminReviewActions.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'update_status', id, status })
@@ -289,7 +289,7 @@ async function saveReviewNotes(id, btn) {
     btn.textContent = 'Saving...';
 
     try {
-        const res    = await fetch('../app/adminReviewActions.php', {
+        const res    = await fetch('app/adminReviewActions.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'save_notes', id, notes })
@@ -317,7 +317,7 @@ async function loadAdminSettings() {
     if (contentEl) contentEl.style.display = 'none';
  
     try {
-        const res  = await fetch('../app/adminSettingsActions.php', { method: 'GET' });
+        const res  = await fetch('app/adminSettingsActions.php', { method: 'GET' });
         const data = await res.json();
  
         if (!data.success) {
@@ -385,7 +385,7 @@ async function saveAdminSettings(btn) {
     btn.textContent = 'Saving...';
 
     try {
-        const res  = await fetch('../app/adminSettingsActions.php', {
+        const res  = await fetch('app/adminSettingsActions.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({
@@ -600,7 +600,7 @@ async function approveSubmission(id, clickedBtn) {
     const newStatus = isActive ? 'pending' : 'reviewed';
 
     try {
-        const res    = await fetch('../app/adminSubmissionActions.php', {
+        const res    = await fetch('app/adminSubmissionActions.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ action: 'approve', id, status: newStatus })
@@ -660,7 +660,7 @@ async function rejectSubmission(id, btn) {
     btn.textContent = 'Sending...';
 
     try {
-        const res    = await fetch('../app/adminSubmissionActions.php', {
+        const res    = await fetch('app/adminSubmissionActions.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ action: 'reject', id, reason })
@@ -715,7 +715,7 @@ async function saveSubmissionNotes(id, btn) {
     btn.textContent = 'Saving...';
 
     try {
-        const res    = await fetch('../app/adminSubmissionActions.php', {
+        const res    = await fetch('app/adminSubmissionActions.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ action: 'save_notes', id, notes })
@@ -753,7 +753,7 @@ async function acceptSubmission(id) {
     // Step 2: validate chatbot params
     let validationData;
     try {
-        const res  = await fetch('../app/adminSubmissionActions.php', {
+        const res  = await fetch('app/adminSubmissionActions.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ action: 'validate_chatbot', id }),
@@ -829,7 +829,7 @@ async function confirmAccept(id, btn) {
     btn.textContent = 'Accepting...';
 
     try {
-        const res    = await fetch('../app/adminSubmissionActions.php', {
+        const res    = await fetch('app/adminSubmissionActions.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ action: 'accept', id }),
@@ -873,7 +873,7 @@ async function reviewSubmission(id, clickedBtn) {
         clickedBtn.disabled = true;
  
         try {
-            const res    = await fetch('../app/adminSubmissionActions.php', {
+            const res    = await fetch('app/adminSubmissionActions.php', {
                 method:  'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body:    JSON.stringify({ action: 'review', id, reason }),
@@ -901,7 +901,7 @@ async function reviewSubmission(id, clickedBtn) {
     clickedBtn.disabled = true;
  
     try {
-        const res    = await fetch('../app/adminSubmissionActions.php', {
+        const res    = await fetch('app/adminSubmissionActions.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ action: 'review', id, status: newStatus }),
@@ -976,7 +976,7 @@ async function rejectSubmission(id, btn) {
     btn.textContent = 'Sending...';
  
     try {
-        const res    = await fetch('../app/adminSubmissionActions.php', {
+        const res    = await fetch('app/adminSubmissionActions.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ action: 'reject', id, reason }),
@@ -1019,7 +1019,7 @@ async function removeSubmission(id, clickedBtn) {
         clickedBtn.disabled = true;
  
         try {
-            const res    = await fetch('../app/adminSubmissionActions.php', {
+            const res    = await fetch('app/adminSubmissionActions.php', {
                 method:  'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body:    JSON.stringify({ action: 'remove', id, reason }),
@@ -1055,7 +1055,7 @@ async function removeSubmission(id, clickedBtn) {
     clickedBtn.disabled = true;
  
     try {
-        const res    = await fetch('../app/adminSubmissionActions.php', {
+        const res    = await fetch('app/adminSubmissionActions.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ action: 'remove', id }),
@@ -1091,7 +1091,7 @@ async function saveSubmissionNotes(id, btn) {
     btn.textContent = 'Saving...';
 
     try {
-        const res    = await fetch('../app/adminSubmissionActions.php', {
+        const res    = await fetch('app/adminSubmissionActions.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ action: 'save_notes', id, notes }),
@@ -1389,7 +1389,7 @@ async function openSubmissionEditPopup(id) {
     requestAnimationFrame(() => popup.classList.add('visible'));
 
     try {
-        const res = await fetch('../app/adminSubmissionActions.php', {
+        const res = await fetch('app/adminSubmissionActions.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'get_edit_data', id }),
@@ -1470,12 +1470,12 @@ function renderSubmissionEditPopup(data) {
                             <label class="sub-edit-toggle-field">
                                 <span>Affiliate program enabled</span>
                                 <span class="toggle-switch">
-                                    <input name="has_affiliate_program" type="checkbox"${checkedAttr(c.has_affiliate_program || c.affiliate_link)}>
+                                    <input name="has_affiliate_program" type="checkbox"${checkedAttr(c.has_affiliate_program)}>
                                     <span class="toggle-slider"></span>
                                 </span>
                             </label>
                             <label class="sub-edit-field sub-edit-field--wide">
-                                <span>Affiliate link</span>
+                                <span>Outbound / affiliate link</span>
                                 <input name="affiliate_link" type="url" maxlength="1000" value="${escapeAttr(c.affiliate_link || '')}">
                             </label>
                             <label class="sub-edit-field">
@@ -1702,7 +1702,7 @@ async function deleteSubmissionEditFeature(featureId, btn, event) {
     btn.textContent = 'Deleting...';
 
     try {
-        const res = await fetch('../app/adminSubmissionActions.php', {
+        const res = await fetch('app/adminSubmissionActions.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'delete_feature', id: chatbotId, feature_id: featureId }),
@@ -1806,7 +1806,7 @@ async function saveSubmissionEdit(event, id) {
     }
 
     try {
-        const res = await fetch('../app/adminSubmissionActions.php', {
+        const res = await fetch('app/adminSubmissionActions.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),

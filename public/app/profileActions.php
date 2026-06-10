@@ -1425,6 +1425,8 @@ if ($action === 'cancel_subscription') {
                   AND user_id = :user_id
             ")->execute($cancelledParams);
 
+            syncChatbotSponsoredTag($db, (string) $sub['chatbot_id']);
+
             echo json_encode(['success' => true, 'message' => 'Subscription was already cancelled in Stripe.']);
             exit;
         }
@@ -1470,6 +1472,7 @@ if ($action === 'cancel_subscription') {
             }
 
             profileApplyPartialCancelDbState($db, $selectedRows, $remainingRows, $cancelType, $reason, $stripeSubscription);
+            syncChatbotSponsoredTag($db, (string) $sub['chatbot_id']);
 
             AuditLog::log('subscription', $sub['id'], 'updated',
                 ['status' => 'active', 'cancel_at_period_end' => false],
@@ -1584,6 +1587,7 @@ if ($action === 'cancel_subscription') {
     }
     
     $stmt->execute($targetCancelParams);
+    syncChatbotSponsoredTag($db, (string) $sub['chatbot_id']);
 
     AuditLog::log('subscription', $sub['id'], 'updated',
         ['status' => 'active', 'cancel_at_period_end' => false],

@@ -232,6 +232,7 @@ require '../inc/header.php';
 
                     $popularChatbots = [];
                     $tagNames        = [];
+                    $popularBadgeIds = [];
                     $homepageLogoSrc = static function (?string $path): string {
                         $value = trim((string) $path);
                         if ($value === '') {
@@ -254,9 +255,35 @@ require '../inc/header.php';
                     };
 
                     try {
-                        error_log('tu1');
                         $db = Database::getInstance()->getConnection();
-                        error_log('tu2');
+                        $homepagePromotionExistsSql = "
+                            EXISTS (
+                                SELECT 1
+                                FROM subscriptions s_homepage_promotion
+                                JOIN promotions p_homepage_promotion ON p_homepage_promotion.id = s_homepage_promotion.promotions_id
+                                WHERE s_homepage_promotion.chatbot_id = c.id
+                                  AND s_homepage_promotion.subscription_type = 'promotion'
+                                  AND s_homepage_promotion.status IN ('active', 'trialing', 'past_due')
+                                  AND s_homepage_promotion.end_date > NOW()
+                                  AND p_homepage_promotion.slot_type = 'Homepage'
+                            )
+                        ";
+
+                        $popularBadgeStmt = $db->query("
+                            SELECT c.id
+                            FROM chatbots c
+                            WHERE c.status = 'active'
+                              AND c.deleted_at IS NULL
+                              AND c.click_count > 0
+                            ORDER BY (c.rating_average * LOG(c.click_count + 1)) DESC,
+                                     c.click_count DESC,
+                                     c.rating_count DESC,
+                                     c.rating_average DESC,
+                                     c.created_at DESC
+                            LIMIT 5
+                        ");
+                        $popularBadgeIds = array_fill_keys($popularBadgeStmt->fetchAll(PDO::FETCH_COLUMN), true);
+
                         $stmt = $db->query("
                             SELECT
                                 c.id,
@@ -265,17 +292,22 @@ require '../inc/header.php';
                                 c.rating_average,
                                 c.rating_count,
                                 c.favorite_count,
+                                c.has_affiliate_program,
                                 c.is_sponsored,
-                                c.click_count
+                                c.click_count,
+                                {$homepagePromotionExistsSql} AS has_homepage_promotion
                             FROM chatbots c
                             WHERE c.status     = 'active'
                             AND c.deleted_at IS NULL
-                            ORDER BY c.is_sponsored DESC, (c.rating_average * LOG(c.click_count + 1)) DESC, c.click_count DESC, c.rating_count DESC, c.created_at DESC
+                            ORDER BY has_homepage_promotion DESC,
+                                     (c.rating_average * LOG(c.click_count + 1)) DESC,
+                                     c.click_count DESC,
+                                     c.rating_count DESC,
+                                     c.created_at DESC
                             LIMIT 8
                         ");
                         $popularChatbots = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                        error_log('tu3');
-                        // Načítaj tagy pre tieto chatboty
+
                         if (!empty($popularChatbots)) {
                             $ids          = array_column($popularChatbots, 'id');
                             $placeholders = implode(',', array_fill(0, count($ids), '?'));
@@ -284,8 +316,8 @@ require '../inc/header.php';
                                 FROM chatbot_tags ct
                                 JOIN tags t ON ct.tag_id = t.id
                                 WHERE ct.chatbot_id IN ({$placeholders})
+                                  AND t.name NOT IN ('Popular', 'Sponsored', 'Affiliate')
                                 ORDER BY ct.chatbot_id,
-                                         CASE WHEN t.name = 'Sponsored' THEN 0 ELSE 1 END,
                                          t.name ASC
                             ");
                             $tagStmt->execute($ids);
@@ -308,7 +340,24 @@ require '../inc/header.php';
                         $fullStars  = (int) floor($rating);
                         $emptyStars = 5 - $fullStars;
                         $tagColor   = $tagColors[$i % count($tagColors)];
-                        $botTags    = $tagNames[$bot['id']] ?? [];
+                        $botTags    = [];
+                        if (!empty($bot['has_homepage_promotion'])) {
+                            $botTags[] = 'Sponsored';
+                        }
+                        if (isset($popularBadgeIds[$bot['id']])) {
+                            $botTags[] = 'Popular';
+                        }
+                        if (!empty($bot['has_affiliate_program']) && count($botTags) < 2) {
+                            $botTags[] = 'Affiliate';
+                        }
+                        foreach ($tagNames[$bot['id']] ?? [] as $tag) {
+                            if (count($botTags) >= 2) {
+                                break;
+                            }
+                            if (!in_array($tag, $botTags, true)) {
+                                $botTags[] = $tag;
+                            }
+                        }
                         $logoUrl    = $homepageLogoSrc($bot['logo_url'] ?? '');
                     ?>
                     <a href="chatbotShowcase.php?search=<?= urlencode($bot['name']) ?>" class="hp-pop-card">

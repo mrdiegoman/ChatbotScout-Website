@@ -89,7 +89,7 @@ function validateChatbot(PDO $db, string $id): array {
             'ok'    => !empty($chatbot['logo_url']),
         ],
         [
-            'label' => 'Affiliate link is set',
+            'label' => 'Outbound link is set',
             'ok'    => !empty($chatbot['affiliate_link']),
         ],
         [
@@ -280,6 +280,10 @@ function saveSubmissionEditData(PDO $db, string $id, array $input): array {
     $affiliateLink = cleanNullableString($fields['affiliate_link'] ?? null, 1000);
     $pricingUrl = cleanNullableString($fields['pricing_url'] ?? null, 500);
 
+    if ($affiliateLink === null) {
+        throw new InvalidArgumentException('Outbound link is required.');
+    }
+
     foreach ([$affiliateLink, $pricingUrl] as $url) {
         if ($url !== null && !filter_var($url, FILTER_VALIDATE_URL)) {
             throw new InvalidArgumentException('Affiliate and pricing URLs must be valid URLs when filled.');
@@ -304,10 +308,7 @@ function saveSubmissionEditData(PDO $db, string $id, array $input): array {
     }
     $startingPrice = number_format((float)$startingPrice, 2, '.', '');
 
-    $hasAffiliateProgram = !empty($fields['has_affiliate_program']) || $affiliateLink !== null;
-    if ($hasAffiliateProgram && $affiliateLink === null) {
-        throw new InvalidArgumentException('Affiliate link is required when affiliate program is enabled.');
-    }
+    $hasAffiliateProgram = !empty($fields['has_affiliate_program']);
 
     $commissionTypes = ['', 'percentage', 'flat', 'cpa'];
     $commissionType = trim((string)($fields['affiliate_commission_type'] ?? ''));
@@ -429,6 +430,8 @@ function saveSubmissionEditData(PDO $db, string $id, array $input): array {
                 'integration_id' => $integrationId,
             ]);
         }
+
+        syncChatbotAffiliateTag($db, $id);
 
         $db->commit();
     } catch (Throwable $e) {
@@ -585,6 +588,8 @@ switch ($action) {
                 deleted_at       = NULL
             WHERE id = :id
         ")->execute(['id' => $id]);
+
+        syncChatbotSystemTags($db, $id);
 
         AuditLog::log('chatbot', $id, 'approved',
             ['status' => $chatbot['status'], 'is_verified' => (bool)$chatbot['is_verified']],

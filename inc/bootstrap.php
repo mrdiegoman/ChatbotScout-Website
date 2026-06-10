@@ -8,6 +8,7 @@
 define('BOOTSTRAP_LOADED', true);
 require __DIR__ . '/errorHandler.php';
 require_once __DIR__ . '/promotionPricing.php';
+require_once __DIR__ . '/chatbotTags.php';
 
 // ============================================
 // ENVIRONMENT VARIABLES (.env)
