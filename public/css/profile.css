@@ -501,6 +501,13 @@
     margin: 0;
 }
 
+.subscriptions-card__title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    min-width: 0;
+}
+
 .subscription-count {
     background: #e8f5e9;
     color: #2e7d32;
@@ -508,6 +515,46 @@
     padding: 0.5rem 1.1rem;
     font-family: outfit-semibold, sans-serif;
     font-size: 1.2rem;
+}
+
+.promotions-refresh-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.9rem;
+    height: 2.9rem;
+    border: 1px solid #d6ead9;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #2e7d32;
+    cursor: pointer;
+    padding: 0;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.promotions-refresh-btn:hover {
+    background: #e8f5e9;
+    border-color: #a7dfaf;
+    color: #1f6b25;
+}
+
+.promotions-refresh-btn:focus-visible {
+    outline: 3px solid rgba(76, 175, 80, 0.25);
+    outline-offset: 2px;
+}
+
+.promotions-refresh-btn:disabled {
+    cursor: wait;
+    opacity: 0.75;
+}
+
+.promotions-refresh-btn svg {
+    width: 1.55rem;
+    height: 1.55rem;
+}
+
+.promotions-refresh-btn.is-refreshing svg {
+    animation: profileSpin 0.75s linear infinite;
 }
 
 .subscriptions-empty {
@@ -1755,6 +1802,10 @@
     .subscription-card__meta {
         align-items: flex-start;
         flex-direction: column;
+    }
+
+    .subscriptions-card__title {
+        align-self: flex-start;
     }
 
     .account-danger-card {

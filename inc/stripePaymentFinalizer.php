@@ -1336,6 +1336,71 @@ function stripeFinalizerReleasePromotionLock(PDO $db, string $lockName): void {
     }
 }
 
+function stripeCancelDuplicatePendingPromotionPaymentsForUser(PDO $db, string $userId): int {
+    $stmt = $db->prepare("
+        UPDATE payments pending_pay
+        JOIN promotions pending_p
+          ON pending_p.id = JSON_UNQUOTE(JSON_EXTRACT(pending_pay.metadata, '$.promotion_id'))
+        JOIN subscriptions active_sub
+          ON active_sub.user_id = pending_pay.user_id
+         AND active_sub.chatbot_id = pending_pay.chatbot_id
+         AND active_sub.subscription_type = 'promotion'
+         AND active_sub.status IN ('active', 'trialing', 'past_due')
+         AND active_sub.end_date > NOW()
+        JOIN promotions active_p
+          ON active_p.id = active_sub.promotions_id
+         AND active_p.slot_type = pending_p.slot_type
+        SET pending_pay.status = 'cancelled',
+            pending_pay.failure_code = NULL,
+            pending_pay.failure_message = 'Promotion slot is already active for this chatbot.',
+            pending_pay.invoice_url = NULL,
+            pending_pay.metadata = JSON_SET(
+                COALESCE(pending_pay.metadata, JSON_OBJECT()),
+                '$.cancelled_reason', 'duplicate_active_promotion_slot'
+            ),
+            pending_pay.updated_at = NOW()
+        WHERE pending_pay.user_id = :user_id
+          AND pending_pay.payment_method = 'stripe'
+          AND pending_pay.status IN ('pending', 'processing')
+          AND pending_pay.chatbot_id IS NOT NULL
+          AND (
+              pending_pay.subscription_id IS NULL
+              OR pending_pay.subscription_id <> active_sub.id
+          )
+    ");
+    $stmt->execute(['user_id' => $userId]);
+
+    return $stmt->rowCount();
+}
+
+function stripeCancelPendingPaymentsForStripeSubscription(PDO $db, string $stripeSubscriptionId, string $message): int {
+    if ($stripeSubscriptionId === '') {
+        return 0;
+    }
+
+    $stmt = $db->prepare("
+        UPDATE payments
+        SET status = 'cancelled',
+            failure_code = NULL,
+            failure_message = :failure_message,
+            invoice_url = NULL,
+            metadata = JSON_SET(
+                COALESCE(metadata, JSON_OBJECT()),
+                '$.cancelled_reason', 'stripe_subscription_cancelled'
+            ),
+            updated_at = NOW()
+        WHERE payment_method = 'stripe'
+          AND status IN ('pending', 'processing')
+          AND JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.stripe_subscription_id')) = :stripe_subscription_id
+    ");
+    $stmt->execute([
+        'failure_message' => $message,
+        'stripe_subscription_id' => $stripeSubscriptionId,
+    ]);
+
+    return $stmt->rowCount();
+}
+
 function stripeFinalizerPromotionLabel(string $slotType): string {
     return match ($slotType) {
         'Homepage' => 'Homepage Visibility',
@@ -1887,6 +1952,14 @@ function syncStripeSubscriptionStatus(PDO $db, $stripeSubscription): void {
         WHERE {$where}
     ");
     $stmt->execute($params);
+
+    if ($status === 'cancelled') {
+        stripeCancelPendingPaymentsForStripeSubscription(
+            $db,
+            $stripeSubscriptionId,
+            'Stripe subscription was cancelled before payment completed.'
+        );
+    }
 
     if (!empty($partialCancelSubscriptionIds)) {
         $partialParams = [];

@@ -26,6 +26,25 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     });
 });
 
+const refreshPromotionsBtn = document.getElementById('refresh-promotions-btn');
+if (refreshPromotionsBtn) {
+    refreshPromotionsBtn.addEventListener('click', () => {
+        refreshPromotionsBtn.classList.add('is-refreshing');
+        refreshPromotionsBtn.disabled = true;
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('tab', 'profile');
+        url.hash = 'your-promotions';
+
+        if (url.toString() === window.location.href) {
+            window.location.reload();
+            return;
+        }
+
+        window.location.assign(url.toString());
+    });
+}
+
 // ============================================
 // EMAIL MASKING
 // ============================================

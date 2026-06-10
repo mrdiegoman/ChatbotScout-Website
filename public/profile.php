@@ -67,6 +67,7 @@ try {
             syncRecentPaidStripeInvoicesForUser($db, $user['id']);
         }
     }
+    stripeCancelDuplicatePendingPromotionPaymentsForUser($db, $user['id']);
 } catch (Exception $e) {
     error_log('Profile Stripe payment sync error: ' . $e->getMessage());
 }
@@ -567,7 +568,23 @@ require '../inc/header.php';
                         <div class="subscriptions-card__header">
                             <div>
                                 <p class="info-field-static-label">Subscriptions</p>
-                                <h2>Your Promotions</h2>
+                                <div class="subscriptions-card__title">
+                                    <h2>Your Promotions</h2>
+                                    <button
+                                        type="button"
+                                        class="promotions-refresh-btn"
+                                        id="refresh-promotions-btn"
+                                        title="Refresh promotions"
+                                        aria-label="Refresh promotions"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                                            <path d="M3 21v-5h5"/>
+                                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                                            <path d="M16 8h5V3"/>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                             <?php $subscriptionCount = count($subscriptions); ?>
                             <span class="subscription-count">
