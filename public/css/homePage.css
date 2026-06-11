@@ -133,7 +133,7 @@
     font-size: clamp(2.75rem, 5vw, 4.25rem);
     /* font-weight: 900; */
     line-height: 1.12;
-    margin-bottom: 1.8rem;
+    margin: 3rem 0 1.8rem;
     color: #fff;
 }
 
@@ -814,8 +814,68 @@
 
 /* ── Responsive ── */
 @media (max-width: 600px) {
-    .hp-chat-msg      { max-width: 92%; }
-    .hp-chat-msg-bot  { max-width: 92%; }
+    .hp-features-section {
+        padding: 5.6rem 1.6rem;
+    }
+
+    .hp-features-inner {
+        max-width: 44rem;
+        gap: 2.6rem;
+    }
+
+    .hp-chat-messages {
+        gap: 3rem;
+    }
+
+    .hp-chat-row {
+        width: 100%;
+        gap: 0;
+    }
+
+    .hp-chat-row-user {
+        justify-content: flex-end;
+        padding-left: 0;
+    }
+
+    .hp-chat-row-bot {
+        display: grid;
+        grid-template-columns: 3.2rem minmax(0, 1fr);
+        align-items: start;
+        gap: 1rem;
+        padding-right: 0;
+    }
+
+    .hp-chat-avatar-bot {
+        width: 3.2rem;
+        height: 3.2rem;
+        margin-top: 0.4rem;
+    }
+
+    .hp-chat-msg {
+        max-width: none;
+        padding: 1.5rem 1.6rem;
+    }
+
+    .hp-chat-msg-user {
+        width: min(100%, 30rem);
+        max-width: 84%;
+        font-size: 1.45rem;
+    }
+
+    .hp-chat-msg-bot {
+        width: 100%;
+        max-width: none;
+    }
+
+    .hp-chat-msg-bot h3 {
+        font-size: 1.55rem;
+        line-height: 1.35;
+    }
+
+    .hp-chat-msg-bot p {
+        font-size: 1.38rem;
+        line-height: 1.65;
+    }
 }
 
 /* ============================================================

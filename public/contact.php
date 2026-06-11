@@ -24,32 +24,42 @@ function old(string $key, array $old): string {
 }
 ?>
 
-<link rel="stylesheet" href="css/contact.css">
+<div class="cs-page cs-contact-page">
+    <section class="cs-hero" aria-labelledby="contact-title">
+        <div class="cs-hero-inner">
+            <div class="cs-hero-copy">
+                <h1 id="contact-title">Contact Us</h1>
+                <p class="cs-hero-lead">
+                    Questions, partnerships, affiliate inquiries, and feedback all arrive in
+                    one calm place. Share the useful context and we will review your message
+                    carefully.
+                </p>
+                <div class="cs-hero-actions">
+                    <a class="cs-button cs-button--green" href="chatbotShowcase.php">Browse chatbots</a>
+                </div>
+            </div>
 
-<div class="contact-page-wrapper">
-    <main class="contact-page-main">
-        <section class="contact-page-main-section-1">
-            <h1>Contact Us</h1>
-            <p>
-                We are happy to hear from you. If you have any questions about our
-                content, affiliate links, or featured websites, feel free to get
-                in touch using the form below.
-            </p>
-            <p>
-                If you represent a brand or would like to discuss a potential
-                collaboration, please include a short description of your project
-                so we can review it properly.
-            </p>
-            <p>
-                We do our best to respond to all messages within a few business days.
-                Thank you for reaching out and for visiting our website.
-            </p>
-        </section>
+            <aside class="cs-hero-panel" aria-label="Contact promise">
+                <h2>We read every message</h2>
+                <p>
+                    We do our best to respond within a few business days, especially when your
+                    message includes the project, brand, or listing context.
+                </p>
+            </aside>
+        </div>
+    </section>
 
-        <section class="contact-page-main-section-2">
-            <h2>Get in Touch</h2>
+    <main class="cs-main cs-contact-main">
+        <section class="cs-card cs-contact-form-card" aria-labelledby="contact-form-title">
+            <div class="cs-text-stack">
+                <h2 id="contact-form-title">Get in touch</h2>
+                <p>
+                    Use the form below for questions about our content, affiliate links,
+                    featured websites, or potential collaborations.
+                </p>
+            </div>
 
-            <form action="../app/contactActions.php" method="POST" id="contactForm" novalidate>
+            <form action="../app/contactActions.php" method="POST" id="contactForm" class="contact-form" novalidate>
 
                 <div class="contact-page-main-section-2-form-row">
                     <div class="contact-page-main-section-2-form-row-group">
@@ -61,7 +71,7 @@ function old(string $key, array $old): string {
                             placeholder="Please enter first name"
                             value="<?= old('firstName', $oldInput) ?>"
                             maxlength="50"
-                            autocomplete="name"
+                            autocomplete="given-name"
                             required>
                     </div>
                     <div class="contact-page-main-section-2-form-row-group">
@@ -92,12 +102,19 @@ function old(string $key, array $old): string {
                             required>
                     </div>
                     <div class="contact-page-main-section-2-form-row-group">
-                        <label>Subject <span class="required">*</span></label>
+                        <label id="subjectLabel">Subject <span class="required">*</span></label>
 
                         <!-- Hidden input carries the actual value to PHP -->
                         <input type="hidden" id="subjectValue" name="subject" value="<?= old('subject', $oldInput) ?>">
 
-                        <div class="dropdown-wrapper" id="subjectDropdown">
+                        <div
+                            class="dropdown-wrapper"
+                            id="subjectDropdown"
+                            role="combobox"
+                            tabindex="0"
+                            aria-labelledby="subjectLabel subjectSelected"
+                            aria-haspopup="listbox"
+                            aria-expanded="false">
                             <div class="dropdown-select">
                                 <div class="dropdown-selected" id="subjectSelected">
                                     <?php
@@ -121,20 +138,20 @@ function old(string $key, array $old): string {
                                 class="dropdown-droparrow-icon">
                                 <path d="m6 9 6 6 6-6" />
                             </svg>
-                            <ul class="dropdown-options">
-                                <li class="dropdown-option <?= $oldSubject === 'general_question'    ? 'selected' : '' ?>" data-value="general_question">General Question</li>
-                                <li class="dropdown-option <?= $oldSubject === 'affiliate_inquiry'   ? 'selected' : '' ?>" data-value="affiliate_inquiry">Affiliate Inquiry</li>
-                                <li class="dropdown-option <?= $oldSubject === 'partnership_request' ? 'selected' : '' ?>" data-value="partnership_request">Partnership Request</li>
-                                <li class="dropdown-option <?= $oldSubject === 'report_issue'        ? 'selected' : '' ?>" data-value="report_issue">Report an Issue</li>
-                                <li class="dropdown-option <?= $oldSubject === 'feedback'            ? 'selected' : '' ?>" data-value="feedback">Feedback / Suggestion</li>
-                                <li class="dropdown-option <?= $oldSubject === 'press_media'         ? 'selected' : '' ?>" data-value="press_media">Press / Media</li>
+                            <ul class="dropdown-options" role="listbox">
+                                <li class="dropdown-option <?= $oldSubject === 'general_question'    ? 'selected' : '' ?>" data-value="general_question" role="option" tabindex="-1" aria-selected="<?= $oldSubject === 'general_question' ? 'true' : 'false' ?>">General Question</li>
+                                <li class="dropdown-option <?= $oldSubject === 'affiliate_inquiry'   ? 'selected' : '' ?>" data-value="affiliate_inquiry" role="option" tabindex="-1" aria-selected="<?= $oldSubject === 'affiliate_inquiry' ? 'true' : 'false' ?>">Affiliate Inquiry</li>
+                                <li class="dropdown-option <?= $oldSubject === 'partnership_request' ? 'selected' : '' ?>" data-value="partnership_request" role="option" tabindex="-1" aria-selected="<?= $oldSubject === 'partnership_request' ? 'true' : 'false' ?>">Partnership Request</li>
+                                <li class="dropdown-option <?= $oldSubject === 'report_issue'        ? 'selected' : '' ?>" data-value="report_issue" role="option" tabindex="-1" aria-selected="<?= $oldSubject === 'report_issue' ? 'true' : 'false' ?>">Report an Issue</li>
+                                <li class="dropdown-option <?= $oldSubject === 'feedback'            ? 'selected' : '' ?>" data-value="feedback" role="option" tabindex="-1" aria-selected="<?= $oldSubject === 'feedback' ? 'true' : 'false' ?>">Feedback / Suggestion</li>
+                                <li class="dropdown-option <?= $oldSubject === 'press_media'         ? 'selected' : '' ?>" data-value="press_media" role="option" tabindex="-1" aria-selected="<?= $oldSubject === 'press_media' ? 'true' : 'false' ?>">Press / Media</li>
                             </ul>
                         </div>
                     </div>
                 </div>
 
-                <div class="contact-page-main-section-2-form-row">
-                    <div class="contact-page-main-section-2-form-row-group" style="flex:1;">
+                <div class="contact-page-main-section-2-form-row contact-page-main-section-2-form-row--single">
+                    <div class="contact-page-main-section-2-form-row-group">
                         <label for="message">Message <span class="required">*</span></label>
                         <textarea
                             id="message"
@@ -147,18 +164,16 @@ function old(string $key, array $old): string {
                 </div>
 
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-                <button type="submit" class="contact-page-main-section-2-submit-btn">Send Message</button>
+                <button type="submit" class="cs-button contact-page-main-section-2-submit-btn">Send Message</button>
             </form>
         </section>
-
-        <aside class="contact-page-main-aside">
-            <h3>Note</h3>
+        <section class="cs-card cs-card--soft cs-contact-privacy-note" aria-label="Contact privacy note">
             <p>
-                By contacting us, you agree that your personal data will be used
-                solely to respond to your inquiry, in accordance with our
-                <a href="privacyPolicy.php">Privacy Policy</a>.
+                By contacting us, you agree that your personal data will be used solely
+                to respond to your inquiry, in accordance with our
+                <a class="cs-link" href="privacyPolicy.php">Privacy Policy</a>.
             </p>
-        </aside>
+        </section>
     </main>
 </div>
 

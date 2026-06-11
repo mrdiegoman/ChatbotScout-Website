@@ -3,41 +3,81 @@ require '../inc/bootstrap.php';
 require '../inc/header.php';
 ?>
 
-<div class="Affiliate-dis-page-wrapper">
-    <main class="Affiliate-dis-page-main">
-        <section class="Affiliate-dis-page-main-section-1">
-            <h1>Affiliate Disclosure</h1>
-            <p>
-                Transparency is important to us, and we want to make sure our 
-                visitors clearly understand how this website operates. Links you will 
-                find on our pages are affiliate links. This means that 
-                if you click on one of these links and make a purchase or sign up 
-                for a service, we may receive a small commission <span>- at no extra cost 
-                for you.</span>
-            </p>
-            <p>
-                These commissions help us cover the costs of running and maintaining 
-                this website, such as hosting, research, and content creation. Our 
-                goal is to continue providing helpful, unbiased information and tools 
-                that make it easier for you to find the best chatbot solutions for 
-                your website.
-            </p>
-            <p>
-                We only recommend products and services that are relevant to our audience.
-                Recommendations are <span>never</span> based on
-                <span>commission rates.</span>
-            </p>
+<div class="cs-page cs-affiliate-page">
+    <section class="cs-hero cs-affiliate-hero" aria-labelledby="affiliate-title">
+        <div class="cs-hero-inner">
+            <div class="cs-hero-copy">
+                <h1 id="affiliate-title">Affiliate Disclosure</h1>
+                <p class="cs-hero-lead">
+                    We want visitors to clearly understand how affiliate links work on
+                    ChatbotScout and how they help support the website.
+                </p>
+                <div class="cs-hero-actions">
+                    <a class="cs-button cs-button--green" href="chatbotShowcase.php">Compare chatbots</a>
+                </div>
+            </div>
+        </div>
+    </section>
 
-            <p>
-                We greatly appreciate your support. By using our affiliate links, 
-                you help keep this project running and allow us to keep improving our 
-                content.
-            </p>
-            <p>
-                If you have any questions about our affiliate relationships, feel free 
-                to <a href="contact.php">contact us</a>.
-            </p>
-        </section>
+    <main class="cs-main cs-affiliate-main">
+        <article class="cs-affiliate-sheet" aria-labelledby="affiliate-summary-title">
+            <header class="cs-affiliate-intro">
+                <p class="cs-affiliate-label">Disclosure summary</p>
+                <h2 id="affiliate-summary-title">Some links on ChatbotScout are affiliate links.</h2>
+                <p>
+                    Transparency is important to us, so we keep this page simple. Some
+                    links may lead to chatbot providers, tools, or services that are
+                    relevant to our visitors.
+                </p>
+            </header>
+
+            <div class="cs-affiliate-highlight" role="note">
+                <span class="cs-affiliate-highlight-dot" aria-hidden="true"></span>
+                <p>
+                    <strong>No extra cost for you.</strong> If you click one of these
+                    links and make a purchase or sign up for a service, we may receive a
+                    small commission from the provider.
+                </p>
+            </div>
+
+            <section class="cs-affiliate-section" aria-labelledby="affiliate-how-title">
+                <h3 id="affiliate-how-title">How it works</h3>
+                <ol class="cs-affiliate-flow">
+                    <li>
+                        <span class="cs-affiliate-flow-number">1</span>
+                        <p>You click a relevant link from one of our pages.</p>
+                    </li>
+                    <li>
+                        <span class="cs-affiliate-flow-number">2</span>
+                        <p>A purchase or sign-up may generate a small commission.</p>
+                    </li>
+                    <li>
+                        <span class="cs-affiliate-flow-number">3</span>
+                        <p>The commission helps cover hosting, research, and content work.</p>
+                    </li>
+                </ol>
+            </section>
+
+            <section class="cs-affiliate-section" aria-labelledby="affiliate-principles-title">
+                <h3 id="affiliate-principles-title">Our recommendation promise</h3>
+                <p>
+                    Recommendations are never based on commission rates. We only recommend
+                    products and services that are relevant to our audience, with the goal
+                    of helping visitors find useful chatbot solutions for their websites.
+                </p>
+            </section>
+
+            <footer class="cs-affiliate-footer" aria-labelledby="affiliate-contact-title">
+                <div>
+                    <h3 id="affiliate-contact-title">Questions about an affiliate relationship?</h3>
+                    <p>
+                        If you want more detail about how a specific link works, feel free
+                        to contact us.
+                    </p>
+                </div>
+                <a class="cs-button" href="contact.php">Contact us</a>
+            </footer>
+        </article>
     </main>
 </div>
 

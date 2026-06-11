@@ -945,7 +945,7 @@ a, button {
     }
 }
 
-@media (max-width: 1090px) {
+@media (max-width: 1130px) {
     /* Zobraz burger menu */
     .header-burger-btn {
         display: block;

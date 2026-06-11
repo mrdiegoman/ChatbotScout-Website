@@ -5,7 +5,7 @@
  * Číta integrácie priamo z data-integrations atribútu buttonu — žiadny extra API call.
  *
  * Použitie:
- *   <button ... data-integrations='["Shopify","WordPress"]' data-chatbot-name="Tidio" onclick="openPlatformsPopup(event, this)">
+ *   <button class="platforms-popup-trigger" data-integrations='["Shopify","WordPress"]' data-chatbot-name="Tidio">
  */
 
 (function () {
@@ -38,6 +38,18 @@
     // OPEN
     // ============================================
 
+    function lockPageScroll() {
+        if (typeof window.lockScroll === 'function') {
+            window.lockScroll();
+        }
+    }
+
+    function unlockPageScroll() {
+        if (typeof window.unlockScroll === 'function') {
+            window.unlockScroll();
+        }
+    }
+
     function openPopup(integrations, chatbotName) {
         // Nastav titulek
         title.textContent = chatbotName ? `${chatbotName} · Platforms` : 'Platforms';
@@ -57,7 +69,7 @@
         }
 
         // Zablokuj scroll stránky
-        lockScroll();
+        lockPageScroll();
 
         // Zobraz overlay, popup je centrovaný cez CSS
         overlay.style.display = 'flex';
@@ -77,7 +89,25 @@
         }, 180);
 
         // Obnov scroll stránky
-        unlockScroll();
+        unlockPageScroll();
+    }
+
+    function openFromButton(e, btn) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        let integrations = [];
+        try {
+            integrations = JSON.parse(btn.dataset.integrations || '[]');
+        } catch (_) {
+            integrations = [];
+        }
+
+        const chatbotName = btn.dataset.chatbotName || '';
+
+        openPopup(integrations, chatbotName);
     }
 
     // ============================================
@@ -94,23 +124,17 @@
         if (e.key === 'Escape') closePopup();
     });
 
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.platforms-popup-trigger');
+        if (!btn) return;
+
+        openFromButton(e, btn);
+    });
+
     // ============================================
     // GLOBAL EXPOSE
     // ============================================
 
-    window.openPlatformsPopup = function (e, btn) {
-        e.stopPropagation();
-
-        let integrations = [];
-        try {
-            integrations = JSON.parse(btn.dataset.integrations || '[]');
-        } catch (_) {
-            integrations = [];
-        }
-
-        const chatbotName = btn.dataset.chatbotName || '';
-
-        openPopup(integrations, chatbotName);
-    };
+    window.openPlatformsPopup = openFromButton;
 
 })();

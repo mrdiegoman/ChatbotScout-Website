@@ -231,10 +231,11 @@
             <div class="favourites-page-main-content-chatbots-grid-view-item-description-container">
                 <div class="favourites-page-main-content-chatbots-grid-view-item-description-container-header">
                     <p class="favourites-page-main-content-chatbots-grid-view-item-description-container-subtitle">Description</p>
-                    <button class="favourites-page-main-content-chatbots-grid-view-item-features-container-1-imp-btn${intEmpty}"
+                    <button type="button"
+                            class="favourites-page-main-content-chatbots-grid-view-item-features-container-1-imp-btn platforms-popup-trigger${intEmpty}"
+                            aria-haspopup="dialog"
                             data-integrations="${intJson}"
-                            data-chatbot-name="${escapeAttr(name)}"
-                            onclick="openPlatformsPopup(event, this)">
+                            data-chatbot-name="${escapeAttr(name)}">
                         <p>Platforms</p>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -306,10 +307,11 @@
                     <div class="favourites-page-main-content-chatbots-list-view-item-description-container">
                         <div class="favourites-page-main-content-chatbots-grid-view-item-description-container-header">
                             <p class="favourites-page-main-content-chatbots-grid-view-item-description-container-subtitle">Description</p>
-                            <button class="favourites-page-main-content-chatbots-grid-view-item-features-container-1-imp-btn${intEmpty}"
+                            <button type="button"
+                                    class="favourites-page-main-content-chatbots-grid-view-item-features-container-1-imp-btn platforms-popup-trigger${intEmpty}"
+                                    aria-haspopup="dialog"
                                     data-integrations="${intJson}"
-                                    data-chatbot-name="${escapeAttr(name)}"
-                                    onclick="openPlatformsPopup(event, this)">
+                                    data-chatbot-name="${escapeAttr(name)}">
                                 <p>Platforms</p>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

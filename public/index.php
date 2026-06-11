@@ -15,9 +15,6 @@ require '../inc/header.php';
 
         <!-- Left: text -->
         <div class="hp-hero-text">
-            <div class="hp-hero-badge">
-                <i class="fa-solid fa-bolt"></i> #1 AI Chatbot Directory
-            </div>
             <h1 class="hp-hero-title">
                 Find the Best <span>AI Chatbot</span> for Your Website or App
             </h1>

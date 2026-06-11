@@ -163,6 +163,9 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
 
     <link rel="stylesheet" href="css/reset.css?v=<?= filemtime(__DIR__ . '/../public/css/reset.css') ?>">
     <link rel="stylesheet" href="css/main.css?v=<?= filemtime(__DIR__ . '/../public/css/main.css') ?>">
+    <?php if (in_array($page, ['contact', 'aboutUs', 'affiliateDisclosure'], true)): ?>
+        <link rel="stylesheet" href="css/contentPages.css?v=<?= filemtime(__DIR__ . '/../public/css/contentPages.css') ?>">
+    <?php endif; ?>
     <?php if ($page === 'index'): ?>
         <link rel="stylesheet" href="css/homePage.css?v=<?= filemtime(__DIR__ . '/../public/css/homePage.css') ?>">
     <?php elseif ($page === 'chatbotShowcase'): ?>

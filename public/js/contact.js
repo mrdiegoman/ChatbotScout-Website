@@ -92,10 +92,71 @@ document.addEventListener('DOMContentLoaded', () => {
     const options          = document.querySelectorAll('#subjectDropdown .dropdown-option');
 
     if (dropdownWrapper) {
+        const setDropdownOpen = (isOpen) => {
+            dropdownWrapper.classList.toggle('active', isOpen);
+            dropdownWrapper.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        };
+
+        const focusOption = (option) => {
+            if (option) option.focus();
+        };
+
+        const getSelectedOption = () => {
+            return [...options].find(option => option.classList.contains('selected')) || options[0];
+        };
+
+        const moveOptionFocus = (currentOption, direction) => {
+            const optionList = [...options];
+            const currentIndex = optionList.indexOf(currentOption);
+            const nextIndex = (currentIndex + direction + optionList.length) % optionList.length;
+            focusOption(optionList[nextIndex]);
+        };
+
+        const selectOption = (option) => {
+            options.forEach(o => {
+                o.classList.remove('selected');
+                o.setAttribute('aria-selected', 'false');
+            });
+            option.classList.add('selected');
+            option.setAttribute('aria-selected', 'true');
+
+            subjectSelected.textContent = option.textContent.trim();
+            subjectHidden.value         = option.getAttribute('data-value');
+
+            setDropdownOpen(false);
+            dropdownWrapper.classList.remove('input-error');
+            dropdownWrapper.focus();
+        };
+
         // Open / close
         dropdownWrapper.addEventListener('click', (e) => {
             if (!e.target.classList.contains('dropdown-option')) {
-                dropdownWrapper.classList.toggle('active');
+                setDropdownOpen(!dropdownWrapper.classList.contains('active'));
+            }
+        });
+
+        dropdownWrapper.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                const isOpening = !dropdownWrapper.classList.contains('active');
+                setDropdownOpen(isOpening);
+                if (isOpening) focusOption(getSelectedOption());
+            }
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setDropdownOpen(true);
+                focusOption(getSelectedOption());
+            }
+
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setDropdownOpen(true);
+                focusOption(options[options.length - 1]);
+            }
+
+            if (e.key === 'Escape') {
+                setDropdownOpen(false);
             }
         });
 
@@ -103,28 +164,44 @@ document.addEventListener('DOMContentLoaded', () => {
         options.forEach(option => {
             option.addEventListener('click', (e) => {
                 e.stopPropagation();
+                selectOption(option);
+            });
 
-                options.forEach(o => o.classList.remove('selected'));
-                option.classList.add('selected');
+            option.addEventListener('keydown', (e) => {
+                e.stopPropagation();
 
-                subjectSelected.textContent = option.textContent.trim();
-                subjectHidden.value         = option.getAttribute('data-value');
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    selectOption(option);
+                }
 
-                dropdownWrapper.classList.remove('active');
-                dropdownWrapper.classList.remove('input-error');
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    moveOptionFocus(option, 1);
+                }
+
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    moveOptionFocus(option, -1);
+                }
+
+                if (e.key === 'Escape') {
+                    setDropdownOpen(false);
+                    dropdownWrapper.focus();
+                }
             });
         });
 
         // Close on outside click
         document.addEventListener('click', (e) => {
             if (!dropdownWrapper.contains(e.target)) {
-                dropdownWrapper.classList.remove('active');
+                setDropdownOpen(false);
             }
         });
 
         // Close on Escape
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') dropdownWrapper.classList.remove('active');
+            if (e.key === 'Escape') setDropdownOpen(false);
         });
     }
 

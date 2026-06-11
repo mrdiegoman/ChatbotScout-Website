@@ -369,7 +369,7 @@ require '../inc/header.php';
                 <p class="chatbot-rating-modal-stars-label" id="ratingStarsLabel">Select a rating</p>
             </div>
             <div class="chatbot-rating-modal-field">
-                <label for="ratingTitleInput">Title <span class="chatbot-rating-modal-optional">(optional)</span></label>
+                <label for="ratingTitleInput">Title</label>
                 <input type="text" id="ratingTitleInput" maxlength="200" placeholder="Short summary of your experience">
             </div>
             <div class="chatbot-rating-modal-field">
