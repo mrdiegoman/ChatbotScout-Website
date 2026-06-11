@@ -80,6 +80,30 @@
     // HELPERS
     // ============================================
 
+    function hasPreferencesConsent() {
+        try {
+            const rawConsent = localStorage.getItem('cookie_consent_v2');
+            if (!rawConsent) return false;
+
+            const consent = JSON.parse(rawConsent);
+            return Boolean(consent && consent.preferences === true);
+        } catch (_) {
+            return false;
+        }
+    }
+
+    function getSavedPreference(key) {
+        if (!hasPreferencesConsent()) return null;
+
+        try { return localStorage.getItem(key); } catch (_) { return null; }
+    }
+
+    function savePreference(key, value) {
+        if (!hasPreferencesConsent()) return;
+
+        try { localStorage.setItem(key, value); } catch (_) {}
+    }
+
     function setLoading(on, isSearch = false) {
         if (isSearch) {
             const container = currentContainer();
@@ -778,7 +802,7 @@ function openRatingModal(chatbotId, chatbotName) {
         gridView.classList.toggle('active', view === 'grid');
         listView.classList.toggle('active', view === 'list');
 
-        try { localStorage.setItem('favourites_showcase_view', view); } catch (_) {}
+        savePreference('favourites_showcase_view', view);
 
         loadFavourites();
     }
@@ -915,18 +939,14 @@ function openRatingModal(chatbotId, chatbotName) {
     // INIT
     // ============================================
 
-    try {
-        const savedView = localStorage.getItem('favourites_showcase_view');
-        if (savedView === 'list' || savedView === 'grid') {
-            state.currentView = savedView;
-            listBtn.classList.toggle('active', savedView === 'list');
-            gridBtn.classList.toggle('active', savedView === 'grid');
-            gridView.classList.toggle('active', savedView === 'grid');
-            listView.classList.toggle('active', savedView === 'list');
-        } else {
-            gridView.classList.add('active');
-        }
-    } catch (_) {
+    const savedView = getSavedPreference('favourites_showcase_view');
+    if (savedView === 'list' || savedView === 'grid') {
+        state.currentView = savedView;
+        listBtn.classList.toggle('active', savedView === 'list');
+        gridBtn.classList.toggle('active', savedView === 'grid');
+        gridView.classList.toggle('active', savedView === 'grid');
+        listView.classList.toggle('active', savedView === 'list');
+    } else {
         gridView.classList.add('active');
     }
 

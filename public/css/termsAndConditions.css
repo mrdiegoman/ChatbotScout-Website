@@ -12,6 +12,10 @@ body {
     margin: 6rem auto auto auto;
 }
 
+.legal-document {
+    color: var(--black-color);
+}
+
 .tc-date {
     color: var(--black-color-hover);
     font-size: 1.3rem;
@@ -35,6 +39,31 @@ body {
 
 .tc-wrapper p{
     margin-bottom: 2rem;
+}
+
+.tc-wrapper a {
+    color: var(--blue-color);
+    font-family: outfit-semibold, sans-serif;
+    text-decoration: none;
+}
+
+.tc-wrapper a:hover {
+    text-decoration: underline;
+}
+
+.tc-wrapper address {
+    width: fit-content;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0 0 3rem 0;
+    padding: 1.6rem 2rem;
+    border: 1px solid var(--black-color-hover);
+    border-radius: 8px;
+    background: #f8fbff;
+    color: var(--black-color-light);
+    font-style: normal;
+    font-size: 1.5rem;
+    line-height: 1.65;
 }
 
 .tc-wrapper ul li{
@@ -62,7 +91,7 @@ body {
 }
 
 
-li span {
+.tc-wrapper li span {
     display: block;
     margin-bottom: 1.2rem;
     font-size: 1.5rem;

@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 validateCsrfToken();
 
-$appConfig = require __DIR__ . '/../config/app.php';
+$appConfig = require __DIR__ . '/../../config/app.php';
 
 // Vymaž visitor_id cookie
 setcookie(

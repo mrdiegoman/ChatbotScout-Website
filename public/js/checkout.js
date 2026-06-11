@@ -21,6 +21,7 @@ let paymentFormReady = false;
 let upgradePaymentCreated = false;
 let isProcessing = false;
 let savedPaymentMethodForCheckout = null;
+let initialPaymentIntentStarted = false;
 
 const stripeLoading = document.getElementById('stripe-loading');
 const paymentEl = document.getElementById('payment-element');
@@ -34,6 +35,7 @@ const missingPaymentMethod = document.getElementById('missing-payment-method');
 const savedPaymentMethodTitle = document.getElementById('saved-payment-method-title');
 const savedPaymentMethodMeta = document.getElementById('saved-payment-method-meta');
 const managePaymentMethodBtn = document.getElementById('manage-payment-method-btn');
+const businessCustomerAck = document.getElementById('businessCustomerAck');
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
 payBtn.disabled = true;
@@ -44,7 +46,24 @@ async function init() {
         return;
     }
 
-    await initPaymentIntent();
+    showBusinessConfirmationPrompt();
+    syncPayButton();
+}
+
+if (businessCustomerAck) {
+    businessCustomerAck.addEventListener('change', async () => {
+        clearError();
+        syncPayButton();
+
+        if (!businessCustomerAck.checked || isUpgradeCheckout || initialPaymentIntentStarted) {
+            return;
+        }
+
+        initialPaymentIntentStarted = true;
+        stripeLoading.innerHTML = '<p style="color:#6b7280;font-size:14px;">Loading payment form...</p>';
+        stripeLoading.style.display = 'block';
+        await initPaymentIntent();
+    });
 }
 
 async function initUpgradePreview() {
@@ -214,6 +233,7 @@ async function fetchStripeAction(action) {
             promotion_id2: promotionId2,
             billing_period: billingPeriod,
             upgrade_from_subscription_id: upgradeFromSubscriptionId,
+            business_customer_acknowledged: hasBusinessAcknowledgement(),
         }),
     });
 
@@ -236,6 +256,11 @@ async function fetchStripeAction(action) {
 }
 
 async function validateCheckoutBeforeConfirm() {
+    if (!hasBusinessAcknowledgement()) {
+        showError('Please confirm that you are purchasing this promotional service as a business customer.');
+        return false;
+    }
+
     const data = await fetchStripeAction('validate_checkout');
     if (data.success) {
         return true;
@@ -288,10 +313,21 @@ function syncPayButton() {
     const usingSavedPaymentMethod = Boolean(savedPaymentMethodForCheckout && clientSecret);
     const needsReadyPaymentForm = clientSecret && !paymentFormReady && !usingSavedPaymentMethod;
     const waitingForInitialForm = !isUpgradeCheckout && !clientSecret;
-    payBtn.disabled = isProcessing || waitingForInitialForm || needsReadyPaymentForm;
+    const missingBusinessConfirmation = !hasBusinessAcknowledgement();
+    payBtn.disabled = isProcessing || missingBusinessConfirmation || waitingForInitialForm || needsReadyPaymentForm;
     if (managePaymentMethodBtn) {
         managePaymentMethodBtn.disabled = isProcessing;
     }
+}
+
+function hasBusinessAcknowledgement() {
+    return !businessCustomerAck || businessCustomerAck.checked;
+}
+
+function showBusinessConfirmationPrompt() {
+    stripeLoading.innerHTML = '<p style="color:#6b7280;font-size:14px;">Confirm the business purchase statement to load the secure payment form.</p>';
+    stripeLoading.style.display = 'block';
+    paymentEl.style.display = 'none';
 }
 
 function updateAmount(data) {

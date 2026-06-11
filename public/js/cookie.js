@@ -237,7 +237,7 @@
     }
 
     function revokeStatisticsCookies() {
-        // visitor_id je httponly — JS k nemu nemá prístup, mažeme server-side
+        // visitor_id can also be set client-side by visitor.js, so remove both ways.
         fetch('api/revokeConsent.php', { method: 'POST' }).catch(function () {});
         // Fallback pokus pre prípad že nie je httponly (dev prostredie)
         deleteCookie('visitor_id');

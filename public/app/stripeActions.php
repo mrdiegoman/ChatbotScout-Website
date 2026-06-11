@@ -146,6 +146,8 @@ if ($action === 'validate_checkout') {
     validateCsrfToken();
 
     $input = json_decode(file_get_contents('php://input'), true) ?: [];
+    requireBusinessCustomerAcknowledgement($input);
+
     $chatbotId = trim($input['chatbot_id'] ?? '');
     $promotionId = trim($input['promotion_id'] ?? '');
     $promotionId2 = trim($input['promotion_id2'] ?? '');
@@ -254,6 +256,8 @@ if ($action === 'create_payment_intent') {
     validateCsrfToken();
 
     $input = json_decode(file_get_contents('php://input'), true) ?: [];
+    requireBusinessCustomerAcknowledgement($input);
+
     $chatbotId = trim($input['chatbot_id'] ?? '');
     $promotionId = trim($input['promotion_id'] ?? '');
     $promotionId2 = trim($input['promotion_id2'] ?? '');
@@ -642,6 +646,18 @@ if ($action === 'create_payment_intent') {
 }
 
 echo json_encode(['success' => false, 'message' => 'Invalid action']);
+
+function requireBusinessCustomerAcknowledgement(array $input): void {
+    if (($input['business_customer_acknowledged'] ?? false) === true) {
+        return;
+    }
+
+    echo json_encode([
+        'success' => false,
+        'message' => 'Please confirm that you are purchasing this promotional service as a business customer.',
+    ]);
+    exit;
+}
 
 function loadPromotionForStripe(PDO $db, string $promotionId): ?array {
     $stmt = $db->prepare("

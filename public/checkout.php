@@ -307,9 +307,21 @@ $upgradeNote = $isUpgradeCancelsAtPeriodEnd
 
             <div id="checkoutError" class="checkout-payment__error" style="display:none;"></div>
 
+            <div class="checkbox-container checkout-payment__business-confirm">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="businessCustomerAck" name="business_customer_acknowledged">
+                    <label for="businessCustomerAck">
+                        I confirm that I am purchasing this promotional service as a business customer, not as a consumer,
+                        and I agree to the <a href="termsAndConditions.php" target="_blank" rel="noopener">Terms and Conditions</a>
+                        and <a href="privacyPolicy.php" target="_blank" rel="noopener">Privacy and Cookie Policy</a>.
+                    </label>
+                </div>
+            </div>
+
             <div class="checkout-payment__refund-notice">
                 <strong>Promotion purchase note</strong>
-                Promotion purchases are <strong>non-refundable</strong>. Please review your chatbot, placement, billing period, and total before paying.
+                Promotion purchases are <strong>non-refundable except where mandatory law requires otherwise</strong>.
+                Please review your chatbot, placement, billing period, and total before paying.
             </div>
 
             <button id="payBtn" class="checkout-payment__btn">
@@ -317,11 +329,6 @@ $upgradeNote = $isUpgradeCancelsAtPeriodEnd
                 <span id="payBtnLoader" style="display:none;">Processing...</span>
             </button>
 
-            <!-- <p class="checkout-payment__terms">
-                By completing this purchase you agree to our
-                <a href="terms.php">Terms of Service</a>.
-                You can cancel your subscription at any time from your profile.
-            </p> -->
         </div>
     </div>
 </div>

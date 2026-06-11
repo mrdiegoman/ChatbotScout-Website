@@ -418,6 +418,77 @@
     margin-bottom: 0.2rem;
 }
 
+.checkout-payment__business-confirm {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.checkout-payment__business-confirm .checkbox-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    justify-content: flex-start;
+}
+
+.checkout-payment__business-confirm .checkbox-group input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 2rem;
+    height: 2rem;
+    min-width: 2rem;
+    border: 0.2rem solid #dadce0;
+    border-radius: 0.4rem;
+    background-color: #fff;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    margin-top: 0.2rem;
+}
+
+.checkout-payment__business-confirm .checkbox-group input[type="checkbox"]:hover {
+    border-color: var(--blue-color);
+    background-color: #f8f9fa;
+}
+
+.checkout-payment__business-confirm .checkbox-group input[type="checkbox"]:checked {
+    background-color: var(--blue-color);
+    border-color: var(--blue-color);
+}
+
+.checkout-payment__business-confirm .checkbox-group input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: 0.2rem;
+    width: 0.6rem;
+    height: 1rem;
+    border: solid white;
+    border-width: 0 0.2rem 0.2rem 0;
+    transform: rotate(45deg);
+}
+
+.checkout-payment__business-confirm .checkbox-group label {
+    flex: 1;
+    color: #5f6368;
+    cursor: pointer;
+    font-size: 1.4rem;
+    line-height: 1.5rem;
+    user-select: none;
+}
+
+.checkout-payment__business-confirm .checkbox-group label a {
+    color: var(--blue-color);
+    font-family: outfit-medium, sans-serif;
+    text-decoration: none;
+}
+
+.checkout-payment__business-confirm .checkbox-group label a:hover {
+    text-decoration: underline;
+}
+
 .checkout-payment__btn {
     width: 100%;
     padding: 1.6rem;

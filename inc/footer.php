@@ -109,8 +109,8 @@
             <div>
                 <span class="cookie-banner-title">We use cookies on ChatbotScout</span>
                 <p class="cookie-banner-desc">
-                    We use cookies to personalise content and ads, to provide social media features and to analyse our traffic.
-                    We also share information about your use of our site with our analytics and advertising partners.
+                    We use necessary cookies to run the website and, with your consent, optional cookies or local storage for analytics,
+                    saved preferences and affiliate referral attribution.
                     <a href="privacyPolicy.php" class="cookie-banner-link">Privacy Policy</a>
                 </p>
             </div>
@@ -294,7 +294,7 @@
                 <div class="cookie-category-body">
                     <p class="cookie-category-body-desc">
                         Preference cookies enable ChatbotScout to remember information that changes the way the website
-                        behaves or looks, such as your preferred layout view (grid or list) or sort order on the chatbot showcase page.
+                        behaves or looks, such as your preferred layout view on chatbot listing pages.
                     </p>
                     <div class="cookie-table-wrapper">
                         <table class="cookie-table">
@@ -313,6 +313,12 @@
                                     <td>Remembers preferred layout (grid/list) on the chatbot showcase</td>
                                     <td>Persistent (localStorage)</td>
                                 </tr>
+                                <tr>
+                                    <td><code>favourites_showcase_view</code></td>
+                                    <td>ChatbotScout</td>
+                                    <td>Remembers preferred layout (grid/list) on the favourites showcase</td>
+                                    <td>Persistent (localStorage)</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -324,7 +330,7 @@
                 <div class="cookie-category-header">
                     <div class="cookie-category-left">
                         <span class="cookie-category-name">Marketing</span>
-                        <span class="cookie-category-short-desc">Used for affiliate tracking and relevant advertising.</span>
+                        <span class="cookie-category-short-desc">Controls optional advertising storage and referral attribution.</span>
                     </div>
                     <div class="cookie-category-right">
                         <div id="cookie-toggle-marketing" class="cookie-toggle" role="switch" aria-checked="false" tabindex="0"></div>
@@ -333,9 +339,10 @@
                 </div>
                 <div class="cookie-category-body">
                     <p class="cookie-category-body-desc">
-                        Marketing cookies are used to track visitors across websites. On ChatbotScout this includes
-                        affiliate click tracking — recording when you click through to a chatbot's website so we can
-                        attribute referrals. This data is used to display more relevant affiliate offers.
+                        This category controls optional marketing storage, including Google Consent Mode advertising
+                        storage where marketing tags are enabled, and affiliate referral attribution where applicable.
+                        ChatbotScout does not set a separate marketing cookie by default; your choice is stored in
+                        the consent settings cookie.
                     </p>
                     <div class="cookie-table-wrapper">
                         <table class="cookie-table">
@@ -349,10 +356,10 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td><code>affiliate_click</code></td>
+                                    <td><code>cookie_consent_v2.marketing</code></td>
                                     <td>ChatbotScout</td>
-                                    <td>Tracks clicks on chatbot affiliate links for referral attribution</td>
-                                    <td>Session</td>
+                                    <td>Stores whether optional marketing storage is allowed</td>
+                                    <td>6 months</td>
                                 </tr>
                             </tbody>
                         </table>

@@ -3,388 +3,498 @@ require '../inc/bootstrap.php';
 require '../inc/header.php';
 ?>
 
-<div class="pp-wrapper">
-    <h1>Privacy Policy</h1>
-    <p class="pp-date">Effective Date: 18/03/2026, 16:31:10</p>
+<div class="pp-wrapper legal-document">
+    <h1>Privacy and Cookie Policy</h1>
+    <p class="pp-date"><strong>Last updated:</strong> [DD Month YYYY]</p>
 
-    <h2>Introduction and organizational info</h2>
-    <p>We, at chatbotscout, are dedicated to serving our customers and contacts to the 
-        best of our abilities. Part of our commitment involves the responsible management 
-        of personal information collected through our website chatbotscout.com, and any 
-        related interactions. Our primary goals in processing this information include:</p>
+    <p>
+        This Privacy and Cookie Policy explains how the operator of ChatbotScout collects, uses,
+        stores, shares and protects personal data when you visit <strong>chatbotscout.com</strong>,
+        create an account, save favorites, submit ratings or listings, contact us, click affiliate
+        links, or purchase a business promotional service.
+    </p>
 
+    <p>
+        This policy is intended primarily to meet the requirements of the EU General Data Protection
+        Regulation (“GDPR”) and applicable Slovak data protection and electronic communications law.
+        Where another mandatory privacy law applies to you, we will respect the rights and obligations
+        that cannot lawfully be excluded.
+    </p>
+
+    <h2>1. Controller</h2>
+    <p>The controller responsible for the processing described in this policy is:</p>
     <ul>
-        <li>Enhancing the user experience on our platform by understanding customer needs and preferences.</li>
-        <li>Providing timely support and responding to inquiries or service requests.</li>
-        <li>Improving our products and services to meet the evolving demands of our users.</li>
-        <li>Conducting necessary business operations, such as billing and account management.</li>
-    </ul>
-    <p>It is our policy to process personal information with the utmost respect for privacy 
-        and security. We adhere to all relevant regulations and guidelines to ensure that 
-        the data we handle is protected against unauthorized access, disclosure, alteration, 
-        and destruction. Our practices are designed to safeguard the confidentiality and 
-        integrity of your personal information, while enabling us to deliver the services 
-        you trust us with.</p>
-    <ul>
-        <li>We do not have a designated Data Protection Officer (DPO) but remain fully committed 
-            to addressing your privacy concerns. Should you have any questions or require further 
-            information about how we manage personal information, please feel free to contact us 
-            at chatbotscoutsupport@gmail.com or <span>+421 940801275</span>.
-        </li>
-    </ul>
-    <p>Your privacy is our priority. We are committed to processing your personal information 
-        transparently and with your safety in mind. This commitment extends to our collaboration 
-        with third-party services that may process personal information on our behalf, such as 
-        in the case of sending invoices. Rest assured, all activities are conducted in strict 
-        compliance with applicable privacy laws.</p>
-    <h2>Scope and application</h2>
-    <p>Our privacy policy is designed to protect the personal information of all our stakeholders, 
-        including website visitors, registered users, and customers. Whether you are just browsing 
-        our website chatbotscout.com, using our services as a registered user, or engaging with us 
-        as a valued customer, we ensure that your personal data is processed with the highest 
-        standards of privacy and security. This policy outlines our practices and your rights 
-        related to personal information.</p>
-    <h2>Data collection and processing</h2>
-    <p>Our commitment to transparency and data protection extends to how we collect and use your 
-        personal information. We gather personal data through various interactions, including but 
-        not limited to, when you utilize our services or products such as Affiliate referral services 
-        for third-party software providers, or directly provide information to us.</p>
-    <p>The following list details the types of personal information we may process:</p>
-    <ul>
-        <li><h3>First and last name</h3></li>
-        <li><h3>IP address</h3></li>
-        <li><h3>Browser information and language</h3></li>
-        <li><h3>Operating system and version</h3></li>
-        <li><h3>Browser fingerprint</h3></li>
-        <li><h3>Email address and/or Phone number</h3></li>
-        <li><h3>Payment information (e.g., credit card number, bank details)</h3></li>
-        <li><h3>Purchase history</h3></li>
-        <li><h3>Payment method and history</h3></li>
-        <li><h3>Interaction logs (e.g., clicks)</h3></li>
-    </ul>
-    <p>Please note, that we only process information that is essential for delivering our services, 
-        complying with legal obligations, or enhancing your user experience. Your privacy is paramount, 
-        and we are dedicated to handling your personal information responsibly and in accordance with 
-        all applicable laws.</p>
-    <p>At chatbotscout, we believe in using personal information responsibly and ethically. The data we 
-        collect serves multiple purposes, all aimed at enhancing the services we offer and ensuring the 
-        highest level of satisfaction among our users, customers, and employees. Here are the key ways 
-        in which we use the personal information collected:</p>
-    <ul>
-        <li><h3>Authentication and security</h3></li>
-        <li><h3>Analytics and performance tracking</h3></li>
-        <li><h3>Marketing and advertising</h3></li>
-        <li><h3>Customer support</h3></li>
-        <li><h3>Communication efforts</h3></li>
-        <li><h3>Customizing and adapting user experience</h3></li>
-        <li><h3>User feedback and satisfaction</h3></li>
-        <li><h3>Tag management</h3></li>
-        <li><h3>Processing transactions</h3></li>
-        <li><h3>Payment processing</h3></li>
-    </ul>
-    <p>Your privacy is our priority. We process your personal information transparently and in accordance 
-        with your preferences and applicable privacy laws. We are committed to ensuring that your data is 
-        used solely for the purposes for which it was collected and in ways that you have authorized.</p>
-    <h2>Data storage and protection</h2>
-    <h3>Data storage</h3>
-    <ul>
-        <li>Personal information is stored in secure servers located in the following locations: DE. For 
-            services that require international data transfer, we ensure that such transfers comply with all 
-            applicable laws and maintain data protection standards equivalent to those in our primary location.</li>
-        <li>Data hosting partners: We partner with reputable data hosting providers committed to using 
-            state-of-the-art security measures. These partners are selected based on their adherence to 
-            stringent data protection standards.</li>
-    </ul>
-    <h3>Data protection measures</h3>
-    <ul>
-        <li><strong>Encryption:</strong> To protect data during transfer and at rest, we employ robust 
-            encryption technologies.</li>
-        <li><strong>Access control:</strong> Access to personal information is strictly limited to authorized personnel who 
-            have a legitimate business need to access the data. We enforce strict access controls and regularly 
-            review permissions.</li>
-        <li><strong>Security audits and monitoring:</strong> Regular security audits are conducted to identify 
-            and remediate potential vulnerabilities. We also monitor our systems for unusual activities to 
-            prevent unauthorized access.</li>
-    </ul>
-    <h2>Data sharing and disclosure</h2>
-    <p>At chatbotscout, we are committed to safeguarding your personal information and ensuring it is treated 
-        with the utmost respect. This commitment extends to how we handle the sharing and disclosure of your 
-        data. Below we outline our practices in this area:</p>
-    <h3>Sharing personal information</h3>
-    <ul>
-        <li>
-            <strong>Third-party service providers:</strong> We may share your information with third-party service providers 
-            who perform services on our behalf. Such trusted parties may have access to personally identifiable 
-            information on a need-to-know basis and will be contractually obliged to keep your information confidential. 
-            These partners are prohibited from using your personal information for any purpose other than to provide 
-            these services to chatbotscout, and they are required to maintain the confidentiality of your information.
-        </li>
+        <li><strong>Legal name / business name:</strong> [FULL LEGAL NAME OR COMPANY NAME]</li>
+        <li><strong>Trading name:</strong> ChatbotScout</li>
+        <li><strong>Registered office / place of business:</strong> [FULL ADDRESS, POSTCODE, CITY, SLOVAKIA]</li>
+        <li><strong>Company identification number (IČO):</strong> [IČO]</li>
+        <li><strong>Contact email for privacy requests:</strong> [PRIVACY EMAIL AT YOUR DOMAIN]</li>
+        <li><strong>Telephone:</strong> [OPTIONAL BUSINESS TELEPHONE]</li>
     </ul>
 
-    <!-- 5x5 tabulka s hodnotami -->
+    <p>
+        We have not appointed a data protection officer because we do not currently consider the
+        statutory conditions for mandatory appointment to be met. If this changes, we will update this policy.
+    </p>
+
+    <h2>2. Scope</h2>
+    <p>This policy applies to personal data concerning:</p>
+    <ul>
+        <li>website visitors;</li>
+        <li>registered users;</li>
+        <li>people who submit ratings, reviews, favorites or chatbot listings;</li>
+        <li>representatives and contact persons of chatbot providers and Business Customers;</li>
+        <li>people who contact us or subscribe to communications; and</li>
+        <li>other persons whose data is lawfully provided to us in connection with the Service.</li>
+    </ul>
+
+    <p>
+        This policy does not govern third-party websites or chatbot services. When you follow a link
+        to another website, that third party processes personal data under its own privacy policy.
+    </p>
+
+    <h2>3. Personal data we process</h2>
+
+    <h3>3.1 Data you provide</h3>
+    <ul>
+        <li><strong>Account data:</strong> name or username, email address, password hash, account settings and verification information.</li>
+        <li><strong>Profile and activity data:</strong> favorites, ratings, reviews, submissions, edits and moderation history.</li>
+        <li><strong>Listing submission data:</strong> submitter name, business contact details, role, provider information, product descriptions, logos, screenshots and related communications.</li>
+        <li><strong>Business transaction data:</strong> company name, billing address, tax or VAT number, order details, invoices, payment status and transaction identifiers.</li>
+        <li><strong>Support and communication data:</strong> messages, attachments, feedback, complaints and other information you send to us.</li>
+        <li><strong>Marketing preference data:</strong> newsletter subscription, consent status, unsubscribe status and communication preferences.</li>
+    </ul>
+
+    <h3>3.2 Data collected automatically</h3>
+    <ul>
+        <li><strong>Technical data:</strong> IP address, device type, operating system, browser type and version, language, time zone and basic device identifiers made available through standard internet protocols.</li>
+        <li><strong>Security and log data:</strong> login times, failed login attempts, request logs, error logs, rate-limit events and indicators of suspicious or abusive activity.</li>
+        <li><strong>Usage data:</strong> pages viewed, searches, filters, clicks, referring page, approximate session duration and interaction with features.</li>
+        <li><strong>Affiliate click data:</strong> the fact that an affiliate link was clicked, the relevant listing or page, timestamp and a referral or campaign identifier where used.</li>
+        <li><strong>Cookie and consent data:</strong> cookie identifiers, consent choices, consent timestamp and changes to preferences.</li>
+    </ul>
+
+    <p>
+        We do not intentionally collect precise geolocation, government identification numbers,
+        special categories of personal data, or full payment-card details through the ordinary use
+        of the Service. Please do not submit sensitive personal data unless we specifically request
+        it and explain why it is needed.
+    </p>
+
+    <h3>3.3 Payment data</h3>
+    <p>
+        Payments are processed by Stripe or another payment provider identified at checkout. Under
+        a standard hosted checkout or tokenized integration, we do not receive or store your full
+        card number, card security code or online banking credentials. We may receive limited
+        transaction information, such as payer name, billing details, payment status, amount,
+        currency, payment method type and transaction identifier.
+    </p>
+
+    <h3>3.4 Data obtained from other sources</h3>
+    <p>We may obtain personal data from:</p>
+    <ul>
+        <li>chatbot providers or their authorized representatives;</li>
+        <li>publicly available provider websites and professional sources;</li>
+        <li>payment, hosting, security, analytics and communication providers;</li>
+        <li>users who report content or submit a dispute; and</li>
+        <li>public authorities or professional advisers where lawful and necessary.</li>
+    </ul>
+
+    <p>
+        If another person provides us with your data, we will provide the information required by
+        applicable law unless an exception applies.
+    </p>
+
+    <h2>4. Purposes, legal bases and retention</h2>
+    <p>
+        We process personal data only where we have a valid legal basis. The main processing
+        activities are described below.
+    </p>
+
     <div class="table-wrapper">
-    <table>
-        <thead>
-            <tr>
-            <th>Service Name</th>
-            <th>Provider</th>
-            <th>Purpose(s)</th>
-            <th>Collected Personal Data Type(s)</th>
-            <th>Privacy Policy Link</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-            <td class="tdName" data-label="Service Name">Google Cloud Platform</td>
-            <td data-label="Provider">Google</td>
-            <td data-label="Purpose(s)">
-                Communication efforts<br>
-                Marketing and advertising<br>
-                Customer support
-            </td>
-            <td data-label="Collected Personal Data">
-                First and last name<br>
-                Email address and/or Phone number<br>
-                IP address
-            </td>
-            <td data-label="Privacy Policy">
-                <a href="https://policies.google.com/privacy" target="_blank">
-                Privacy Policy
-                </a>
-            </td>
-            </tr>
-
-            <tr>
-            <td class="tdName" data-label="Service Name">Stripe</td>
-            <td data-label="Provider">Stripe</td>
-            <td data-label="Purpose(s)">Payment processing</td>
-            <td data-label="Collected Personal Data">
-                Payment information (e.g., credit card number, bank details)
-            </td>
-            <td data-label="Privacy Policy">
-                <a href="https://stripe.com/en-sk/privacy" target="_blank">
-                Privacy Policy
-                </a>
-            </td>
-            </tr>
-
-            <tr>
-            <td class="tdName" data-label="Service Name">Google Fonts</td>
-            <td data-label="Provider">Google Ireland Limited</td>
-            <td data-label="Purpose(s)">Customizing and adapting user experience</td>
-            <td data-label="Collected Personal Data">
-                IP address<br>
-                Browser fingerprint<br>
-                Interaction logs (e.g., clicks, time spent on pages)<br>
-                Browser information and language
-            </td>
-            <td data-label="Privacy Policy">
-                <a href="https://business.safety.google/privacy/?hl=en" target="_blank">
-                Privacy Policy
-                </a>
-            </td>
-            </tr>
-
-            <tr>
-            <td class="tdName" data-label="Service Name">Google Analytics</td>
-            <td data-label="Provider">Google Ireland Limited</td>
-            <td data-label="Purpose(s)">Analytics and performance tracking</td>
-            <td data-label="Collected Personal Data">
-                IP address<br>
-                Browser information and language<br>
-                Operating system and version<br>
-                Interaction logs (e.g., clicks, time spent on pages)<br>
-                Device ID
-            </td>
-            <td data-label="Privacy Policy">
-                <a href="https://policies.google.com/privacy" target="_blank">
-                Privacy Policy
-                </a>
-            </td>
-            </tr>
-
-            <tr>
-            <td class="tdName" data-label="Service Name">Cloudflare</td>
-            <td data-label="Provider">Cloudflare Inc.</td>
-            <td data-label="Purpose(s)">
-                Authentication and security<br>
-                Customizing and adapting user experience
-            </td>
-            <td data-label="Collected Personal Data">
-                Device ID<br>
-                IP address<br>
-                Operating system and version
-            </td>
-            <td data-label="Privacy Policy">
-                <a href="https://www.cloudflare.com/privacypolicy/" target="_blank">
-                Privacy Policy
-                </a>
-            </td>
-            </tr>
-        </tbody>
-    </table>
+        <table>
+            <thead>
+                <tr>
+                    <th>Purpose</th>
+                    <th>Data</th>
+                    <th>Legal basis</th>
+                    <th>Typical retention period</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td data-label="Purpose">Create and manage user accounts</td>
+                    <td data-label="Data">Account data, login and account activity</td>
+                    <td data-label="Legal basis">Performance of a contract or steps requested before entering into a contract; legitimate interests in administering the Service</td>
+                    <td data-label="Retention">While the account is active; normally deleted or anonymized within 30 days after a valid deletion request, except for backups, security records and legally required records</td>
+                </tr>
+                <tr>
+                    <td data-label="Purpose">Provide favorites, ratings, reviews and submissions</td>
+                    <td data-label="Data">Profile, activity, review and submission data</td>
+                    <td data-label="Legal basis">Performance of a contract; legitimate interests in operating a useful comparison and review platform</td>
+                    <td data-label="Retention">While the content or account remains active; after account deletion, content may be deleted or retained in anonymized form where lawful and appropriate</td>
+                </tr>
+                <tr>
+                    <td data-label="Purpose">Moderate content and prevent manipulation, spam, fraud and abuse</td>
+                    <td data-label="Data">Content, account data, logs, IP address, reports and moderation history</td>
+                    <td data-label="Legal basis">Legitimate interests in protecting users and platform integrity; legal obligation where applicable</td>
+                    <td data-label="Retention">Normally up to 24 months after the relevant event; longer where necessary for an active investigation, legal claim or binding legal obligation</td>
+                </tr>
+                <tr>
+                    <td data-label="Purpose">Operate, secure and troubleshoot the website</td>
+                    <td data-label="Data">Technical, security, log and error data</td>
+                    <td data-label="Legal basis">Legitimate interests in security, reliability and prevention of misuse; legal obligation where applicable</td>
+                    <td data-label="Retention">Operational logs are normally retained for up to 12 months; shorter periods may apply to routine logs and longer periods to security incidents</td>
+                </tr>
+                <tr>
+                    <td data-label="Purpose">Respond to support requests, complaints and legal notices</td>
+                    <td data-label="Data">Identity, contact, message, attachment and case data</td>
+                    <td data-label="Legal basis">Performance of a contract; legitimate interests in responding and maintaining records; legal obligation</td>
+                    <td data-label="Retention">Normally 3 years after the matter is closed, or longer where required for a dispute or legal obligation</td>
+                </tr>
+                <tr>
+                    <td data-label="Purpose">Process paid business promotions and administer contracts</td>
+                    <td data-label="Data">Business contact, order, billing and transaction data</td>
+                    <td data-label="Legal basis">Performance of a contract; legal obligations concerning tax and accounting; legitimate interests in debt recovery and contract management</td>
+                    <td data-label="Retention">Contract records for the applicable limitation period; invoices and relevant accounting records for the statutory period required by Slovak law, generally up to 10 years</td>
+                </tr>
+                <tr>
+                    <td data-label="Purpose">Measure affiliate referrals and calculate commissions</td>
+                    <td data-label="Data">Affiliate click, page, timestamp, campaign identifier and transaction confirmation received from a partner</td>
+                    <td data-label="Legal basis">Legitimate interests in operating and auditing our affiliate business; consent where non-essential cookies or similar technologies are used</td>
+                    <td data-label="Retention">Normally up to 24 months, or the period required to reconcile commissions and resolve disputes</td>
+                </tr>
+                <tr>
+                    <td data-label="Purpose">Website analytics</td>
+                    <td data-label="Data">Usage, device, cookie and approximate location data</td>
+                    <td data-label="Legal basis">Consent for non-essential analytics cookies or similar technologies</td>
+                    <td data-label="Retention">Google Analytics event data is configured for a maximum of 14 months, unless a shorter period is selected</td>
+                </tr>
+                <tr>
+                    <td data-label="Purpose">Send newsletters and direct marketing</td>
+                    <td data-label="Data">Name, email, consent and preference data</td>
+                    <td data-label="Legal basis">Consent, or another basis expressly permitted by applicable direct-marketing law</td>
+                    <td data-label="Retention">Until consent is withdrawn or the user unsubscribes; a minimal suppression record may be retained to ensure no further marketing is sent</td>
+                </tr>
+                <tr>
+                    <td data-label="Purpose">Establish, exercise or defend legal claims and comply with authorities</td>
+                    <td data-label="Data">Relevant account, content, transaction, communication and log data</td>
+                    <td data-label="Legal basis">Legitimate interests in legal protection; legal obligation; establishment, exercise or defense of legal claims</td>
+                    <td data-label="Retention">For the duration of the matter and applicable limitation period, or as required by a binding legal obligation</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
-    <!-- koniec tabulky -->
-    <h2>Data processing agreements</h2>
-    <p>When we share your data with third-party service providers, we do so under the protection of Data Processing 
-        Agreements (DPAs) that ensure your information is managed in accordance with GDPR and other relevant data 
-        protection laws. These agreements mandate that third parties implement adequate technical and organizational 
-        measures to ensure the security of your data.</p>
-    <h3>Transparency and control</h3>
-    <p>We believe in transparency and providing you with control over your personal information. You will always be 
-        informed about any significant changes to our sharing practices, and where applicable, you will have the 
-        option to consent to such changes.</p>
-    <p>Your trust is important to us, and we strive to ensure that your personal information is disclosed only in 
-        accordance with this policy and when there is a justified reason to do so. For any queries or concerns about 
-        how we share and disclose personal information, please reach out to us at chatbotscoutsupport@gmail.com or 
-        <span>+421 940801275.</span></p><!-- sem dat firmeny email a tel-->
-    <h2>User rights and choices</h2>
-    <p>At chatbotscout, we recognize and respect your rights regarding your personal information, in accordance with 
-        the General Data Protection Regulation (GDPR) and other applicable data protection laws. We are committed to 
-        ensuring you can exercise your rights effectively. Below is an overview of your rights and how you can 
-        exercise them:</p>
-    <p>Your rights:</p>
-    <ul><!-- treab pridat styling aby bolo vidiet ze ide olinky -->
-        <li><strong>Right of access </strong>(<a href="https://gdpr.eu/article-15-right-of-access/">Art. 15 GDPR</a>): 
-            You have the right to request access to the personal information we hold about you and to obtain information 
-            about how we process it.</li>
-        <li><strong>Right to rectification </strong>(<a href="https://gdpr.eu/article-16-right-to-rectification/">Art. 16 GDPR</a>): 
-            If you believe that any personal information we hold about you is incorrect or incomplete, you have the right 
-            to request its correction or completion.</li>
-        <li><strong>Right to erasure ('right to be forgotten') </strong>(<a href="https://gdpr.eu/article-17-right-to-be-forgotten/">Art. 17 GDPR</a>): 
-            You have the right to request the deletion of your personal information when it is no longer necessary for 
-            the purposes for which it was collected, among other circumstances.</li>
-        <li><strong>Right to restriction of processing </strong>(<a href="https://gdpr.eu/article-18-right-to-restriction-of-processing/">Art. 18 GDPR</a>): 
-            You have the right to request that we restrict the processing of your personal information under certain conditions.</li>
-        <li><strong>Right to data portability </strong>(<a href="https://gdpr.eu/article-20-right-to-data-portability/">Art. 20 GDPR</a>): 
-            You have the right to receive your personal information in a structured, commonly used, and machine-readable 
-            format and to transmit those data to another controller.</li>
-        <li><strong>Right to object </strong>(<a href="https://gdpr.eu/article-21-right-to-object/">Art. 21 GDPR</a>): 
-            You have the right to object to the processing of your personal information, under certain conditions, 
-            including processing for direct marketing.</li>
-        <li><strong>Right to withdraw consent </strong>(<a href="https://gdpr.eu/article-7-how-to-get-consent-to-collect-personal-data/">Art. 7(3) GDPR</a>): 
-            Where the processing of your personal information is based on your consent, you have the right to withdraw 
-            that consent at any time without affecting the lawfulness of processing based on consent before its withdrawal.</li>
-        <li><strong>Right to lodge a complaint </strong>(<a href="https://gdpr.eu/article-77-right-to-lodge-a-complaint-with-a-supervisory-authority/">Art. 77 GDPR</a>): 
-            You have the right to lodge a complaint with a supervisory authority if you believe our processing of your 
-            personal information violates applicable data protection laws.</li>
-    </ul>
-    <h3>Exercising your rights</h3>
-    <p>To exercise any of these rights, please contact us at chatbotscoutsupport@gmail.com or <span>+421 940801275</span>. We will 
-        respond to your request in accordance with applicable data protection laws and within the timeframes 
-        stipulated by those laws. Please note, in some cases, we may need to verify your identity as part of 
-        the process to ensure the security of your personal information.</p>
-    <p>We are committed to facilitating the exercise of your rights and to ensuring you have full control 
-        over your personal information. If you have any questions or concerns about how your personal 
-        information is handled, please do not hesitate to get in touch with us.</p>
+    <p>
+        Retention periods may be extended where data is needed for an active dispute, investigation,
+        security incident, legal hold or binding legal obligation. When data is no longer needed, we
+        delete it, anonymize it or securely restrict it until deletion from backups under our normal
+        backup cycle.
+    </p>
 
-    <h2>Cookies and tracking technologies</h2>
-    <p>At chatbotscout, we value your privacy and are committed to being transparent about our use of cookies and 
-        other tracking technologies on our website chatbotscout.com. These technologies play a crucial role in 
-        ensuring the smooth operation of our digital platforms, enhancing your user experience, and providing 
-        insights that help us improve.</p>
-    <h3>Understanding cookies and tracking technologies</h3>
-    <p>Cookies are small data files placed on your device that enable us to remember your preferences and 
-        collect information about your website usage. Tracking technologies, such as web beacons and pixel 
-        tags, help us understand how you interact with our site and which pages you visit.</p>
-    <h3>How we use these technologies</h3>
-    <ul>
-        <li>Essential cookies: Necessary for the website's functionality, such as authentication and security. 
-            They do not require consent.</li>
-        <li>Performance and analytics cookies: These collect information about how visitors use our website, 
-            which pages are visited most frequently, and if error messages are received from web pages. 
-            These cookies help us improve our website.</li>
-        <li>Functional cookies: Enable the website to provide enhanced functionality and personalization, 
-            like remembering your preferences.</li>
-        <li>Advertising and targeting cookies: Used to deliver advertisements more relevant to you and your 
-            interests. They are also used to limit the number of times you see an advertisement and help 
-            measure the effectiveness of the advertising campaign.</li>
-    </ul>
-    <h3>Your choices and consent</h3>
-    <p>Upon your first visit, our website will present you with a cookie consent banner, where you can:</p>
-    <ul>
-        <li>Accept all cookies: Consent to the use of all cookies and tracking technologies.</li>
-        <li>Reject non-essential cookies: Only essential cookies will be used to provide you with necessary website functions.</li>
-        <li>Customize your preferences: Choose which categories of cookies you wish to allow.</li>
-    </ul>
-    <h3>Changes to our cookie use</h3>
-    <p>We may update our use of cookies and tracking technologies to improve our services or comply with legal 
-        requirements. We will notify you of any significant changes and seek your consent where necessary.</p>
-    <p>For more detailed information about the cookies we use, their purposes, and how you can manage your 
-        preferences, please visit our detailed Cookie Policy https://chatbotscout.com/cookiePolicy.</p> <!-- treba pridat cookiePolicy -->
-    <p>Should you have any questions or concerns about our use of cookies and tracking technologies, please 
-        do not hesitate to contact us at chatbotscoutsupport@gmail.com or <span>+421 940801275</span>. Your privacy and the 
-        integrity of your personal data are of utmost importance to us.</p> <!-- sem dat firmeny email a tel-->
+    <h2>5. Legitimate interests</h2>
+    <p>
+        Where we rely on legitimate interests, those interests may include operating and improving
+        the Service, protecting accounts and systems, preventing fraud and rating manipulation,
+        maintaining accurate listings, responding to users, documenting business activity, measuring
+        affiliate performance and protecting legal rights.
+    </p>
 
-    <h3>International data transfers</h3>
-    <p>At chatbotscout, we may transfer your personal information to locations outside of your country 
-        of residence, including to countries that may have different data protection laws than those 
-        in your jurisdiction. We want to assure you that any such transfers are conducted with the 
-        utmost care and in compliance with applicable data protection regulations, including the 
-        General Data Protection Regulation (GDPR).</p>
+    <p>
+        We consider the necessity of the processing and balance our interests against the rights and
+        reasonable expectations of affected persons. You may object to processing based on legitimate
+        interests as described in section 12.
+    </p>
 
-    <h2>Direct marketing and communications</h2>
-    <p>At chatbotscout, we may use your personal information to send you direct marketing communications 
-        about our products, services, promotions, and other relevant information that we believe may be 
-        of interest to you. We are committed to ensuring that our direct marketing practices are transparent, 
-        lawful, and in compliance with applicable data protection laws, including the General Data Protection 
-        Regulation (GDPR) and the ePrivacy Directive.</p>
-    <h3>Obtaining consent for direct marketing</h3>
-    <ul>
-        <li>Opt-in consent: We will obtain your explicit opt-in consent before sending you direct marketing 
-            communications, where required by law. This means that you will have the opportunity to actively 
-            consent to receiving marketing messages from us before we send them to you.</li>
-        <li>Unsubscribe option: Every direct marketing communication we send will include clear instructions 
-            on how to unsubscribe or opt-out from receiving future marketing communications. You can exercise 
-            your right to opt-out at any time, and we will promptly honor your request to stop sending you 
-            marketing messages.</li>
-    </ul>
-    <h3>Types of direct marketing communications</h3>
-    <p>We may use your personal information to send you direct marketing communications via various channels, 
-        including:</p>
-    <ul>
-        <li><h3>Email</h3></li>
-    </ul>
-    <h3>Managing your preferences</h3>
-    <p>You have control over the direct marketing communications you receive from us. You can manage your 
-        communication preferences by using the unsubscribe link provided in our marketing emails or text 
-        messages.</p>
+    <h2>6. Whether providing data is required</h2>
+    <p>
+        You are not generally required by law to provide personal data to browse public pages.
+        Certain information is necessary to create an account, submit content, respond to a request
+        or enter into a paid business contract. If you do not provide required information, we may be
+        unable to create the account, process the submission, provide support or perform the contract.
+    </p>
 
-    <h2>Data breach notification procedures</h2>
-    <p>At chatbotscout, we understand the importance of protecting your personal information and take proactive 
-        measures to safeguard it. In the event of a data breach that poses a risk to your privacy rights and 
-        freedoms, we have established clear procedures for promptly identifying, assessing, and mitigating the 
-        impact of the breach. Our data breach notification procedures are designed to comply with applicable 
-        data protection laws and regulations, including the General Data Protection Regulation (GDPR).</p>
+    <h2>7. Recipients and service providers</h2>
+    <p>
+        We disclose personal data only where necessary for the purposes described above, where you
+        request it, or where disclosure is required by law. Recipients may include:
+    </p>
 
-    <h3>Detection and assessment</h3>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Provider or category</th>
+                    <th>Purpose</th>
+                    <th>Typical data</th>
+                    <th>Role</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td data-label="Provider">Google services / Google Ireland Limited and relevant Google entities</td>
+                    <td data-label="Purpose">Google sign-in, service email delivery, analytics or other Google services actually configured for the Service</td>
+                    <td data-label="Data">Account identifiers, email delivery data, technical data, cookie identifiers and usage data depending on the enabled service</td>
+                    <td data-label="Role">Processor or independent controller depending on the specific service</td>
+                </tr>
+                <tr>
+                    <td data-label="Provider">Cloudflare, Inc. and/or its relevant contracting entity</td>
+                    <td data-label="Purpose">DNS, content delivery, traffic routing, bot management, security and protection against attacks</td>
+                    <td data-label="Data">IP address, request headers, device and network information, security events and request logs</td>
+                    <td data-label="Role">Processor and, for limited purposes, independent controller as described by Cloudflare</td>
+                </tr>
+                <tr>
+                    <td data-label="Provider">Stripe and relevant Stripe entities</td>
+                    <td data-label="Purpose">Payment processing, fraud prevention, billing support and transaction administration</td>
+                    <td data-label="Data">Identity, billing, payment, transaction and device data</td>
+                    <td data-label="Role">Processor and/or independent controller depending on the processing activity</td>
+                </tr>
+                <tr>
+                    <td data-label="Provider">Google Analytics / Google Ireland Limited</td>
+                    <td data-label="Purpose">Consent-based website analytics and performance measurement</td>
+                    <td data-label="Data">Cookie identifiers, IP-derived information, device, browser and usage data</td>
+                    <td data-label="Role">Processor and/or independent controller depending on the processing activity</td>
+                </tr>
+                <tr>
+                    <td data-label="Provider">Email and support providers</td>
+                    <td data-label="Purpose">Sending service messages, receiving support requests and maintaining communications</td>
+                    <td data-label="Data">Name, email address, message content, attachments and delivery logs</td>
+                    <td data-label="Role">Usually processor</td>
+                </tr>
+                <tr>
+                    <td data-label="Provider">Affiliate networks and chatbot providers</td>
+                    <td data-label="Purpose">Referral attribution, commission calculation and fraud prevention</td>
+                    <td data-label="Data">Referral or campaign identifier, click and transaction confirmation; direct personal identification should be minimized</td>
+                    <td data-label="Role">Usually independent controllers</td>
+                </tr>
+                <tr>
+                    <td data-label="Provider">Professional advisers, insurers, auditors and public authorities</td>
+                    <td data-label="Purpose">Legal advice, accounting, insurance, compliance, claims and legally required disclosures</td>
+                    <td data-label="Data">Only data relevant to the matter</td>
+                    <td data-label="Role">Independent controller or processor depending on the relationship</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p>
+        We use providers only for services that are actually enabled. The list above must be updated
+        whenever a provider is added, removed or materially changes its role.
+    </p>
+
+    <h3>Fonts</h3>
+    <p>
+        ChatbotScout is designed to use self-hosted font files where technically and legally
+        appropriate, so font rendering should not require a separate remote Google Fonts request.
+        If this changes, we will update this policy and the cookie information where required.
+    </p>
+
+    <h2>8. International data transfers</h2>
+    <p>
+        Our primary hosting location may be within the European Economic Area (“EEA”), for example
+        Germany. However, some providers operate globally, and personal data may be accessed from or
+        transferred to countries outside the EEA, including the United States.
+    </p>
+
+    <p>
+        Where GDPR transfer restrictions apply, we use an available lawful transfer mechanism, such as:
+    </p>
     <ul>
-        <li>Internal monitoring: We employ robust security measures and monitoring systems to detect and 
-            respond to potential data breaches promptly.</li>
-        <li>Assessment of breach impact: Upon discovery of a data breach, we will conduct a thorough assessment 
-            to determine the nature and scope of the breach, including the types of personal information involved 
-            and the potential impact on affected individuals.</li>
+        <li>an adequacy decision adopted by the European Commission;</li>
+        <li>the EU-U.S. Data Privacy Framework for a participating and certified recipient, where applicable;</li>
+        <li>the European Commission’s Standard Contractual Clauses, together with supplementary measures where required; or</li>
+        <li>another transfer mechanism or limited derogation permitted by applicable law.</li>
     </ul>
-    <h3>Notification obligations</h3>
+
+    <p>
+        You may contact us to request information about the relevant transfer safeguards. Certain
+        confidential commercial or security information may be redacted where permitted by law.
+    </p>
+
+    <h2>9. Cookies and similar technologies</h2>
+
+    <h3>9.1 What cookies are</h3>
+    <p>
+        Cookies are small text files stored on a device. We may also use similar technologies such
+        as local storage, pixels, tags and software development tools that read or store information
+        on a device.
+    </p>
+
+    <h3>9.2 Categories of cookies</h3>
     <ul>
-        <li>Regulatory authorities: If required by law, we will notify the relevant data protection authorities 
-            of the data breach within 31 day(s), following the procedures specified by applicable regulations.</li>
-        <li>Affected individuals: If a data breach poses a significant risk to your privacy rights and freedoms, 
-            we will notify you within 31 day(s), providing clear and concise information about the breach, the 
-            types of personal information affected, and the steps you can take to protect yourself.</li>
+        <li>
+            <strong>Strictly necessary cookies:</strong> required for core functions such as security,
+            session management, load balancing, fraud prevention and remembering privacy choices.
+            These are used without consent where the law permits because the requested service could
+            not function properly without them.
+        </li>
+        <li>
+            <strong>Preference cookies:</strong> remember optional settings such as display or language
+            preferences. Where legally required, they are used only after consent.
+        </li>
+        <li>
+            <strong>Analytics cookies:</strong> help us understand how the Service is used. Google
+            Analytics and similar non-essential analytics tools are activated only after valid consent
+            where consent is required.
+        </li>
+        <li>
+            <strong>Advertising or affiliate cookies:</strong> may attribute referrals, measure
+            campaigns or personalize advertising. They are activated only after consent where required.
+        </li>
     </ul>
-    <h3>Communication channels</h3>
+
+    <h3>9.3 Consent management</h3>
+    <p>
+        On the first visit, and again when legally or technically necessary, we display a consent
+        interface that allows you to accept all non-essential cookies, reject non-essential cookies,
+        or select categories. Non-essential technologies must remain disabled until the required
+        consent is given.
+    </p>
+
+    <p>
+        Refusing non-essential cookies will not prevent access to core website functions, although
+        optional features may be unavailable. Consent is voluntary and may be withdrawn at any time
+        as easily as it was given by using the permanent “Cookie settings” link in the website footer
+        or another equally accessible control.
+    </p>
+
+    <p>
+        Browser settings may also delete or block cookies, but browser controls do not replace our
+        obligation to obtain consent before using non-essential technologies where consent is required.
+    </p>
+
+    <h3>9.4 Current cookie list</h3>
+    <p>
+        The consent interface must display an up-to-date list of the cookies and similar technologies
+        actually used, including provider, purpose, category and duration. Do not activate Google
+        Analytics, advertising tags or affiliate tracking cookies until they appear in the consent
+        interface and the required consent has been obtained.
+    </p>
+
+    <h2>10. Direct marketing</h2>
+    <p>
+        We send promotional emails only where we have a lawful basis under applicable privacy and
+        electronic marketing law. Where consent is required, consent will be requested separately
+        and will not be bundled into acceptance of the Terms.
+    </p>
+
+    <p>
+        Every marketing email will provide an unsubscribe method. You may also withdraw marketing
+        consent by contacting us. Withdrawal does not affect processing that occurred lawfully before
+        withdrawal. We may continue to send non-marketing service messages necessary for an account,
+        transaction, security matter or requested support.
+    </p>
+
+    <h2>11. Automated decision-making</h2>
+    <p>
+        We do not currently make decisions based solely on automated processing that produce legal
+        effects or similarly significantly affect individuals. Automated tools may help identify spam,
+        fraud, security threats or rating manipulation, but material action may be reviewed by a person
+        where appropriate or required by law.
+    </p>
+
+    <h2>12. Your rights</h2>
+    <p>
+        Subject to the conditions and limits in applicable law, you may have the right to:
+    </p>
     <ul>
-        <li><strong>Email notification:</strong> We may notify affected individuals via email, using the contact information 
-        provided to us, if feasible and appropriate.</li>
+        <li>obtain confirmation whether we process your personal data and receive access to it;</li>
+        <li>correct inaccurate or incomplete data;</li>
+        <li>request deletion of data;</li>
+        <li>request restriction of processing;</li>
+        <li>receive certain data in a structured, commonly used and machine-readable format and transmit it to another controller;</li>
+        <li>object to processing based on legitimate interests;</li>
+        <li>object at any time to direct marketing;</li>
+        <li>withdraw consent at any time, without affecting prior lawful processing;</li>
+        <li>not be subject to certain solely automated decisions with legal or similarly significant effects; and</li>
+        <li>lodge a complaint with a competent supervisory authority.</li>
     </ul>
-    <h3>Support and assistance</h3>
-    <p>In the event of a data breach, we are committed to providing affected individuals with the support and 
-        assistance they need, including guidance on steps they can take to mitigate the potential risks associated 
-        with the breach.</p>
-    <p>Point of contact: If you have any questions or concerns about a data breach or believe you may have been 
-        affected, please contact us immediately at chatbotscoutsupport@gmail.com or <span>+421 940801275.</span></p>  <!-- sem dat firmeny email a tel-->
+
+    <p>
+        To exercise a right, contact <strong>[PRIVACY EMAIL]</strong>. Please describe your request
+        clearly. We may request information reasonably necessary to verify identity and prevent
+        unauthorized disclosure. We normally respond within one month, subject to lawful extensions
+        for complex or numerous requests.
+    </p>
+
+    <p>
+        You may lodge a complaint with the supervisory authority in the EEA country of your habitual
+        residence, place of work or alleged infringement. Our lead Slovak supervisory authority is:
+    </p>
+
+    <address>
+        Office for Personal Data Protection of the Slovak Republic<br>
+        Galvaniho 7/B<br>
+        821 04 Bratislava<br>
+        Slovak Republic
+    </address>
+
+    <h2>13. Security</h2>
+    <p>
+        We use technical and organizational measures appropriate to the risk, which may include HTTPS,
+        access controls, password hashing, least-privilege permissions, logging, backups, rate limiting,
+        software updates and security monitoring. No internet service is completely secure, and we
+        cannot guarantee absolute security.
+    </p>
+
+    <p>
+        Users are responsible for choosing a strong, unique password and protecting account credentials.
+        Please notify us promptly at <strong>[SECURITY EMAIL]</strong> if you suspect unauthorized
+        access or a security vulnerability.
+    </p>
+
+    <h2>14. Personal data breaches</h2>
+    <p>
+        We maintain procedures to assess and respond to suspected personal data breaches. Where a
+        breach is likely to result in a risk to the rights and freedoms of individuals, we will notify
+        the competent supervisory authority without undue delay and, where feasible, no later than
+        72 hours after becoming aware of it.
+    </p>
+
+    <p>
+        Where a breach is likely to result in a high risk to affected individuals, we will also inform
+        those individuals without undue delay, unless an exception under applicable law applies.
+    </p>
+
+    <h2>15. Children</h2>
+    <p>
+        The account, submission and paid-service features are not intended for persons under 18.
+        We do not knowingly collect personal data from a child through those features. If you believe
+        a child has provided personal data contrary to this policy, contact us so that we can assess
+        and take appropriate action.
+    </p>
+
+    <h2>16. Business transfers and legal disclosures</h2>
+    <p>
+        Personal data may be disclosed as part of a genuine merger, acquisition, financing,
+        restructuring, insolvency or sale of all or part of the business, subject to confidentiality,
+        transparency and other safeguards required by law.
+    </p>
+
+    <p>
+        We may disclose data where necessary to comply with a binding legal obligation, court order
+        or lawful request, to protect rights and safety, or to establish, exercise or defend legal claims.
+        We will assess requests and disclose only data that we reasonably consider necessary and lawful.
+    </p>
+
+    <h2>17. Changes to this policy</h2>
+    <p>
+        We may update this policy when our services, providers, processing activities or legal
+        obligations change. The current version will be published on this page with a revised
+        “Last updated” date.
+    </p>
+
+    <p>
+        Where a change materially affects how we use personal data, we will provide reasonable notice
+        through the website, account or email and request new consent where the law requires it.
+    </p>
+
+    <h2>18. Contact</h2>
+    <p>
+        Privacy questions, requests and complaints may be sent to:
+        <strong>[PRIVACY EMAIL AT YOUR DOMAIN]</strong>.
+    </p>
 </div>
 
 <?php

@@ -190,9 +190,9 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
         <link rel="stylesheet" href="css/userAuthAll.css?v=<?= filemtime(__DIR__ . '/../public/css/userAuthAll.css') ?>">
     <?php elseif ($page === '404' || $page === '500'): ?>
         <link rel="stylesheet" href="css/errorPages.css?v=<?= filemtime(__DIR__ . '/../public/css/errorPages.css') ?>">
-    <?php elseif ($page === 'privacyPolicy'): ?>
+    <?php elseif ($page === 'privacyPolicy' || $page === 'chatbotscout_privacy_and_cookie_policy'): ?>
         <link rel="stylesheet" href="css/privacyPolicy.css?v=<?= filemtime(__DIR__ . '/../public/css/privacyPolicy.css') ?>">
-    <?php elseif ($page === 'termsAndConditions'): ?>
+    <?php elseif ($page === 'termsAndConditions' || $page === 'chatbotscout_terms_and_conditions'): ?>
         <link rel="stylesheet" href="css/termsAndConditions.css?v=<?= filemtime(__DIR__ . '/../public/css/termsAndConditions.css') ?>">
     <?php endif; ?>
 

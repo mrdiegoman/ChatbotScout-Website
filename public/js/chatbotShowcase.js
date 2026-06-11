@@ -71,6 +71,30 @@
 
     function isMobileView() { return window.innerWidth <= 768; }
 
+    function hasPreferencesConsent() {
+        try {
+            const rawConsent = localStorage.getItem('cookie_consent_v2');
+            if (!rawConsent) return false;
+
+            const consent = JSON.parse(rawConsent);
+            return Boolean(consent && consent.preferences === true);
+        } catch (_) {
+            return false;
+        }
+    }
+
+    function getSavedPreference(key) {
+        if (!hasPreferencesConsent()) return null;
+
+        try { return localStorage.getItem(key); } catch (_) { return null; }
+    }
+
+    function savePreference(key, value) {
+        if (!hasPreferencesConsent()) return;
+
+        try { localStorage.setItem(key, value); } catch (_) {}
+    }
+
     function setLoading(on, isSearch = false) {
         if (isSearch) {
             const container = currentContainer();
@@ -803,8 +827,7 @@
         gridView.classList.toggle('active', view === 'grid');
         listView.classList.toggle('active', view === 'list');
 
-        // Uloz preferovany layout
-        try { localStorage.setItem('chatbot_showcase_view', view); } catch (_) {}
+        savePreference('chatbot_showcase_view', view);
 
         loadChatbots(false);
     }
@@ -897,9 +920,7 @@
 
     // INIT
     // Nacitaj ulozeny layout (ak existuje)
-    const savedView = (() => {
-        try { return localStorage.getItem('chatbot_showcase_view'); } catch (_) { return null; }
-    })();
+    const savedView = getSavedPreference('chatbot_showcase_view');
     if (savedView === 'list') {
         state.currentView = 'list';
         listBtn.classList.add('active');

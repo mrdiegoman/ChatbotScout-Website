@@ -12,6 +12,10 @@ body {
     margin: 60px auto auto auto;
 }
 
+.legal-document {
+    color: var(--black-color);
+}
+
 .pp-date {
     color: var(--black-color-hover);
     font-size: 1.3rem;
@@ -36,6 +40,31 @@ body {
     margin-bottom: 2rem;
 }
 
+.pp-wrapper a {
+    color: var(--blue-color);
+    font-family: outfit-semibold, sans-serif;
+    text-decoration: none;
+}
+
+.pp-wrapper a:hover {
+    text-decoration: underline;
+}
+
+.pp-wrapper address {
+    width: fit-content;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0 0 3rem 0;
+    padding: 1.6rem 2rem;
+    border: 1px solid var(--black-color-hover);
+    border-radius: 8px;
+    background: #f8fbff;
+    color: var(--black-color-light);
+    font-style: normal;
+    font-size: 1.5rem;
+    line-height: 1.65;
+}
+
 .pp-wrapper ul li{
     position: relative;
     margin-bottom: 1.2rem;
@@ -43,7 +72,7 @@ body {
     margin-left: 2rem;
 }
 
-li:before {
+.pp-wrapper li:before {
     content: "•";
     position: absolute;
     left: -1.5rem;
@@ -136,6 +165,6 @@ th {
     }
 }
 
-span {
+.pp-wrapper span {
     letter-spacing: 0.075rem;
 }
