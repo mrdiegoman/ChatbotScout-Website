@@ -72,23 +72,46 @@
     font-family: Outfit-SemiBold, Outfit, sans-serif;
 }
 
-.cs-affiliate-highlight {
+.cs-affiliate-explainer {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr);
+    gap: 1.6rem;
+    align-items: stretch;
+}
+
+.cs-affiliate-highlight,
+.cs-affiliate-flow-panel {
     display: flex;
-    align-items: flex-start;
-    gap: 1.4rem;
-    padding: 1.8rem 2rem;
-    border: 0.1rem solid #fed7aa;
+    flex-direction: column;
+    gap: 1.2rem;
+    padding: 2rem;
+    border: 0.1rem solid var(--cs-border);
     border-radius: 0.8rem;
-    background: var(--cs-orange-soft);
+    background: #fbfcff;
+}
+
+.cs-affiliate-highlight {
+    justify-content: center;
+    border-color: var(--cs-border);
+    background: #fbfcff;
+}
+
+.cs-affiliate-highlight h3 {
+    font-size: 2rem;
+    line-height: 2.5rem;
+}
+
+.cs-affiliate-flow-panel {
+    background: #ffffff;
 }
 
 .cs-affiliate-highlight-dot {
-    width: 1rem;
-    height: 1rem;
-    flex: 0 0 1rem;
-    margin-top: 0.75rem;
+    width: 3.4rem;
+    height: 3.4rem;
+    flex: 0 0 auto;
     border-radius: 999px;
-    background: var(--cs-orange);
+    background: #64748b;
+    box-shadow: inset 0 0 0 0.9rem #ffffff;
 }
 
 .cs-affiliate-section {
@@ -97,8 +120,9 @@
 }
 
 .cs-affiliate-flow {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -106,15 +130,13 @@
 
 .cs-affiliate-flow li {
     display: grid;
-    grid-template-columns: 4rem minmax(0, 1fr);
+    grid-template-columns: 3.8rem minmax(0, 1fr);
     align-items: center;
-    gap: 1.4rem;
-    padding: 1.6rem 0;
-    border-top: 0.1rem solid var(--cs-border);
-}
-
-.cs-affiliate-flow li:first-child {
-    border-top: 0;
+    gap: 1.2rem;
+    padding: 1.2rem;
+    border: 0.1rem solid var(--cs-border);
+    border-radius: 0.8rem;
+    background: #f8fafc;
 }
 
 .cs-affiliate-flow-number {
@@ -124,16 +146,16 @@
     width: 3.4rem;
     height: 3.4rem;
     border-radius: 0.8rem;
-    background: var(--cs-blue);
-    color: #ffffff;
+    background: #eef2ff;
+    color: #334155;
     font-family: Outfit-Bold, Outfit, sans-serif;
     font-size: 1.3rem;
     line-height: 1;
 }
 
 .cs-affiliate-flow li:last-child .cs-affiliate-flow-number {
-    background: var(--cs-green);
-    color: #002b11;
+    background: #eef2ff;
+    color: #334155;
 }
 
 .cs-affiliate-footer {
@@ -159,7 +181,10 @@
         text-align: left;
     }
 
-    .cs-affiliate-highlight,
+    .cs-affiliate-explainer {
+        grid-template-columns: 1fr;
+    }
+
     .cs-affiliate-flow li,
     .cs-affiliate-footer {
         align-items: flex-start;

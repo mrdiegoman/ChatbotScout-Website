@@ -62,6 +62,27 @@ body.page-affiliateDisclosure {
     gap: 1.8rem;
 }
 
+.cs-contact-page .cs-hero-inner {
+    grid-template-columns: minmax(0, 72rem);
+    justify-content: center;
+}
+
+.cs-about-page .cs-hero-inner {
+    grid-template-columns: minmax(0, 92rem);
+    justify-content: center;
+}
+
+.cs-about-page .cs-hero-copy,
+.cs-contact-page .cs-hero-copy {
+    align-items: center;
+    text-align: center;
+}
+
+.cs-about-page .cs-hero-actions,
+.cs-contact-page .cs-hero-actions {
+    justify-content: center;
+}
+
 .cs-kicker {
     display: inline-flex;
     align-items: center;

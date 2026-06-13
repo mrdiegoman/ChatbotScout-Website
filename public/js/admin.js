@@ -1275,9 +1275,6 @@ function buildSubmissionEditOption(kind, item, selected) {
     const badge = isFeature && item.advanced
         ? '<span class="sub-edit-option-badge">Advanced</span>'
         : '';
-    const usedBadge = isFeature && usageCount > 0
-        ? `<span class="sub-edit-option-badge">Used ${usageCount}</span>`
-        : '';
     const deleteTitle = usageCount > 0
         ? `Used by ${usageCount} chatbot(s). Remove it from all chatbots before deleting.`
         : 'Delete this unused feature';
@@ -1305,7 +1302,6 @@ function buildSubmissionEditOption(kind, item, selected) {
                    ${checkedAttr(selected)}>
             <span class="sub-edit-option-name">${escapeHtml(item.name)}</span>
             ${badge}
-            ${usedBadge}
             ${deleteButton}
         </label>`;
 }
@@ -1509,13 +1505,13 @@ function renderSubmissionEditPopup(data) {
                             <label class="sub-edit-toggle-field">
                                 <span>Free trial available</span>
                                 <span class="toggle-switch">
-                                    <input name="has_free_trial" type="checkbox"${checkedAttr(c.has_free_trial)}>
+                                    <input name="has_free_trial" type="checkbox" data-free-trial-toggle${checkedAttr(c.has_free_trial)}>
                                     <span class="toggle-slider"></span>
                                 </span>
                             </label>
                             <label class="sub-edit-field">
                                 <span>Free trial days</span>
-                                <input name="free_trial_days" type="number" min="1" max="3650" step="1" value="${escapeAttr(c.free_trial_days || '')}">
+                                <input name="free_trial_days" type="number" min="1" max="3650" step="1" data-free-trial-days${c.has_free_trial ? ' required aria-required="true"' : ''} value="${escapeAttr(c.free_trial_days || '')}">
                             </label>
                         </div>
                     </section>
@@ -1535,6 +1531,7 @@ function renderSubmissionEditPopup(data) {
 
     updateSubmissionEditCounts();
     bindSubmissionEditSearchHandlers();
+    bindSubmissionFreeTrialControls();
 }
 
 function closeSubmissionEditPopup() {
@@ -1570,6 +1567,65 @@ function bindSubmissionEditSearchHandlers() {
             }
         });
     });
+}
+
+function syncSubmissionFreeTrialDaysState(form) {
+    const trialToggle = form?.elements?.['has_free_trial'];
+    const trialDays = form?.elements?.['free_trial_days'];
+    if (!trialToggle || !trialDays) return;
+
+    const isRequired = trialToggle.checked;
+    trialDays.required = isRequired;
+    trialDays.setAttribute('aria-required', isRequired ? 'true' : 'false');
+
+    if (!isRequired) {
+        trialDays.setCustomValidity('');
+    }
+}
+
+function bindSubmissionFreeTrialControls() {
+    const form = document.getElementById('sub-edit-form');
+    const trialToggle = form?.elements?.['has_free_trial'];
+    const trialDays = form?.elements?.['free_trial_days'];
+    if (!form || !trialToggle || !trialDays || trialToggle.dataset.freeTrialBound === '1') return;
+
+    trialToggle.dataset.freeTrialBound = '1';
+    syncSubmissionFreeTrialDaysState(form);
+
+    trialToggle.addEventListener('change', () => {
+        syncSubmissionFreeTrialDaysState(form);
+        if (trialToggle.checked && !trialDays.value.trim()) {
+            trialDays.focus();
+        }
+    });
+
+    trialDays.addEventListener('input', () => {
+        trialDays.setCustomValidity('');
+    });
+}
+
+function validateSubmissionFreeTrialDays(form) {
+    const trialToggle = form?.elements?.['has_free_trial'];
+    const trialDays = form?.elements?.['free_trial_days'];
+    if (!trialToggle || !trialDays) return true;
+
+    syncSubmissionFreeTrialDaysState(form);
+
+    if (!trialToggle.checked) {
+        return true;
+    }
+
+    const value = trialDays.value.trim();
+    const days = Number(value);
+    if (value === '' || !Number.isFinite(days) || days < 1) {
+        trialDays.setCustomValidity('Enter the number of free trial days.');
+        trialDays.reportValidity();
+        trialDays.focus();
+        return false;
+    }
+
+    trialDays.setCustomValidity('');
+    return true;
 }
 
 function handleSubmissionEditOptionToggle(checkbox) {
@@ -1746,6 +1802,10 @@ async function saveSubmissionEdit(event, id) {
 
     const form = document.getElementById('sub-edit-form');
     if (!form) return;
+
+    if (!validateSubmissionFreeTrialDays(form)) {
+        return;
+    }
 
     const saveBtn = form.querySelector('[data-sub-edit-save]');
     const featureIds = [];

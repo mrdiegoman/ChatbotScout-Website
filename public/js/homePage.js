@@ -22,8 +22,25 @@ document.addEventListener('DOMContentLoaded', function () {
         const TOTAL     = cards.length;
         let   current   = Math.floor(TOTAL / 2); // start at center card
         let   autoPlay  = null;
+        let   isDragging = false;
+        let   dragStarted = false;
+        let   dragPointerId = null;
+        let   dragStartX = 0;
+        let   dragStartY = 0;
+        let   dragDeltaX = 0;
+        let   suppressNextClick = false;
 
         const POSITIONS = ['pos-far-left', 'pos-left', 'pos-center', 'pos-right', 'pos-far-right'];
+        const DRAG_VISUALS = {
+            opacityLoss: 0.025,
+            brightnessLoss: 0.1,
+            saturationLoss: 0.14,
+            scaleLoss: 0.04,
+            rotateFactor: 0.026,
+            shadowYOffsetLoss: 7,
+            shadowBlurLoss: 18,
+            shadowOpacityLoss: 0.14,
+        };
 
         /* Save theme class on each card */
         cards.forEach(card => {
@@ -56,6 +73,11 @@ document.addEventListener('DOMContentLoaded', function () {
         function render() {
             cards.forEach((card, i) => {
                 const posClass = getPositionClass(i);
+                card.style.transform = '';
+                card.style.transition = '';
+                card.style.opacity = '';
+                card.style.filter = '';
+                card.style.boxShadow = '';
                 card.className = 'hp-chatbot-card ' + card.dataset.theme + ' ' + posClass;
             });
 
@@ -69,11 +91,96 @@ document.addEventListener('DOMContentLoaded', function () {
             render();
         }
 
+        function getCenterCard() {
+            return cards[current] || null;
+        }
+
+        function getDragLimit() {
+            return Math.min(150, Math.max(85, viewport.clientWidth * 0.28));
+        }
+
+        function getSwipeThreshold() {
+            return Math.min(85, Math.max(45, viewport.clientWidth * 0.13));
+        }
+
+        function clampDrag(delta) {
+            const limit = getDragLimit();
+            return Math.max(-limit, Math.min(limit, delta));
+        }
+
+        function clearDragState() {
+            viewport.classList.remove('hp-carousel-viewport--dragging');
+            cards.forEach(card => {
+                card.classList.remove('hp-chatbot-card--dragging');
+                card.style.transition = '';
+                card.style.transform = '';
+                card.style.opacity = '';
+                card.style.filter = '';
+                card.style.boxShadow = '';
+            });
+        }
+
+        function moveCenterCard(delta) {
+            const centerCard = getCenterCard();
+            if (!centerCard) return;
+
+            const limitedDelta = clampDrag(delta);
+            const progress = Math.min(1, Math.abs(limitedDelta) / getDragLimit());
+            const opacity = 1 - (progress * DRAG_VISUALS.opacityLoss);
+            const brightness = 1 - (progress * DRAG_VISUALS.brightnessLoss);
+            const saturation = 1 - (progress * DRAG_VISUALS.saturationLoss);
+            const scale = 1 - (progress * DRAG_VISUALS.scaleLoss);
+            const shadowY = 20 - (progress * DRAG_VISUALS.shadowYOffsetLoss);
+            const shadowBlur = 60 - (progress * DRAG_VISUALS.shadowBlurLoss);
+            const shadowOpacity = 0.35 - (progress * DRAG_VISUALS.shadowOpacityLoss);
+            const rotate = limitedDelta * DRAG_VISUALS.rotateFactor;
+
+            dragDeltaX = limitedDelta;
+            viewport.classList.add('hp-carousel-viewport--dragging');
+            centerCard.classList.add('hp-chatbot-card--dragging');
+            centerCard.style.transition = 'none';
+            centerCard.style.transform = `translateX(${limitedDelta}px) scale(${scale}) rotate(${rotate}deg)`;
+            centerCard.style.opacity = opacity.toFixed(3);
+            centerCard.style.filter = `brightness(${brightness.toFixed(3)}) saturate(${saturation.toFixed(3)})`;
+            centerCard.style.boxShadow = `0 ${shadowY}px ${shadowBlur}px rgba(0,0,0,${shadowOpacity.toFixed(3)})`;
+        }
+
+        function finishDrag() {
+            if (!isDragging) return;
+
+            const shouldSwipe = Math.abs(dragDeltaX) >= getSwipeThreshold();
+            const direction = dragDeltaX < 0 ? 1 : -1;
+            const wasDragged = dragStarted;
+
+            isDragging = false;
+            dragStarted = false;
+            dragPointerId = null;
+
+            clearDragState();
+
+            if (shouldSwipe) {
+                goTo(current + direction);
+            } else if (wasDragged) {
+                render();
+            }
+
+            resetAutoPlay();
+
+            if (wasDragged) {
+                suppressNextClick = true;
+                setTimeout(() => { suppressNextClick = false; }, 0);
+            }
+        }
+
         /* Clicking a side card centres it */
         let isAnimating = false;
         cards.forEach((card, i) => {
             card.addEventListener('click', (e) => {
                 e.stopPropagation();
+                if (suppressNextClick) {
+                    e.preventDefault();
+                    return;
+                }
                 if (isAnimating) return;
                 const pos = getPositionClass(i);
                 if (pos === 'pos-left' || pos === 'pos-right') {
@@ -95,13 +202,80 @@ document.addEventListener('DOMContentLoaded', function () {
             if (e.key === 'ArrowRight') { goTo(current + 1); resetAutoPlay(); }
         });
 
-        /* Touch / swipe support */
-        let touchStartX = 0;
-        viewport.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
-        viewport.addEventListener('touchend', e => {
-            const diff = touchStartX - e.changedTouches[0].clientX;
-            if (Math.abs(diff) > 40) {
-                diff > 0 ? goTo(current + 1) : goTo(current - 1);
+        /* Drag / swipe support */
+        viewport.addEventListener('pointerdown', e => {
+            if (!e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
+            if (e.target.closest('a, button')) return;
+
+            const card = e.target.closest('.hp-chatbot-card');
+            if (!card) return;
+
+            const cardIndex = cards.indexOf(card);
+            if (getPositionClass(cardIndex) !== 'pos-center') return;
+
+            isDragging = true;
+            dragStarted = false;
+            dragPointerId = e.pointerId;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            dragDeltaX = 0;
+            clearInterval(autoPlay);
+        });
+
+        viewport.addEventListener('pointermove', e => {
+            if (!isDragging || e.pointerId !== dragPointerId) return;
+
+            const deltaX = e.clientX - dragStartX;
+            const deltaY = e.clientY - dragStartY;
+            const absX = Math.abs(deltaX);
+            const absY = Math.abs(deltaY);
+
+            if (!dragStarted) {
+                if (absX < 6) return;
+
+                if (absY > absX + 4) {
+                    isDragging = false;
+                    dragPointerId = null;
+                    resetAutoPlay();
+                    return;
+                }
+
+                dragStarted = true;
+                viewport.setPointerCapture?.(e.pointerId);
+            }
+
+            e.preventDefault();
+            moveCenterCard(deltaX);
+        });
+
+        viewport.addEventListener('pointerup', e => {
+            if (e.pointerId === dragPointerId) {
+                finishDrag();
+            }
+        });
+
+        window.addEventListener('pointerup', e => {
+            if (e.pointerId === dragPointerId) {
+                finishDrag();
+            }
+        });
+
+        viewport.addEventListener('pointercancel', e => {
+            if (e.pointerId === dragPointerId) {
+                clearDragState();
+                isDragging = false;
+                dragStarted = false;
+                dragPointerId = null;
+                resetAutoPlay();
+            }
+        });
+
+        window.addEventListener('pointercancel', e => {
+            if (e.pointerId === dragPointerId) {
+                clearDragState();
+                isDragging = false;
+                dragStarted = false;
+                dragPointerId = null;
                 resetAutoPlay();
             }
         });
@@ -135,17 +309,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const btnNext = document.getElementById('hp-pop-next');
         if (!track || !btnPrev || !btnNext) return;
 
+        const viewport = track.parentElement;
         const CARD_W = 212; // card width (196) + gap (16)
         let offset = 0;
+        let resizeFrame = 0;
 
         function getVisibleStep() {
-            const wrapWidth = track.parentElement.clientWidth;
+            const wrapWidth = viewport.clientWidth;
             const visibleCards = Math.max(1, Math.floor(wrapWidth / CARD_W));
             return visibleCards * CARD_W;
         }
 
         function getMax() {
-            return Math.max(0, track.scrollWidth - track.parentElement.clientWidth);
+            return Math.max(0, track.scrollWidth - viewport.clientWidth);
         }
 
         function snapToCard(raw) {
@@ -155,6 +331,17 @@ document.addEventListener('DOMContentLoaded', function () {
         function updateButtons() {
             btnPrev.style.opacity = offset <= 0 ? '.35' : '1';
             btnNext.style.opacity = offset >= getMax() ? '.35' : '1';
+        }
+
+        function applyOffset() {
+            offset = Math.min(Math.max(offset, 0), getMax());
+            track.style.transform = `translateX(-${offset}px)`;
+            updateButtons();
+        }
+
+        function scheduleLayoutUpdate() {
+            cancelAnimationFrame(resizeFrame);
+            resizeFrame = requestAnimationFrame(applyOffset);
         }
 
         btnNext.addEventListener('click', () => {
@@ -169,6 +356,15 @@ document.addEventListener('DOMContentLoaded', function () {
             track.style.transform = `translateX(-${offset}px)`;
             updateButtons();
         });
+
+        window.addEventListener('resize', scheduleLayoutUpdate);
+        window.addEventListener('load', scheduleLayoutUpdate);
+
+        if ('ResizeObserver' in window) {
+            const resizeObserver = new ResizeObserver(scheduleLayoutUpdate);
+            resizeObserver.observe(viewport);
+            resizeObserver.observe(track);
+        }
 
         updateButtons();
     })();

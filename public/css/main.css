@@ -393,6 +393,7 @@ a, button {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    flex: 0 0 auto;
 }
 
 .footer-main-content-first-logo {
@@ -404,6 +405,7 @@ a, button {
     background-color: var(--white-color-dark);
     padding: 0 1rem 0 0.5rem;
     text-decoration: none;
+    flex: 0 0 auto;
 }
  
 .footer-main-content-first-logo img {
@@ -415,6 +417,7 @@ a, button {
     font-size: 2.25rem;
     color: black !important;
     font-family: RubikDistressed, Roboto, sans-serif;
+    white-space: nowrap;
 }
 
 
@@ -1031,19 +1034,19 @@ a, button {
     }
 }
 
-@media (max-width: 764px) {
+@media (max-width: 900px) {
     .footer-main-content {
-        column-gap: 0;
+        column-gap: clamp(2rem, 5vw, 5rem);
         row-gap: 0;
         justify-content: space-between;
     }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 800px) {
     /* Fix for diagonal lines bug */
     .footer-main-wrapper,
     .footer-main-content-first,
-    .footer-main-content-second
+    .footer-main-content-second,
     .footer-main-content-third,
     .footer-main-bottom
     {
@@ -1060,6 +1063,18 @@ a, button {
     .footer-main-content {
         flex-direction: column;
         gap: 0;
+    }
+
+    .footer-main-content-first-logo {
+        max-width: 100%;
+    }
+
+    .footer-main-content-first-logo img {
+        height: clamp(4.2rem, 10vw, 5rem);
+    }
+
+    .footer-main-content-first-logo p {
+        font-size: clamp(1.75rem, 5vw, 2.25rem);
     }
 
     /* Logo a Follow Us sekcia - vždy viditeľna*/

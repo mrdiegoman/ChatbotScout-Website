@@ -101,15 +101,6 @@ if (!$isLoggedIn) {
             <!-- Form -->
             <form class="sc-form" id="scForm" novalidate>
 
-                <!-- Affiliate info banner -->
-                <div class="sc-affiliate-banner">
-                    <div>
-                        <span class="sc-affiliate-banner__eyebrow">Affiliate listing request</span>
-                        <strong>Start with a free review.</strong>
-                        <span>If your chatbot is a fit, we'll contact you to agree clear affiliate terms before it goes live.</span>
-                    </div>
-                </div>
-
                 <!-- Contact name -->
                 <div class="sc-field" id="field-contact-name">
                     <label class="sc-label" for="contactName">Your Name<span class="sc-required">*</span></label>

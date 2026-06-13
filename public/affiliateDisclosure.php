@@ -22,7 +22,6 @@ require '../inc/header.php';
     <main class="cs-main cs-affiliate-main">
         <article class="cs-affiliate-sheet" aria-labelledby="affiliate-summary-title">
             <header class="cs-affiliate-intro">
-                <p class="cs-affiliate-label">Disclosure summary</p>
                 <h2 id="affiliate-summary-title">Some links on ChatbotScout are affiliate links.</h2>
                 <p>
                     Transparency is important to us, so we keep this page simple. Some
@@ -31,31 +30,34 @@ require '../inc/header.php';
                 </p>
             </header>
 
-            <div class="cs-affiliate-highlight" role="note">
-                <span class="cs-affiliate-highlight-dot" aria-hidden="true"></span>
-                <p>
-                    <strong>No extra cost for you.</strong> If you click one of these
-                    links and make a purchase or sign up for a service, we may receive a
-                    small commission from the provider.
-                </p>
-            </div>
+            <section class="cs-affiliate-explainer" aria-labelledby="affiliate-how-title">
+                <div class="cs-affiliate-highlight" role="note">
+                    <div>
+                        <h3>No extra cost for you.</h3>
+                        <p>
+                            If you click one of these links and make a purchase or sign up
+                            for a service, we may receive a small commission from the provider.
+                        </p>
+                    </div>
+                </div>
 
-            <section class="cs-affiliate-section" aria-labelledby="affiliate-how-title">
-                <h3 id="affiliate-how-title">How it works</h3>
-                <ol class="cs-affiliate-flow">
-                    <li>
-                        <span class="cs-affiliate-flow-number">1</span>
-                        <p>You click a relevant link from one of our pages.</p>
-                    </li>
-                    <li>
-                        <span class="cs-affiliate-flow-number">2</span>
-                        <p>A purchase or sign-up may generate a small commission.</p>
-                    </li>
-                    <li>
-                        <span class="cs-affiliate-flow-number">3</span>
-                        <p>The commission helps cover hosting, research, and content work.</p>
-                    </li>
-                </ol>
+                <div class="cs-affiliate-flow-panel">
+                    <h3 id="affiliate-how-title">How it works</h3>
+                    <ol class="cs-affiliate-flow">
+                        <li>
+                            <span class="cs-affiliate-flow-number">1</span>
+                            <p>You click a relevant link from one of our pages.</p>
+                        </li>
+                        <li>
+                            <span class="cs-affiliate-flow-number">2</span>
+                            <p>A purchase or sign-up may generate a small commission.</p>
+                        </li>
+                        <li>
+                            <span class="cs-affiliate-flow-number">3</span>
+                            <p>The commission helps cover hosting, research, and content work.</p>
+                        </li>
+                    </ol>
+                </div>
             </section>
 
             <section class="cs-affiliate-section" aria-labelledby="affiliate-principles-title">

@@ -10,6 +10,10 @@
     gap: 2rem;
 }
 
+.cs-about-overview .cs-text-stack > h2 {
+    margin-bottom: 3rem;
+}
+
 .cs-about-detail-copy {
     display: flex;
     flex-direction: column;
@@ -21,8 +25,9 @@
 }
 
 .cs-about-values {
+    align-self: center;
     grid-template-columns: 1fr;
-    gap: 1.4rem;
+    gap: 3rem;
 }
 
 .cs-about-values .cs-card {

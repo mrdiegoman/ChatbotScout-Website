@@ -111,6 +111,7 @@
 /* ── Hero Text ─────────────────────────────────────────────── */
 .hp-hero-text {
     color: #fff;
+    max-width: 58rem;
 }
 
 .hp-hero-badge {
@@ -235,6 +236,7 @@
     align-items: center;
     justify-content: center;
     position: relative;
+    touch-action: pan-y;
 }
 
 .hp-chatbot-card {
@@ -244,15 +246,30 @@
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 20px 60px rgba(0,0,0,.35);
-    transition: transform .45s cubic-bezier(.4,0,.2,1), opacity .45s cubic-bezier(.4,0,.2,1);
-    will-change: transform, opacity;
+    transition:
+        transform .45s cubic-bezier(.4,0,.2,1),
+        opacity .45s cubic-bezier(.4,0,.2,1),
+        filter .45s cubic-bezier(.4,0,.2,1),
+        box-shadow .45s cubic-bezier(.4,0,.2,1);
+    will-change: transform, opacity, filter;
     cursor: pointer;
     user-select: none;
+    -webkit-user-select: none;
 }
 
 .hp-chatbot-card.pos-center {
     transform: translateX(0) scale(1);
     z-index: 10;
+    cursor: grab;
+}
+
+.hp-chatbot-card.pos-center:active,
+.hp-chatbot-card--dragging {
+    cursor: grabbing;
+}
+
+.hp-chatbot-card--dragging {
+    transition: none !important;
 }
 
 .hp-chatbot-card.pos-left {
@@ -1242,17 +1259,47 @@
 /* ============================================================
    RESPONSIVE
    ============================================================ */
+@media (max-width: 1200px) {
+    .hp-hero {
+        padding-inline: clamp(3rem, 5vw, 5.6rem);
+    }
+
+    .hp-hero-title {
+        font-size: clamp(2.75rem, 4.2vw, 3.9rem);
+    }
+}
+
 @media (max-width: 960px) {
-    /* .hp-hero { padding: 7rem 1.6rem; } */
-    .hp-hero-inner { grid-template-columns: 1fr; }
+    .hp-hero { padding: 7rem clamp(2.4rem, 6vw, 4rem) 8rem; }
+    .hp-hero-inner {
+        grid-template-columns: 1fr;
+        gap: 5.2rem;
+        max-width: 86rem;
+    }
     .hp-carousel-wrap { height: 380px; }
 
     .hp-hero-cta {
         justify-content: center;
     }
 
-    .hp-hero-text { text-align: center; }
-    .hp-hero-subtitle { margin-left: auto; margin-right: auto; }
+    .hp-hero-text {
+        max-width: 72rem;
+        margin-inline: auto;
+        padding-inline: 1rem;
+        text-align: center;
+    }
+
+    .hp-hero-title {
+        font-size: clamp(2.9rem, 7vw, 3.8rem);
+        margin-top: 1.6rem;
+    }
+
+    .hp-hero-subtitle {
+        max-width: 56rem;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.65;
+    }
 
     .hp-feature-row { grid-template-columns: 1fr; gap: 3.2rem; }
     .hp-feature-row.hp-reverse { display: flex; flex-direction: column-reverse; }
@@ -1265,8 +1312,24 @@
 }
 
 @media (max-width: 600px) {
-    /* .hp-hero { padding: 6rem 1.6rem; } */
-    .hp-carousel-wrap { height: 320px; }
+    .hp-hero { padding-inline: 2.2rem; }
+    .hp-hero-title { font-size: clamp(2.65rem, 8.5vw, 3.35rem); }
+    .hp-hero-subtitle { font-size: 1.35rem; }
+    .hp-carousel-wrap {
+        height: 43.5rem;
+        align-items: flex-start;
+    }
+    .hp-carousel-viewport { height: 35.5rem; }
+    .hp-carousel-btn {
+        top: auto;
+        bottom: 0.4rem;
+        transform: none;
+        width: 3.8rem;
+        height: 3.8rem;
+        box-shadow: 0 3px 12px rgba(0,0,0,.2);
+    }
+    .hp-carousel-btn.hp-prev { left: calc(50% - 8.4rem); }
+    .hp-carousel-btn.hp-next { right: calc(50% - 8.4rem); }
     .hp-chatbot-card.pos-left,
     .hp-chatbot-card.pos-right { opacity: 0; pointer-events: none; }
     .hp-hero-stats { gap: 1.6rem; }
@@ -1274,7 +1337,7 @@
     .hp-bubble { padding: 2rem 2rem; }
     .hp-discover-card { padding: 2.8rem 2rem; }
     .hp-carousel-dots {
-        bottom: -4rem;
+        bottom: 2rem;
         /* transform: translateX(-50%);
         display: flex;
         gap: 6px; */

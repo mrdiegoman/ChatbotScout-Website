@@ -38,14 +38,6 @@ function old(string $key, array $old): string {
                     <a class="cs-button cs-button--green" href="chatbots">Browse chatbots</a>
                 </div>
             </div>
-
-            <aside class="cs-hero-panel" aria-label="Contact promise">
-                <h2>We read every message</h2>
-                <p>
-                    We do our best to respond within a few business days, especially when your
-                    message includes the project, brand, or listing context.
-                </p>
-            </aside>
         </div>
     </section>
 
