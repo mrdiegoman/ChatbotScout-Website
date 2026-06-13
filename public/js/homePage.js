@@ -32,8 +32,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const POSITIONS = ['pos-far-left', 'pos-left', 'pos-center', 'pos-right', 'pos-far-right'];
         const DRAG_VISUALS = {
-            opacityLoss: 0.025,
-            brightnessLoss: 0.1,
+            opacityLoss: 0.05,
+            brightnessLoss: 0.05,
             saturationLoss: 0.14,
             scaleLoss: 0.04,
             rotateFactor: 0.026,
