@@ -395,6 +395,7 @@ function showConfirm(title, message, options = {}) {
         const extraEl    = document.getElementById('confirm-modal-extra');
         const confirmBtn = document.getElementById('confirm-modal-confirm');
         const cancelBtn  = document.getElementById('confirm-modal-cancel');
+        const closeBtn   = document.getElementById('confirm-modal-close');
 
         titleEl.textContent = title;
         msgEl.textContent   = message;
@@ -410,6 +411,7 @@ function showConfirm(title, message, options = {}) {
             unlockScroll();
             confirmBtn.removeEventListener('click', onConfirm);
             cancelBtn.removeEventListener('click', onCancel);
+            closeBtn?.removeEventListener('click', onCancel);
             resolve(result);
         }
         function onConfirm() { cleanup(true);  }
@@ -417,6 +419,7 @@ function showConfirm(title, message, options = {}) {
 
         confirmBtn.addEventListener('click', onConfirm);
         cancelBtn.addEventListener('click',  onCancel);
+        closeBtn?.addEventListener('click', onCancel);
     });
 }
 
@@ -519,17 +522,6 @@ document.querySelectorAll('.modal').forEach(modal => {
     });
 });
 
-// Close modals with Escape key
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        document.querySelectorAll('.modal').forEach(modal => {
-            if (modal.style.display === 'flex') {
-                closeModal(modal.id);
-            }
-        });
-    }
-});
-
 // ============================================
 // MANAGE SUBSCRIPTION MODAL
 // ============================================
@@ -548,8 +540,7 @@ async function readJsonResponse(response) {
     try {
         return JSON.parse(text);
     } catch (error) {
-        const cleaned = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-        throw new Error(cleaned || `Request failed with status ${response.status}`);
+        throw new Error('We could not complete this request. Please try again.');
     }
 }
 
@@ -847,7 +838,7 @@ document.querySelectorAll('.manage-subscription-btn').forEach(btn => {
 // Change Plan
 document.querySelectorAll('#change-plan-btn').forEach(changePlanBtn => {
     changePlanBtn.addEventListener('click', () => {
-        window.location.href = 'advertise.php#plans';
+        window.location.href = 'advertise#plans';
     });
 });
 
@@ -1051,6 +1042,7 @@ function showCancelFeedbackForm(title, message) {
         const extraEl    = document.getElementById('confirm-modal-extra');
         const confirmBtn = document.getElementById('confirm-modal-confirm');
         const cancelBtn  = document.getElementById('confirm-modal-cancel');
+        const closeBtn   = document.getElementById('confirm-modal-close');
 
         titleEl.textContent = title;
         msgEl.textContent = message;
@@ -1115,6 +1107,7 @@ function showCancelFeedbackForm(title, message) {
             extraEl.innerHTML = '';
             confirmBtn.removeEventListener('click', onConfirm);
             cancelBtn.removeEventListener('click', onCancel);
+            closeBtn?.removeEventListener('click', onCancel);
             reasonSelect.removeEventListener('change', onReasonChange);
             reasonOther.removeEventListener('input', updateSubmitState);
             resolve(result);
@@ -1134,6 +1127,7 @@ function showCancelFeedbackForm(title, message) {
         reasonOther.addEventListener('input', updateSubmitState);
         confirmBtn.addEventListener('click', onConfirm);
         cancelBtn.addEventListener('click', onCancel);
+        closeBtn?.addEventListener('click', onCancel);
         modal.style.display = 'flex';
         lockScroll();
         reasonSelect.focus();
@@ -1219,7 +1213,7 @@ if (confirmDeleteBtn) {
             if (result.success) {
                 showNotification('Account deleted. Redirecting...', 'success');
                 setTimeout(() => {
-                    window.location.href = 'index.php';
+                    window.location.href = './';
                 }, 2000);
             } else {
                 showNotification(result.message || 'Deletion failed', 'error');

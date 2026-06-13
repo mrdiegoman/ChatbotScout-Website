@@ -564,9 +564,7 @@ function closeNotifEmailsPopup() {
 }
 
 function closeNotifEmailsPopupOnOverlay(event) {
-    if (event.target === document.getElementById('notifEmailsPopup')) {
-        closeNotifEmailsPopup();
-    }
+    return;
 }
 
 // ============================================
@@ -795,7 +793,7 @@ function showAcceptPopup(id, chatbotName, rules, allPassed) {
         <div class="sub-popup-box">
             <div class="sub-popup-header">
                 <h3>Accept Chatbot</h3>
-                <button class="sub-popup-close" onclick="closeAcceptPopup()">✕</button>
+                <button type="button" class="modal-close sub-popup-close" onclick="closeAcceptPopup()" aria-label="Close">&times;</button>
             </div>
             <div class="sub-popup-body">
                 <p>Reviewing <strong>${escHtml(chatbotName)}</strong> for activation.</p>
@@ -1134,7 +1132,7 @@ function showChangeOfMindPopup(chatbotName, isRemove = false) {
             <div class="sub-popup-box sub-popup-box--warning">
                 <div class="sub-popup-header">
                     <h3>Confirm Status Change</h3>
-                    <button class="sub-popup-close" onclick="resolveChangePopup(false)">✕</button>
+                    <button type="button" class="modal-close sub-popup-close" onclick="resolveChangePopup(false)" aria-label="Close">&times;</button>
                 </div>
                 <div class="sub-popup-body">
                     <p>${actionText} <strong>${escHtml(chatbotName)}</strong>?</p>
@@ -1178,7 +1176,7 @@ function showDelistPopup(chatbotName) {
             <div class="sub-popup-box sub-popup-box--warning">
                 <div class="sub-popup-header">
                     <h3>Delist Chatbot</h3>
-                    <button class="sub-popup-close" onclick="resolveDelistPopup(false)">✕</button>
+                    <button type="button" class="modal-close sub-popup-close" onclick="resolveDelistPopup(false)" aria-label="Close">&times;</button>
                 </div>
                 <div class="sub-popup-body">
                     <p>You are about to delist <strong>${escHtml(chatbotName)}</strong> from ChatbotScout.</p>
@@ -1378,7 +1376,7 @@ async function openSubmissionEditPopup(id) {
         <div class="sub-popup-box sub-edit-popup-box">
             <div class="sub-popup-header">
                 <h3>Edit Listing</h3>
-                <button class="sub-popup-close" onclick="closeSubmissionEditPopup()">&times;</button>
+                <button type="button" class="modal-close sub-popup-close" onclick="closeSubmissionEditPopup()" aria-label="Close">&times;</button>
             </div>
             <div class="sub-popup-body sub-edit-popup-body">
                 <div class="sub-edit-loading">Loading listing details...</div>
@@ -1434,7 +1432,7 @@ function renderSubmissionEditPopup(data) {
         <div class="sub-popup-box sub-edit-popup-box">
             <div class="sub-popup-header">
                 <h3>Edit Listing</h3>
-                <button class="sub-popup-close" onclick="closeSubmissionEditPopup()">&times;</button>
+                <button type="button" class="modal-close sub-popup-close" onclick="closeSubmissionEditPopup()" aria-label="Close">&times;</button>
             </div>
             <form id="sub-edit-form" data-chatbot-id="${escapeAttr(c.id)}" onsubmit="saveSubmissionEdit(event, '${escapeAttr(c.id)}')">
                 <div class="sub-popup-body sub-edit-popup-body">

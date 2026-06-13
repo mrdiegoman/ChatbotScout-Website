@@ -1315,7 +1315,11 @@ function stripeInvoiceIsAlreadyPaid($invoice, $paymentIntent): bool {
 }
 
 function stripeCheckoutSuccessRedirectUrl(?string $paymentIntentId): string {
-    return 'profile.php?tab=profile#your-promotions';
+    if ($paymentIntentId) {
+        return 'payment-success?payment_intent=' . rawurlencode($paymentIntentId);
+    }
+
+    return 'payment-success';
 }
 
 function stripeFindSavedPaymentMethod(string $stripeCustomerId, $stripeSubscription = null)

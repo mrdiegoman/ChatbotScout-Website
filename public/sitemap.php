@@ -14,14 +14,14 @@ $baseUrl = $scheme . '://' . $host;
 
 $urls = [
     ['loc' => $baseUrl . '/', 'changefreq' => 'daily', 'priority' => '1.0'],
-    ['loc' => $baseUrl . '/chatbotShowcase.php', 'changefreq' => 'daily', 'priority' => '0.9'],
-    ['loc' => $baseUrl . '/aboutUs.php', 'changefreq' => 'monthly', 'priority' => '0.6'],
-    ['loc' => $baseUrl . '/contact.php', 'changefreq' => 'monthly', 'priority' => '0.6'],
-    ['loc' => $baseUrl . '/advertise.php', 'changefreq' => 'monthly', 'priority' => '0.5'],
-    ['loc' => $baseUrl . '/submitChatbot.php', 'changefreq' => 'weekly', 'priority' => '0.7'],
-    ['loc' => $baseUrl . '/privacyPolicy.php', 'changefreq' => 'monthly', 'priority' => '0.4'],
-    ['loc' => $baseUrl . '/termsAndConditions.php', 'changefreq' => 'monthly', 'priority' => '0.4'],
-    ['loc' => $baseUrl . '/affiliateDisclosure.php', 'changefreq' => 'monthly', 'priority' => '0.4'],
+    ['loc' => $baseUrl . '/chatbots', 'changefreq' => 'daily', 'priority' => '0.9'],
+    ['loc' => $baseUrl . '/about-us', 'changefreq' => 'monthly', 'priority' => '0.6'],
+    ['loc' => $baseUrl . '/contact', 'changefreq' => 'monthly', 'priority' => '0.6'],
+    ['loc' => $baseUrl . '/advertise', 'changefreq' => 'monthly', 'priority' => '0.5'],
+    ['loc' => $baseUrl . '/submit-chatbot', 'changefreq' => 'weekly', 'priority' => '0.7'],
+    ['loc' => $baseUrl . '/privacy-policy', 'changefreq' => 'monthly', 'priority' => '0.4'],
+    ['loc' => $baseUrl . '/terms-and-conditions', 'changefreq' => 'monthly', 'priority' => '0.4'],
+    ['loc' => $baseUrl . '/affiliate-disclosure', 'changefreq' => 'monthly', 'priority' => '0.4'],
 ];
 
 echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";

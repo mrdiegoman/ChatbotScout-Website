@@ -8,7 +8,7 @@ require 'app/auth.php';
 require_once '../inc/stripePaymentFinalizer.php';
 
 if (!$isLoggedIn) {
-    header('Location: login.php');
+    header('Location: login');
     exit;
 }
 
@@ -17,14 +17,14 @@ $paymentIntentId = trim($_GET['payment_intent'] ?? '');
 $paymentStatus = '';
 $paymentVerificationError = '';
 $stripeBillingPeriodType = '';
+$paymentConfirmed = false;
 $db = Database::getInstance()->getConnection();
-$redirectAfterSuccess = ($_GET['redirect'] ?? '') === 'profile';
-$profileSubscriptionsUrl = 'profile.php?tab=profile#your-promotions';
+$profileSubscriptionsUrl = 'profile?tab=profile#your-promotions';
 
 if ($paymentIntentId) {
     try {
         $localPaymentStmt = $db->prepare("
-            SELECT id, stripe_invoice_id
+            SELECT id, status, stripe_invoice_id
             FROM payments
             WHERE stripe_payment_intent_id = :pi_id
               AND user_id = :user_id
@@ -38,6 +38,7 @@ if ($paymentIntentId) {
         $localPayment = $localPaymentStmt->fetch(PDO::FETCH_ASSOC);
 
         if ($localPayment) {
+            $localPaymentStatus = (string) ($localPayment['status'] ?? '');
             $stripeConfig = require '../config/stripe.php';
             \Stripe\Stripe::setApiKey($stripeConfig['secret_key']);
             if (!empty($stripeConfig['api_version'])) {
@@ -49,6 +50,7 @@ if ($paymentIntentId) {
                 $paymentStatus = (string) ($invoice->status ?? '');
 
                 if ($paymentStatus === 'paid' || !empty($invoice->paid)) {
+                    $paymentConfirmed = true;
                     $finalized = finalizeStripePaidInvoice($db, $invoice, $user['id']);
                     $stripeBillingPeriodType = promotionNormalizeBillingPeriod(
                         stripePaymentMetadataValue($invoice->metadata ?? null, 'period_type', ''),
@@ -57,6 +59,10 @@ if ($paymentIntentId) {
                     if (!$stripeBillingPeriodType && !empty($finalized['subscription_ids'])) {
                         $stripeBillingPeriodType = '';
                     }
+                }
+
+                if (!$paymentConfirmed && $localPaymentStatus === 'succeeded') {
+                    $paymentConfirmed = true;
                 }
             } else {
                 $paymentVerificationError = 'Stripe invoice is not available yet.';
@@ -138,7 +144,7 @@ if ($orderDetails) {
         });
 }
 
-$isVerifiedSuccess = $orderDetails && !$paymentVerificationError;
+$isVerifiedSuccess = $orderDetails && !$paymentVerificationError && $paymentConfirmed;
 $resultTitle = 'Payment processing';
 $resultSubtitle = 'Stripe is still confirming this payment. Your profile will update automatically once the payment is confirmed.';
 $resultIconClass = 'success-card__icon success-card__icon--pending';
@@ -156,23 +162,10 @@ if ($isVerifiedSuccess) {
     $resultNote = 'Your subscription will not be activated unless Stripe confirms that the payment succeeded.';
 }
 
-if ($isVerifiedSuccess && $redirectAfterSuccess) {
-    header('Location: ' . $profileSubscriptionsUrl);
-    exit;
-}
+require '../inc/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Successful — ChatbotScout</title>
-    <?php require '../inc/header.php'; ?>
-    <link rel="stylesheet" href="css/payment-success.css?v=<?= filemtime(__DIR__ . '/css/payment-success.css') ?>">
-</head>
-<body>
 
-<div class="success-page">
+<main class="success-page">
     <div class="success-card">
 
         <div class="<?php echo htmlspecialchars($resultIconClass, ENT_QUOTES, 'UTF-8'); ?>" aria-hidden="true"></div>
@@ -184,19 +177,19 @@ if ($isVerifiedSuccess && $redirectAfterSuccess) {
         <div class="success-card__details">
             <div class="success-card__detail-row">
                 <span>Plan</span>
-                <strong><?php echo htmlspecialchars($slotLabel); ?></strong>
+                <strong><?php echo htmlspecialchars($slotLabel, ENT_QUOTES, 'UTF-8'); ?></strong>
             </div>
             <div class="success-card__detail-row">
                 <span>Chatbot</span>
-                <strong><?php echo htmlspecialchars($orderDetails['chatbot_name']); ?></strong>
+                <strong><?php echo htmlspecialchars($orderDetails['chatbot_name'], ENT_QUOTES, 'UTF-8'); ?></strong>
             </div>
             <div class="success-card__detail-row">
                 <span>Billing</span>
-                <strong><?php echo htmlspecialchars(promotionBillingPeriodLabel($orderDetails['billing_period_type'])); ?></strong>
+                <strong><?php echo htmlspecialchars(promotionBillingPeriodLabel($orderDetails['billing_period_type']), ENT_QUOTES, 'UTF-8'); ?></strong>
             </div>
             <div class="success-card__detail-row success-card__detail-row--total">
                 <span>Amount paid</span>
-                <strong><?php echo $orderDetails['currency_symbol'] . number_format(floatval($orderDetails['payment_amount']), 2); ?></strong>
+                <strong><?php echo htmlspecialchars($orderDetails['currency_symbol'], ENT_QUOTES, 'UTF-8') . number_format(floatval($orderDetails['payment_amount']), 2); ?></strong>
             </div>
         </div>
         <?php endif; ?>
@@ -205,7 +198,7 @@ if ($isVerifiedSuccess && $redirectAfterSuccess) {
             <a href="<?php echo htmlspecialchars($profileSubscriptionsUrl, ENT_QUOTES, 'UTF-8'); ?>" class="success-card__btn success-card__btn--primary">
                 View My Subscriptions
             </a>
-            <a href="chatbotShowcase.php" class="success-card__btn success-card__btn--secondary">
+            <a href="chatbots" class="success-card__btn success-card__btn--secondary">
                 Browse Chatbots
             </a>
         </div>
@@ -215,7 +208,8 @@ if ($isVerifiedSuccess && $redirectAfterSuccess) {
         </p>
 
     </div>
-</div>
+</main>
 
-</body>
-</html>
+<?php
+require '../inc/footer.php';
+?>

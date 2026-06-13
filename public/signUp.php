@@ -4,7 +4,7 @@ require 'app/auth.php';
 
 // Ak je už prihlásený, presmeruj na index
 if ($isLoggedIn) {
-    header('Location: index.php');
+    header('Location: ./');
     exit;
 }
 
@@ -49,12 +49,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Heslo NEUCHOVÁVAJ v session (security)
             ];
             
-            header('Location: signUp.php');
+            header('Location: sign-up');
             exit;
 
         } else {
             // ✅ Úspešná registrácia → redirect
-            header('Location: verificationSent.php?email=' . urlencode($userData['email']));
+            header('Location: verification-sent?email=' . urlencode($userData['email']));
             exit;
         }
         
@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'marketing_emails' => $marketingEmails,
         ];
         
-        header('Location: signUp.php');
+        header('Location: sign-up');
         exit;
     }
 }
@@ -104,7 +104,7 @@ require '../inc/header.php';
         <?php endif; ?>
         
         <!-- Google Sign Up Button -->
-        <a href="googleAuth.php" class="google-btn">
+        <a href="google-auth" class="google-btn">
             <svg class="google-icon" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -115,8 +115,8 @@ require '../inc/header.php';
         </a>
         <p class="google-terms-text">
             By continuing, you agree to our
-            <a href="termsAndConditions.php">Terms & Conditions</a> and
-            <a href="privacyPolicy.php">Privacy Policy</a>.
+            <a href="terms-and-conditions">Terms & Conditions</a> and
+            <a href="privacy-policy">Privacy Policy</a>.
         </p>
         
         <!-- Divider -->
@@ -127,7 +127,7 @@ require '../inc/header.php';
         </div>
         
         <!-- Registration Form -->
-        <form method="POST" action="signUp.php" class="auth-form">
+        <form method="POST" action="sign-up" class="auth-form">
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
             <div class="name-fields">
                 <!-- First Name Field -->
@@ -230,7 +230,7 @@ require '../inc/header.php';
                         <?php echo !empty($oldInput['terms_accepted']) ? 'checked' : ''; ?>
                     >
                     <label for="terms_accepted">
-                        By signing up, you agree to our <a href="termsAndConditions.php" target="_blank">Terms & Conditions</a> and <a href="privacyPolicy.php" target="_blank">Privacy Policy</a>.
+                        By signing up, you agree to our <a href="terms-and-conditions" target="_blank">Terms & Conditions</a> and <a href="privacy-policy" target="_blank">Privacy Policy</a>.
                     </label>
                 </div>
                 <?php if (!empty($errors['terms'])): ?>
@@ -261,7 +261,7 @@ require '../inc/header.php';
         
         <!-- Footer - Link to Sign In -->
         <div class="auth-footer">
-            Already have an account? <a href="login.php">Sign In</a>
+            Already have an account? <a href="login">Sign In</a>
         </div>
     </div>
 </div>

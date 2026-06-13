@@ -2,7 +2,7 @@
     <div class="footer-main-wrapper">
         <div class="footer-main-content">
             <div class="footer-main-content-first">
-                <a href="index.php" class="footer-main-content-first-logo">
+                <a href="./" class="footer-main-content-first-logo">
                     <img src="img/ChatbotScout_logo.png" alt="ChatbotScout logo">
                     <p>ChatbotScout</p>
                 </a>
@@ -56,11 +56,11 @@
                 </button>
 
                 <div class="footer-accordion-content" id="chatbots-content">
-                    <a href="chatbotShowcase.php">Browse Chatbots</a>
-                    <!-- <a href="submitChatbot.php">Submit Chatbot</a> -->
-                    <a href="login.php">Login</a>
-                    <a href="signUp.php">Sign Up</a>
-                    <!-- <a href="advertise.php">Advertise</a> -->
+                    <a href="chatbots">Browse Chatbots</a>
+                    <!-- <a href="submit-chatbot">Submit Chatbot</a> -->
+                    <a href="login">Login</a>
+                    <a href="sign-up">Sign Up</a>
+                    <!-- <a href="advertise">Advertise</a> -->
                 </div>
             </div>
 
@@ -78,8 +78,8 @@
                 </button>
 
                 <div class="footer-accordion-content" id="information-content">
-                    <a href="aboutUs.php">About Us</a>
-                    <a href="affiliateDisclosure.php">Affiliate Disclosure</a>
+                    <a href="about-us">About Us</a>
+                    <a href="affiliate-disclosure">Affiliate Disclosure</a>
                 </div>
             </div>
         </div>
@@ -88,10 +88,10 @@
     <div class="footer-main-bottom">
         <p class="footer-main-bottom-Rights">© 2026 ChatbotScout.com - All rights reserved.</p>
         <div class="footer-main-bottom-extra">
-            <a href="privacyPolicy.php" class="footer-main-bottom-PrivacyPolicy-a">Privacy policy</a>
-            <a href="termsAndConditions.php" class="footer-main-bottom-terms-a">Terms & Conditions</a>
+            <a href="privacy-policy" class="footer-main-bottom-PrivacyPolicy-a">Privacy policy</a>
+            <a href="terms-and-conditions" class="footer-main-bottom-terms-a">Terms & Conditions</a>
         </div>
-        <p class="footer-main-bottom-affiliate-disclosure">More information can be found in our <a href="affiliateDisclosure.php">
+        <p class="footer-main-bottom-affiliate-disclosure">More information can be found in our <a href="affiliate-disclosure">
             Affiliate Disclosure.</a></p>
     </div>
 </footer>
@@ -111,7 +111,7 @@
                 <p class="cookie-banner-desc">
                     We use necessary cookies to run the website and, with your consent, optional cookies or local storage for analytics,
                     saved preferences and affiliate referral attribution.
-                    <a href="privacyPolicy.php" class="cookie-banner-link">Privacy Policy</a>
+                    <a href="privacy-policy" class="cookie-banner-link">Privacy Policy</a>
                 </p>
             </div>
         </div>
@@ -133,12 +133,7 @@
         <!-- Header -->
         <div class="cookie-modal-header">
             <h2>Cookie Preferences</h2>
-            <button id="cookie-modal-close" class="cookie-modal-close-btn" aria-label="Close">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-            </button>
+            <button type="button" id="cookie-modal-close" class="modal-close cookie-modal-close-btn" aria-label="Close">&times;</button>
         </div>
 
         <!-- Body -->
@@ -150,7 +145,7 @@
                 The law states that we can store cookies on your device if they are strictly necessary for the operation of this site.
                 For all other types of cookies we need your permission.
                 You can at any time change or withdraw your consent.
-                Learn more in our <a href="privacyPolicy.php">Privacy Policy</a>.
+                Learn more in our <a href="privacy-policy">Privacy Policy</a>.
                 <!-- Please state your consent ID and date when you contact us regarding your consent. -->
             </div>
 

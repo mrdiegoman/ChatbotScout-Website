@@ -684,21 +684,19 @@
 
 .adv-modal__close {
     position: absolute;
-    top: 18px; right: 22px;
-    background: none;
-    border: none;
-    font-size: 1.8rem;
+    top: 2.2rem;
+    right: 2.6rem;
     color: var(--adv-text-muted);
-    cursor: pointer;
-    line-height: 1;
-    padding: 0.4rem;
-    transition: color 0.2s;
 }
 
-.adv-modal__close:hover { color: var(--adv-text); }
+.adv-modal__close:hover {
+    background: #f3f4f6;
+    color: var(--adv-text);
+}
 
 .adv-modal__header {
     padding: 3rem 3rem 2.2rem;
+    padding-right: 7rem;
     border-bottom: 1px solid var(--adv-border);
 }
 

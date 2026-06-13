@@ -1015,7 +1015,7 @@ function showBlockConfirmPopup(title, message) {
             <div class="sub-popup-box sub-popup-box--warning">
                 <div class="sub-popup-header">
                     <h3>${title}</h3>
-                    <button class="sub-popup-close" onclick="resolveBlockPopup(false)">✕</button>
+                    <button type="button" class="modal-close sub-popup-close" onclick="resolveBlockPopup(false)" aria-label="Close">&times;</button>
                 </div>
                 <div class="sub-popup-body">
                     <p>${message}</p>

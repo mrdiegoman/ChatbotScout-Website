@@ -4,7 +4,7 @@ require 'app/auth.php';
 
 // Ak je už prihlásený, presmeruj na index
 if ($isLoggedIn) {
-    header('Location: index.php');
+    header('Location: ./');
     exit;
 }
 
@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // ✅ PRG: Ulož do session a redirect
         $_SESSION['forgot_errors'] = $error;
         $_SESSION['forgot_input'] = ['email' => $email];
-        header('Location: forgotPassword.php');
+        header('Location: forgot-password');
         exit;
         
     } else {
@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // ✅ PRG: Ulož do session a redirect
             $_SESSION['forgot_errors'] = $error;
             $_SESSION['forgot_input'] = ['email' => $email];
-            header('Location: forgotPassword.php');
+            header('Location: forgot-password');
             exit;
             
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // ✅ PRG: Ulož do session a redirect
             $_SESSION['forgot_errors'] = $error;
             $_SESSION['forgot_input'] = ['email' => $email];
-            header('Location: forgotPassword.php');
+            header('Location: forgot-password');
             exit;
             
         } else {
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // ✅ PRG: Ulož do session a redirect
                 $_SESSION['forgot_success'] = $success;
-                header('Location: forgotPassword.php');
+                header('Location: forgot-password');
                 exit;
                 
             } catch (Exception $e) {
@@ -93,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // ✅ PRG: Ulož do session a redirect
                 $_SESSION['forgot_errors'] = $error;
                 $_SESSION['forgot_input'] = ['email' => $email];
-                header('Location: forgotPassword.php');
+                header('Location: forgot-password');
                 exit;
             }
         }
@@ -125,7 +125,7 @@ require '../inc/header.php';
         <?php endif; ?>
         
         <!-- Password Reset Form -->
-        <form method="POST" action="forgotPassword.php" class="auth-form">
+        <form method="POST" action="forgot-password" class="auth-form">
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
             <!-- Email Field -->
             <div class="form-group">
@@ -145,7 +145,7 @@ require '../inc/header.php';
         
         <!-- Footer - Back to login -->
         <div class="auth-footer">
-            Remember your password? <a href="login.php">Sign In</a>
+            Remember your password? <a href="login">Sign In</a>
         </div>
     </div>
 </div>

@@ -3,7 +3,7 @@ require '../inc/bootstrap.php';
 
 // Neprihlásený user → redirect na login
 if (!$isLoggedIn) {
-    header('Location: login.php?redirect=favouritesShowcase.php');
+    header('Location: login?redirect=favourites');
     exit;
 }
 
@@ -34,7 +34,7 @@ require '../inc/header.php';
                     <!-- Desktop Search -->
                     <label class="favourites-page-main-content-topbar-search favourites-page-main-content-topbar-search-desktop">
                         <input type="text" placeholder="Search" class="favourites-page-main-content-topbar-search-input" id="searchInput">
-                        <button class="favourites-page-main-content-topbar-search-input-clear-btn" id="searchClearBtn">
+                        <button type="button" class="favourites-page-main-content-topbar-search-input-clear-btn" id="searchClearBtn" aria-label="Clear search">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                 class="favourites-page-main-content-topbar-search-input-clear-icon" fill="none"
                                 stroke="#232127" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
@@ -42,7 +42,7 @@ require '../inc/header.php';
                                 <path d="m15 9-6 6" /><path d="m9 9 6 6" />
                             </svg>
                         </button>
-                        <button class="favourites-page-main-content-topbar-search-submit-btn">
+                        <button type="button" class="favourites-page-main-content-topbar-search-submit-btn" aria-label="Toggle search">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
                                 <path fill="#232127" d="M480 272C480 317.9 465.1 360.3 440 394.7L566.6 521.4C579.1 533.9 579.1 554.2 566.6 566.7C554.1 579.2 533.8 579.2 521.3 566.7L394.7 440C360.3 465.1 317.9 480 272 480C157.1 480 64 386.9 64 272C64 157.1 157.1 64 272 64C386.9 64 480 157.1 480 272zM272 416C351.5 416 416 351.5 416 272C416 192.5 351.5 128 272 128C192.5 128 128 192.5 128 272C128 351.5 192.5 416 272 416z"/>
                             </svg>
@@ -50,7 +50,7 @@ require '../inc/header.php';
                     </label>
 
                     <!-- Mobile search button -->
-                    <button class="favourites-page-main-content-topbar-mobile-search-btn" id="mobileSearchBtn">
+                    <button type="button" class="favourites-page-main-content-topbar-mobile-search-btn" id="mobileSearchBtn" aria-label="Toggle mobile search">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
                             <path fill="#232127"
                                 d="M480 272C480 317.9 465.1 360.3 440 394.7L566.6 521.4C579.1 533.9 579.1 554.2 566.6 566.7C554.1 579.2 533.8 579.2 521.3 566.7L394.7 440C360.3 465.1 317.9 480 272 480C157.1 480 64 386.9 64 272C64 157.1 157.1 64 272 64C386.9 64 480 157.1 480 272zM272 416C351.5 416 416 351.5 416 272C416 192.5 351.5 128 272 128C192.5 128 128 192.5 128 272C128 351.5 192.5 416 272 416z" />
@@ -128,7 +128,7 @@ require '../inc/header.php';
             <div class="favourites-page-main-content-mobile-search-bar" id="mobileSearchBar">
                 <label class="favourites-page-main-content-topbar-search active">
                     <input type="text" placeholder="Search" class="favourites-page-main-content-topbar-search-input" id="mobileSearchInput">
-                    <button class="favourites-page-main-content-topbar-search-input-clear-btn" id="mobileSearchClearBtn">
+                    <button type="button" class="favourites-page-main-content-topbar-search-input-clear-btn" id="mobileSearchClearBtn" aria-label="Clear search">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                             class="favourites-page-main-content-topbar-search-input-clear-icon" fill="none"
                             stroke="#232127" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
@@ -137,7 +137,7 @@ require '../inc/header.php';
                             <path d="m9 9 6 6" />
                         </svg>
                     </button>
-                    <button class="favourites-page-main-content-topbar-search-submit-btn" id="mobileSearchSubmitBtn">
+                    <button type="button" class="favourites-page-main-content-topbar-search-submit-btn" id="mobileSearchSubmitBtn" aria-label="Submit mobile search">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
                             <path fill="#232127"
                                 d="M480 272C480 317.9 465.1 360.3 440 394.7L566.6 521.4C579.1 533.9 579.1 554.2 566.6 566.7C554.1 579.2 533.8 579.2 521.3 566.7L394.7 440C360.3 465.1 317.9 480 272 480C157.1 480 64 386.9 64 272C64 157.1 157.1 64 272 64C386.9 64 480 157.1 480 272zM272 416C351.5 416 416 351.5 416 272C416 192.5 351.5 128 272 128C192.5 128 128 192.5 128 272C128 351.5 192.5 416 272 416z" />
@@ -157,7 +157,7 @@ require '../inc/header.php';
                 <div class="favourites-page-main-content-chatbots-list-view" id="listView"></div>
 
                 <div class="favourites-showcase-empty" id="favouritesEmpty" style="display:none;">
-                    <p>You have no favourites yet. <a href="chatbotShowcase.php">Browse chatbots</a></p>
+                    <p>You have no favourites yet. <a href="chatbots">Browse chatbots</a></p>
                 </div>
 
             </div>
@@ -185,13 +185,7 @@ require '../inc/header.php';
     <div class="favourites-filters-modal-content">
         <div class="favourites-filters-modal-header">
             <h2>Filter favorite chatbots by</h2>
-            <button class="favourites-filters-modal-close-btn" id="filtersCloseBtn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="#232127" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="m15 9-6 6"/><path d="m9 9 6 6"/>
-                </svg>
-            </button>
+            <button type="button" class="modal-close favourites-filters-modal-close-btn" id="filtersCloseBtn" aria-label="Close">&times;</button>
         </div>
         <div class="favourites-filters-modal-body">
             <div class="favourites-filters-modal-body-row-group">
@@ -317,14 +311,7 @@ require '../inc/header.php';
     <div class="chatbot-rating-modal-content">
         <div class="chatbot-rating-modal-header">
             <h2 id="ratingModalTitle">Rate this chatbot</h2>
-            <button class="chatbot-rating-modal-close-btn" id="ratingModalCloseBtn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="#232127" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="m15 9-6 6" />
-                    <path d="m9 9 6 6" />
-                </svg>
-            </button>
+            <button type="button" class="modal-close chatbot-rating-modal-close-btn" id="ratingModalCloseBtn" aria-label="Close">&times;</button>
         </div>
         <div class="chatbot-rating-modal-body">
             <div class="chatbot-rating-modal-stars-wrapper">

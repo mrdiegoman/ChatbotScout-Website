@@ -361,7 +361,7 @@ require '../inc/header.php';
     <h2>14. Privacy and cookies</h2>
     <p>
         Our processing of personal data and use of cookies or similar technologies are described in
-        our <a href="privacyPolicy.php">Privacy and Cookie Policy</a>, which forms an important part
+        our <a href="privacy-policy">Privacy and Cookie Policy</a>, which forms an important part
         of the information provided to users but is not intended to obtain consent where separate
         consent is legally required.
     </p>

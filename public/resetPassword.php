@@ -5,7 +5,7 @@ require '../inc/bootstrap.php';
 $token = $_GET['token'] ?? '';
 
 if (empty($token)) {
-    header('Location: login.php');
+    header('Location: login');
     exit;
 }
 
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // ✅ PRG: Ulož do session a redirect
         $_SESSION['reset_errors'] = $error;
-        header('Location: resetPassword.php?token=' . urlencode($token));
+        header('Location: reset-password?token=' . urlencode($token));
         exit;
         
     } elseif ($newPassword !== $confirmPassword) {
@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // ✅ PRG: Ulož do session a redirect
         $_SESSION['reset_errors'] = $error;
-        header('Location: resetPassword.php?token=' . urlencode($token));
+        header('Location: reset-password?token=' . urlencode($token));
         exit;
         
     } elseif (strlen($newPassword) < 8) {
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // ✅ PRG: Ulož do session a redirect
         $_SESSION['reset_errors'] = $error;
-        header('Location: resetPassword.php?token=' . urlencode($token));
+        header('Location: reset-password?token=' . urlencode($token));
         exit;
         
     } else {
@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // ✅ Úspešný reset - ulož success do session a presmeruj
             $_SESSION['login_success'] = 'Password reset successful! You can now log in.';
-            header('Location: login.php');
+            header('Location: login');
             exit;
             
         } catch (Exception $e) {
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // ✅ PRG: Ulož do session a redirect
             $_SESSION['reset_errors'] = $error;
-            header('Location: resetPassword.php?token=' . urlencode($token));
+            header('Location: reset-password?token=' . urlencode($token));
             exit;
         }
     }
@@ -91,7 +91,7 @@ require '../inc/header.php';
         <?php endif; ?>
         
         <!-- Reset Password Form -->
-        <form method="POST" action="resetPassword.php?token=<?php echo htmlspecialchars($token); ?>" class="auth-form">
+        <form method="POST" action="reset-password?token=<?php echo htmlspecialchars($token); ?>" class="auth-form">
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
             <!-- New Password Field -->
             <div class="form-group">
@@ -138,7 +138,7 @@ require '../inc/header.php';
         
         <!-- Footer - Back to Login -->
         <div class="auth-footer">
-            <a href="login.php">Back to Sign In</a>
+            <a href="login">Back to Sign In</a>
         </div>
     </div>
 </div>

@@ -15,7 +15,7 @@ require '../../inc/bootstrap.php';
 $basePath   = dirname(dirname($_SERVER['SCRIPT_NAME']));
 $contactUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
     . '://' . $_SERVER['HTTP_HOST']
-    . rtrim($basePath, '/') . '/contact.php';
+    . rtrim($basePath, '/') . '/contact';
 
 // Only POST allowed
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

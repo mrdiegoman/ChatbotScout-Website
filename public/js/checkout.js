@@ -444,7 +444,7 @@ async function confirmSavedPaymentMethod() {
 
         if (paymentIntent?.id) {
             window.location.href = new URL(
-                `payment-success.php?payment_intent=${encodeURIComponent(paymentIntent.id)}&redirect=profile`,
+                `payment-success?payment_intent=${encodeURIComponent(paymentIntent.id)}`,
                 window.location.href
             ).href;
             return;
@@ -460,11 +460,11 @@ async function confirmSavedPaymentMethod() {
 }
 
 function paymentSuccessReturnUrl() {
-    return new URL('payment-success.php?redirect=profile', window.location.href).href;
+    return new URL('payment-success', window.location.href).href;
 }
 
 function profileSubscriptionsUrl() {
-    return 'profile.php?tab=profile#your-promotions';
+    return 'profile?tab=profile#your-promotions';
 }
 
 function showError(msg) {

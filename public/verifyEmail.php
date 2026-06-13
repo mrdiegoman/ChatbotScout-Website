@@ -5,7 +5,7 @@ require '../inc/bootstrap.php';
 $token = $_GET['token'] ?? '';
 
 if (empty($token)) {
-    header('Location: login.php');
+    header('Location: login');
     exit;
 }
 
@@ -43,7 +43,7 @@ require '../inc/header.php';
                 <p style="color: #666; margin: 20px 0; font-size: 16px;">
                     Your email has been successfully verified. You can now log in to your account.
                 </p>
-                <a href="login.php?verified=success" class="submit-btn" style="display: inline-block; text-decoration: none; margin-top: 20px;">
+                <a href="login?verified=success" class="submit-btn" style="display: inline-block; text-decoration: none; margin-top: 20px;">
                     Go to Login
                 </a>
             </div>
@@ -59,11 +59,11 @@ require '../inc/header.php';
                     The verification link may have expired or is invalid.
                 </p>
                 <div style="margin-top: 30px;">
-                    <a href="login.php" style="color: #2196F3; text-decoration: none; font-weight: 600;">
+                    <a href="login" style="color: #2196F3; text-decoration: none; font-weight: 600;">
                         Back to Login
                     </a>
                     <span style="margin: 0 10px; color: #ccc;">|</span>
-                    <a href="signUp.php" style="color: #2196F3; text-decoration: none; font-weight: 600;">
+                    <a href="sign-up" style="color: #2196F3; text-decoration: none; font-weight: 600;">
                         Create New Account
                     </a>
                 </div>

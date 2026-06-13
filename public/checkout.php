@@ -10,7 +10,7 @@ require '../inc/bootstrap.php';
 require 'app/auth.php';
 
 if (!$isLoggedIn) {
-    header('Location: login.php?redirect=advertise.php');
+    header('Location: login?redirect=advertise');
     exit;
 }
 
@@ -21,7 +21,7 @@ $requestedBillingPeriod = trim($_GET['billing_period'] ?? '');
 $upgradeFromSubscriptionId = trim($_GET['upgrade_from_subscription_id'] ?? '');
 
 if (!$chatbotId || !$promotionId) {
-    header('Location: advertise.php');
+    header('Location: advertise');
     exit;
 }
 
@@ -54,7 +54,7 @@ $stmt->execute([
 $orderDetails = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$orderDetails) {
-    header('Location: advertise.php');
+    header('Location: advertise');
     exit;
 }
 
@@ -92,7 +92,7 @@ if ($promotionId2) {
     $orderDetails2 = $stmt2->fetch(PDO::FETCH_ASSOC);
     if ($orderDetails2) {
         if ($orderDetails2['currency_code'] !== $orderDetails['currency_code']) {
-            header('Location: advertise.php');
+            header('Location: advertise');
             exit;
         }
 
@@ -113,7 +113,7 @@ if ($orderDetails2) {
 $upgradeContext = null;
 if ($upgradeFromSubscriptionId !== '') {
     if ($promotionId2) {
-        header('Location: advertise.php');
+        header('Location: advertise');
         exit;
     }
 
@@ -158,7 +158,7 @@ if ($upgradeFromSubscriptionId !== '') {
     $upgradeContext = $upgradeStmt->fetch(PDO::FETCH_ASSOC) ?: null;
 
     if (!$upgradeContext || empty($upgradeContext['stripe_subscription_id'])) {
-        header('Location: advertise.php');
+        header('Location: advertise');
         exit;
     }
 
@@ -174,7 +174,7 @@ if ($upgradeFromSubscriptionId !== '') {
 
     $missingSlot = $upgradeContext['existing_slot_type'] === 'Homepage' ? 'Chatbots page' : 'Homepage';
     if ($existingBillingPeriod !== $billingPeriod || $orderDetails['slot_type'] !== $missingSlot) {
-        header('Location: advertise.php');
+        header('Location: advertise');
         exit;
     }
 }
@@ -273,7 +273,7 @@ $upgradeNote = $isUpgradeCancelsAtPeriodEnd
 
             <div class="checkout-summary__renew" data-renew-label="<?php echo htmlspecialchars($renewSummaryLabel); ?>" aria-label="<?php echo htmlspecialchars($renewSummaryLabel); ?>"></div>
 
-            <a href="advertise.php" class="checkout-summary__back">&larr; Cancel and go back</a>
+            <a href="advertise" class="checkout-summary__back">&larr; Cancel and go back</a>
         </div>
 
         <!-- ── Payment Form ───────────────────────────────────────────────── -->
@@ -312,8 +312,8 @@ $upgradeNote = $isUpgradeCancelsAtPeriodEnd
                     <input type="checkbox" id="businessCustomerAck" name="business_customer_acknowledged">
                     <label for="businessCustomerAck">
                         I confirm that I am purchasing this promotional service as a business customer, not as a consumer,
-                        and I agree to the <a href="termsAndConditions.php" target="_blank" rel="noopener">Terms and Conditions</a>
-                        and <a href="privacyPolicy.php" target="_blank" rel="noopener">Privacy and Cookie Policy</a>.
+                        and I agree to the <a href="terms-and-conditions" target="_blank" rel="noopener">Terms and Conditions</a>
+                        and <a href="privacy-policy" target="_blank" rel="noopener">Privacy and Cookie Policy</a>.
                     </label>
                 </div>
             </div>

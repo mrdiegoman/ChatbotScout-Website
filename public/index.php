@@ -23,7 +23,7 @@ require '../inc/header.php';
                 Compare by features, pricing, and real user reviews to find the perfect match.
             </p>
             <div class="hp-hero-cta">
-                <a href="chatbotShowcase.php" class="hp-btn hp-btn-green">
+                <a href="chatbots" class="hp-btn hp-btn-green">
                     See All Chatbots <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="m9 18 6-6-6-6"/></svg>
@@ -111,7 +111,7 @@ require '../inc/header.php';
                         <div class="hp-msg hp-msg-user">I want to return shoes that don't fit.</div>
                         <div class="hp-msg hp-msg-bot">Sure! I'll walk you through the return process step by step.</div>
                         <div class="hp-msg hp-msg-user">Yes please, that would help!</div>
-                        <div class="hp-msg hp-msg-bot">Fill out the short form here: <a href="chatbotShowcase.php" style="color:#0057FF">returns-form</a></div>
+                        <div class="hp-msg hp-msg-bot">Fill out the short form here: <a href="chatbots" style="color:#0057FF">returns-form</a></div>
                     </div>
                     <div class="hp-card-input">
                         <span>Type your message...</span>
@@ -207,7 +207,7 @@ require '../inc/header.php';
     <div class="hp-section-inner">
         <div class="hp-section-top hp-fade-up">
             <h2 class="hp-section-title">Most Popular</h2>
-            <a href="chatbotShowcase.php" class="hp-link-green">
+            <a href="chatbots" class="hp-link-green">
                 See More <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
                 stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
@@ -357,7 +357,7 @@ require '../inc/header.php';
                         }
                         $logoUrl    = $homepageLogoSrc($bot['logo_url'] ?? '');
                     ?>
-                    <a href="chatbotShowcase.php?search=<?= urlencode($bot['name']) ?>" class="hp-pop-card">
+                    <a href="chatbots?search=<?= urlencode($bot['name']) ?>" class="hp-pop-card">
                         <div class="hp-pop-tags">
                             <?php if (!empty($botTags)): ?>
                                 <?php foreach ($botTags as $tag): ?>
@@ -446,7 +446,7 @@ require '../inc/header.php';
                         support - find exactly what fits your business in seconds.
 
                     </p>
-                    <a href="chatbotShowcase.php" class="hp-link-green" style="margin-top:16px;display:inline-flex;align-items:center;gap:4px;">
+                    <a href="chatbots" class="hp-link-green" style="margin-top:16px;display:inline-flex;align-items:center;gap:4px;">
                         Start searching
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -477,7 +477,7 @@ require '../inc/header.php';
                         Telegram, Instagram, Facebook Messenger, Slack, and more. Filter by integration
                         to find the right bot for your messaging app in seconds.
                     </p>
-                    <a href="chatbotShowcase.php" class="hp-link-green" style="margin-top:16px;display:inline-flex;align-items:center;gap:4px;">
+                    <a href="chatbots" class="hp-link-green" style="margin-top:16px;display:inline-flex;align-items:center;gap:4px;">
                         Explore listings
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -584,11 +584,11 @@ require '../inc/header.php';
                     </div>
                     <div class="hp-filter-feature-text">
                         <strong>Integration compatibility</strong>
-                        <span>Filter by platforms like <a href="chatbotShowcase.php">WordPress</a>, <a href="chatbotShowcase.php">Shopify</a>, Slack, and many more.</span>
+                        <span>Filter by platforms like <a href="chatbots">WordPress</a>, <a href="chatbots">Shopify</a>, Slack, and many more.</span>
                     </div>
                 </div>
             </div>
-            <a href="chatbotShowcase.php" class="hp-filter-cta">
+            <a href="chatbots" class="hp-filter-cta">
                 Browse All Chatbots 
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -623,7 +623,7 @@ require '../inc/header.php';
                 Share your experience by rating the AI chatbots you use and help thousands
                 of others discover reliable, high-performing options.
             </p>
-            <a href="chatbotShowcase.php" class="hp-btn hp-btn-blue">
+            <a href="chatbots" class="hp-btn hp-btn-blue">
                 Start Discovering <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="m9 18 6-6-6-6"/></svg>
@@ -646,10 +646,10 @@ require '../inc/header.php';
         </p>
         <p>
             Start with popular categories:
-            <a href="chatbotShowcase.php?platform=WordPress">AI chatbots for WordPress</a>,
-            <a href="chatbotShowcase.php?platform=Shopify">AI chatbots for Shopify</a>,
-            <a href="chatbotShowcase.php?pricing=Free">free AI chatbots</a>, and
-            <a href="chatbotShowcase.php?feature=Live+agent+support">chatbots with live agent support</a>.
+            <a href="chatbots?platform=WordPress">AI chatbots for WordPress</a>,
+            <a href="chatbots?platform=Shopify">AI chatbots for Shopify</a>,
+            <a href="chatbots?pricing=Free">free AI chatbots</a>, and
+            <a href="chatbots?feature=Live+agent+support">chatbots with live agent support</a>.
         </p> -->
 
         <div class="hp-faq">

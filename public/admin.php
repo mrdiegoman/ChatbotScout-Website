@@ -879,11 +879,11 @@ require '../inc/header.php';
 </div><!-- end admin-wrapper -->
 
 <!-- ── Notification Emails Popup ── -->
-<div class="sub-popup-overlay" id="notifEmailsPopup" style="display:none;" onclick="closeNotifEmailsPopupOnOverlay(event)">
+<div class="sub-popup-overlay" id="notifEmailsPopup" style="display:none;">
     <div class="sub-popup-box">
         <div class="sub-popup-header">
             <h3>Notification Emails</h3>
-            <button class="sub-popup-close" onclick="closeNotifEmailsPopup()" title="Close">&#x2715;</button>
+            <button type="button" class="modal-close sub-popup-close" onclick="closeNotifEmailsPopup()" aria-label="Close">&times;</button>
         </div>
         <div class="sub-popup-body">
             <div id="notifEmailsList"></div>

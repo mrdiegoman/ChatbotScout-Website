@@ -75,6 +75,9 @@ $seoByPage = [
         'title'       => 'Advertise on ChatbotScout',
         'description' => 'Promote your chatbot product to users actively comparing AI chatbot solutions.',
     ],
+    'payment-success' => [
+        'title'       => 'Payment Status',
+    ],
     'privacyPolicy' => [
         'title'       => 'Privacy Policy',
     ],
@@ -186,6 +189,8 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
         <link rel="stylesheet" href="css/advertise.css?v=<?= filemtime(__DIR__ . '/../public/css/advertise.css') ?>">
     <?php elseif ($page === 'profile'): ?>
         <link rel="stylesheet" href="css/profile.css?v=<?= filemtime(__DIR__ . '/../public/css/profile.css') ?>">
+    <?php elseif ($page === 'payment-success'): ?>
+        <link rel="stylesheet" href="css/payment-success.css?v=<?= filemtime(__DIR__ . '/../public/css/payment-success.css') ?>">
     <?php elseif (in_array($page, $authPages, true)): ?>
         <link rel="stylesheet" href="css/userAuthAll.css?v=<?= filemtime(__DIR__ . '/../public/css/userAuthAll.css') ?>">
     <?php elseif ($page === '404' || $page === '500'): ?>
@@ -200,25 +205,25 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
 
 <body class="<?php echo implode(' ', $bodyClasses); ?>">
     <header class="header-main">
-        <a class="header-main-logo" href="index.php">
+        <a class="header-main-logo" href="./">
             <img src="img/ChatbotScout_logo.png" alt="ChatbotScout Logo">
             <p class="header-main-logo-title">ChatbotScout</p>
         </a>
         <nav class="header-main-nav">
             <ul>
-                <li><a href="chatbotShowcase.php">Chatbots</a></li>
-                <li><a href="contact.php">Contact</a></li>
-                <li><a href="aboutUs.php">About Us</a></li>
+                <li><a href="chatbots">Chatbots</a></li>
+                <li><a href="contact">Contact</a></li>
+                <li><a href="about-us">About Us</a></li>
             </ul>
         </nav>
         <div class="header-main-btns-promo">
-            <a href="submitChatbot.php" class="header-main-btn-submit">Submit Chatbot</a>
-            <a href="advertise.php" class="header-main-btn-advertise">Advertise</a>
+            <a href="submit-chatbot" class="header-main-btn-submit">Submit Chatbot</a>
+            <a href="advertise" class="header-main-btn-advertise">Advertise</a>
         </div>
         <div class="header-main-right">
             <?php if (!$isLoggedIn): ?>
-                <a href="login.php" class="header-main-right-LogIn">Log In</a>
-                <a href="signUp.php" class="header-main-right-SignUp">Sign Up</a>
+                <a href="login" class="header-main-right-LogIn">Log In</a>
+                <a href="sign-up" class="header-main-right-SignUp">Sign Up</a>
             <?php else: ?>
                 <p class="header-main-right-username" 
                     data-fullname="<?php echo htmlspecialchars(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')); ?>">
@@ -246,16 +251,16 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
 
                         <div class="header-profile-dropdown-divider"></div>
 
-                        <a href="profile.php" class="header-profile-dropdown-item">
+                        <a href="profile" class="header-profile-dropdown-item">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
                             Profile
                         </a>
-                        <a href="favouritesShowcase.php" class="header-profile-dropdown-item">
+                        <a href="favourites" class="header-profile-dropdown-item">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
                             Favourites
                         </a>
                         <?php if ($userRole === 'admin'): ?>
-                        <a href="admin.php" class="header-profile-dropdown-item header-profile-dropdown-item--admin">
+                        <a href="admin" class="header-profile-dropdown-item header-profile-dropdown-item--admin">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                             Admin
                         </a>
@@ -263,7 +268,7 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
 
                         <div class="header-profile-dropdown-divider"></div>
 
-                        <a href="logout.php" class="header-profile-dropdown-item header-profile-dropdown-item--logout">
+                        <a href="logout" class="header-profile-dropdown-item header-profile-dropdown-item--logout">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                             Log Out
                         </a>
@@ -295,11 +300,11 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
 
             <!-- Header s logom a close btn -->
             <div class="header-mobile-menu-top">
-                <a href="index.php" class="header-mobile-menu-top-logo">
+                <a href="./" class="header-mobile-menu-top-logo">
                     <img src="img/ChatbotScout_logo.png" alt="ChatbotScout logo">
                     <span>ChatbotScout</span>
                 </a>
-                <button class="header-mobile-close" aria-label="Close menu">
+                <button type="button" class="header-mobile-close" aria-label="Close menu">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"/>
                         <line x1="6" y1="6" x2="18" y2="18"/>
@@ -309,7 +314,7 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
 
             <!-- Nav links -->
             <nav class="header-mobile-nav">
-                <a href="chatbotShowcase.php" class="header-mobile-nav-link">
+                <a href="chatbots" class="header-mobile-nav-link">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="2" y="3" width="20" height="14" rx="2"/>
                         <line x1="8" y1="21" x2="16" y2="21"/>
@@ -317,13 +322,13 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
                     </svg>
                     Chatbots
                 </a>
-                <a href="contact.php" class="header-mobile-nav-link">
+                <a href="contact" class="header-mobile-nav-link">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.07 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 17z"/>
                     </svg>
                     Contact
                 </a>
-                <a href="aboutUs.php" class="header-mobile-nav-link">
+                <a href="about-us" class="header-mobile-nav-link">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"/>
                         <line x1="12" y1="8" x2="12" y2="12"/>
@@ -338,8 +343,8 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
 
             <!-- Promo buttons -->
             <!-- <div class="header-mobile-promo">
-                <a href="submitChatbot.php" class="header-mobile-btn-submit">Submit Chatbot</a>
-                <a href="advertise.php" class="header-mobile-btn-advertise">Advertise</a>
+                <a href="submit-chatbot" class="header-mobile-btn-submit">Submit Chatbot</a>
+                <a href="advertise" class="header-mobile-btn-advertise">Advertise</a>
             </div> -->
 
             <!-- Divider -->
@@ -348,21 +353,21 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
             <!-- Auth -->
             <div class="header-mobile-auth">
                 <?php if (!$isLoggedIn): ?>
-                    <a href="login.php" class="header-mobile-login">Log In</a>
-                    <a href="signUp.php" class="header-mobile-signup">Sign Up</a>
+                    <a href="login" class="header-mobile-login">Log In</a>
+                    <a href="sign-up" class="header-mobile-signup">Sign Up</a>
                 <?php else: ?>
-                    <a href="profile.php" class="header-mobile-profile">
+                    <a href="profile" class="header-mobile-profile">
                         <img src="img/default-avatar2.png" data-src="<?php echo htmlspecialchars($profilePicture); ?>" alt="Profile" class="user-avatar-img">
                         <span>Profile</span>
                     </a>
-                    <a href="favouritesShowcase.php" class="header-mobile-favourites">
+                    <a href="favourites" class="header-mobile-favourites">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                         </svg>
                         Favourites
                     </a>
                     <?php if ($userRole === 'admin'): ?>
-                        <a href="admin.php" class="header-mobile-admin">
+                        <a href="admin" class="header-mobile-admin">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="3"/>
                                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -370,7 +375,7 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
                             Admin
                         </a>
                     <?php endif; ?>
-                    <a href="logout.php" class="header-mobile-logout">Log Out</a>
+                    <a href="logout" class="header-mobile-logout">Log Out</a>
                 <?php endif; ?>
             </div>
 

@@ -38,7 +38,7 @@ require '../inc/header.php';
             </p>
 
             <div class="error-page-actions">
-                <a href="index.php" class="error-page-btn error-page-btn--primary">
+                <a href="./" class="error-page-btn error-page-btn--primary">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
@@ -46,7 +46,7 @@ require '../inc/header.php';
                     </svg>
                     Go to Homepage
                 </a>
-                <a href="chatbotShowcase.php" class="error-page-btn error-page-btn--secondary">
+                <a href="chatbots" class="error-page-btn error-page-btn--secondary">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>

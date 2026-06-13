@@ -578,27 +578,12 @@
 }
 
 .sub-popup-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.25rem;
-    line-height: 1rem;
-    color: #fafafa;
-    font-weight: 900;
-    padding: 0.5rem;
-    width: 2.25rem;
-    height: 2.1rem;
-    border-radius: 0.25rem;
-    background-color: #4F46E5;
-    transition: background 0.15s;
+    color: #6b7280;
 }
 
 .sub-popup-close:hover {
-    background: #4338CA;
-    color: white;
+    background: #f3f4f6;
+    color: #111827;
 }
 
 /* Body */

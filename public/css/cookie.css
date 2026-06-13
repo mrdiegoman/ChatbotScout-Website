@@ -179,30 +179,12 @@
 }
 
 .cookie-modal-close-btn {
-    position: relative;
-    width: 3.2rem;
-    height: 3.2rem;
-    padding: 0;
-    background: rgba(255, 255, 255, 0.08);
-    border: none;
-    border-radius: 0.7rem;
-    cursor: pointer;
-    transition: background 0.2s ease;
-    flex-shrink: 0;
+    color: rgba(255, 255, 255, 0.78);
 }
 
 .cookie-modal-close-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
-}
-
-.cookie-modal-close-btn svg {
-    position: absolute;
-    top: 50%;
-    left: 51%;
-    transform: translate(-50%, -50%);
-    width: 1.8rem;
-    height: 1.8rem;
-    stroke: rgba(255, 255, 255, 0.7);
+    background: #f3f4f6;
+    color: #1f2937;
 }
 
 /* ---- MODAL BODY ---- */

@@ -7,7 +7,7 @@ require '../inc/bootstrap.php';
 require 'app/auth.php';
 
 if (!$isLoggedIn) {
-    header('Location: login.php?redirect=submitChatbot.php');
+    header('Location: login?redirect=submit-chatbot');
     exit;
 }
 ?>
@@ -29,7 +29,7 @@ if (!$isLoggedIn) {
         <div class="sc-sidebar__inner">
 
             <div class="sc-sidebar__logo">
-                <a href="index.php">
+                <a href="./">
                     <img src="img/ChatbotScout_logo.png" alt="ChatbotScout" height="36">
                 </a>
             </div>
@@ -95,7 +95,7 @@ if (!$isLoggedIn) {
                 <h2>We got your submission!</h2>
                 <p>Thanks for reaching out. We've sent a confirmation to <strong><?php echo htmlspecialchars($user['email']); ?></strong>.</p>
                 <p>Our team will review your chatbot and contact you to discuss the affiliate partnership details.</p>
-                <a href="index.php" class="sc-success__btn">Back to Home</a>
+                <a href="./" class="sc-success__btn">Back to Home</a>
             </div>
 
             <!-- Form -->
@@ -211,7 +211,7 @@ if (!$isLoggedIn) {
                 <!-- Submit -->
                 <div class="sc-form__footer">
                     <!-- <p class="sc-form__note">
-                        By submitting, you confirm that you have the rights to list this chatbot and agree to our <a href="affiliateDisclosure.php">Affiliate Terms</a>.
+                        By submitting, you confirm that you have the rights to list this chatbot and agree to our <a href="affiliate-disclosure">Affiliate Terms</a>.
                     </p> -->
                     <button type="submit" class="sc-submit-btn" id="scSubmitBtn">
                         <span id="scSubmitText">Send Partnership Request</span>

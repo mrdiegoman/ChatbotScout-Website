@@ -35,7 +35,7 @@ function old(string $key, array $old): string {
                     carefully.
                 </p>
                 <div class="cs-hero-actions">
-                    <a class="cs-button cs-button--green" href="chatbotShowcase.php">Browse chatbots</a>
+                    <a class="cs-button cs-button--green" href="chatbots">Browse chatbots</a>
                 </div>
             </div>
 
@@ -59,7 +59,7 @@ function old(string $key, array $old): string {
                 </p>
             </div>
 
-            <form action="../app/contactActions.php" method="POST" id="contactForm" class="contact-form" novalidate>
+            <form action="contact-submit" method="POST" id="contactForm" class="contact-form" novalidate>
 
                 <div class="contact-page-main-section-2-form-row">
                     <div class="contact-page-main-section-2-form-row-group">
@@ -171,7 +171,7 @@ function old(string $key, array $old): string {
             <p>
                 By contacting us, you agree that your personal data will be used solely
                 to respond to your inquiry, in accordance with our
-                <a class="cs-link" href="privacyPolicy.php">Privacy Policy</a>.
+                <a class="cs-link" href="privacy-policy">Privacy Policy</a>.
             </p>
         </section>
     </main>

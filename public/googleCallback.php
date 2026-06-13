@@ -16,7 +16,7 @@ require 'app/auth.php';
 
 // Ak je už prihlásený, presmeruj na index
 if ($isLoggedIn) {
-    header('Location: index.php');
+    header('Location: ./');
     exit;
 }
 
@@ -28,7 +28,7 @@ if (isset($_GET['error'])) {
     $error = htmlspecialchars($_GET['error']);
     error_log("Google OAuth error: $error");
     $_SESSION['login_errors'] = ['general' => 'Google sign-in was cancelled or failed. Please try again.'];
-    header('Location: login.php');
+    header('Location: login');
     exit;
 }
 
@@ -45,7 +45,7 @@ unset($_SESSION['google_oauth_state']);
 if (empty($receivedState) || !hash_equals($expectedState, $receivedState)) {
     error_log("Google OAuth: Invalid state token");
     $_SESSION['login_errors'] = ['general' => 'Invalid request. Please try again.'];
-    header('Location: login.php');
+    header('Location: login');
     exit;
 }
 
@@ -57,7 +57,7 @@ $code = $_GET['code'] ?? '';
 
 if (empty($code)) {
     $_SESSION['login_errors'] = ['general' => 'No authorization code received from Google.'];
-    header('Location: login.php');
+    header('Location: login');
     exit;
 }
 
@@ -79,7 +79,7 @@ if (!$tokenResponse || isset($tokenResponse['error'])) {
     $errorDesc = $tokenResponse['error_description'] ?? 'Unknown error';
     error_log("Google OAuth token exchange failed: $errorDesc");
     $_SESSION['login_errors'] = ['general' => 'Failed to authenticate with Google. Please try again.'];
-    header('Location: login.php');
+    header('Location: login');
     exit;
 }
 
@@ -88,7 +88,7 @@ $accessToken = $tokenResponse['access_token'] ?? '';
 if (empty($accessToken)) {
     error_log("Google OAuth: No access token received");
     $_SESSION['login_errors'] = ['general' => 'Failed to get access token from Google.'];
-    header('Location: login.php');
+    header('Location: login');
     exit;
 }
 
@@ -101,7 +101,7 @@ $userInfo = httpGet('https://www.googleapis.com/oauth2/v2/userinfo', $accessToke
 if (!$userInfo || empty($userInfo['email'])) {
     error_log("Google OAuth: Failed to get user info");
     $_SESSION['login_errors'] = ['general' => 'Failed to get user information from Google.'];
-    header('Location: login.php');
+    header('Location: login');
     exit;
 }
 
@@ -148,13 +148,13 @@ try {
         // Kontrola statusu účtu
         if ($existingUser['status'] === 'suspended') {
             $_SESSION['login_errors'] = ['general' => 'Your account has been suspended. Please contact support.'];
-            header('Location: login.php');
+            header('Location: login');
             exit;
         }
 
         if ($existingUser['status'] === 'disabled') {
             $_SESSION['login_errors'] = ['general' => 'This account has been disabled.'];
-            header('Location: login.php');
+            header('Location: login');
             exit;
         }
 
@@ -287,18 +287,18 @@ try {
 
     login($userData, true);
 
-    header('Location: index.php');
+    header('Location: ./');
     exit;
 
 } catch (PDOException $e) {
     error_log("Google OAuth DB error: " . $e->getMessage());
     $_SESSION['login_errors'] = ['general' => 'A database error occurred. Please try again.'];
-    header('Location: login.php');
+    header('Location: login');
     exit;
 } catch (Exception $e) {
     error_log("Google OAuth error: " . $e->getMessage());
     $_SESSION['login_errors'] = ['general' => 'An unexpected error occurred. Please try again.'];
-    header('Location: login.php');
+    header('Location: login');
     exit;
 }
 

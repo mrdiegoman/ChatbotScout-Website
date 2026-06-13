@@ -10,7 +10,7 @@ require '../inc/bootstrap.php';
 
 // Ak je už prihlásený, presmeruj na index
 if ($isLoggedIn) {
-    header('Location: index.php');
+    header('Location: ./');
     exit;
 }
 

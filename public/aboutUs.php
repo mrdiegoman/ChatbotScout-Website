@@ -13,7 +13,7 @@ require '../inc/header.php';
                     hours reading scattered reviews, pricing pages, and unclear feature lists.
                 </p>
                 <div class="cs-hero-actions">
-                    <a class="cs-button cs-button--green" href="chatbotShowcase.php">Explore chatbots</a>
+                    <a class="cs-button cs-button--green" href="chatbots">Explore chatbots</a>
                 </div>
             </div>
         </div>
@@ -97,10 +97,10 @@ require '../inc/header.php';
             <h2 id="about-affiliate-title">Some links may earn a commission.</h2>
             <p>
                 For more details about how affiliate links work on ChatbotScout, please read
-                our <a class="cs-link" href="affiliateDisclosure.php">Affiliate Disclosure</a>.
+                our <a class="cs-link" href="affiliate-disclosure">Affiliate Disclosure</a>.
             </p>
             <div class="cs-action-row">
-                <a class="cs-button" href="affiliateDisclosure.php">Read disclosure</a>
+                <a class="cs-button" href="affiliate-disclosure">Read disclosure</a>
             </div>
         </section>
     </main>

@@ -32,6 +32,7 @@
 .profile-container {
     max-width: 1320px;
     margin: 0 auto;
+    min-width: 0;
 }
 
 /* ============================================
@@ -112,11 +113,13 @@
 
 .tab-content {
     position: relative;
+    min-width: 0;
 }
 
 .tab-pane {
     display: none;
     animation: fadeIn 0.3s ease;
+    min-width: 0;
 }
 
 .tab-pane.active {
@@ -169,6 +172,7 @@
     grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
     gap: 2.4rem;
     align-items: start;
+    min-width: 0;
 }
 
 /* ============================================
@@ -483,6 +487,7 @@
     border: 0;
     background: transparent;
     box-shadow: none;
+    min-width: 0;
 }
 
 .subscriptions-card:hover {
@@ -606,6 +611,9 @@
     display: flex;
     align-items: stretch;
     gap: 1.6rem;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     overflow-x: auto;
     overflow-y: hidden;
     padding: 0.2rem 0 1rem;
@@ -1149,24 +1157,29 @@
 }
 
 .modal-close {
-    background: none;
+    position: relative;
+    background: transparent;
     border: none;
-    font-size: 2rem;
+    font-size: 0;
     color: var(--profile-text-muted);
     cursor: pointer;
     padding: 0;
-    width: fit-content;
-    /* width: 32px; */
-    /* height: 32px; */
+    width: 3.6rem;
+    min-width: 3.6rem;
+    height: 3.6rem;
+    min-height: 3.6rem;
+    line-height: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    transition: all 0.2s ease;
+    overflow: hidden;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+    flex-shrink: 0;
 }
 
 .modal-close:hover {
-    background: var(--profile-bg);
+    background: #f3f4f6;
     color: var(--profile-primary);
 }
 
@@ -1455,7 +1468,7 @@
 }
 
 .delete-account-modal__header {
-    align-items: flex-start;
+    align-items: center;
     padding: 2.8rem 3.2rem 2.2rem;
     background: linear-gradient(180deg, #ffffff 0%, #fff7f8 100%);
 }
@@ -1472,6 +1485,11 @@
 
 .delete-account-modal__header h2 {
     font-size: 2.4rem;
+    line-height: 1.1;
+}
+
+.delete-account-modal__header .modal-close {
+    align-self: center;
 }
 
 .delete-account-modal__body {
@@ -1484,8 +1502,8 @@
     align-items: flex-start;
     padding: 1.6rem;
     margin-bottom: 2rem;
-    background: #fff1f2;
-    border: 1px solid #fecdd3;
+    /* background: #fff1f2; */
+    border: 2px solid #fecdd3;
     border-radius: 12px;
 }
 
@@ -1566,20 +1584,20 @@
     gap: 0.45rem;
     margin: 0 0 2.2rem;
     padding: 1.4rem 1.5rem;
-    border: 1px solid #fbbf24;
+    border: 2px solid #fecdd3;
     border-radius: 12px;
-    background: #fffbeb;
+    background: #fff1f2;
 }
 
 .delete-account-modal__condition strong {
-    color: #92400e;
+    color: rgb(221, 34, 13);
     font-family: outfit-semibold, sans-serif;
     font-size: 1.35rem;
     line-height: 1.35;
 }
 
 .delete-account-modal__condition span {
-    color: #7c2d12;
+    color: rgb(221, 34, 13);
     font-size: 1.25rem;
     line-height: 1.5;
 }

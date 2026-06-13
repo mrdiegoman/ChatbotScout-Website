@@ -13,7 +13,7 @@ require '../inc/header.php';
                     ChatbotScout and how they help support the website.
                 </p>
                 <div class="cs-hero-actions">
-                    <a class="cs-button cs-button--green" href="chatbotShowcase.php">Compare chatbots</a>
+                    <a class="cs-button cs-button--green" href="chatbots">Compare chatbots</a>
                 </div>
             </div>
         </div>
@@ -75,7 +75,7 @@ require '../inc/header.php';
                         to contact us.
                     </p>
                 </div>
-                <a class="cs-button" href="contact.php">Contact us</a>
+                <a class="cs-button" href="contact">Contact us</a>
             </footer>
         </article>
     </main>

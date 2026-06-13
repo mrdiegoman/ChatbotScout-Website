@@ -1,5 +1,11 @@
 <?php
 require '../inc/bootstrap.php';
+
+$rawInitialSearchQuery = $_GET['search'] ?? '';
+$initialSearchQuery = is_string($rawInitialSearchQuery) ? trim($rawInitialSearchQuery) : '';
+$hasInitialSearchQuery = $initialSearchQuery !== '';
+$initialSearchValue = htmlspecialchars($initialSearchQuery, ENT_QUOTES, 'UTF-8');
+
 require '../inc/header.php';
 ?>
 
@@ -33,18 +39,18 @@ require '../inc/header.php';
                 <div class="chatbot-page-main-content-topbar-group">
 
                     <!-- Desktop search bar -->
-                    <label class="chatbot-page-main-content-topbar-search chatbot-page-main-content-topbar-search-desktop">
-                        <input type="text" placeholder="Search" id="desktopSearchInput" class="chatbot-page-main-content-topbar-search-input">
-                        <button class="chatbot-page-main-content-topbar-search-input-clear-btn">
+                    <label class="chatbot-page-main-content-topbar-search chatbot-page-main-content-topbar-search-desktop<?= $hasInitialSearchQuery ? ' active' : '' ?>">
+                        <input type="text" placeholder="Search" id="desktopSearchInput" class="chatbot-page-main-content-topbar-search-input" value="<?= $initialSearchValue ?>">
+                        <button type="button" class="chatbot-page-main-content-topbar-search-input-clear-btn" aria-label="Clear search">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                class="chatbot-page-main-content-topbar-search-input-clear-icon" fill="none"
+                                class="chatbot-page-main-content-topbar-search-input-clear-icon<?= $hasInitialSearchQuery ? ' visible' : '' ?>" fill="none"
                                 stroke="#232127" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="12" r="10" />
                                 <path d="m15 9-6 6" />
                                 <path d="m9 9 6 6" />
                             </svg>
                         </button>
-                        <button class="chatbot-page-main-content-topbar-search-submit-btn">
+                        <button type="button" class="chatbot-page-main-content-topbar-search-submit-btn" aria-label="Toggle search">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
                                 <path fill="#232127"
                                     d="M480 272C480 317.9 465.1 360.3 440 394.7L566.6 521.4C579.1 533.9 579.1 554.2 566.6 566.7C554.1 579.2 533.8 579.2 521.3 566.7L394.7 440C360.3 465.1 317.9 480 272 480C157.1 480 64 386.9 64 272C64 157.1 157.1 64 272 64C386.9 64 480 157.1 480 272zM272 416C351.5 416 416 351.5 416 272C416 192.5 351.5 128 272 128C192.5 128 128 192.5 128 272C128 351.5 192.5 416 272 416z" />
@@ -53,7 +59,7 @@ require '../inc/header.php';
                     </label>
 
                     <!-- Mobile search button -->
-                    <button class="chatbot-page-main-content-topbar-mobile-search-btn" id="mobileSearchBtn">
+                    <button type="button" class="chatbot-page-main-content-topbar-mobile-search-btn" id="mobileSearchBtn" aria-label="Toggle mobile search">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
                             <path fill="#232127"
                                 d="M480 272C480 317.9 465.1 360.3 440 394.7L566.6 521.4C579.1 533.9 579.1 554.2 566.6 566.7C554.1 579.2 533.8 579.2 521.3 566.7L394.7 440C360.3 465.1 317.9 480 272 480C157.1 480 64 386.9 64 272C64 157.1 157.1 64 272 64C386.9 64 480 157.1 480 272zM272 416C351.5 416 416 351.5 416 272C416 192.5 351.5 128 272 128C192.5 128 128 192.5 128 272C128 351.5 192.5 416 272 416z" />
@@ -139,19 +145,19 @@ require '../inc/header.php';
             </div>
 
             <!-- Mobile search bar -->
-            <div class="chatbot-page-main-content-mobile-search-bar" id="mobileSearchBar">
+            <div class="chatbot-page-main-content-mobile-search-bar<?= $hasInitialSearchQuery ? ' active' : '' ?>" id="mobileSearchBar">
                 <label class="chatbot-page-main-content-topbar-search">
-                    <input type="text" placeholder="Search" class="chatbot-page-main-content-topbar-search-input" id="mobileSearchInput">
-                    <button class="chatbot-page-main-content-topbar-search-input-clear-btn" id="mobileSearchClearBtn">
+                    <input type="text" placeholder="Search" class="chatbot-page-main-content-topbar-search-input" id="mobileSearchInput" value="<?= $initialSearchValue ?>">
+                    <button type="button" class="chatbot-page-main-content-topbar-search-input-clear-btn" id="mobileSearchClearBtn" aria-label="Clear search">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                            class="chatbot-page-main-content-topbar-search-input-clear-icon" fill="none"
+                            class="chatbot-page-main-content-topbar-search-input-clear-icon<?= $hasInitialSearchQuery ? ' visible' : '' ?>" fill="none"
                             stroke="#232127" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="10" />
                             <path d="m15 9-6 6" />
                             <path d="m9 9 6 6" />
                         </svg>
                     </button>
-                    <button class="chatbot-page-main-content-topbar-search-submit-btn" id="mobileSearchSubmitBtn">
+                    <button type="button" class="chatbot-page-main-content-topbar-search-submit-btn" id="mobileSearchSubmitBtn" aria-label="Submit mobile search">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
                             <path fill="#232127"
                                 d="M480 272C480 317.9 465.1 360.3 440 394.7L566.6 521.4C579.1 533.9 579.1 554.2 566.6 566.7C554.1 579.2 533.8 579.2 521.3 566.7L394.7 440C360.3 465.1 317.9 480 272 480C157.1 480 64 386.9 64 272C64 157.1 157.1 64 272 64C386.9 64 480 157.1 480 272zM272 416C351.5 416 416 351.5 416 272C416 192.5 351.5 128 272 128C192.5 128 128 192.5 128 272C128 351.5 192.5 416 272 416z" />
@@ -209,14 +215,7 @@ require '../inc/header.php';
     <div class="chatbot-filters-modal-content">
         <div class="chatbot-filters-modal-header">
             <h2>Filter chatbots by</h2>
-            <button class="chatbot-filters-modal-close-btn" id="filtersCloseBtn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="#232127" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="m15 9-6 6" />
-                    <path d="m9 9 6 6" />
-                </svg>
-            </button>
+            <button type="button" class="modal-close chatbot-filters-modal-close-btn" id="filtersCloseBtn" aria-label="Close">&times;</button>
         </div>
         <div class="chatbot-filters-modal-body">
             <div class="chatbot-filters-modal-body-row-group">
@@ -348,14 +347,7 @@ require '../inc/header.php';
     <div class="chatbot-rating-modal-content">
         <div class="chatbot-rating-modal-header">
             <h2 id="ratingModalTitle">Rate this chatbot</h2>
-            <button class="chatbot-rating-modal-close-btn" id="ratingModalCloseBtn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="#232127" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="m15 9-6 6" />
-                    <path d="m9 9 6 6" />
-                </svg>
-            </button>
+            <button type="button" class="modal-close chatbot-rating-modal-close-btn" id="ratingModalCloseBtn" aria-label="Close">&times;</button>
         </div>
         <div class="chatbot-rating-modal-body">
             <div class="chatbot-rating-modal-stars-wrapper">

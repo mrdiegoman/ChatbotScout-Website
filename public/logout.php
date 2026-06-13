@@ -11,5 +11,5 @@ if ($isLoggedIn && isset($user['id'])) {
 logout();
 
 // Redirect na homepage
-header('Location: index.php');
+header('Location: ./');
 exit;

@@ -55,7 +55,7 @@ require '../inc/header.php';
             <p>You will no longer receive marketing emails from ChatbotScout.</p>
             <p class="unsub-note">
                 You can re-enable marketing emails anytime in your
-                <a href="profile.php?tab=settings">account settings</a>.
+                <a href="profile?tab=settings">account settings</a>.
             </p>
         <?php elseif ($error): ?>
             <div class="unsub-icon unsub-icon--error">✕</div>
@@ -63,7 +63,7 @@ require '../inc/header.php';
             <p><?php echo htmlspecialchars($error); ?></p>
         <?php endif; ?>
 
-        <a href="index.php" class="unsub-btn">Back to ChatbotScout</a>
+        <a href="./" class="unsub-btn">Back to ChatbotScout</a>
     </div>
 </div>
 

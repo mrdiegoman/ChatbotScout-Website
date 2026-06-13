@@ -757,10 +757,6 @@
 
     ratingCloseBtn.addEventListener('click', closeRatingModal);
     ratingCancelBtn.addEventListener('click', closeRatingModal);
-    ratingOverlay.addEventListener('click', (e) => { if (e.target === ratingOverlay) closeRatingModal(); });
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && ratingOverlay.classList.contains('active')) closeRatingModal();
-    });
 
     ratingSubmitBtn.addEventListener('click', () => {
         ratingModalError.textContent = '';

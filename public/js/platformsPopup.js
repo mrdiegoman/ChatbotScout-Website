@@ -22,7 +22,7 @@
         <div class="platforms-popup" role="dialog" aria-modal="true" aria-label="Platforms">
             <div class="platforms-popup-header">
                 <p class="platforms-popup-title">Platforms</p>
-                <button class="platforms-popup-close" aria-label="Close">&times;</button>
+                <button type="button" class="modal-close platforms-popup-close" aria-label="Close">&times;</button>
             </div>
             <ul class="platforms-popup-list" id="platformsPopupList"></ul>
         </div>
@@ -115,14 +115,6 @@
     // ============================================
 
     closeB.addEventListener('click', closePopup);
-
-    overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) closePopup();
-    });
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closePopup();
-    });
 
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('.platforms-popup-trigger');

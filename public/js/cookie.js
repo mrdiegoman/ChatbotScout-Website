@@ -325,17 +325,6 @@
             });
         }
 
-        var overlay = document.getElementById('cookie-modal-overlay');
-        if (overlay) {
-            overlay.addEventListener('click', function (e) {
-                if (e.target === overlay) hideModal();
-            });
-        }
-
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') hideModal();
-        });
-
         var settingsBtn = document.getElementById('cookie-settings-btn');
         if (settingsBtn) {
             settingsBtn.addEventListener('click', showModal);

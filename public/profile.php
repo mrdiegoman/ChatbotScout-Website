@@ -11,7 +11,7 @@ require_once '../inc/stripePaymentFinalizer.php';
 
 // Redirect ak nie je prihlásený
 if (!$isLoggedIn) {
-    header('Location: login.php');
+    header('Location: login');
     exit;
 }
 
@@ -596,7 +596,7 @@ require '../inc/header.php';
                             <div class="subscriptions-empty">
                                 <strong>No active promotions yet</strong>
                                 <span>Promote your approved chatbot on the homepage or Chatbots page.</span>
-                                <a href="advertise.php#plans" class="subscriptions-empty__action">
+                                <a href="advertise#plans" class="subscriptions-empty__action">
                                     View Promotion Plans
                                 </a>
                             </div>
@@ -879,7 +879,7 @@ require '../inc/header.php';
 
                 <div class="pr-empty" id="myReviewsEmpty">
                     <p>You haven't written any reviews yet.<br>
-                    <a href="chatbotShowcase.php">Browse chatbots</a> and share your experience!</p>
+                    <a href="chatbots">Browse chatbots</a> and share your experience!</p>
                 </div>
 
                 <div class="pr-cards" id="myReviewsContainer"></div>
@@ -895,14 +895,7 @@ require '../inc/header.php';
     <div class="pr-modal-content">
         <div class="pr-modal-header">
             <h2 id="editReviewModalTitle">Edit Review</h2>
-            <button class="pr-modal-close-btn" id="editReviewCloseBtn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                     fill="none" stroke="currentColor" stroke-width="1.75"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="m15 9-6 6"/><path d="m9 9 6 6"/>
-                </svg>
-            </button>
+            <button type="button" class="modal-close pr-modal-close-btn" id="editReviewCloseBtn" aria-label="Close">&times;</button>
         </div>
         <div class="pr-modal-body">
             <div class="pr-modal-stars-wrapper">
@@ -938,14 +931,7 @@ require '../inc/header.php';
     <div class="pr-delete-modal-content">
         <div class="pr-delete-modal-header">
             <h2>Delete Review</h2>
-            <button class="pr-modal-close-btn" id="deleteReviewCloseBtn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                     fill="none" stroke="currentColor" stroke-width="1.75"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="m15 9-6 6"/><path d="m9 9 6 6"/>
-                </svg>
-            </button>
+            <button type="button" class="modal-close pr-modal-close-btn" id="deleteReviewCloseBtn" aria-label="Close">&times;</button>
         </div>
         <div class="pr-delete-modal-body">
             <p>Are you sure you want to delete this review? This action cannot be undone.</p>
@@ -962,7 +948,7 @@ require '../inc/header.php';
     <div class="modal-content">
         <div class="modal-header">
             <h2>Your Subscription</h2>
-            <button class="modal-close">&times;</button>
+            <button type="button" class="modal-close" aria-label="Close">&times;</button>
         </div>
         <div class="modal-body">
             <input type="hidden" id="selected-subscription-id" value="">
@@ -1060,7 +1046,7 @@ require '../inc/header.php';
     <div class="modal-content">
         <div class="modal-header">
             <h2>Cancel Subscription?</h2>
-            <button class="modal-close">&times;</button>
+            <button type="button" class="modal-close" aria-label="Close">&times;</button>
         </div>
         <div class="modal-body">
             <div id="cancel-form-state" class="cancel-form-state">
@@ -1111,10 +1097,9 @@ require '../inc/header.php';
     <div class="modal-content delete-account-modal__content">
         <div class="modal-header delete-account-modal__header">
             <div>
-                <span class="delete-account-modal__eyebrow">Permanent action</span>
                 <h2>Delete Account</h2>
             </div>
-            <button class="modal-close">&times;</button>
+            <button type="button" class="modal-close" aria-label="Close">&times;</button>
         </div>
         <div class="modal-body delete-account-modal__body">
             <div class="delete-account-modal__warning">
@@ -1162,6 +1147,7 @@ require '../inc/header.php';
     <div class="modal-content" style="max-width:520px;">
         <div class="modal-header">
             <h2 id="confirm-modal-title">Are you sure?</h2>
+            <button type="button" class="modal-close" id="confirm-modal-close" aria-label="Close">&times;</button>
         </div>
         <div class="modal-body">
             <p id="confirm-modal-message" style="color:var(--profile-text);font-size:15px;margin:0 0 24px 0;"></p>

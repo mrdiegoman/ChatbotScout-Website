@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://chatbotscout.com/sitemap.php
+Sitemap: https://chatbotscout.com/sitemap.xml

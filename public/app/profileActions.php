@@ -962,8 +962,6 @@ if ($action === 'upload_avatar') {
         
         if ($user['profile_picture_url'] && strpos($user['profile_picture_url'], 'default-avatar') === false) {
             $oldPath = __DIR__ . '/../' . $user['profile_picture_url'];
-            error_log($oldPath);
-            error_log(file_exists($oldPath) ? 'EXISTS' : 'NOT EXISTS');
             if (file_exists($oldPath)) unlink($oldPath);
         }
         
@@ -982,7 +980,8 @@ if ($action === 'upload_avatar') {
         echo json_encode(['success' => true, 'url' => $newUrl]);
         
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        error_log('upload_avatar error: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Profile picture could not be updated. Please try again.']);
     }
     
     exit;
@@ -1157,7 +1156,7 @@ if ($action === 'stripe_customer_portal') {
     }
     
     if (!$sub || !$sub['stripe_customer_id']) {
-        echo json_encode(['success' => false, 'message' => 'No Stripe customer found']);
+        echo json_encode(['success' => false, 'message' => 'Payment account was not found.']);
     } else {
         try {
             configureStripeForProfileActions();
@@ -1180,7 +1179,7 @@ if ($action === 'stripe_customer_portal') {
             stripeCheckoutLog('customer_portal.stripe_error', stripeCheckoutExceptionContext($e));
             echo json_encode([
                 'success' => false,
-                'message' => 'Stripe customer portal error: ' . $e->getMessage(),
+                'message' => 'Payment settings could not be opened right now. Please try again later.',
             ]);
         }
     }
@@ -1222,7 +1221,7 @@ if ($action === 'renew_subscription') {
     }
 
     if (empty($sub['stripe_subscription_id'])) {
-        echo json_encode(['success' => false, 'message' => 'Stripe subscription was not found']);
+        echo json_encode(['success' => false, 'message' => 'Subscription record was not found.']);
         exit;
     }
 
@@ -1316,13 +1315,13 @@ if ($action === 'renew_subscription') {
         error_log('Stripe renew subscription error: ' . $e->getMessage());
         echo json_encode([
             'success' => false,
-            'message' => 'Stripe could not renew this subscription: ' . $e->getMessage(),
+            'message' => 'This promotion could not be renewed right now. Please try again later.',
         ]);
     } catch (Exception $e) {
         error_log('Renew subscription error: ' . $e->getMessage());
         echo json_encode([
             'success' => false,
-            'message' => 'Could not renew this promotion: ' . $e->getMessage(),
+            'message' => 'This promotion could not be renewed right now. Please try again later.',
         ]);
     }
 
@@ -1372,7 +1371,7 @@ if ($action === 'cancel_subscription') {
     }
 
     if (empty($sub['stripe_subscription_id'])) {
-        echo json_encode(['success' => false, 'message' => 'Stripe subscription was not found']);
+        echo json_encode(['success' => false, 'message' => 'Subscription record was not found.']);
         exit;
     }
 
@@ -1427,7 +1426,7 @@ if ($action === 'cancel_subscription') {
 
             syncChatbotSponsoredTag($db, (string) $sub['chatbot_id']);
 
-            echo json_encode(['success' => true, 'message' => 'Subscription was already cancelled in Stripe.']);
+            echo json_encode(['success' => true, 'message' => 'Subscription was already cancelled.']);
             exit;
         }
 
@@ -1540,14 +1539,14 @@ if ($action === 'cancel_subscription') {
         error_log('Stripe cancel subscription error: ' . $e->getMessage());
         echo json_encode([
             'success' => false,
-            'message' => 'Stripe could not cancel this subscription: ' . $e->getMessage(),
+            'message' => 'This subscription could not be cancelled right now. Please try again later.',
         ]);
         exit;
     } catch (Exception $e) {
         error_log('Cancel subscription error: ' . $e->getMessage());
         echo json_encode([
             'success' => false,
-            'message' => 'Could not cancel this subscription: ' . $e->getMessage(),
+            'message' => 'This subscription could not be cancelled right now. Please try again later.',
         ]);
         exit;
     }

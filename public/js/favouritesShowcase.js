@@ -208,7 +208,8 @@
 
     function buildRemoveBtn(chatbotId) {
         return `
-            <button class="favourites-page-main-content-chatbots-grid-view-item-top-remove-btn fav-remove-btn"
+            <button type="button"
+                    class="favourites-page-main-content-chatbots-grid-view-item-top-remove-btn fav-remove-btn"
                     data-chatbot-id="${escapeHtml(chatbotId)}"
                     aria-label="Remove from favourites"
                     title="Remove from favourites">
@@ -306,7 +307,8 @@
 
         return `
         <div class="favourites-page-main-content-chatbots-list-view-item-containter" data-chatbot-id="${escapeHtml(chatbot.id)}">
-            <button class="favourites-page-main-content-chatbots-list-view-item-remove-btn fav-remove-btn"
+            <button type="button"
+                    class="favourites-page-main-content-chatbots-list-view-item-remove-btn fav-remove-btn"
                     data-chatbot-id="${escapeHtml(chatbot.id)}"
                     aria-label="Remove from favourites"
                     title="Remove from favourites">×</button>
@@ -584,10 +586,6 @@ function openRatingModal(chatbotId, chatbotName) {
 
     ratingCloseBtn.addEventListener('click', closeRatingModal);
     ratingCancelBtn.addEventListener('click', closeRatingModal);
-    ratingOverlay.addEventListener('click', (e) => { if (e.target === ratingOverlay) closeRatingModal(); });
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && ratingOverlay.classList.contains('active')) closeRatingModal();
-    });
 
     ratingSubmitBtn.addEventListener('click', () => {
         ratingModalError.textContent = '';
@@ -872,15 +870,6 @@ function openRatingModal(chatbotId, chatbotName) {
         });
     }
 
-    if (filtersOverlay) {
-        filtersOverlay.addEventListener('click', (e) => {
-            if (e.target === filtersOverlay) {
-                filtersOverlay.style.display = 'none';
-                unlockScroll();
-            }
-        });
-    }
-
     if (filtersClearBtn) {
         filtersClearBtn.addEventListener('click', () => {
             filterNumberInputs.forEach(input => { input.value = ''; });
@@ -954,7 +943,7 @@ function openRatingModal(chatbotId, chatbotName) {
     // SEARCH
     // ============================================
 
-    const favDesktopSearch = document.querySelector('.favourites-page-main-content-topbar-search');
+    const favDesktopSearch = document.querySelector('.favourites-page-main-content-topbar-search-desktop');
     const favSearchInput   = document.getElementById('searchInput');
     const favMobileInput   = document.getElementById('mobileSearchInput');
     const favClearBtn      = document.getElementById('searchClearBtn');
@@ -974,12 +963,12 @@ function openRatingModal(chatbotId, chatbotName) {
         favSubmitBtn.addEventListener('click', (e) => {
             e.preventDefault();
             const isActive = favDesktopSearch.classList.contains('active');
-            if (isActive && favSearchInput.value.trim() === '') {
+            if (isActive) {
                 favDesktopSearch.classList.remove('active');
-                favSearchInput.blur();
+                favSearchInput?.blur();
             } else if (!isActive) {
                 favDesktopSearch.classList.add('active');
-                setTimeout(() => favSearchInput.focus(), 50);
+                setTimeout(() => favSearchInput?.focus(), 50);
             }
         });
     }
@@ -997,13 +986,6 @@ function openRatingModal(chatbotId, chatbotName) {
             }
         });
 
-        document.addEventListener('click', (e) => {
-            if (favDesktopSearch && !favDesktopSearch.contains(e.target)) {
-                if (favSearchInput.value.trim() === '') {
-                    favDesktopSearch.classList.remove('active');
-                }
-            }
-        });
     }
 
     if (favClearBtn && favSearchInput) {

@@ -52,7 +52,7 @@ $userEmail = isset($_GET['email']) ? htmlspecialchars($_GET['email']) :
 
         <div class="divider"></div>
 
-        <a href="index.php" class="btn-home">Back to Home Page</a>
+        <a href="./" class="btn-home">Back to Home Page</a>
 
         <div class="divider"></div>
 

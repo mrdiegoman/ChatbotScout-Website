@@ -31,7 +31,6 @@ function closeModal() {
 
 filtersBtnBtn.addEventListener('click', openModal);
 closeFiltersBtn.addEventListener('click', closeModal);
-overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
 
 // ============================================
 // COLLECT ACTIVE FILTERS → params objekt

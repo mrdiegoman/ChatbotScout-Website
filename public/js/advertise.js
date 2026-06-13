@@ -509,12 +509,6 @@ function setupModal() {
     // Close
     $('modalCloseBtn').addEventListener('click',  closeModal);
     $('modalCancelBtn').addEventListener('click', closeModal);
-    modalOverlay.addEventListener('click', e => {
-        if (e.target === modalOverlay) closeModal();
-    });
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Escape') closeModal();
-    });
 
     // Chatbot select
     chatbotSelect.addEventListener('change', handleChatbotSelectionChange);
@@ -544,7 +538,7 @@ function setupModal() {
     confirmBtn.addEventListener('click', handleConfirm);
     if (subscriptionsBtn) {
         subscriptionsBtn.addEventListener('click', () => {
-            window.location.href = 'profile.php?tab=profile#your-promotions';
+            window.location.href = 'profile?tab=profile#your-promotions';
         });
     }
 }
@@ -583,7 +577,7 @@ async function selectInitialChatbot() {
 
 async function openModal(slot) {
     if (!window.advData?.isLoggedIn) {
-        window.location.href = window.advData.loginUrl + '?redirect=advertise.php';
+        window.location.href = window.advData.loginUrl + '?redirect=advertise';
         return;
     }
 
@@ -1138,7 +1132,7 @@ async function handleConfirm() {
 
             const upgradeBillingPeriod = state.pendingUpgrade.billingPeriod || state.selectedPeriod;
             document.getElementById('stripeRedirectOverlay').classList.add('active');
-            window.location.href = 'checkout.php?chatbot_id=' + result.chatbot_id
+            window.location.href = 'checkout?chatbot_id=' + result.chatbot_id
                                 + '&promotion_id=' + result.promotion_id
                                 + '&billing_period=' + encodeURIComponent(upgradeBillingPeriod)
                                 + '&upgrade_from_subscription_id=' + encodeURIComponent(state.pendingUpgrade.existingSubscriptionId);
@@ -1152,7 +1146,7 @@ async function handleConfirm() {
 
             // Redirect to checkout with chatbot_id + promotion_ids
             document.getElementById('stripeRedirectOverlay').classList.add('active');
-            window.location.href = 'checkout.php?chatbot_id=' + result1.chatbot_id
+            window.location.href = 'checkout?chatbot_id=' + result1.chatbot_id
                                 + '&promotion_id='  + result1.promotion_id
                                 + '&promotion_id_2=' + result2.promotion_id
                                 + '&billing_period=' + encodeURIComponent(state.selectedPeriod);
@@ -1162,7 +1156,7 @@ async function handleConfirm() {
             if (!result.success) throw new Error(result.message || 'Failed to create promotion');
 
             document.getElementById('stripeRedirectOverlay').classList.add('active');
-            window.location.href = 'checkout.php?chatbot_id=' + result.chatbot_id
+            window.location.href = 'checkout?chatbot_id=' + result.chatbot_id
                                 + '&promotion_id=' + result.promotion_id
                                 + '&billing_period=' + encodeURIComponent(state.selectedPeriod);
         }

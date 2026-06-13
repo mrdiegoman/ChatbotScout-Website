@@ -8,7 +8,7 @@ if (!defined('BOOTSTRAP_LOADED')) {
 function requireLogin(): void
 {
     if (!isset($_SESSION['user'])) {
-        header('Location: login.php');
+        header('Location: login');
         exit;
     }
 }
@@ -16,12 +16,12 @@ function requireLogin(): void
 function requireRole(string $role): void
 {
     if (!isset($_SESSION['user'])) {
-        header('Location: login.php');
+        header('Location: login');
         exit;
     }
 
     if ($role === 'admin' && empty($_SESSION['user']['is_admin'])) {
-        header('Location: index.php');
+        header('Location: ./');
         exit;
     }
 }

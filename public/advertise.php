@@ -206,7 +206,7 @@ require 'app/auth.php';
             <div class="adv-no-listing__icon">🔒</div>
             <h3>Active Listing Required</h3>
             <p>You need an active listing subscription before you can purchase a promotion. Submit your chatbot first and get it listed on ChatbotScout.</p>
-            <a href="profile.php?tab=billing" class="adv-no-listing__btn">View My Listing</a>
+            <a href="profile?tab=billing" class="adv-no-listing__btn">View My Listing</a>
         </div>
 
     </div>
@@ -267,7 +267,7 @@ require 'app/auth.php';
 ════════════════════════════════════════════════════════════ -->
 <div class="adv-modal-overlay" id="promotionModalOverlay">
     <div class="adv-modal" id="promotionModal">
-        <button class="adv-modal__close" id="modalCloseBtn">&times;</button>
+        <button type="button" class="modal-close adv-modal__close" id="modalCloseBtn" aria-label="Close">&times;</button>
 
         <div class="adv-modal__header">
             <h2 class="adv-modal__title" id="modalTitle">Get Promotion</h2>
@@ -352,7 +352,7 @@ require 'app/auth.php';
 <script nonce="<?= $cspNonce ?>">
     window.advData = {
         isLoggedIn: <?php echo $isLoggedIn ? 'true' : 'false'; ?>,
-        loginUrl: 'login.php',
+        loginUrl: 'login',
         yearlyDiscountPercentage: <?php echo json_encode(promotionYearlyDiscountPercentage()); ?>,
         bundleDiscountPercentage: <?php echo json_encode(promotionBundleDiscountPercentage()); ?>
     };

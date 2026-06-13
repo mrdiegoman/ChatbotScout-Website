@@ -33,6 +33,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Clear button functionality (pre mobilný search)
     if (mobileSearchInput && mobileSearchClearBtn) {
         const clearIcon = mobileSearchClearBtn.querySelector('.chatbot-page-main-content-topbar-search-input-clear-icon');
+
+        clearIcon?.classList.toggle('visible', mobileSearchInput.value.length > 0);
         
         mobileSearchInput.addEventListener('input', function() {
             if (this.value.length > 0) {
@@ -45,6 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
         mobileSearchClearBtn.addEventListener('click', function() {
             mobileSearchInput.value = '';
             clearIcon.classList.remove('visible');
+            mobileSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
             mobileSearchInput.focus();
         });
     }
