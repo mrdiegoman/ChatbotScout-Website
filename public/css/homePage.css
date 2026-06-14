@@ -251,7 +251,7 @@
         opacity .45s cubic-bezier(.4,0,.2,1),
         filter .45s cubic-bezier(.4,0,.2,1),
         box-shadow .45s cubic-bezier(.4,0,.2,1);
-    will-change: transform, opacity, filter;
+    will-change: auto;
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
@@ -266,6 +266,11 @@
 .hp-chatbot-card.pos-center:active,
 .hp-chatbot-card--dragging {
     cursor: grabbing;
+}
+
+.hp-carousel-viewport--animating .hp-chatbot-card,
+.hp-chatbot-card--dragging {
+    will-change: transform, opacity, filter;
 }
 
 .hp-chatbot-card--dragging {

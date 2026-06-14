@@ -29,8 +29,42 @@ document.addEventListener('DOMContentLoaded', function () {
         let   dragStartY = 0;
         let   dragDeltaX = 0;
         let   suppressNextClick = false;
+        let   isAnimating = false;
 
         const POSITIONS = ['pos-far-left', 'pos-left', 'pos-center', 'pos-right', 'pos-far-right'];
+        const CAROUSEL_TRANSITION_MS = 520;
+        const POSITION_STYLES = {
+            'pos-center': {
+                transform: 'translateX(0) scale(1)',
+                opacity: '',
+                filter: '',
+                boxShadow: '',
+            },
+            'pos-left': {
+                transform: 'translateX(-200px) scale(.82) rotateY(8deg)',
+                opacity: '.7',
+                filter: 'blur(.3px)',
+                boxShadow: '',
+            },
+            'pos-right': {
+                transform: 'translateX(200px) scale(.82) rotateY(-8deg)',
+                opacity: '.7',
+                filter: 'blur(.3px)',
+                boxShadow: '',
+            },
+            'pos-far-left': {
+                transform: 'translateX(-340px) scale(.68)',
+                opacity: '0',
+                filter: '',
+                boxShadow: '',
+            },
+            'pos-far-right': {
+                transform: 'translateX(340px) scale(.68)',
+                opacity: '0',
+                filter: '',
+                boxShadow: '',
+            },
+        };
         const DRAG_VISUALS = {
             opacityLoss: 0.05,
             brightnessLoss: 0.05,
@@ -53,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const dot = document.createElement('button');
             dot.className = 'hp-dot' + (i === current ? ' active' : '');
             dot.setAttribute('aria-label', 'Go to card ' + (i + 1));
-            dot.addEventListener('click', () => goTo(i));
+            dot.addEventListener('click', () => navigateTo(i, { resetTimer: true }));
             dotsWrap.appendChild(dot);
         }
 
@@ -70,25 +104,126 @@ document.addEventListener('DOMContentLoaded', function () {
             return 'pos-far-right';
         }
 
-        function render() {
-            cards.forEach((card, i) => {
-                const posClass = getPositionClass(i);
-                card.style.transform = '';
-                card.style.transition = '';
-                card.style.opacity = '';
-                card.style.filter = '';
-                card.style.boxShadow = '';
-                card.className = 'hp-chatbot-card ' + card.dataset.theme + ' ' + posClass;
-            });
+        function captureCardStyles() {
+            return cards.map((card, i) => {
+                if (card.classList.contains('hp-chatbot-card--dragging')) {
+                    return {
+                        transform: card.style.transform || POSITION_STYLES['pos-center'].transform,
+                        opacity: card.style.opacity || POSITION_STYLES['pos-center'].opacity,
+                        filter: card.style.filter || POSITION_STYLES['pos-center'].filter,
+                        boxShadow: card.style.boxShadow || POSITION_STYLES['pos-center'].boxShadow,
+                    };
+                }
 
-            /* Update dots */
+                const posClass = getPositionClass(i);
+                return getPositionSnapshot(posClass);
+            });
+        }
+
+        function getPositionSnapshot(posClass) {
+            const base = POSITION_STYLES[posClass] || POSITION_STYLES['pos-far-right'];
+            const snapshot = { ...base };
+
+            if (
+                window.matchMedia('(max-width: 600px)').matches &&
+                (posClass === 'pos-left' || posClass === 'pos-right')
+            ) {
+                snapshot.opacity = '0';
+            }
+
+            return snapshot;
+        }
+
+        function clearInlineMotionStyles(card) {
+            card.style.transform = '';
+            card.style.transition = '';
+            card.style.opacity = '';
+            card.style.filter = '';
+            card.style.boxShadow = '';
+        }
+
+        function releaseInlineMotionStyles(card) {
+            card.style.transition = '';
+            card.style.transform = '';
+            card.style.opacity = '';
+            card.style.filter = '';
+            card.style.boxShadow = '';
+        }
+
+        function updateDots() {
             const dots = dotsWrap.querySelectorAll('.hp-dot');
             dots.forEach((d, i) => d.classList.toggle('active', i === current));
         }
 
-        function goTo(index) {
-            current = ((index % TOTAL) + TOTAL) % TOTAL;
-            render();
+        function render(options = {}) {
+            const snapshots = options.snapshots || null;
+
+            if (snapshots) {
+                cards.forEach((card, i) => {
+                    const posClass = getPositionClass(i);
+                    const snapshot = snapshots[i];
+
+                    card.style.transition = 'none';
+                    card.style.transform = snapshot.transform;
+                    card.style.opacity = snapshot.opacity;
+                    card.style.filter = snapshot.filter;
+                    card.style.boxShadow = snapshot.boxShadow;
+                    card.className = 'hp-chatbot-card ' + card.dataset.theme + ' ' + posClass;
+                });
+
+                updateDots();
+                void viewport.offsetWidth;
+
+                requestAnimationFrame(() => {
+                    cards.forEach(releaseInlineMotionStyles);
+                });
+
+                return;
+            }
+
+            cards.forEach((card, i) => {
+                const posClass = getPositionClass(i);
+                clearInlineMotionStyles(card);
+                card.className = 'hp-chatbot-card ' + card.dataset.theme + ' ' + posClass;
+            });
+
+            updateDots();
+        }
+
+        function goTo(index, options = {}) {
+            const next = ((index % TOTAL) + TOTAL) % TOTAL;
+            if (next === current && !options.snapshots) return;
+
+            const snapshots = options.snapshots || (options.animate ? captureCardStyles() : null);
+            current = next;
+            render({ snapshots });
+        }
+
+        function navigateTo(index, options = {}) {
+            const {
+                resetTimer = false,
+                force = false,
+                snapshots = null,
+                animate = false,
+            } = options;
+            if (!force && (isAnimating || isDragging)) return;
+
+            isAnimating = true;
+            viewport.classList.add('hp-carousel-viewport--animating');
+            goTo(index, { animate, snapshots });
+
+            if (resetTimer) {
+                resetAutoPlay();
+            }
+
+            setTimeout(() => {
+                isAnimating = false;
+                viewport.classList.remove('hp-carousel-viewport--animating');
+            }, CAROUSEL_TRANSITION_MS);
+        }
+
+        function stepCarousel(direction, options = {}) {
+            navigateTo(current + direction, options);
         }
 
         function getCenterCard() {
@@ -112,11 +247,7 @@ document.addEventListener('DOMContentLoaded', function () {
             viewport.classList.remove('hp-carousel-viewport--dragging');
             cards.forEach(card => {
                 card.classList.remove('hp-chatbot-card--dragging');
-                card.style.transition = '';
-                card.style.transform = '';
-                card.style.opacity = '';
-                card.style.filter = '';
-                card.style.boxShadow = '';
+                clearInlineMotionStyles(card);
             });
         }
 
@@ -151,20 +282,21 @@ document.addEventListener('DOMContentLoaded', function () {
             const shouldSwipe = Math.abs(dragDeltaX) >= getSwipeThreshold();
             const direction = dragDeltaX < 0 ? 1 : -1;
             const wasDragged = dragStarted;
+            const snapshots = wasDragged ? captureCardStyles() : null;
 
             isDragging = false;
             dragStarted = false;
             dragPointerId = null;
-
-            clearDragState();
+            viewport.classList.remove('hp-carousel-viewport--dragging');
 
             if (shouldSwipe) {
-                goTo(current + direction);
+                stepCarousel(direction, { resetTimer: true, force: true, snapshots });
             } else if (wasDragged) {
-                render();
+                render({ snapshots });
+                resetAutoPlay();
+            } else {
+                resetAutoPlay();
             }
-
-            resetAutoPlay();
 
             if (wasDragged) {
                 suppressNextClick = true;
@@ -173,7 +305,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         /* Clicking a side card centres it */
-        let isAnimating = false;
         cards.forEach((card, i) => {
             card.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -184,22 +315,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (isAnimating) return;
                 const pos = getPositionClass(i);
                 if (pos === 'pos-left' || pos === 'pos-right') {
-                    isAnimating = true;
-                    if (pos === 'pos-left')  goTo(current - 1);
-                    if (pos === 'pos-right') goTo(current + 1);
-                    resetAutoPlay();
-                    setTimeout(() => { isAnimating = false; }, 450);
+                    if (pos === 'pos-left')  stepCarousel(-1, { resetTimer: true });
+                    if (pos === 'pos-right') stepCarousel(1, { resetTimer: true });
                 }
             });
         });
 
-        btnPrev.addEventListener('click', () => { goTo(current - 1); resetAutoPlay(); });
-        btnNext.addEventListener('click', () => { goTo(current + 1); resetAutoPlay(); });
+        btnPrev.addEventListener('click', () => stepCarousel(-1, { resetTimer: true }));
+        btnNext.addEventListener('click', () => stepCarousel(1, { resetTimer: true }));
 
         /* Keyboard navigation */
         document.addEventListener('keydown', e => {
-            if (e.key === 'ArrowLeft')  { goTo(current - 1); resetAutoPlay(); }
-            if (e.key === 'ArrowRight') { goTo(current + 1); resetAutoPlay(); }
+            if (e.key === 'ArrowLeft')  stepCarousel(-1, { resetTimer: true });
+            if (e.key === 'ArrowRight') stepCarousel(1, { resetTimer: true });
         });
 
         /* Drag / swipe support */
@@ -283,7 +411,7 @@ document.addEventListener('DOMContentLoaded', function () {
         /* Auto-play */
         function startAutoPlay() {
             clearInterval(autoPlay);
-            autoPlay = setInterval(() => goTo(current + 1), 4500);
+            autoPlay = setInterval(() => stepCarousel(1), 4500);
         }
 
         function resetAutoPlay() {
@@ -310,22 +438,59 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!track || !btnPrev || !btnNext) return;
 
         const viewport = track.parentElement;
-        const CARD_W = 212; // card width (196) + gap (16)
         let offset = 0;
         let resizeFrame = 0;
 
+        function getViewportPadding() {
+            const styles = window.getComputedStyle(viewport);
+            return {
+                left: Number.parseFloat(styles.paddingLeft || '0') || 0,
+                right: Number.parseFloat(styles.paddingRight || '0') || 0,
+            };
+        }
+
+        function getCards() {
+            return Array.from(track.querySelectorAll('.hp-pop-card'));
+        }
+
+        function getCardStep() {
+            const firstCard = track.querySelector('.hp-pop-card');
+            if (!firstCard) return 0;
+
+            const trackStyles = window.getComputedStyle(track);
+            const gap = Number.parseFloat(trackStyles.columnGap || trackStyles.gap || '0') || 0;
+            return firstCard.getBoundingClientRect().width + gap;
+        }
+
         function getVisibleStep() {
-            const wrapWidth = viewport.clientWidth;
-            const visibleCards = Math.max(1, Math.floor(wrapWidth / CARD_W));
-            return visibleCards * CARD_W;
+            const padding = getViewportPadding();
+            const wrapWidth = viewport.clientWidth - padding.left - padding.right;
+            const cardStep = getCardStep();
+            if (!cardStep) return wrapWidth;
+
+            const visibleCards = Math.max(1, Math.floor(wrapWidth / cardStep));
+            return visibleCards * cardStep;
         }
 
         function getMax() {
-            return Math.max(0, track.scrollWidth - viewport.clientWidth);
+            const cards = getCards();
+            const lastCard = cards[cards.length - 1];
+            if (!lastCard) return 0;
+
+            const trackRect = track.getBoundingClientRect();
+            const lastRect = lastCard.getBoundingClientRect();
+            const padding = getViewportPadding();
+            const lastCardRightFromTrackStart = lastRect.right - trackRect.left;
+            const visibleWidth = viewport.clientWidth - padding.left - padding.right;
+
+            return Math.max(0, lastCardRightFromTrackStart - visibleWidth);
         }
 
         function snapToCard(raw) {
-            return Math.round(raw / CARD_W) * CARD_W;
+            const cardStep = getCardStep();
+            if (!cardStep) return raw;
+
+            return Math.round(raw / cardStep) * cardStep;
         }
 
         function updateButtons() {
@@ -339,6 +504,12 @@ document.addEventListener('DOMContentLoaded', function () {
             updateButtons();
         }
 
+        function setOffset(nextOffset) {
+            offset = Math.min(Math.max(nextOffset, 0), getMax());
+            track.style.transform = `translateX(-${offset}px)`;
+            updateButtons();
+        }
+
         function scheduleLayoutUpdate() {
             cancelAnimationFrame(resizeFrame);
             resizeFrame = requestAnimationFrame(applyOffset);
@@ -346,15 +517,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         btnNext.addEventListener('click', () => {
             const target = offset + getVisibleStep();
-            offset = target >= getMax() ? getMax() : snapToCard(target);
-            track.style.transform = `translateX(-${offset}px)`;
-            updateButtons();
+            setOffset(target >= getMax() ? getMax() : snapToCard(target));
         });
 
         btnPrev.addEventListener('click', () => {
-            offset = snapToCard(Math.max(offset - getVisibleStep(), 0));
-            track.style.transform = `translateX(-${offset}px)`;
-            updateButtons();
+            setOffset(snapToCard(Math.max(offset - getVisibleStep(), 0)));
         });
 
         window.addEventListener('resize', scheduleLayoutUpdate);
