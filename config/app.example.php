@@ -45,6 +45,25 @@ return [
             'email_window'       => 15 * 60,
             'email_lockout'      => 60 * 60,
         ],
+        'admin_login' => [
+            'max_attempts' => 10,
+            'window'       => 15 * 60,
+            'lockout'      => 30 * 60,
+
+            'email_max_attempts' => 5,
+            'email_window'       => 15 * 60,
+            'email_lockout'      => 60 * 60,
+        ],
+        'admin_login_ip' => [
+            'max_attempts' => 10,
+            'window'       => 15 * 60,
+            'lockout'      => 30 * 60,
+        ],
+        'admin_login_user' => [
+            'max_attempts' => 5,
+            'window'       => 15 * 60,
+            'lockout'      => 60 * 60,
+        ],
         'registration' => [
             'max_attempts' => 50,
             'window'       => 60 * 60,
@@ -92,6 +111,7 @@ return [
 
     // Admin
     'admin' => [
-        'email' => 'your-admin-email@example.com',
+        'email'       => $_ENV['ADMIN_EMAIL']       ?? 'your-admin-email@example.com',
+        'access_path' => $_ENV['ADMIN_ACCESS_PATH'] ?? '',
     ],
 ];

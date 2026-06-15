@@ -121,7 +121,7 @@ if (isset($_COOKIE[$appConfig['session']['cookie_name']])) {
         $isLoggedIn = true;
         $user       = $userData;
 
-        $userRole = !empty($userData['is_admin']) ? 'admin' : 'user';
+        $userRole = 'user';
 
         $_SESSION['user'] = $userData;
 

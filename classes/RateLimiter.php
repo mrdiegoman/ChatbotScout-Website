@@ -31,6 +31,10 @@ class RateLimiter
     private function initializeRedis(): void
     {
         try {
+            if (!class_exists('Redis')) {
+                throw new Exception('PHP Redis extension is not installed');
+            }
+
             $this->redis = new Redis();
             
             if (!empty($this->redisConfig['socket'])) {
@@ -46,6 +50,10 @@ class RateLimiter
             if (!$connected) {
                 throw new Exception('Redis connection failed');
             }
+
+            if (!empty($this->redisConfig['password'])) {
+                $this->redis->auth($this->redisConfig['password']);
+            }
             
             // Nastav read timeout
             $this->redis->setOption(Redis::OPT_READ_TIMEOUT, $this->redisConfig['read_timeout']);
@@ -58,7 +66,7 @@ class RateLimiter
             
             $this->useRedis = true;
             
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             error_log("⚠️ Redis connection failed: " . $e->getMessage() . " - Using DB fallback");
             $this->useRedis = false;
             $this->redis = null;

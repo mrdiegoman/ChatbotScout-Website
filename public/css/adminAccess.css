@@ -1,0 +1,205 @@
+@font-face {
+    font-family: 'Outfit';
+    src: url('../Fonts/Outfit/Outfit-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Outfit';
+    src: url('../Fonts/Outfit/Outfit-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Outfit';
+    src: url('../Fonts/Outfit/Outfit-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+:root {
+    --ops-ink: #151a2d;
+    --ops-muted: #65728a;
+    --ops-line: #dbe3f1;
+    --ops-panel: #ffffff;
+    --ops-page: #eef4ff;
+    --ops-blue: #115dff;
+    --ops-green: #05c753;
+    --ops-red: #ef233c;
+}
+
+body.ops-access-page {
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Outfit', Arial, sans-serif;
+    background:
+        radial-gradient(circle at 12% 18%, rgba(17, 93, 255, 0.13), transparent 24rem),
+        radial-gradient(circle at 84% 12%, rgba(5, 199, 83, 0.10), transparent 20rem),
+        var(--ops-page);
+    color: var(--ops-ink);
+}
+
+.ops-access-shell {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 2rem;
+}
+
+.ops-access-card {
+    width: min(100%, 28rem);
+    background: var(--ops-panel);
+    border: 1px solid var(--ops-line);
+    border-radius: 1.4rem;
+    box-shadow: 0 1.6rem 4rem rgba(21, 26, 45, 0.12);
+    padding: 2.1rem;
+}
+
+.ops-access-brand {
+    width: 11rem;
+    height: 4.2rem;
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.7rem;
+    border-radius: 0.6rem;
+    text-decoration: none;
+    outline: none;
+    cursor: pointer;
+    transition: opacity 0.18s ease, box-shadow 0.18s ease;
+}
+
+.ops-access-brand:hover {
+    opacity: 0.84;
+}
+
+.ops-access-brand:focus-visible {
+    box-shadow: 0 0 0 0.22rem rgba(17, 93, 255, 0.16);
+}
+
+.ops-access-brand img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.ops-access-heading {
+    margin-bottom: 1.6rem;
+}
+
+.ops-access-kicker {
+    margin: 0 0 0.45rem;
+    color: var(--ops-blue);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.ops-access-heading h1 {
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 2.55rem);
+    line-height: 1.02;
+    letter-spacing: 0;
+}
+
+.ops-access-heading p:last-child {
+    margin: 0.85rem 0 0;
+    color: var(--ops-muted);
+    font-size: 1.02rem;
+    line-height: 1.55;
+}
+
+.ops-access-error {
+    margin-bottom: 1.2rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid rgba(239, 35, 60, 0.28);
+    border-radius: 0.75rem;
+    background: rgba(239, 35, 60, 0.07);
+    color: #b41227;
+    font-weight: 700;
+}
+
+.ops-access-form {
+    display: grid;
+    gap: 1rem;
+}
+
+.ops-access-field {
+    display: grid;
+    gap: 0.42rem;
+    font-weight: 700;
+}
+
+.ops-access-field span {
+    font-size: 0.95rem;
+}
+
+.ops-access-field input {
+    width: 100%;
+    height: 3.4rem;
+    border: 1.5px solid var(--ops-line);
+    border-radius: 0.85rem;
+    padding: 0 1rem;
+    background: #fff;
+    color: var(--ops-ink);
+    font: inherit;
+    font-weight: 600;
+    outline: none;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.ops-access-field input:focus {
+    border-color: var(--ops-blue);
+    box-shadow: 0 0 0 0.22rem rgba(17, 93, 255, 0.12);
+}
+
+.ops-access-submit {
+    width: 100%;
+    height: 3.55rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 0.9rem;
+    background: var(--ops-green);
+    color: #071322;
+    font: inherit;
+    font-size: 1.05rem;
+    font-weight: 800;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+    box-shadow: 0 0.75rem 1.45rem rgba(5, 199, 83, 0.24);
+}
+
+.ops-access-submit:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.02);
+    box-shadow: 0 0.95rem 1.75rem rgba(5, 199, 83, 0.3);
+}
+
+.ops-access-submit:active {
+    transform: translateY(0);
+    box-shadow: 0 0.45rem 1rem rgba(5, 199, 83, 0.2);
+}
+
+@media (max-width: 520px) {
+    .ops-access-shell {
+        padding: 1rem;
+    }
+
+    .ops-access-card {
+        border-radius: 1rem;
+        padding: 1.35rem;
+    }
+
+    .ops-access-brand {
+        width: 9.5rem;
+        height: 3.6rem;
+    }
+}

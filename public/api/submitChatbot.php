@@ -130,7 +130,7 @@ try {
     $fromName     = $settingsRows['reply_from_name'] ?? '';
 
     if (empty($noreplyEmail)) {
-        error_log('[WARNING] noreply_email not configured. Set it in Admin Panel → Settings.');
+        error_log('[WARNING] noreply_email not configured. Set it in Operations Workspace settings.');
         $noreplyEmail = 'noreply@chatbotscout.com';
     }
 

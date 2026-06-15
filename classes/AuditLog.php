@@ -34,7 +34,12 @@ class AuditLog
 
             // User ID zo session ak nie je explicitne zadané
             if ($userId === null) {
-                $userId = $_SESSION['user']['id'] ?? null;
+                if (class_exists('AdminAuth') && AdminAuth::isAdminRequest()) {
+                    $admin = AdminAuth::current();
+                    $userId = $admin['audit_user_id'] ?? null;
+                } else {
+                    $userId = $_SESSION['user']['id'] ?? null;
+                }
             }
 
             // Vypočítaj zmenené polia automaticky

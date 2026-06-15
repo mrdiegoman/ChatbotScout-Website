@@ -38,6 +38,11 @@ class Email
         }
     }
 
+    private function getOperationsAccessUrl(): string
+    {
+        return AdminAuth::loginUrl($this->config['base_url'] ?? '');
+    }
+
     // ============================================
     // PUBLIC SEND METHODS
     // ============================================
@@ -558,7 +563,7 @@ class Email
         $accessNoteHtml = nl2br(htmlspecialchars($accessNote));
         $companyDisplay = $companyName ? $companyName : '<em style="color:#9CA3AF;">Not provided</em>';
 
-        $adminUrl     = $this->config['base_url'] . '/admin.php';
+        $adminUrl     = $this->getOperationsAccessUrl();
 
         $content        = <<<HTML
         <div class="header">
@@ -580,7 +585,7 @@ class Email
             </div>
             <div class="label">Access / Notes</div>
             <div style="background:#fff;padding:16px;border:1px solid #e0e0e0;border-radius:6px;margin-top:6px;">$accessNoteHtml</div>
-            <a href="$adminUrl" class="button" style="margin-top:24px;">Open Admin Panel</a>
+            <a href="$adminUrl" class="button" style="margin-top:24px;">Open Operations Workspace</a>
         </div>
         HTML;
         return $this->baseTemplate($content);
@@ -706,7 +711,7 @@ class Email
         $ipBlock      = $ipAddress
             ? "<div class=\"label\" style=\"margin-top:12px;\">IP Address</div><div class=\"value\" style=\"font-size:13px;color:#6B7280;\">$ipAddress</div>"
             : '';
-        $adminUrl     = $this->config['base_url'] . '/admin.php';
+        $adminUrl     = $this->getOperationsAccessUrl();
  
         $content = <<<HTML
         <div class="header">
@@ -725,7 +730,7 @@ class Email
             </div>
             <div class="label" style="margin-top:18px;">Message</div>
             <div style="background:#fff;padding:16px;border:1px solid #e0e0e0;border-radius:6px;margin-top:6px;">$messageHtml</div>
-            <a href="$adminUrl" class="button" style="margin-top:24px;">Open Admin Panel</a>
+            <a href="$adminUrl" class="button" style="margin-top:24px;">Open Operations Workspace</a>
         </div>
         HTML;
         return $this->baseTemplate($content);
@@ -743,7 +748,7 @@ class Email
     ): string {
         $reviewHtml   = nl2br(htmlspecialchars($reviewText));
         $titleDisplay = $title ?: '<em style="color:#9CA3AF;">No title</em>';
-        $adminUrl     = $this->config['base_url'] . '/admin.php';
+        $adminUrl     = $this->getOperationsAccessUrl();
  
         $content = <<<HTML
         <div class="header">
@@ -765,7 +770,7 @@ class Email
             </div>
             <div class="label" style="margin-top:18px;">Review Text</div>
             <div style="background:#fff;padding:16px;border:1px solid #e0e0e0;border-radius:6px;margin-top:6px;">$reviewHtml</div>
-            <a href="$adminUrl" class="button" style="margin-top:24px;">Review in Admin Panel</a>
+            <a href="$adminUrl" class="button" style="margin-top:24px;">Review in Operations Workspace</a>
         </div>
         HTML;
         return $this->baseTemplate($content);

@@ -7,10 +7,11 @@
  */
 
 return [
-    'host'         => '127.0.0.1',
-    'port'         => 6379,
-    'password'     => null, // NULL = žiadne heslo, inak 'YOUR_REDIS_PASSWORD'
-    'database'     => 1,
+    'socket'       => $_ENV['REDIS_SOCKET'] ?? null,
+    'host'         => $_ENV['REDIS_HOST'] ?? '127.0.0.1',
+    'port'         => (int)($_ENV['REDIS_PORT'] ?? 6379),
+    'password'     => !empty($_ENV['REDIS_PASSWORD']) ? $_ENV['REDIS_PASSWORD'] : null,
+    'database'     => (int)($_ENV['REDIS_DB'] ?? 1),
     'timeout'      => 2.5,
     'read_timeout' => 2.5,
 

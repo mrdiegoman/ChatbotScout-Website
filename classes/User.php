@@ -234,7 +234,7 @@ class User
     {
         // ✅ Rate limiting check
         $stmt = $this->db->prepare("
-            SELECT id, email, password_hash, is_email_verified, email_verification_expires_at, status, first_name, last_name, profile_picture_url, is_admin
+            SELECT id, email, password_hash, is_email_verified, email_verification_expires_at, status, first_name, last_name, profile_picture_url
             FROM users
             WHERE email = :email
         ");
@@ -382,7 +382,6 @@ class User
 
         // Vráť user data (bez password_hash)
         unset($user['password_hash']);
-        $user['is_admin'] = (bool)($user['is_admin'] ?? false);
         return $user;
     }
     

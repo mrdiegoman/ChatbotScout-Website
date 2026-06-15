@@ -7,7 +7,11 @@
 set_exception_handler(null);
 ini_set('display_errors', '0');
 
-require '../inc/bootstrap.php';
+if (!defined('BOOTSTRAP_LOADED')) {
+    require '../inc/bootstrap.php';
+}
+
+$page = '404';
 
 http_response_code(404);
 

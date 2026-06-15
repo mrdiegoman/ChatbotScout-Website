@@ -12,10 +12,10 @@ $redisSocket   = ($redisSocket !== '' && $redisSocket !== null) ? $redisSocket :
 
 return [
     'socket'       => $redisSocket,
-    'host'         => '127.0.0.1',
-    'port'         => 6379,
+    'host'         => $_ENV['REDIS_HOST'] ?? '127.0.0.1',
+    'port'         => (int)($_ENV['REDIS_PORT'] ?? 6379),
     'password'     => ($redisPassword !== '' && $redisPassword !== null) ? $redisPassword : null,
-    'database'     => 1,
+    'database'     => (int)($_ENV['REDIS_DB'] ?? 1),
     'timeout'      => 2.5,
     'read_timeout' => 2.5,
 

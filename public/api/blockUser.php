@@ -21,15 +21,11 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
 require '../../inc/bootstrap.php';
+require '../app/guard.php';
 
 header('Content-Type: application/json');
 
-// Iba admin
-if (!$isLoggedIn || empty($user['is_admin'])) {
-    http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Access denied']);
-    exit;
-}
+requireRole('admin');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'message' => 'Method not allowed']);
@@ -50,6 +46,7 @@ if (empty($userId) || !in_array($type, ['review', 'submission'], true)) {
 
 try {
     $db = Database::getInstance()->getConnection();
+    $adminAuditUserId = $adminUser['audit_user_id'] ?? null;
 
     // Overiť že user existuje
     $userStmt = $db->prepare("SELECT id FROM users WHERE id = :id");
@@ -75,7 +72,7 @@ try {
                 UPDATE reviews
                 SET status = 'removed', moderated_at = NOW(), moderated_by_user_id = :admin_id
                 WHERE user_id = :user_id AND status = 'pending'
-            ")->execute([':admin_id' => $user['id'], ':user_id' => $userId]);
+            ")->execute([':admin_id' => $adminAuditUserId, ':user_id' => $userId]);
         }
 
     } else {

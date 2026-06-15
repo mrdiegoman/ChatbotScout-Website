@@ -35,6 +35,8 @@ if (empty($id)) {
 }
 
 $db = Database::getInstance()->getConnection();
+$adminAuditUserId = $adminUser['audit_user_id'] ?? null;
+$adminLabel       = $adminUser['username'] ?? 'admin';
 
 // ============================================
 // UPDATE STATUS
@@ -60,7 +62,7 @@ if ($action === 'update_status') {
         ");
         $stmt->execute([
             'status'   => $status,
-            'admin_id' => $user['id'],
+            'admin_id' => $adminAuditUserId,
             'id'       => $id,
         ]);
 
@@ -73,7 +75,7 @@ if ($action === 'update_status') {
 
         AuditLog::log('review', $id, $auditAction,
             null,
-            ['status' => $status, 'moderated_by' => $user['id']]
+            ['status' => $status, 'moderated_by_admin' => $adminLabel]
         );
 
         echo json_encode(['success' => true, 'status' => $status]);

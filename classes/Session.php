@@ -92,7 +92,6 @@ class Session
                 u.last_name,
                 u.profile_picture_url,
                 u.is_email_verified,
-                u.is_admin,
                 u.status,
                 u.marketing_emails
             FROM user_sessions s
@@ -150,7 +149,6 @@ class Session
             'last_name'           => $data['last_name'],
             'profile_picture_url' => $data['profile_picture_url'],
             'is_email_verified'   => (bool)$data['is_email_verified'],
-            'is_admin'            => (bool)$data['is_admin'],
             'status'              => $data['status'],
             'marketing_emails'    => (bool)$data['marketing_emails'],
         ];

@@ -4,7 +4,15 @@ require 'app/guard.php';
 
 requireRole('admin');
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['admin_action'] ?? '') === 'logout') {
+    validateCsrfToken('admin');
+    AdminAuth::logout();
+    header('Location: ' . AdminAuth::loginUrl());
+    exit;
+}
+
 $db = Database::getInstance()->getConnection();
+$adminDisplayName = $adminUser['display_name'] ?? 'operations';
 
 // ============================================
 // ACTIVE TAB
@@ -218,8 +226,16 @@ require '../inc/header.php';
 <div class="admin-wrapper">
 
     <div class="admin-header">
-        <h1>Admin Panel</h1>
-        <p>Manage contact messages, user reviews and chatbot submissions</p>
+        <div>
+            <h1>Operations Workspace</h1>
+            <p>Manage contact messages, user reviews and chatbot submissions</p>
+            <span class="admin-session-label">Signed in as <?= htmlspecialchars($adminDisplayName, ENT_QUOTES, 'UTF-8') ?></span>
+        </div>
+        <form method="POST" action="admin" class="admin-logout-form">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+            <input type="hidden" name="admin_action" value="logout">
+            <button type="submit" class="admin-logout-btn">Sign out</button>
+        </form>
     </div>
 
     <!-- Main tab navigation -->

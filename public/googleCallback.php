@@ -132,7 +132,7 @@ try {
     // Skontroluj či user s týmto emailom existuje
     $stmt = $db->prepare("
         SELECT id, email, first_name, last_name, status, google_id,
-               is_email_verified, profile_picture_url, is_admin, marketing_emails
+               is_email_verified, profile_picture_url, marketing_emails
         FROM users
         WHERE email = :email
         LIMIT 1
@@ -196,7 +196,6 @@ try {
             'last_name'           => $existingUser['last_name'],
             'profile_picture_url' => $existingUser['profile_picture_url'] ?: $picture,
             'is_email_verified'   => true,
-            'is_admin'            => (bool)$existingUser['is_admin'],
             'status'              => 'active',
             'marketing_emails'    => (bool)$existingUser['marketing_emails'],
         ];
@@ -273,7 +272,6 @@ try {
             'last_name'           => $lastName,
             'profile_picture_url' => $picture,
             'is_email_verified'   => true,
-            'is_admin'            => false,
             'status'              => 'active',
             'marketing_emails'    => false,
         ];
