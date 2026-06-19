@@ -171,7 +171,7 @@ a, button {
     font-family: Outfit-SemiBold;
     padding: 0 2rem;
     text-wrap: nowrap;
-    transition: all 0.2s ease;
+    /* transition: all 0.2s ease; */
 }
 
 .header-main-nav ul li a:hover {
@@ -1335,7 +1335,7 @@ a, button {
     font-family: Outfit-Medium;
     color: var(--white-color-dark);
     padding: 1rem 1.8rem;
-    transition: background-color 0.15s ease;
+    /* transition: background-color 0.15s ease; */
     cursor: pointer;
 }
 

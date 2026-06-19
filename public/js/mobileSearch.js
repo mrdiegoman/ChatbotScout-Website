@@ -21,15 +21,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Close mobile search bar when clicking outside
-    document.addEventListener('click', function(e) {
-        if (mobileSearchBar && mobileSearchBar.classList.contains('active')) {
-            if (!mobileSearchBar.contains(e.target) && e.target !== mobileSearchBtn) {
-                mobileSearchBar.classList.remove('active');
-            }
-        }
-    });
-
     // Clear button functionality (pre mobilný search)
     if (mobileSearchInput && mobileSearchClearBtn) {
         const clearIcon = mobileSearchClearBtn.querySelector('.chatbot-page-main-content-topbar-search-input-clear-icon');
@@ -73,10 +64,4 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Prevent search bar from closing when clicking inside it
-    if (mobileSearchBar) {
-        mobileSearchBar.addEventListener('click', function(e) {
-            e.stopPropagation();
-        });
-    }
 });

@@ -347,6 +347,11 @@
                         </div>
                         <p class="favourites-page-main-content-chatbots-list-view-item-description-container-text">${desc}</p>
                     </div>
+                    <div class="favourites-page-main-content-chatbots-list-view-item-pricing favourites-page-main-content-chatbots-list-view-item-pricing--left">
+                        <div class="favourites-page-main-content-chatbots-list-view-item-btns-container-sipka">
+                            <span class="favourites-page-main-content-chatbots-list-view-item-btns-container-sipka-text">${pricing}</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="favourites-page-main-content-chatbots-list-view-item-features-container-right">
                     <div class="favourites-page-main-content-chatbots-list-view-item-features-container">
@@ -366,8 +371,10 @@
                     </div>
                 
                     <div class="favourites-page-main-content-chatbots-list-view-item-btns-container">
-                        <div class="favourites-page-main-content-chatbots-grid-view-item-btns-container-sipka">
-                            <span class="favourites-page-main-content-chatbots-grid-view-item-btns-container-sipka-text">${pricing}</span>
+                        <div class="favourites-page-main-content-chatbots-list-view-item-pricing favourites-page-main-content-chatbots-list-view-item-pricing--right">
+                            <div class="favourites-page-main-content-chatbots-list-view-item-btns-container-sipka">
+                                <span class="favourites-page-main-content-chatbots-list-view-item-btns-container-sipka-text">${pricing}</span>
+                            </div>
                         </div>
                         <a href="${link}" target="_blank" rel="noopener noreferrer"
                         class="favourites-page-main-content-chatbots-list-view-item-btns-container-go-to-website"

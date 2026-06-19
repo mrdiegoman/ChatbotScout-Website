@@ -361,6 +361,11 @@
                         </div>
                         <p class="chatbot-page-main-content-chatbots-list-view-item-description-container-text">${desc}</p>
                     </div>
+                    <div class="chatbot-page-main-content-chatbots-list-view-item-pricing chatbot-page-main-content-chatbots-list-view-item-pricing--left">
+                        <div class="chatbot-page-main-content-chatbots-list-view-item-btns-container-sipka">
+                            <span class="chatbot-page-main-content-chatbots-list-view-item-btns-container-sipka-text">${pricing}</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="chatbot-page-main-content-chatbots-list-view-item-features-container-right">
                     <div class="chatbot-page-main-content-chatbots-list-view-item-features-container">
@@ -377,8 +382,10 @@
                         </div>
                     </div>
                     <div class="chatbot-page-main-content-chatbots-list-view-item-btns-container">
-                        <div class="chatbot-page-main-content-chatbots-grid-view-item-btns-container-sipka">
-                            <span class="chatbot-page-main-content-chatbots-grid-view-item-btns-container-sipka-text">${pricing}</span>
+                        <div class="chatbot-page-main-content-chatbots-list-view-item-pricing chatbot-page-main-content-chatbots-list-view-item-pricing--right">
+                            <div class="chatbot-page-main-content-chatbots-list-view-item-btns-container-sipka">
+                                <span class="chatbot-page-main-content-chatbots-list-view-item-btns-container-sipka-text">${pricing}</span>
+                            </div>
                         </div>
                         <a href="${link}" target="_blank" rel="noopener noreferrer"
                         class="chatbot-page-main-content-chatbots-list-view-item-btns-container-go-to-website"
