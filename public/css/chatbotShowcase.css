@@ -2491,7 +2491,7 @@ body.page-chatbotShowcase .footer-main-bottom {
     display: flex;
 }
 
-@media (min-width: 721px) and (max-width: 900px) {
+@media (min-width: 721px) and (max-width: 850px) {
     .chatbot-page-main-content-chatbots-list-view-item-pricing--left {
         display: flex;
     }

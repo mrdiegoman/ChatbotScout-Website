@@ -229,7 +229,6 @@ require '../inc/header.php';
 
                     $popularChatbots = [];
                     $tagNames        = [];
-                    $popularBadgeIds = [];
                     $homepageLogoSrc = static function (?string $path): string {
                         $value = trim((string) $path);
                         if ($value === '') {
@@ -265,21 +264,6 @@ require '../inc/header.php';
                                   AND p_homepage_promotion.slot_type = 'Homepage'
                             )
                         ";
-
-                        $popularBadgeStmt = $db->query("
-                            SELECT c.id
-                            FROM chatbots c
-                            WHERE c.status = 'active'
-                              AND c.deleted_at IS NULL
-                              AND c.click_count > 0
-                            ORDER BY (c.rating_average * LOG(c.click_count + 1)) DESC,
-                                     c.click_count DESC,
-                                     c.rating_count DESC,
-                                     c.rating_average DESC,
-                                     c.created_at DESC
-                            LIMIT 5
-                        ");
-                        $popularBadgeIds = array_fill_keys($popularBadgeStmt->fetchAll(PDO::FETCH_COLUMN), true);
 
                         $stmt = $db->query("
                             SELECT
@@ -340,9 +324,6 @@ require '../inc/header.php';
                         $botTags    = [];
                         if (!empty($bot['has_homepage_promotion'])) {
                             $botTags[] = 'Sponsored';
-                        }
-                        if (isset($popularBadgeIds[$bot['id']])) {
-                            $botTags[] = 'Popular';
                         }
                         if (!empty($bot['has_affiliate_program']) && count($botTags) < 2) {
                             $botTags[] = 'Affiliate';

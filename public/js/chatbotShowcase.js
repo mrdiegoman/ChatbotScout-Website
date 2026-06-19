@@ -227,7 +227,6 @@
         const favCount = chatbot.favorite_count ?? 0;
         let badgeHtml = '';
         if (chatbot.is_sponsored) badgeHtml += `<span class="chatbot-tag-sponsored"><p>✦ Sponsored ✦</p></span>`;
-        if (chatbot.is_popular)   badgeHtml += `<span class="chatbot-tag-popular"><p>✦ Popular ✦</p></span>`;
 
         return `
         <div class="chatbot-page-main-content-chatbots-grid-view-item">
@@ -310,7 +309,6 @@
         const favCount = chatbot.favorite_count ?? 0;
         let badgeHtml = '';
         if (chatbot.is_sponsored) badgeHtml += `<span class="chatbot-tag-sponsored"><p>✦ Sponsored ✦</p></span>`;
-        if (chatbot.is_popular)   badgeHtml += `<span class="chatbot-tag-popular"><p>✦ Popular ✦</p></span>`;
 
         return `
         <div class="chatbot-page-main-content-chatbots-list-view-item-containter">

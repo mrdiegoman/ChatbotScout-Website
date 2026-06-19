@@ -232,7 +232,6 @@
         const rCount  = chatbot.rating_count ? Number(chatbot.rating_count).toLocaleString() : '0';
         let badgeHtml = '';
         if (chatbot.is_sponsored) badgeHtml += `<span class="favourites-tag-sponsored"><p>✦ Sponsored ✦</p></span>`;
-        if (chatbot.is_popular)   badgeHtml += `<span class="favourites-tag-popular"><p>✦ Popular ✦</p></span>`;
 
         return `
         <div class="favourites-page-main-content-chatbots-grid-view-item" data-chatbot-id="${escapeHtml(chatbot.id)}">
@@ -303,7 +302,6 @@
         const rCount  = chatbot.rating_count ? Number(chatbot.rating_count).toLocaleString() : '0';
         let badgeHtml = '';
         if (chatbot.is_sponsored) badgeHtml += `<span class="favourites-tag-sponsored"><p>✦ Sponsored ✦</p></span>`;
-        if (chatbot.is_popular)   badgeHtml += `<span class="favourites-tag-popular"><p>✦ Popular ✦</p></span>`;
 
         return `
         <div class="favourites-page-main-content-chatbots-list-view-item-containter" data-chatbot-id="${escapeHtml(chatbot.id)}">

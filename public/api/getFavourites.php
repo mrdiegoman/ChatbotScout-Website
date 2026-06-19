@@ -169,24 +169,6 @@ $countStmt->execute();
 $total      = (int)$countStmt->fetchColumn();
 $totalPages = (int)ceil($total / $limit);
 
-// Popular is computed from the currently filtered favourites set.
-$popularStmt = $db->prepare("
-    SELECT c.id
-    FROM `favorites` fav
-    JOIN `chatbots` c ON c.id = fav.chatbot_id
-    WHERE {$whereStr}
-      AND c.click_count > 0
-    ORDER BY (c.rating_average * LOG(c.click_count + 1)) DESC,
-             c.click_count DESC,
-             c.rating_count DESC,
-             c.rating_average DESC,
-             c.created_at DESC
-    LIMIT 5
-");
-foreach ($params as $k => $v) $popularStmt->bindValue($k, $v);
-$popularStmt->execute();
-$popularIdSet = array_fill_keys($popularStmt->fetchAll(PDO::FETCH_COLUMN), true);
-
 // ============================================
 // MAIN QUERY
 // ============================================
@@ -330,7 +312,6 @@ foreach ($chatbots as $chatbot) {
         'features'       => $featureMap[$id] ?? [],
         'tags'           => $displayTags,
         'is_sponsored'   => (bool)$chatbot['has_active_promotion'],
-        'is_popular'     => isset($popularIdSet[$id]),
         'integrations'   => $integrationMap[$id] ?? [],
     ];
 }

@@ -13,6 +13,22 @@ Do not change the framework, build system, package manager, or project architect
 
 Never expose or commit secrets, API keys, tokens, or .env files.
 
+Full-access safety rules
+
+When the sandbox is disabled or full privileges are granted, treat the extra access as sensitive and stay inside this project unless the user explicitly asks otherwise.
+
+Do not run destructive filesystem or git commands unless the user clearly asks for that exact action. This includes `Remove-Item -Recurse`, `rm -rf`, `git reset --hard`, `git clean`, force checkout, deleting folders, mass moving files, or overwriting unrelated work.
+
+Do not edit files outside the project, system configuration, XAMPP/Apache/PHP configuration, global tooling, user profile files, or Codex configuration unless the user explicitly asks for that specific change.
+
+Do not install, update, or remove dependencies, change lockfiles, switch package managers, or alter build/deploy scripts unless the task requires it and the user has approved the scope.
+
+Do not perform broad rewrites, large refactors, formatting sweeps, or architecture changes when a focused patch can solve the request.
+
+Do not modify production data, run destructive database operations, trigger real payments, send real emails/messages, or call live external services for side effects unless explicitly requested.
+
+If a command or edit could affect unrelated code, user work, secrets, system stability, databases, deployment, or irreversible state, pause and ask first.
+
 Implementation
 Write clear, maintainable code consistent with the existing project.
 Use TypeScript when the project uses TypeScript.

@@ -172,23 +172,6 @@ $countStmt->execute();
 $total      = (int)$countStmt->fetchColumn();
 $totalPages = (int)ceil($total / $limit);
 
-// Popular is a computed badge, not a persisted chatbot_tags row.
-$popularStmt = $db->prepare("
-    SELECT c.id
-    FROM `chatbots` c
-    WHERE {$whereStr}
-      AND c.click_count > 0
-    ORDER BY (c.rating_average * LOG(c.click_count + 1)) DESC,
-             c.click_count DESC,
-             c.rating_count DESC,
-             c.rating_average DESC,
-             c.created_at DESC
-    LIMIT 5
-");
-foreach ($params as $k => $v) $popularStmt->bindValue($k, $v);
-$popularStmt->execute();
-$popularIdSet = array_fill_keys($popularStmt->fetchAll(PDO::FETCH_COLUMN), true);
-
 // ============================================
 // MAIN QUERY
 // ============================================
@@ -338,7 +321,6 @@ foreach ($chatbots as $chatbot) {
         'pricing'        => buildPricingDisplay($chatbot),
         'features'       => $featureMap[$id] ?? [],
         'is_sponsored'   => (bool)$chatbot['has_active_promotion'],
-        'is_popular'     => isset($popularIdSet[$id]),
         'tags'           => $displayTags,
         'integrations'   => $integrationMap[$id] ?? [],
     ];
