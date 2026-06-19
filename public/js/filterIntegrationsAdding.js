@@ -37,8 +37,6 @@
 
     const filtersCountBadge  = document.getElementById('filtersCount');
     const filtersCountNum    = document.getElementById('filtersCountNum');
-    const filterResultsCount = document.getElementById('filterResultsCount');
-
     // ============================================
     // BUILD SPAN
     // ============================================
@@ -181,11 +179,6 @@
                 span.textContent = `${name} (${count})`;
             });
 
-            // Live count (favouritesShowcase)
-            if (filterResultsCount && data.total !== undefined) {
-                const t = data.total;
-                filterResultsCount.textContent = `Found ${t} chatbot${t !== 1 ? 's' : ''}`;
-            }
         })
         .catch(err => console.error('getIntegrationCounts fetch failed:', err));
     }

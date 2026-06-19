@@ -407,7 +407,7 @@ require '../inc/header.php';
                     <div class="profile-card avatar-card">
                         <div class="avatar-wrapper">                     
                             <img src="img/default-avatar2.png"
-                                data-src="<?php echo htmlspecialchars($user['profile_picture_url'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                data-src="<?php echo htmlspecialchars(localProfilePictureUrl($user['profile_picture_url'] ?? null) ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                                 alt="Profile picture"
                                 class="profile-avatar user-avatar-img"
                                 id="current-avatar"
@@ -909,12 +909,8 @@ require '../inc/header.php';
                 <p class="pr-modal-stars-label" id="editRatingStarsLabel">Select a rating</p>
             </div>
             <div class="pr-modal-field">
-                <label for="editReviewTitleInput">Title <span class="pr-modal-optional">(optional)</span></label>
-                <input type="text" id="editReviewTitleInput" maxlength="200" placeholder="Short summary of your experience">
-            </div>
-            <div class="pr-modal-field">
-                <label for="editReviewTextInput">Your review <span class="pr-modal-required">*</span></label>
-                <textarea id="editReviewTextInput" maxlength="5000" rows="5" placeholder="Share your experience..."></textarea>
+                <label for="editReviewTextInput">Your review</label>
+                <textarea id="editReviewTextInput" maxlength="5000" rows="5" wrap="soft" placeholder="Share your experience..."></textarea>
             </div>
             <p class="pr-modal-error"   id="editReviewError"></p>
             <p class="pr-modal-success" id="editReviewSuccess"></p>

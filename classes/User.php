@@ -72,10 +72,9 @@ class User
             // throw new Exception("Please enter a valid email address.");
         }
         
-        // Validácia hesla
-        if (strlen($password) < 8) {
-            $errors['password'][] = "Password must be at least 8 characters long.";
-            // throw new Exception("Password must be at least 8 characters long.");
+        // Validácia hesla — vždy na serveri, aby sa nedala obísť cez vypnutý JavaScript.
+        foreach (PasswordPolicy::validate($password) as $passwordError) {
+            $errors['password'][] = $passwordError;
         }
         
         // Validácia mena (min/max dĺžka)
@@ -494,8 +493,9 @@ class User
      */
     public function resetPassword(string $token, string $newPassword): bool
     {
-        if (strlen($newPassword) < 8) {
-            throw new Exception("Password must be at least 8 characters long.");
+        $passwordErrors = PasswordPolicy::validate($newPassword);
+        if ($passwordErrors) {
+            throw new Exception(implode(' ', $passwordErrors));
         }
         
         $stmt = $this->db->prepare("

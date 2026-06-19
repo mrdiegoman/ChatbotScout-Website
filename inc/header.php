@@ -11,10 +11,8 @@ if ($userRole) {
     $bodyClasses[] = 'role-' . $userRole;
 }
 
-// Získaj profilovú fotku (Variant 2 - Upload + Default)
-$profilePicture = isset($user['profile_picture_url'])
-    ? $user['profile_picture_url']
-    : 'img/default-avatar2.png';
+// Používaj iba avatar manuálne nahraný cez profil. Externé URL sa nikdy nenačítavajú.
+$profilePicture = localProfilePictureUrl($user['profile_picture_url'] ?? null);
 $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User';
 
 $scheme = 'http';
@@ -58,6 +56,10 @@ $seoByPage = [
     'chatbotShowcase' => [
         'title'       => 'AI Chatbot Directory',
         'description' => 'Browse and compare AI chatbots with filters for pricing, features, integrations, ratings, and use cases.',
+    ],
+    'chatbotReviews' => [
+        'title'       => 'Chatbot Reviews',
+        'description' => 'Read verified user ratings and reviews for AI chatbots on ChatbotScout.',
     ],
     'aboutUs' => [
         'title'       => 'About ChatbotScout',
@@ -236,7 +238,7 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
                 <div class="header-profile-dropdown-wrapper">
 
                     <a class="header-main-right-profile-avatar" id="profileAvatarBtn" title="<?php echo htmlspecialchars($userName); ?>">
-                        <img src="img/default-avatar2.png" data-src="<?php echo htmlspecialchars($profilePicture); ?>" alt="Profile" class="profile-avatar-img user-avatar-img">
+                        <img src="img/default-avatar2.png" data-src="<?php echo htmlspecialchars($profilePicture ?? '', ENT_QUOTES, 'UTF-8'); ?>" alt="Profile" class="profile-avatar-img user-avatar-img">
                     </a>
 
                     <div class="header-profile-dropdown" id="profileDropdown">
@@ -350,7 +352,7 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
                     <a href="sign-up" class="header-mobile-signup">Sign Up</a>
                 <?php else: ?>
                     <a href="profile" class="header-mobile-profile">
-                        <img src="img/default-avatar2.png" data-src="<?php echo htmlspecialchars($profilePicture); ?>" alt="Profile" class="user-avatar-img">
+                        <img src="img/default-avatar2.png" data-src="<?php echo htmlspecialchars($profilePicture ?? '', ENT_QUOTES, 'UTF-8'); ?>" alt="Profile" class="user-avatar-img">
                         <span>Profile</span>
                     </a>
                     <a href="favourites" class="header-mobile-favourites">

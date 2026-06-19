@@ -1,10 +1,8 @@
 /**
  * chatbotFilters.js
- * - Otváranie/zatváranie filter modalu
- * - Apply Filters — zavolá window.applyFilters() vystavené z chatbotShowcase.js / favouritesShowcase.js
- * - Clear all filtre
  *
- * Badge + feature counts spravuje filterFeaturesAdding.js
+ * Filter modal keeps a draft state in its controls. The list itself only uses
+ * the last applied snapshot, so closing the modal never changes the page.
  */
 
 const filtersBtnBtn   = document.getElementById('filtersBtn');
@@ -15,122 +13,153 @@ const applyFiltersBtn = document.querySelector(
     '.chatbot-filters-modal-apply-btn, .favourites-filters-modal-apply-btn'
 );
 
-// ============================================
-// OTVORIŤ / ZATVORIŤ MODAL
-// ============================================
+const NUMBER_FILTERS = {
+    ratingInputStart: 'ratingStart',
+    ratingInputEnd: 'ratingEnd',
+    votesInputStart: 'votesStart',
+    votesInputEnd: 'votesEnd',
+    favoritesInputStart: 'favoritesStart',
+    favoritesInputEnd: 'favoritesEnd',
+    priceInputStart: 'priceStart',
+    priceInputEnd: 'priceEnd',
+};
+
+const FILTER_GROUPS = [
+    {
+        selector: '.chatbot-filters-modal-body-features-single, .favourites-filters-modal-body-features-single',
+        key: 'features[]',
+        dataKey: 'featureId',
+    },
+    {
+        selector: '.chatbot-filters-modal-body-currency-single, .favourites-filters-modal-body-currency-single',
+        key: 'currency[]',
+        dataKey: 'currencyCode',
+    },
+    {
+        selector: '.chatbot-filters-modal-body-integrations-single, .favourites-filters-modal-body-integrations-single',
+        key: 'integrations[]',
+        dataKey: 'integrationId',
+    },
+    {
+        selector: '.chatbot-filters-modal-body-pricing-single, .favourites-filters-modal-body-pricing-single',
+        key: 'pricing[]',
+        dataKey: 'pricingModel',
+    },
+];
+
+let appliedFilterParams = {};
+
+function cloneParams(params) {
+    return Object.fromEntries(
+        Object.entries(params).map(([key, value]) => [key, Array.isArray(value) ? [...value] : value])
+    );
+}
+
+function collectDraftFilterParams() {
+    const params = {};
+
+    Object.entries(NUMBER_FILTERS).forEach(([id, key]) => {
+        const value = document.getElementById(id)?.value.trim() ?? '';
+        if (value) params[key] = value;
+    });
+
+    FILTER_GROUPS.forEach(({ selector, key, dataKey }) => {
+        const selected = [...document.querySelectorAll(selector)]
+            .filter(element => element.classList.contains('active'))
+            .map(element => element.dataset[dataKey])
+            .filter(Boolean);
+
+        if (selected.length) params[key] = selected;
+    });
+
+    return params;
+}
+
+function refreshDraftUi() {
+    if (typeof window.clearFilterResultsCount === 'function') window.clearFilterResultsCount();
+    if (typeof window.updateFilterBadge === 'function') window.updateFilterBadge();
+    if (typeof window.triggerFeatureCountsRefresh === 'function') window.triggerFeatureCountsRefresh();
+    if (typeof window.triggerIntegrationCountsRefresh === 'function') window.triggerIntegrationCountsRefresh();
+    if (typeof window.triggerPricingCountsRefresh === 'function') window.triggerPricingCountsRefresh();
+    if (typeof window.triggerCurrencyCountsRefresh === 'function') window.triggerCurrencyCountsRefresh();
+}
+
+function restoreDraftFromApplied() {
+    Object.entries(NUMBER_FILTERS).forEach(([id, key]) => {
+        const input = document.getElementById(id);
+        if (input) input.value = appliedFilterParams[key] ?? '';
+    });
+
+    FILTER_GROUPS.forEach(({ selector, key, dataKey }) => {
+        const selected = new Set(appliedFilterParams[key] ?? []);
+        document.querySelectorAll(selector).forEach(element => {
+            element.classList.toggle('active', selected.has(element.dataset[dataKey]));
+        });
+    });
+
+    refreshDraftUi();
+}
 
 function openModal() {
+    restoreDraftFromApplied();
     overlay.style.display = 'flex';
     lockScroll();
 }
 
-function closeModal() {
+function closeModal(discardDraft = true) {
+    if (discardDraft) restoreDraftFromApplied();
     overlay.style.display = 'none';
     unlockScroll();
 }
 
-filtersBtnBtn.addEventListener('click', openModal);
-closeFiltersBtn.addEventListener('click', closeModal);
-
-// ============================================
-// COLLECT ACTIVE FILTERS → params objekt
-// Vystavené ako window.getActiveFilterParams()
-// Volané z chatbotShowcase.js + favouritesShowcase.js
-// ============================================
-
+// The showcase reads this snapshot, never the temporary modal controls.
 window.getActiveFilterParams = function () {
-    const val = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
-
-    const params = {};
-
-    if (val('ratingInputStart')) params.ratingStart = val('ratingInputStart');
-    if (val('ratingInputEnd'))   params.ratingEnd   = val('ratingInputEnd');
-    if (val('votesInputStart'))  params.votesStart  = val('votesInputStart');
-    if (val('votesInputEnd'))    params.votesEnd    = val('votesInputEnd');
-    if (val('favoritesInputStart')) params.favoritesStart = val('favoritesInputStart');
-    if (val('favoritesInputEnd'))   params.favoritesEnd   = val('favoritesInputEnd');
-    if (val('priceInputStart'))  params.priceStart  = val('priceInputStart');
-    if (val('priceInputEnd'))    params.priceEnd    = val('priceInputEnd');
-
-    // Zachytí oba typy spanoch (chatbotShowcase aj favouritesShowcase)
-    const activeFeatures = document.querySelectorAll(
-        '.chatbot-filters-modal-body-features-single.active, ' +
-        '.favourites-filters-modal-body-features-single.active'
-    );
-    activeFeatures.forEach(span => {
-        if (span.dataset.featureId) {
-            if (!params['features[]']) params['features[]'] = [];
-            params['features[]'].push(span.dataset.featureId);
-        }
-    });
-
-    if (typeof window.getActiveCurrencies === 'function') {
-        const currencies = window.getActiveCurrencies();
-        if (currencies.length > 0) params['currency[]'] = currencies;
-    }
-
-    // Integrations — OR filter
-    if (typeof window.getActiveIntegrationIds === 'function') {
-        const intIds = window.getActiveIntegrationIds();
-        if (intIds.length > 0) params['integrations[]'] = intIds;
-    }
-
-    // Pricing models — OR filter
-    if (typeof window.getActivePricingModels === 'function') {
-        const pmIds = window.getActivePricingModels();
-        if (pmIds.length > 0) params['pricing[]'] = pmIds;
-    }
-
-    return params;
+    return cloneParams(appliedFilterParams);
 };
 
-// ============================================
-// APPLY FILTERS
-// ============================================
+function clearAllFilters() {
+    Object.keys(NUMBER_FILTERS).forEach(id => {
+        const input = document.getElementById(id);
+        if (input) input.value = '';
+    });
+
+    FILTER_GROUPS.forEach(({ selector }) => {
+        document.querySelectorAll(selector).forEach(element => element.classList.remove('active'));
+    });
+
+    refreshDraftUi();
+}
+
+if (filtersBtnBtn) filtersBtnBtn.addEventListener('click', openModal);
+if (closeFiltersBtn) closeFiltersBtn.addEventListener('click', () => closeModal());
+if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearAllFilters);
+
+if (overlay) {
+    overlay.addEventListener('click', event => {
+        if (event.target === overlay) closeModal();
+    });
+}
+
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && overlay?.style.display === 'flex') closeModal();
+});
 
 if (applyFiltersBtn) {
     applyFiltersBtn.addEventListener('click', () => {
-        closeModal();
+        appliedFilterParams = cloneParams(collectDraftFilterParams());
+        closeModal(false);
         if (typeof window.applyFilters === 'function') window.applyFilters();
     });
 }
 
-// ============================================
-// CLEAR ALL FILTERS
-// ============================================
+Object.keys(NUMBER_FILTERS).forEach(id => {
+    const input = document.getElementById(id);
+    if (!input) return;
 
-function clearAllFilters () {
-    ['ratingInputStart', 'ratingInputEnd', 'votesInputStart', 'votesInputEnd', 'favoritesInputStart', 'favoritesInputEnd', 'priceInputStart', 'priceInputEnd']
-        .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-
-    document.querySelectorAll(
-        '.chatbot-filters-modal-body-features-single.active, ' +
-        '.favourites-filters-modal-body-features-single.active'
-    ).forEach(span => span.classList.remove('active'));
-
-    if (typeof window.updateFilterBadge === 'function')           window.updateFilterBadge();
-    if (typeof window.triggerFeatureCountsRefresh === 'function') window.triggerFeatureCountsRefresh();
-    if (typeof window.applyFilters === 'function')                window.applyFilters();
-    if (typeof window.clearIntegrationFilters === 'function')     window.clearIntegrationFilters();
-    if (typeof window.clearPricingFilters === 'function')         window.clearPricingFilters();
-    if (typeof window.clearCurrencyFilters === 'function')        window.clearCurrencyFilters();
-}
-
-if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearAllFilters);
-
-// ============================================
-// BLOCK INVALID CHARS IN NUMBER INPUTS
-// ============================================
-
-['ratingInputStart', 'ratingInputEnd', 'votesInputStart', 'votesInputEnd',
- 'favoritesInputStart', 'favoritesInputEnd', 'priceInputStart', 'priceInputEnd']
-    .forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.addEventListener('keydown', (e) => {
-            if (['-', '+', 'e', 'E'].includes(e.key)) e.preventDefault();
-        });
-        el.addEventListener('input', () => {
-            if (parseFloat(el.value) < 0) el.value = '';
-        });
+    input.addEventListener('keydown', event => {
+        if (['-', '+', 'e', 'E'].includes(event.key)) event.preventDefault();
     });
+    input.addEventListener('input', () => {
+        if (parseFloat(input.value) < 0) input.value = '';
+    });
+});

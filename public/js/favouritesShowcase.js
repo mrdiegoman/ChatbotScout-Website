@@ -28,6 +28,10 @@
         searchQuery: '',
     };
 
+    // The cards use only this applied snapshot. Controls inside the modal are
+    // intentionally a temporary draft until the user presses Apply Filters.
+    let appliedFilterParams = {};
+
     const LOGIN_URL = 'login.php?redirect=favouritesShowcase.php';
 
     // ============================================
@@ -61,7 +65,6 @@
     const ratingModalTitle   = document.getElementById('ratingModalTitle');
     const ratingStarsPicker  = document.getElementById('ratingStarsPicker');
     const ratingStarsLabel   = document.getElementById('ratingStarsLabel');
-    const ratingTitleInput   = document.getElementById('ratingTitleInput');
     const ratingTextInput    = document.getElementById('ratingTextInput');
     const ratingModalError   = document.getElementById('ratingModalError');
     const ratingModalSuccess = document.getElementById('ratingModalSuccess');
@@ -230,6 +233,7 @@
         const intEmpty     = integrations.length === 0 ? ' platforms-btn--empty' : '';
         const rating  = chatbot.rating_average ? Number(chatbot.rating_average).toFixed(1) : '—';
         const rCount  = chatbot.rating_count ? Number(chatbot.rating_count).toLocaleString() : '0';
+        const reviewsUrl = `chatbot-reviews?chatbot=${encodeURIComponent(chatbot.id)}`;
         let badgeHtml = '';
         if (chatbot.is_sponsored) badgeHtml += `<span class="favourites-tag-sponsored"><p>✦ Sponsored ✦</p></span>`;
 
@@ -247,7 +251,7 @@
                         <div class="favourites-page-main-content-chatbots-grid-view-item-top-base-2">
                             ${stars}
                             <p>${rating}</p>
-                            <p>(${rCount})</p>
+                            <a class="favourites-reviews-link" href="${reviewsUrl}" aria-label="Read reviews for ${escapeAttr(chatbot.name)}"><p>(${rCount})</p></a>
                         </div>
                     </div>
                 </div>
@@ -300,6 +304,7 @@
         const desc    = escapeHtml(chatbot.description || '');
         const rating  = chatbot.rating_average ? Number(chatbot.rating_average).toFixed(1) : '—';
         const rCount  = chatbot.rating_count ? Number(chatbot.rating_count).toLocaleString() : '0';
+        const reviewsUrl = `chatbot-reviews?chatbot=${encodeURIComponent(chatbot.id)}`;
         let badgeHtml = '';
         if (chatbot.is_sponsored) badgeHtml += `<span class="favourites-tag-sponsored"><p>✦ Sponsored ✦</p></span>`;
 
@@ -323,7 +328,7 @@
                                 <div class="favourites-page-main-content-chatbots-list-view-item-top-base-2">
                                     ${stars}
                                     <p>${rating}</p>
-                                    <p>(${rCount})</p>
+                                    <a class="favourites-reviews-link" href="${reviewsUrl}" aria-label="Read reviews for ${escapeAttr(chatbot.name)}"><p>(${rCount})</p></a>
                                 </div>
                             </div>
                         </div>
@@ -519,7 +524,6 @@ function openRatingModal(chatbotId, chatbotName) {
     state.ratingValue = 0;
 
     ratingModalTitle.textContent = `Rate: ${chatbotName}`;
-    ratingTitleInput.value = '';
     ratingTextInput.value = '';
     ratingModalError.textContent = '';
     ratingModalError.style.display = 'none';
@@ -603,12 +607,6 @@ function openRatingModal(chatbotId, chatbotName) {
             ratingModalError.style.display = 'block';
             return;
         }
-        if (!ratingTextInput.value.trim()) {
-            ratingModalError.textContent = 'Please write your review.';
-            ratingModalError.style.display = 'block';
-            return;
-        }
-
         ratingSubmitBtn.disabled = true;
         ratingSubmitBtn.textContent = 'Submitting...';
 
@@ -618,7 +616,6 @@ function openRatingModal(chatbotId, chatbotName) {
             body: JSON.stringify({
                 chatbot_id:  state.ratingChatbotId,
                 rating:      state.ratingValue,
-                title:       ratingTitleInput.value.trim(),
                 review_text: ratingTextInput.value.trim(),
             }),
         })
@@ -647,7 +644,13 @@ function openRatingModal(chatbotId, chatbotName) {
     // FETCH
     // ============================================
 
-    window.getActiveFilterParams = function () {
+    function cloneFilterParams(params) {
+        return Object.fromEntries(
+            Object.entries(params).map(([key, value]) => [key, Array.isArray(value) ? [...value] : value])
+        );
+    }
+
+    function collectDraftFilterParams() {
         const val = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
 
         const params = {};
@@ -668,6 +671,11 @@ function openRatingModal(chatbotId, chatbotName) {
                     params['features[]'].push(span.dataset.featureId);
                 }
             });
+
+        if (typeof window.getActiveCurrencies === 'function') {
+            const currencies = window.getActiveCurrencies();
+            if (currencies.length > 0) params['currency[]'] = currencies;
+        }
         
         // Integrations — OR filter
         if (typeof window.getActiveIntegrationIds === 'function') {
@@ -682,6 +690,10 @@ function openRatingModal(chatbotId, chatbotName) {
         }
 
         return params;
+    }
+
+    window.getActiveFilterParams = function () {
+        return cloneFilterParams(appliedFilterParams);
     };
 
     function loadFavourites(isSearch = false) {
@@ -861,60 +873,97 @@ function openRatingModal(chatbotId, chatbotName) {
     // FILTERS MODAL
     // ============================================
 
-    if (filtersBtn && filtersOverlay) {
-        filtersBtn.addEventListener('click', () => {
-            filtersOverlay.style.display = 'flex';
-            lockScroll();
-        });
+    const favouriteNumberFilterKeys = {
+        ratingInputStart: 'ratingStart',
+        ratingInputEnd: 'ratingEnd',
+        votesInputStart: 'votesStart',
+        votesInputEnd: 'votesEnd',
+        favoritesInputStart: 'favoritesStart',
+        favoritesInputEnd: 'favoritesEnd',
+        priceInputStart: 'priceStart',
+        priceInputEnd: 'priceEnd',
+    };
+
+    const favouriteFilterGroups = [
+        ['.favourites-filters-modal-body-features-single', 'features[]', 'featureId'],
+        ['.favourites-filters-modal-body-currency-single', 'currency[]', 'currencyCode'],
+        ['.favourites-filters-modal-body-integrations-single', 'integrations[]', 'integrationId'],
+        ['.favourites-filters-modal-body-pricing-single', 'pricing[]', 'pricingModel'],
+    ];
+
+    function refreshFavouriteDraftUi() {
+        if (typeof window.clearFilterResultsCount === 'function') window.clearFilterResultsCount();
+        if (typeof window.updateFilterBadge === 'function') window.updateFilterBadge();
+        if (typeof window.triggerFeatureCountsRefresh === 'function') window.triggerFeatureCountsRefresh();
+        if (typeof window.triggerIntegrationCountsRefresh === 'function') window.triggerIntegrationCountsRefresh();
+        if (typeof window.triggerPricingCountsRefresh === 'function') window.triggerPricingCountsRefresh();
+        if (typeof window.triggerCurrencyCountsRefresh === 'function') window.triggerCurrencyCountsRefresh();
     }
 
-    if (filtersCloseBtn) {
-        filtersCloseBtn.addEventListener('click', () => {
-            filtersOverlay.style.display = 'none';
-            unlockScroll();
+    function restoreFavouriteDraftFromApplied() {
+        Object.entries(favouriteNumberFilterKeys).forEach(([id, key]) => {
+            const input = document.getElementById(id);
+            if (input) input.value = appliedFilterParams[key] ?? '';
         });
+
+        favouriteFilterGroups.forEach(([selector, key, dataKey]) => {
+            const selected = new Set(appliedFilterParams[key] ?? []);
+            document.querySelectorAll(selector).forEach(element => {
+                element.classList.toggle('active', selected.has(element.dataset[dataKey]));
+            });
+        });
+
+        refreshFavouriteDraftUi();
     }
+
+    function openFavouriteFiltersModal() {
+        restoreFavouriteDraftFromApplied();
+        filtersOverlay.style.display = 'flex';
+        lockScroll();
+    }
+
+    function closeFavouriteFiltersModal(discardDraft = true) {
+        if (discardDraft) restoreFavouriteDraftFromApplied();
+        filtersOverlay.style.display = 'none';
+        unlockScroll();
+    }
+
+    if (filtersBtn && filtersOverlay) {
+        filtersBtn.addEventListener('click', openFavouriteFiltersModal);
+    }
+
+    if (filtersCloseBtn) filtersCloseBtn.addEventListener('click', () => closeFavouriteFiltersModal());
 
     if (filtersClearBtn) {
         filtersClearBtn.addEventListener('click', () => {
             filterNumberInputs.forEach(input => { input.value = ''; });
-            document.querySelectorAll('.favourites-filters-modal-body-features-single.active')
-                .forEach(el => el.classList.remove('active'));
-            if (typeof window.updateFilterBadge === 'function')
-                window.updateFilterBadge();
-            if (typeof window.triggerFeatureCountsRefresh === 'function')
-                window.triggerFeatureCountsRefresh();
+            favouriteFilterGroups.forEach(([selector]) => {
+                document.querySelectorAll(selector).forEach(element => element.classList.remove('active'));
+            });
+            refreshFavouriteDraftUi();
         });
     }
 
     const applyFavFiltersBtn = document.querySelector('.favourites-filters-modal-apply-btn');
     if (applyFavFiltersBtn) {
         applyFavFiltersBtn.addEventListener('click', () => {
-            filtersOverlay.style.display = 'none';
-            unlockScroll();
+            appliedFilterParams = cloneFilterParams(collectDraftFilterParams());
+            closeFavouriteFiltersModal(false);
             window.applyFilters();
         });
     }
 
-    // filterNumberInputs.forEach(input => {
-    //     input.addEventListener('input', updateFilterCount);
-    // });
+    if (filtersOverlay) {
+        filtersOverlay.addEventListener('click', event => {
+            if (event.target === filtersOverlay) closeFavouriteFiltersModal();
+        });
+    }
 
-    // function updateFilterCount() {
-    //     let count = 0;
-    //     filterNumberInputs.forEach(input => { if (input.value !== '') count++; });
-    //     const activeFeatures = document.querySelectorAll('.favourites-filters-modal-body-features-single.active').length;
-    //     count += activeFeatures;
-
-    //     if (filtersCount && filtersCountNum) {
-    //         if (count > 0) {
-    //             filtersCount.style.display = 'flex';
-    //             filtersCountNum.textContent = count;
-    //         } else {
-    //             filtersCount.style.display = 'none';
-    //         }
-    //     }
-    // }
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && filtersOverlay?.style.display === 'flex') {
+            closeFavouriteFiltersModal();
+        }
+    });
 
     // ============================================
     // MOVE UP BUTTON

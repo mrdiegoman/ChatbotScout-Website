@@ -6,8 +6,8 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.querySelector('form[action*="login.php"]');
-    const signUpForm = document.querySelector('form[action*="signUp.php"]');
+    const loginForm = document.querySelector('form[action*="login.php"], form[action="login"]');
+    const signUpForm = document.querySelector('#sign-up-form');
     
     if (loginForm) {
         initLoginValidation(loginForm);
@@ -32,7 +32,7 @@ function initLoginValidation(form) {
     }
     
     if (passwordInput) {
-        passwordInput.addEventListener('blur', () => validatePassword(passwordInput));
+        passwordInput.addEventListener('blur', () => validateRequiredPassword(passwordInput));
     }
     
     // Submit validation
@@ -43,7 +43,7 @@ function initLoginValidation(form) {
             isValid = false;
         }
         
-        if (passwordInput && !validatePassword(passwordInput)) {
+        if (passwordInput && !validateRequiredPassword(passwordInput)) {
             isValid = false;
         }
         
@@ -78,7 +78,16 @@ function initSignUpValidation(form) {
     }
     
     if (passwordInput) {
-        passwordInput.addEventListener('blur', () => validatePassword(passwordInput));
+        passwordInput.addEventListener('blur', () => validatePasswordStrength(passwordInput));
+        passwordInput.addEventListener('input', () => {
+            updatePasswordChecklist(passwordInput);
+            clearPasswordServerError(passwordInput);
+
+            // Po prvej neúspešnej validácii aktualizuj stav aj počas písania.
+            if (passwordInput.classList.contains('error')) {
+                validatePasswordStrength(passwordInput);
+            }
+        });
     }
     
     // Submit validation
@@ -97,7 +106,7 @@ function initSignUpValidation(form) {
             isValid = false;
         }
         
-        if (passwordInput && !validatePassword(passwordInput)) {
+        if (passwordInput && !validatePasswordStrength(passwordInput)) {
             isValid = false;
         }
         
@@ -136,7 +145,7 @@ function validateEmail(input) {
     return true;
 }
 
-function validatePassword(input) {
+function validateRequiredPassword(input) {
     const value = input.value;
     
     if (value === '') {
@@ -144,13 +153,63 @@ function validatePassword(input) {
         return false;
     }
     
-    if (value.length < 8) {
-        showError(input, 'Password must be at least 8 characters long.');
-        return false;
-    }
-    
     clearError(input);
     return true;
+}
+
+function validatePasswordStrength(input) {
+    const value = input.value;
+    const errors = getPasswordValidationErrors(value);
+    updatePasswordChecklist(input);
+
+    if (value === '') {
+        showError(input, 'Password is required.');
+        return false;
+    }
+
+    if (errors.length) {
+        showError(input, 'Please meet all password requirements below.');
+        return false;
+    }
+
+    clearError(input);
+    return true;
+}
+
+function getPasswordValidationErrors(value) {
+    const errors = [];
+
+    if (Array.from(value).length < 8) errors.push('length');
+    if (!/\p{Lu}/u.test(value)) errors.push('uppercase');
+    if (!/\p{Ll}/u.test(value)) errors.push('lowercase');
+    if (!/\p{N}/u.test(value)) errors.push('number');
+    if (!/[^\p{L}\p{N}\s]/u.test(value)) errors.push('special');
+
+    return errors;
+}
+
+function updatePasswordChecklist(input) {
+    const checklist = document.getElementById('password-requirements');
+    if (!checklist) return;
+
+    const unmetRules = new Set(getPasswordValidationErrors(input.value));
+    checklist.querySelectorAll('[data-password-rule]').forEach((item) => {
+        const rule = item.dataset.passwordRule;
+        const isMet = !unmetRules.has(rule);
+        const label = item.textContent.trim();
+
+        item.classList.toggle('is-met', isMet);
+        item.setAttribute('aria-label', `${isMet ? 'Met' : 'Not met'}: ${label}`);
+    });
+}
+
+function clearPasswordServerError(input) {
+    const formGroup = input.closest('.form-group');
+    const serverError = formGroup.querySelector('.password-server-error');
+
+    if (serverError) {
+        serverError.remove();
+    }
 }
 
 function validateName(input, fieldName) {

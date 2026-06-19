@@ -39,7 +39,6 @@ if (!empty($user['is_review_blocked'])) {
 $data       = json_decode(file_get_contents('php://input'), true);
 $chatbotId  = trim($data['chatbot_id'] ?? '');
 $rating     = (int)($data['rating'] ?? 0);
-$title      = trim($data['title'] ?? '');
 $reviewText = trim($data['review_text'] ?? '');
 
 // ============================================
@@ -53,16 +52,6 @@ if (empty($chatbotId)) {
 
 if ($rating < 1 || $rating > 5) {
     echo json_encode(['success' => false, 'message' => 'Rating must be between 1 and 5.']);
-    exit;
-}
-
-if (empty($reviewText)) {
-    echo json_encode(['success' => false, 'message' => 'Review message cannot be empty.']);
-    exit;
-}
-
-if (mb_strlen($title) > 200) {
-    echo json_encode(['success' => false, 'message' => 'Title is too long (max 200 characters).']);
     exit;
 }
 
@@ -104,17 +93,16 @@ try {
 
     $insertStmt = $db->prepare("
         INSERT INTO `reviews`
-            (`id`, `chatbot_id`, `user_id`, `rating`, `title`, `review_text`, `status`)
+            (`id`, `chatbot_id`, `user_id`, `rating`, `review_text`, `status`)
         VALUES
-            (:id, :chatbot_id, :user_id, :rating, :title, :review_text, 'pending')
+            (:id, :chatbot_id, :user_id, :rating, :review_text, 'pending')
     ");
     $insertStmt->execute([
         ':id'          => $reviewId,
         ':chatbot_id'  => $chatbotId,
         ':user_id'     => $user['id'],
         ':rating'      => $rating,
-        ':title'       => $title ?: null,
-        ':review_text' => $reviewText,
+        ':review_text' => $reviewText !== '' ? $reviewText : null,
     ]);
 
     AuditLog::log('review', $reviewId, 'created',
@@ -163,7 +151,6 @@ try {
                 $user['email'],
                 $chatbotName,
                 $rating,
-                $title,
                 $reviewText,
                 $reviewId,
                 $noreplyEmail,

@@ -127,7 +127,7 @@ require '../inc/header.php';
         </div>
         
         <!-- Registration Form -->
-        <form method="POST" action="sign-up" class="auth-form">
+        <form method="POST" action="sign-up" class="auth-form" id="sign-up-form">
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
             <div class="name-fields">
                 <!-- First Name Field -->
@@ -199,6 +199,7 @@ require '../inc/header.php';
                         id="password" 
                         name="password" 
                         autocomplete="new-password"
+                        aria-describedby="password-requirements"
                         class="<?php echo !empty($errors['password']) ? 'error' : ''; ?>"
                     >
                     <button type="button" class="toggle-password" aria-label="Toggle password visibility">
@@ -210,14 +211,35 @@ require '../inc/header.php';
                 </div>
                 
                 <?php if (!empty($errors['password'])): ?>
-                    <?php foreach ($errors['password'] as $error): ?>
-                        <small class="error-message">
-                            <?php echo htmlspecialchars($error); ?>
-                        </small>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <small class="password-hint">Minimum 8 characters</small>
+                    <small class="error-message password-server-error">
+                        Please meet all password requirements below.
+                    </small>
                 <?php endif; ?>
+                <div class="password-requirements" id="password-requirements">
+                    <p class="password-requirements__title">Your password must contain:</p>
+                    <ul>
+                        <li data-password-rule="length" aria-label="Not met: At least 8 characters">
+                            <span class="password-requirements__icon" aria-hidden="true"></span>
+                            <span>At least 8 characters</span>
+                        </li>
+                        <li data-password-rule="uppercase" aria-label="Not met: An uppercase letter">
+                            <span class="password-requirements__icon" aria-hidden="true"></span>
+                            <span>An uppercase letter</span>
+                        </li>
+                        <li data-password-rule="lowercase" aria-label="Not met: A lowercase letter">
+                            <span class="password-requirements__icon" aria-hidden="true"></span>
+                            <span>A lowercase letter</span>
+                        </li>
+                        <li data-password-rule="number" aria-label="Not met: A number">
+                            <span class="password-requirements__icon" aria-hidden="true"></span>
+                            <span>A number</span>
+                        </li>
+                        <li data-password-rule="special" aria-label="Not met: A special character">
+                            <span class="password-requirements__icon" aria-hidden="true"></span>
+                            <span>A special character (for example !, @, or #)</span>
+                        </li>
+                    </ul>
+                </div>
             </div>
             
             <!-- Terms & Conditions Checkbox (Required) -->

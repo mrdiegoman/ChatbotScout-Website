@@ -3,7 +3,7 @@
  * AJAX Endpoint - Update Review (user)
  *
  * Akcie:
- * - edit   → update rating/title/text, status = pending, moderation_notes = null
+ * - edit   → update rating/text, status = pending, moderation_notes = null
  * - delete → zmazanie review (iba vlastné)
  */
 
@@ -64,20 +64,11 @@ try {
     // ============================================
 
     if ($action === 'edit') {
-        $rating     = (int)($data['rating']      ?? 0);
-        $title      = trim($data['title']        ?? '');
-        $reviewText = trim($data['review_text']  ?? '');
+        $rating     = (int)($data['rating']     ?? 0);
+        $reviewText = trim($data['review_text'] ?? '');
 
         if ($rating < 1 || $rating > 5) {
             echo json_encode(['success' => false, 'message' => 'Rating must be between 1 and 5']);
-            exit;
-        }
-        if (empty($reviewText)) {
-            echo json_encode(['success' => false, 'message' => 'Review text cannot be empty']);
-            exit;
-        }
-        if (mb_strlen($title) > 200) {
-            echo json_encode(['success' => false, 'message' => 'Title is too long (max 200 characters)']);
             exit;
         }
         if (mb_strlen($reviewText) > 5000) {
@@ -89,7 +80,7 @@ try {
             UPDATE reviews
             SET
                 rating            = :rating,
-                title             = :title,
+                title             = NULL,
                 review_text       = :review_text,
                 status            = 'pending',
                 moderation_notes  = NULL,
@@ -99,8 +90,7 @@ try {
         ");
         $stmt->execute([
             ':rating'      => $rating,
-            ':title'       => $title ?: null,
-            ':review_text' => $reviewText,
+            ':review_text' => $reviewText !== '' ? $reviewText : null,
             ':id'          => $id,
             ':user_id'     => $user['id'],
         ]);

@@ -30,8 +30,6 @@
 
     const filtersCountBadge  = document.getElementById('filtersCount');
     const filtersCountNum    = document.getElementById('filtersCountNum');
-    const filterResultsCount = document.getElementById('filterResultsCount');
-
     // ============================================
     // BADGE UPDATE
     // Spolupracuje s filterFeaturesAdding.js
@@ -107,11 +105,6 @@
                 span.textContent = `${name} (${count})`;
             });
 
-            // Live count (favouritesShowcase + chatbotShowcase)
-            if (filterResultsCount && data.total !== undefined) {
-                const t = data.total;
-                filterResultsCount.textContent = `Found ${t} chatbot${t !== 1 ? 's' : ''}`;
-            }
         })
         .catch(() => {});
     }

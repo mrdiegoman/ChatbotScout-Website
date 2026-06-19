@@ -449,9 +449,9 @@ require '../inc/header.php';
                     <img src="img/ChatbotScout_logo.png" alt="ChatbotScout">
                 </div>
                 <div class="hp-chat-msg hp-chat-msg-bot">
-                    <h3>Not Just Websites — Bots for Every Platform</h3>
+                    <h3>Not Just Websites - Bots for Every Platform</h3>
                     <p>
-                        Every listing shows which platforms the chatbot supports — including WhatsApp,
+                        Every listing shows which platforms the chatbot supports - including WhatsApp,
                         Telegram, Instagram, Facebook Messenger, Slack, and more. Filter by integration
                         to find the right bot for your messaging app in seconds.
                     </p>

@@ -107,8 +107,10 @@ if (!$userInfo || empty($userInfo['email'])) {
 
 $googleId    = $userInfo['id']             ?? '';
 $email       = $userInfo['email']          ?? '';
-$picture     = $userInfo['picture']        ?? null;
 $isVerified  = $userInfo['verified_email'] ?? false;
+
+// Google profile images are intentionally not imported. Avatars are opt-in
+// and may only be uploaded manually in the user's profile.
 
 // Parsovanie mena - Google niekedy dá celé meno iba do given_name
 $firstName = trim($userInfo['given_name'] ?? '');
@@ -176,12 +178,6 @@ try {
             $updateFields[] = 'email_verification_expires_at = NULL';
         }
 
-        // Ak nemá profilovú fotku a Google ju poskytol, nastav ju
-        if (empty($existingUser['profile_picture_url']) && !empty($picture)) {
-            $updateFields[] = 'profile_picture_url = :picture';
-            $updateParams['picture'] = $picture;
-        }
-
         $updateStmt = $db->prepare("
             UPDATE users SET " . implode(', ', $updateFields) . "
             WHERE id = :id
@@ -194,7 +190,7 @@ try {
             'email'               => $existingUser['email'],
             'first_name'          => $existingUser['first_name'],
             'last_name'           => $existingUser['last_name'],
-            'profile_picture_url' => $existingUser['profile_picture_url'] ?: $picture,
+            'profile_picture_url' => localProfilePictureUrl($existingUser['profile_picture_url'] ?? null),
             'is_email_verified'   => true,
             'status'              => 'active',
             'marketing_emails'    => (bool)$existingUser['marketing_emails'],
@@ -222,7 +218,6 @@ try {
                 google_id,
                 first_name,
                 last_name,
-                profile_picture_url,
                 is_email_verified,
                 email_verified_at,
                 status,
@@ -240,7 +235,6 @@ try {
                 :google_id,
                 :first_name,
                 :last_name,
-                :picture,
                 1,
                 NOW(),
                 'active',
@@ -261,7 +255,6 @@ try {
             'google_id'    => $googleId,
             'first_name'   => $firstName,
             'last_name'    => $lastName,
-            'picture'      => $picture,
             'unsubscribe_token' => bin2hex(random_bytes(32)),
         ]);
 
@@ -270,7 +263,7 @@ try {
             'email'               => $email,
             'first_name'          => $firstName,
             'last_name'           => $lastName,
-            'profile_picture_url' => $picture,
+            'profile_picture_url' => null,
             'is_email_verified'   => true,
             'status'              => 'active',
             'marketing_emails'    => false,

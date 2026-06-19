@@ -17,8 +17,6 @@
     const currencyContainer = document.getElementById('currencyContainer');
     if (!currencyContainer) return;
 
-    const filterResultsCount = document.getElementById('filterResultsCount');
-
     // ── Badge ────────────────────────────────────────────────────────────────
     function updateBadge() {
         if (typeof window.updateFilterBadge === 'function') window.updateFilterBadge();
@@ -78,10 +76,6 @@
                     span.textContent = `${symbol} ${code} (${count})`;
                 });
 
-            if (filterResultsCount && data.total !== undefined) {
-                const t = data.total;
-                filterResultsCount.textContent = `Found ${t} chatbot${t !== 1 ? 's' : ''}`;
-            }
         })
         .catch(() => {});
     }

@@ -625,6 +625,17 @@ body.page-chatbotShowcase .footer-main-bottom {
     font-size: 1.5rem;
 }
 
+.chatbot-reviews-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.chatbot-reviews-link:hover p,
+.chatbot-reviews-link:focus-visible p {
+    color: var(--blue-color, #2563eb);
+    text-decoration: underline;
+}
+
 .chatbot-page-main-content-chatbots-grid-view-item-top-favourites-container,
 .chatbot-page-main-content-chatbots-list-view-item-top-favourites-container {
     display: flex;
@@ -646,13 +657,13 @@ body.page-chatbotShowcase .footer-main-bottom {
     width: 4rem;
     height: 4rem;
     border: 0.15rem solid transparent;
-    transition: border-color 0.2s ease-out;
+    color: var(--black-color-light);
+    transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .chatbot-page-main-content-chatbots-grid-view-item-top-favourites-container-btn:hover,
 .chatbot-page-main-content-chatbots-list-view-item-top-favourites-container-btn:hover {
-    border-color: var(--grey-color-mid);
-    transition: box-shadow 0s;
+    color: #C2415D;
 }
 
 .chatbot-page-main-content-chatbots-grid-view-item-top-favourites-container-btn svg,
@@ -664,11 +675,23 @@ body.page-chatbotShowcase .footer-main-bottom {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    transition: stroke 0.2s ease, fill 0.2s ease, stroke-width 0.2s ease;
+}
+
+.chatbot-page-main-content-chatbots-grid-view-item-top-favourites-container-btn:hover svg,
+.chatbot-page-main-content-chatbots-list-view-item-top-favourites-container-btn:hover svg {
+    stroke-width: 0.24rem;
 }
 
 .chatbot-page-main-content-chatbots-grid-view-item-top-favourites-container-btn.active svg,
 .chatbot-page-main-content-chatbots-list-view-item-top-favourites-container-btn.active svg{
     stroke: #C2415D;
+    fill: #C2415D;
+}
+
+.chatbot-page-main-content-chatbots-grid-view-item-top-favourites-container-btn.active:hover svg,
+.chatbot-page-main-content-chatbots-list-view-item-top-favourites-container-btn.active:hover svg {
+    stroke: #9F2F49;
     fill: #C2415D;
 }
 
@@ -1887,7 +1910,12 @@ body.page-chatbotShowcase .footer-main-bottom {
 .chatbot-rating-modal-field textarea {
     min-height: 10rem;
     max-height: 18rem;
+    overflow-wrap: anywhere;
+    overflow-x: hidden;
     overflow-y: auto;
+    resize: none;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .chatbot-rating-modal-field input:focus,

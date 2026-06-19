@@ -960,10 +960,7 @@ if ($action === 'upload_avatar') {
         imagedestroy($image);
         imagedestroy($thumb);
         
-        if ($user['profile_picture_url'] && strpos($user['profile_picture_url'], 'default-avatar') === false) {
-            $oldPath = __DIR__ . '/../' . $user['profile_picture_url'];
-            if (file_exists($oldPath)) unlink($oldPath);
-        }
+        deleteLocalProfilePicture($user['profile_picture_url'] ?? null);
         
         $db = Database::getInstance()->getConnection();
         $stmt = $db->prepare("UPDATE users SET profile_picture_url = :url WHERE id = :id");
@@ -1046,8 +1043,9 @@ if ($action === 'change_password') {
         exit;
     }
     
-    if (strlen($newPassword) < 8) {
-        echo json_encode(['success' => false, 'message' => 'Password must be at least 8 characters']);
+    $passwordErrors = PasswordPolicy::validate($newPassword);
+    if ($passwordErrors) {
+        echo json_encode(['success' => false, 'message' => implode(' ', $passwordErrors)]);
         exit;
     }
     

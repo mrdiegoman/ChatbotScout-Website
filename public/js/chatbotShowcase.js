@@ -55,7 +55,6 @@
     const ratingModalTitle   = document.getElementById('ratingModalTitle');
     const ratingStarsPicker  = document.getElementById('ratingStarsPicker');
     const ratingStarsLabel   = document.getElementById('ratingStarsLabel');
-    const ratingTitleInput   = document.getElementById('ratingTitleInput');
     const ratingTextInput    = document.getElementById('ratingTextInput');
     const ratingModalError   = document.getElementById('ratingModalError');
     const ratingModalSuccess = document.getElementById('ratingModalSuccess');
@@ -224,6 +223,7 @@
         const intEmpty     = integrations.length === 0 ? ' platforms-btn--empty' : '';
         const rating  = chatbot.rating_average ? Number(chatbot.rating_average).toFixed(1) : '—';
         const rCount  = chatbot.rating_count ? Number(chatbot.rating_count).toLocaleString() : '0';
+        const reviewsUrl = `chatbot-reviews?chatbot=${encodeURIComponent(chatbot.id)}`;
         const favCount = chatbot.favorite_count ?? 0;
         let badgeHtml = '';
         if (chatbot.is_sponsored) badgeHtml += `<span class="chatbot-tag-sponsored"><p>✦ Sponsored ✦</p></span>`;
@@ -241,7 +241,7 @@
                         <div class="chatbot-page-main-content-chatbots-grid-view-item-top-base-2">
                             ${stars}
                             <p>${rating}</p>
-                            <p>(${rCount})</p>
+                            <a class="chatbot-reviews-link" href="${reviewsUrl}" aria-label="Read reviews for ${escapeAttr(chatbot.name)}"><p>(${rCount})</p></a>
                         </div>
                     </div>
                     <div class="chatbot-page-main-content-chatbots-grid-view-item-top-favourites-container">
@@ -306,6 +306,7 @@
         const intEmpty     = integrations.length === 0 ? ' platforms-btn--empty' : '';
         const rating   = chatbot.rating_average ? Number(chatbot.rating_average).toFixed(1) : '—';
         const rCount   = chatbot.rating_count ? Number(chatbot.rating_count).toLocaleString() : '0';
+        const reviewsUrl = `chatbot-reviews?chatbot=${encodeURIComponent(chatbot.id)}`;
         const favCount = chatbot.favorite_count ?? 0;
         let badgeHtml = '';
         if (chatbot.is_sponsored) badgeHtml += `<span class="chatbot-tag-sponsored"><p>✦ Sponsored ✦</p></span>`;
@@ -325,7 +326,7 @@
                                 <div class="chatbot-page-main-content-chatbots-list-view-item-top-base-2">
                                     ${stars}
                                     <p>${rating}</p>
-                                    <p>(${rCount})</p>
+                                    <a class="chatbot-reviews-link" href="${reviewsUrl}" aria-label="Read reviews for ${escapeAttr(chatbot.name)}"><p>(${rCount})</p></a>
                                 </div>
                             </div>
                             <div class="chatbot-page-main-content-chatbots-list-view-item-top-favourites-container">
@@ -690,7 +691,6 @@
         state.ratingValue = 0;
 
         ratingModalTitle.textContent = `Rate: ${chatbotName}`;
-        ratingTitleInput.value = '';
         ratingTextInput.value = '';
         ratingModalError.textContent = '';
         ratingModalError.style.display = 'none';
@@ -774,12 +774,6 @@
             ratingModalError.style.display = 'block';
             return;
         }
-        if (!ratingTextInput.value.trim()) {
-            ratingModalError.textContent = 'Please write your review.';
-            ratingModalError.style.display = 'block';
-            return;
-        }
-
         ratingSubmitBtn.disabled = true;
         ratingSubmitBtn.textContent = 'Submitting...';
 
@@ -789,7 +783,6 @@
             body: JSON.stringify({
                 chatbot_id:  state.ratingChatbotId,
                 rating:      state.ratingValue,
-                title:       ratingTitleInput.value.trim(),
                 review_text: ratingTextInput.value.trim(),
             }),
         })

@@ -147,7 +147,7 @@ class Session
             'email'               => $data['email'],
             'first_name'          => $data['first_name'],
             'last_name'           => $data['last_name'],
-            'profile_picture_url' => $data['profile_picture_url'],
+            'profile_picture_url' => localProfilePictureUrl($data['profile_picture_url'] ?? null),
             'is_email_verified'   => (bool)$data['is_email_verified'],
             'status'              => $data['status'],
             'marketing_emails'    => (bool)$data['marketing_emails'],

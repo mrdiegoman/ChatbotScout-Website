@@ -652,6 +652,17 @@ body.page-favouritesShowcase .footer-main-bottom {
     font-size: 1.5rem;
 }
 
+.favourites-reviews-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.favourites-reviews-link:hover p,
+.favourites-reviews-link:focus-visible p {
+    color: var(--blue-color, #2563eb);
+    text-decoration: underline;
+}
+
 .favourites-page-main-content-chatbots-grid-view-item-description-container,
 .favourites-page-main-content-chatbots-list-view-item-description-container {
     display: flex;
@@ -1958,7 +1969,12 @@ body.page-favouritesShowcase .footer-main-bottom {
 .chatbot-rating-modal-field textarea {
     min-height: 10rem;
     max-height: 18rem;
+    overflow-wrap: anywhere;
+    overflow-x: hidden;
     overflow-y: auto;
+    resize: none;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .chatbot-rating-modal-field input:focus,

@@ -31,7 +31,6 @@ try {
         SELECT
             r.id,
             r.rating,
-            r.title,
             r.review_text,
             r.status,
             r.moderation_notes,

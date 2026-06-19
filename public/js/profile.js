@@ -293,8 +293,15 @@ if (savePasswordBtn) {
             return;
         }
         
-        if (newPassword.length < 8) {
-            showNotification('New password must be at least 8 characters', 'error');
+        const passwordErrors = [];
+        if (newPassword.length < 8) passwordErrors.push('at least 8 characters');
+        if (!/\p{Lu}/u.test(newPassword)) passwordErrors.push('an uppercase letter');
+        if (!/\p{Ll}/u.test(newPassword)) passwordErrors.push('a lowercase letter');
+        if (!/\p{N}/u.test(newPassword)) passwordErrors.push('a number');
+        if (!/[^\p{L}\p{N}\s]/u.test(newPassword)) passwordErrors.push('a special character');
+
+        if (passwordErrors.length) {
+            showNotification(`New password must contain ${passwordErrors.join(', ')}`, 'error');
             return;
         }
         

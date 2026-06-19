@@ -30,6 +30,25 @@ function generateUUID(): string {
 }
 
 /**
+ * Profile avatars may only be files uploaded through this application.
+ * External provider URLs (including Google profile pictures) intentionally
+ * resolve to null so they can never trigger a third-party image request.
+ */
+function localProfilePictureUrl(?string $url): ?string {
+    if (!is_string($url)) {
+        return null;
+    }
+
+    $url = trim(str_replace('\\', '/', $url));
+
+    if (!preg_match('#^img/avatars/[A-Za-z0-9][A-Za-z0-9._-]*\.(?:jpe?g|png|webp)$#i', $url)) {
+        return null;
+    }
+
+    return $url;
+}
+
+/**
  * Validácia CSRF tokenu.
  * Kontroluje X-CSRF-Token header (fetch) alebo csrf_token POST pole (HTML formy).
  *
@@ -74,7 +93,7 @@ header(
     "default-src 'self'; " .
     $cspScriptSrc .
     "style-src 'self' 'unsafe-inline'; " .
-    "img-src 'self' data: https://lh3.googleusercontent.com; " .
+    "img-src 'self' data:; " .
     "font-src 'self' data:; " .
     "connect-src 'self' https://api.stripe.com https://js.stripe.com https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com; " .
     "frame-src https://js.stripe.com; " .

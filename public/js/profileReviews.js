@@ -40,7 +40,6 @@
     const editModalTitle   = document.getElementById('editReviewModalTitle');
     const editStarsPicker  = document.getElementById('editRatingStarsPicker');
     const editStarsLabel   = document.getElementById('editRatingStarsLabel');
-    const editTitleInput   = document.getElementById('editReviewTitleInput');
     const editTextInput    = document.getElementById('editReviewTextInput');
     const editErrorEl      = document.getElementById('editReviewError');
     const editSuccessEl    = document.getElementById('editReviewSuccess');
@@ -117,8 +116,8 @@
             stars += `<span class="pr-star ${i <= r.rating ? 'pr-star-filled' : 'pr-star-empty'}">★</span>`;
         }
 
-        const titleBlock = r.title
-            ? `<div class="pr-review-title">"${escHtml(r.title)}"</div>` : '';
+        const reviewTextBlock = r.review_text
+            ? `<div class="pr-review-text">${escHtmlNl(r.review_text)}</div>` : '';
 
         const notesBlock = r.moderation_notes
             ? `<div class="pr-moderation-note">
@@ -149,9 +148,7 @@
                 </div>
             </div>
 
-            ${titleBlock}
-
-            <div class="pr-review-text">${escHtmlNl(r.review_text)}</div>
+            ${reviewTextBlock}
 
             ${notesBlock}
 
@@ -196,11 +193,9 @@
         // Prečítaj dáta z karty
         const chatbotName = card.querySelector('.pr-chatbot-name').textContent.replace('🤖 ', '').trim();
         const ratingNum   = parseInt(card.querySelector('.pr-rating-num').textContent);
-        const titleEl     = card.querySelector('.pr-review-title');
         const textEl      = card.querySelector('.pr-review-text');
 
         editModalTitle.textContent = `Edit review — ${chatbotName}`;
-        editTitleInput.value       = titleEl ? titleEl.textContent.replace(/^"|"$/g, '') : '';
         editTextInput.value        = textEl  ? textEl.innerText : '';
 
         // Reset error/success
@@ -260,12 +255,6 @@
                 editErrorEl.style.display = 'block';
                 return;
             }
-            if (!editTextInput.value.trim()) {
-                editErrorEl.textContent   = 'Review text cannot be empty.';
-                editErrorEl.style.display = 'block';
-                return;
-            }
-
             editSubmitBtn.disabled    = true;
             editSubmitBtn.textContent = 'Saving...';
 
@@ -277,7 +266,6 @@
                         action:      'edit',
                         id:          editingReviewId,
                         rating:      currentRating,
-                        title:       editTitleInput.value.trim(),
                         review_text: editTextInput.value.trim(),
                     }),
                 });
@@ -290,7 +278,6 @@
 
                     updateCardAfterEdit(editingReviewId, {
                         rating:      currentRating,
-                        title:       editTitleInput.value.trim(),
                         review_text: editTextInput.value.trim(),
                         status:      'pending',
                     });
@@ -324,22 +311,18 @@
         const ratingNum = card.querySelector('.pr-rating-num');
         if (ratingNum) ratingNum.textContent = `${updates.rating}/5`;
 
-        // Title
-        let titleEl = card.querySelector('.pr-review-title');
-        if (updates.title) {
-            if (!titleEl) {
-                titleEl = document.createElement('div');
-                titleEl.className = 'pr-review-title';
-                card.querySelector('.pr-card-header').after(titleEl);
-            }
-            titleEl.textContent = `"${updates.title}"`;
-        } else if (titleEl) {
-            titleEl.remove();
-        }
-
         // Text
-        const textEl = card.querySelector('.pr-review-text');
-        if (textEl) textEl.innerHTML = escHtmlNl(updates.review_text);
+        let textEl = card.querySelector('.pr-review-text');
+        if (updates.review_text) {
+            if (!textEl) {
+                textEl = document.createElement('div');
+                textEl.className = 'pr-review-text';
+                card.querySelector('.pr-card-header').after(textEl);
+            }
+            textEl.innerHTML = escHtmlNl(updates.review_text);
+        } else if (textEl) {
+            textEl.remove();
+        }
 
         // Status badge → pending
         const badge = card.querySelector('.pr-status-badge');

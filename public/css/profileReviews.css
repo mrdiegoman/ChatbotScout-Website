@@ -345,7 +345,12 @@
 
 .pr-modal-field textarea {
     max-height: 18rem;
+    overflow-wrap: anywhere;
+    overflow-x: hidden;
     overflow-y: auto;
+    resize: none;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .pr-modal-field input:focus,

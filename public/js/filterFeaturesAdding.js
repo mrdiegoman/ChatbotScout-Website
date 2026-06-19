@@ -44,7 +44,7 @@
 
     const filtersCountBadge  = document.getElementById('filtersCount');
     const filtersCountNum    = document.getElementById('filtersCountNum');
-    // Live results count (iba na favouritesShowcase)
+    // Jediný zdroj live počtu výsledkov pre celý filter popup.
     const filterResultsCount = document.getElementById('filterResultsCount');
 
     const NUMBER_INPUT_IDS = [
@@ -138,8 +138,15 @@
     // ============================================
 
     let debounceTimer = null;
+    let resultsRequestVersion = 0;
+
+    function clearResultsCount() {
+        if (filterResultsCount) filterResultsCount.textContent = '';
+    }
 
     function fetchAndUpdateCounts() {
+        const requestVersion = ++resultsRequestVersion;
+
         fetch('api/getFeatureCounts.php', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -147,7 +154,8 @@
         })
         .then(res => res.json())
         .then(data => {
-            if (!data.success) return;
+            // Staršia odpoveď nesmie prepísať počet po zmene filtrov.
+            if (!data.success || requestVersion !== resultsRequestVersion) return;
 
             // Aktualizuj počty pri feature tagoch
             const counts = data.counts;
@@ -170,6 +178,8 @@
 
     function scheduleFetch() {
         clearTimeout(debounceTimer);
+        resultsRequestVersion++;
+        clearResultsCount();
         debounceTimer = setTimeout(fetchAndUpdateCounts, 350);
     }
 
@@ -316,5 +326,10 @@
 
     window.updateFilterBadge           = updateBadge;
     window.triggerFeatureCountsRefresh = scheduleFetch;
+    window.clearFilterResultsCount     = function () {
+        clearTimeout(debounceTimer);
+        resultsRequestVersion++;
+        clearResultsCount();
+    };
 
 })();

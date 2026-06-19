@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `password_reset_expires_at` TIMESTAMP NULL COMMENT 'Reset expiration, e.g., "2025-01-29 16:45:00", "2025-01-30 09:30:00"',
 
   -- Profile
-  `profile_picture_url` VARCHAR(500) NULL COMMENT 'Profile picture URL, e.g., "https://cdn.chatbotdir.com/users/john-doe.jpg", "https://storage.googleapis.com/profiles/maria_k.png", "https://imgur.com/abc123.jpg"',
+  `profile_picture_url` VARCHAR(500) NULL COMMENT 'Local profile avatar path, e.g., "img/avatars/avatar_user_123.webp"',
   `bio` TEXT NULL COMMENT 'User bio, e.g., "Digital marketing specialist with 5 years of experience", "Chatbot enthusiast and AI developer from Slovakia", "Helping businesses automate customer support"',
   `marketing_emails` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Marketing emails enabled?, e.g., TRUE, FALSE',
   `unsubscribe_token` VARCHAR(64) NULL UNIQUE COMMENT 'Token pre one-click unsubscribe z marketing emailov',

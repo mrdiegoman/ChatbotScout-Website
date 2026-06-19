@@ -37,8 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: reset-password?token=' . urlencode($token));
         exit;
         
-    } elseif (strlen($newPassword) < 8) {
-        $error = "Password must be at least 8 characters long.";
+    } elseif ($passwordErrors = PasswordPolicy::validate($newPassword)) {
+        $error = implode(' ', $passwordErrors);
         
         // ✅ PRG: Ulož do session a redirect
         $_SESSION['reset_errors'] = $error;
@@ -110,7 +110,9 @@ require '../inc/header.php';
                         </svg>
                     </button>
                 </div>
-                <small style="color: #666; font-size: 12px;">Minimum 8 characters</small>
+                <div class="password-hint">
+                    Your password must contain at least 8 characters, an uppercase letter, a lowercase letter, a number, and a special character (for example !, @, or #).
+                </div>
             </div>
             
             <!-- Confirm Password Field -->

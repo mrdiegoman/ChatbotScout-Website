@@ -308,7 +308,7 @@ require '../inc/header.php';
                     </svg>
                     <div class="chatbot-filters-modal-body-row-group-label-tooltip">
                         <p>Select one or more integrations. Results will include chatbots 
-                           that support <strong>at least one</strong> of your selected integrations =>
+                           that support <strong>at least one</strong> of your selected integrations →
                            the more you pick, the broader the results.</p>
                     </div>
                 </span>
@@ -361,12 +361,8 @@ require '../inc/header.php';
                 <p class="chatbot-rating-modal-stars-label" id="ratingStarsLabel">Select a rating</p>
             </div>
             <div class="chatbot-rating-modal-field">
-                <label for="ratingTitleInput">Title</label>
-                <input type="text" id="ratingTitleInput" maxlength="200" placeholder="Short summary of your experience">
-            </div>
-            <div class="chatbot-rating-modal-field">
-                <label for="ratingTextInput">Your review <span class="chatbot-rating-modal-required">*</span></label>
-                <textarea id="ratingTextInput" maxlength="5000" rows="4" placeholder="Share your experience with this chatbot..."></textarea>
+                <label for="ratingTextInput">Your review</label>
+                <textarea id="ratingTextInput" maxlength="5000" rows="4" wrap="soft" placeholder="Share your experience with this chatbot..."></textarea>
             </div>
             <p class="chatbot-rating-modal-error" id="ratingModalError"></p>
             <p class="chatbot-rating-modal-success" id="ratingModalSuccess"></p>

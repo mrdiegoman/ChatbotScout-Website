@@ -151,7 +151,6 @@ class Email
         string $userEmail,
         string $chatbotName,
         int    $rating,
-        string $title,
         string $reviewText,
         string $reviewId,
         string $fromEmail  = '',
@@ -160,9 +159,10 @@ class Email
         $stars        = str_repeat('★', $rating) . str_repeat('☆', 5 - $rating);
         $subject      = 'New review pending approval: ' . $chatbotName;
         $htmlBody     = $this->getReviewAdminNotificationTemplate(
-            $userName, $userEmail, $chatbotName, $rating, $stars, $title, $reviewText, $reviewId
+            $userName, $userEmail, $chatbotName, $rating, $stars, $reviewText, $reviewId
         );
-        $textBody = "New review pending approval.\n\nChatbot: $chatbotName\nRating: $stars ($rating/5)\nSubmitted by: $userName ($userEmail)\nTitle: $title\n\nReview:\n$reviewText\n\nReview ID: $reviewId";
+        $textReview = $reviewText !== '' ? $reviewText : 'No written review';
+        $textBody = "New review pending approval.\n\nChatbot: $chatbotName\nRating: $stars ($rating/5)\nSubmitted by: $userName ($userEmail)\n\nReview:\n$textReview\n\nReview ID: $reviewId";
  
         $resolvedFrom     = !empty($fromEmail) ? $fromEmail : $this->config['from_email'];
         $resolvedFromName = !empty($fromName)  ? $fromName  : $this->config['from_name'];
@@ -742,12 +742,12 @@ class Email
         string $chatbotName,
         int    $rating,
         string $stars,
-        string $title,
         string $reviewText,
         string $reviewId
     ): string {
-        $reviewHtml   = nl2br(htmlspecialchars($reviewText));
-        $titleDisplay = $title ?: '<em style="color:#9CA3AF;">No title</em>';
+        $reviewHtml = $reviewText !== ''
+            ? nl2br(htmlspecialchars($reviewText))
+            : '<em style="color:#9CA3AF;">Rating only — no written review.</em>';
         $adminUrl     = $this->getOperationsAccessUrl();
  
         $content = <<<HTML
@@ -763,8 +763,6 @@ class Email
                 <div class="value" style="font-size:18px;letter-spacing:2px;">$stars <span style="font-size:13px;color:#6B7280;">($rating / 5)</span></div>
                 <div class="label" style="margin-top:12px;">Submitted By</div>
                 <div class="value">$userName (<a href="mailto:$userEmail" style="color:#6B3FF6;">$userEmail</a>)</div>
-                <div class="label" style="margin-top:12px;">Title</div>
-                <div class="value">$titleDisplay</div>
                 <div class="label" style="margin-top:12px;">Review ID</div>
                 <div class="value" style="font-size:13px;color:#6B7280;">$reviewId</div>
             </div>
