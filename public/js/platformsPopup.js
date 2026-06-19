@@ -116,6 +116,12 @@
 
     closeB.addEventListener('click', closePopup);
 
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            closePopup();
+        }
+    });
+
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('.platforms-popup-trigger');
         if (!btn) return;

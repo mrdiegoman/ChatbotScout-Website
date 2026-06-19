@@ -575,21 +575,27 @@
     display: flex;
     gap: 0.5rem;
     margin-bottom: 1rem;
+    flex-wrap: wrap;
 }
 
 .hp-tag {
-    font-size: 0.85rem;
-    font-family: outfit-semibold, sans-serif;
-    padding: 0.3rem 0.8rem;
-    border-radius: 5px;
-    text-transform: uppercase;
-    letter-spacing: .04em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--green-color);
+    border-radius: 2rem;
+    padding: 0.25rem 1rem;
 }
 
-.hp-tag-blue   { background: #EEF3FF; color: var(--hp-blue); }
-.hp-tag-green  { background: #E6FBF0; color: #059669; }
-.hp-tag-purple { background: #F3EEFF; color: var(--hp-purple); }
-.hp-tag-orange { background: #FFF1EB; color: var(--hp-orange); }
+.hp-tag p {
+    margin: 0;
+    color: var(--white-color-dark);
+    font-size: 1.25rem;
+    letter-spacing: 0.05rem;
+    user-select: none;
+    font-family: outfit-medium;
+    line-height: 1.3;
+}
 
 .hp-pop-name {
     font-family: 'Outfit', sans-serif;
@@ -804,6 +810,13 @@
     color: var(--hp-muted);
     font-size: 1.4rem;
     line-height: 1.6;
+}
+
+.hp-chat-msg-bot .hp-link-green {
+    display: flex;
+    width: fit-content;
+    margin-top: 1.6rem;
+    margin-left: auto;
 }
 
 /* Green variant bot bubble */

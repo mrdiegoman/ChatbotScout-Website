@@ -225,8 +225,6 @@ require '../inc/header.php';
                 <div class="hp-pop-track" id="hp-pop-track">
 
                     <?php
-                    $tagColors = ['hp-tag-blue', 'hp-tag-green', 'hp-tag-purple', 'hp-tag-orange'];
-
                     $popularChatbots = [];
                     $tagNames        = [];
                     $homepageLogoSrc = static function (?string $path): string {
@@ -320,7 +318,6 @@ require '../inc/header.php';
                         $rating     = (float) $bot['rating_average'];
                         $fullStars  = (int) floor($rating);
                         $emptyStars = 5 - $fullStars;
-                        $tagColor   = $tagColors[$i % count($tagColors)];
                         $botTags    = [];
                         if (!empty($bot['has_homepage_promotion'])) {
                             $botTags[] = 'Sponsored';
@@ -342,12 +339,12 @@ require '../inc/header.php';
                         <div class="hp-pop-tags">
                             <?php if (!empty($botTags)): ?>
                                 <?php foreach ($botTags as $tag): ?>
-                                    <span class="hp-tag <?= $tagColor ?>">
-                                        <?= htmlspecialchars($tag) ?>
+                                    <span class="hp-tag">
+                                        <p>✦ <?= htmlspecialchars($tag) ?> ✦</p>
                                     </span>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <span class="hp-tag" style="visibility:hidden;">placeholder</span>
+                                <span class="hp-tag" style="visibility:hidden;"><p>placeholder</p></span>
                             <?php endif; ?>
                         </div>
                         <div class="hp-pop-name">
@@ -397,9 +394,9 @@ require '../inc/header.php';
     <div class="hp-features-inner">
 
         <!-- Section label -->
-        <div class="hp-chat-label hp-fade-up">
+        <!-- <div class="hp-chat-label hp-fade-up">
             <span>✦ Why ChatbotScout?</span>
-        </div>
+        </div> -->
 
         <!-- Messages -->
         <div class="hp-chat-messages">
@@ -427,7 +424,7 @@ require '../inc/header.php';
                         support - find exactly what fits your business in seconds.
 
                     </p>
-                    <a href="chatbots" class="hp-link-green" style="margin-top:16px;display:inline-flex;align-items:center;gap:4px;">
+                    <a href="chatbots" class="hp-link-green">
                         Start searching
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -458,7 +455,7 @@ require '../inc/header.php';
                         Telegram, Instagram, Facebook Messenger, Slack, and more. Filter by integration
                         to find the right bot for your messaging app in seconds.
                     </p>
-                    <a href="chatbots" class="hp-link-green" style="margin-top:16px;display:inline-flex;align-items:center;gap:4px;">
+                    <a href="chatbots" class="hp-link-green">
                         Explore listings
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
