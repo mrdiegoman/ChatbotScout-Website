@@ -13,18 +13,20 @@ require '../inc/header.php';
 <div class="favourites-page-wrapper">
     <main class="favourites-page-main">
         <aside class="favourites-page-main-banner">
-            <div class="favourites-page-main-banner-textdiv">
-                <h1>Favourites</h1>
-                <p>
-                    Here you'll find the chatbots you've marked as your favorites. This space makes 
-                    it easy to revisit the tools you're considering, compare their features, and 
-                    decide which one fits your needs best. You can remove items anytime or come back 
-                    later to continue expanding your list of favorites.
-                </p>
+            <div class="favourites-page-main-banner-content">
+                <div class="favourites-page-main-banner-textdiv">
+                    <h1>Favourites</h1>
+                    <p>
+                        Here you'll find the chatbots you've marked as your favorites. This space makes
+                        it easy to revisit the tools you're considering, compare their features, and
+                        decide which one fits your needs best. You can remove items anytime or come back
+                        later to continue expanding your list of favorites.
+                    </p>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                </svg>
             </div>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
-            </svg>
         </aside>
 
         <section class="favourites-page-main-content">
@@ -295,6 +297,12 @@ require '../inc/header.php';
                 </span>
                 <div class="favourites-filters-modal-body-features-container" id="pricingContainer">
                     <!-- Dynamicky plnené cez filterPricingAdding.js -->
+                </div>
+            </div>
+            <div class="favourites-filters-modal-body-features-wrapper">
+                <span class="favourites-filters-modal-body-row-group-label"><p>Free trial</p></span>
+                <div class="favourites-filters-modal-body-features-container">
+                    <button type="button" class="favourites-free-trial-filter" id="freeTrialFilter" aria-pressed="false">Free trial</button>
                 </div>
             </div>
         </div>

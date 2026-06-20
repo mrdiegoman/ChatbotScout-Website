@@ -71,6 +71,7 @@ $pricingModels = array_values(array_filter(
     fn($m) => in_array($m, ['free','freemium','recurring','one-time','usage-based','custom'], true)
 ));
 $pricingCount = count($pricingModels);
+$hasFreeTrial = filter_var($_GET['hasFreeTrial'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
 $search = trim($_GET['search'] ?? '');
 // ============================================
@@ -148,6 +149,10 @@ if ($pricingCount > 0) {
     foreach ($pricingModels as $i => $m) { $params[":pm{$i}"] = $m; }
 }
 
+if ($hasFreeTrial) {
+    $where[] = 'c.has_free_trial = 1';
+}
+
 if ($search !== '') {
     $where[] = 'c.name LIKE :search';
     $params[':search'] = '%' . $search . '%';
@@ -177,7 +182,7 @@ $stmt = $db->prepare("
     SELECT
         c.id, c.name, c.description, c.logo_url, c.website_url,
         c.has_affiliate_program, c.affiliate_link,
-        c.has_free_trial, c.pricing_model,
+        c.has_free_trial, c.free_trial_days, c.pricing_model,
         c.starting_price, c.pricing_currency,
         c.rating_average, c.rating_count,
         c.click_count, c.favorite_count,
@@ -274,13 +279,13 @@ function buildPricingDisplay(array $chatbot): string
     }
 
     if ($chatbot['starting_price'] !== null && $chatbot['starting_price'] > 0) {
-        $symbol  = ($chatbot['pricing_currency'] === 'EUR') ? '€' : '$';
+        $currencySymbols = ['USD' => '$', 'EUR' => '€', 'GBP' => '£'];
+        $currencyCode = strtoupper((string)($chatbot['pricing_currency'] ?? ''));
+        $symbol = $currencySymbols[$currencyCode] ?? $currencyCode;
         $parts[] = (int)$chatbot['starting_price']. $symbol . '+';
     }
-    else{
-        return $parts;
-    }
-    return implode(' | ', $parts) ?: 'null';
+
+    return implode(' | ', $parts) ?: 'Contact';
 }
 
 
@@ -308,6 +313,8 @@ foreach ($chatbots as $chatbot) {
         'rating_average' => (float)$chatbot['rating_average'],
         'rating_count'   => (int)$chatbot['rating_count'],
         'favorite_count' => (int)$chatbot['favorite_count'],
+        'has_free_trial' => (bool)$chatbot['has_free_trial'],
+        'free_trial_days'=> $chatbot['free_trial_days'] !== null ? (int)$chatbot['free_trial_days'] : null,
         'pricing'        => buildPricingDisplay($chatbot),
         'features'       => $featureMap[$id] ?? [],
         'tags'           => $displayTags,

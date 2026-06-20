@@ -207,22 +207,23 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
 
 <body class="<?php echo implode(' ', $bodyClasses); ?>">
     <header class="header-main">
-        <a class="header-main-logo" href="./">
+        <div class="header-main-content">
+            <a class="header-main-logo" href="./">
             <img src="img/ChatbotScout_logo.png" alt="ChatbotScout Logo">
             <p class="header-main-logo-title">ChatbotScout</p>
         </a>
-        <nav class="header-main-nav">
+            <nav class="header-main-nav">
             <ul>
                 <li><a href="chatbots">Chatbots</a></li>
                 <li><a href="contact">Contact</a></li>
                 <li><a href="about-us">About Us</a></li>
             </ul>
         </nav>
-        <div class="header-main-btns-promo">
+            <div class="header-main-btns-promo">
             <a href="submit-chatbot" class="header-main-btn-submit">Submit Chatbot</a>
             <a href="advertise" class="header-main-btn-advertise">Advertise</a>
         </div>
-        <div class="header-main-right">
+            <div class="header-main-right">
             <?php if (!$isLoggedIn): ?>
                 <a href="login" class="header-main-right-LogIn">Log In</a>
                 <a href="sign-up" class="header-main-right-SignUp">Sign Up</a>
@@ -270,10 +271,10 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
                     </div>
                 </div>
             <?php endif; ?>
-        </div>
+            </div>
 
-        <!-- Burger Menu Button -->
-        <button class="header-burger-btn" aria-label="Menu">
+            <!-- Burger Menu Button -->
+            <button class="header-burger-btn" aria-label="Menu">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
                 stroke-linejoin="round">
@@ -281,7 +282,8 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
                 <path d="M4 12h16"/>
                 <path d="M4 19h16"/>
             </svg>
-        </button>
+            </button>
+        </div>
     </header>
 
     <!-- DEV BANNER — remove before going live -->

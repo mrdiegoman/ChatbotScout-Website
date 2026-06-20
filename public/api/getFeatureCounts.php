@@ -60,6 +60,7 @@ $activePricingModels = array_values(array_filter(
     (array)($data['activePricingModels'] ?? []),
     fn($m) => in_array($m, ['free','freemium','recurring','one-time','usage-based','custom'], true)
 ));
+$hasFreeTrial = filter_var($data['hasFreeTrial'] ?? false, FILTER_VALIDATE_BOOLEAN);
 $activeIntCount = count($activeIntIds);
 
 $allowedCurrencyCodes = ['USD', 'EUR', 'GBP'];
@@ -93,6 +94,7 @@ try {
     if ($favoritesEnd   !== null) { $where[] = 'c.favorite_count <= :favoritesEnd';   $params[':favoritesEnd']   = $favoritesEnd;   }
     if ($priceStart  !== null) { $where[] = 'c.starting_price >= :priceStart';  $params[':priceStart']  = $priceStart;  }
     if ($priceEnd    !== null) { $where[] = 'c.starting_price <= :priceEnd';    $params[':priceEnd']    = $priceEnd;    }
+    if ($hasFreeTrial) { $where[] = 'c.has_free_trial = 1'; }
 
     if ($activeCount > 0) {
         $afPlaceholders = implode(',', array_map(fn($i) => ":af{$i}", range(0, $activeCount - 1)));
@@ -147,6 +149,22 @@ try {
         $innerFrom = "chatbots c";
     }
 
+    // Free trial count deliberately excludes its own active state, so the
+    // number always answers: "How many of the current results offer a trial?"
+    $freeTrialWhere = array_values(array_filter(
+        $where,
+        fn($condition) => $condition !== 'c.has_free_trial = 1'
+    ));
+    $freeTrialWhere[] = 'c.has_free_trial = 1';
+    $freeTrialStmt = $db->prepare(
+        "SELECT COUNT(*) FROM {$innerFrom} WHERE " . implode(' AND ', $freeTrialWhere)
+    );
+    foreach ($params as $key => $val) {
+        $freeTrialStmt->bindValue($key, $val);
+    }
+    $freeTrialStmt->execute();
+    $freeTrialCount = (int)$freeTrialStmt->fetchColumn();
+
     // ============================================
     // TOTAL COUNT — pre live zobrazenie počtu výsledkov
     // ============================================
@@ -187,7 +205,12 @@ try {
         $counts[$row['id']] = (int)$row['chatbot_count'];
     }
 
-    echo json_encode(['success' => true, 'counts' => $counts, 'total' => $total]);
+    echo json_encode([
+        'success' => true,
+        'counts' => $counts,
+        'total' => $total,
+        'free_trial_count' => $freeTrialCount,
+    ]);
 
 } catch (Exception $e) {
     error_log('getFeatureCounts error: ' . $e->getMessage());

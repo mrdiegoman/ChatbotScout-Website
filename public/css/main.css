@@ -121,7 +121,18 @@ a, button {
     align-items: center;
     z-index: 1000;
     padding: 0 0 0 2rem;
+    container-type: inline-size;
     box-shadow: 0 0.1rem 0.4rem rgba(0, 0, 0, 0.15);
+}
+
+.header-main-content {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 1800px;
+    height: 100%;
+    margin: 0 auto;
 }
 
 .header-main-logo {
@@ -220,6 +231,13 @@ a, button {
     padding: 0 0 0 1.5rem;
     border-radius: 1rem 0 0 1.25rem;
     background-color: var(--dark-blue-color);
+}
+
+/* At the 1800px content cap, the profile block no longer touches the viewport edge. */
+@container (min-width: 1800px) {
+    .header-main-right {
+        border-radius: 1rem;
+    }
 }
 
 .header-main-right-LogIn,
@@ -854,6 +872,7 @@ a, button {
 
 /* Auth section */
 .header-mobile-auth {
+    --mobile-sidebar-icon-outline: 0.15rem;
     display: flex;
     flex-direction: column;
     gap: 0.9rem;
@@ -901,21 +920,24 @@ a, button {
     padding: 1rem 1.4rem;
     background: rgba(255, 255, 255, 0.06);
     border-radius: 0.8rem;
-    border: 0.1rem solid rgba(255, 255, 255, 0.1);
-    transition: background-color 0.2s ease;
+    border: 0.1rem solid rgba(255, 255, 255, 0.18);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
     justify-content: center;
 }
 
 .header-mobile-profile:hover {
     background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.32);
 }
 
 .header-mobile-profile img {
     width: 3.2rem;
     height: 3.2rem;
     border-radius: 50%;
+    border: var(--mobile-sidebar-icon-outline, 0.15rem) solid rgba(255, 255, 255, 0.9);
     object-fit: cover;
     flex-shrink: 0;
+    box-shadow: 0 0.2rem 0.8rem rgba(0, 0, 0, 0.2);
 }
 
 .header-mobile-profile span {
@@ -933,23 +955,27 @@ a, button {
     font-family: Outfit-SemiBold;
     color: rgba(250, 250, 250, 0.75);
     background: rgba(255, 255, 255, 0.05);
-    border: 0.1rem solid rgba(255, 255, 255, 0.1);
+    border: 0.1rem solid rgba(255, 255, 255, 0.18);
     border-radius: 0.8rem;
     padding: 1.1rem 2rem;
     text-align: center;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 .header-mobile-favourites:hover {
     background-color: rgba(255, 255, 255, 0.1);
     color: var(--white-color-dark);
+    border-color: rgba(255, 255, 255, 0.32);
 }
 
 .header-mobile-favourites svg {
-    width: 1.7rem;
-    height: 1.7rem;
-    fill: var(--red-heart-color);
+    width: 2.5rem;
+    height: 2.5rem;
     flex-shrink: 0;
+}
+
+.header-mobile-favourites svg path {
+    fill: var(--red-heart-color);
 }
 
 .header-mobile-admin {
@@ -1027,8 +1053,12 @@ a, button {
 
     /* Upravenie headeru */
     .header-main {
-        padding: 0 0.7rem 0 1.5rem;
+        padding: 0;
+    }
+
+    .header-main-content {
         justify-content: center;
+        padding: 0 0.7rem 0 1.5rem;
     }
     .header-main-logo{
         margin-right: 0;

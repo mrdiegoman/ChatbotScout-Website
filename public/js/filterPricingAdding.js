@@ -72,6 +72,7 @@
                 .map(s => s.dataset.integrationId).filter(Boolean),
             activePricingModels: [...document.querySelectorAll(`.${spanClass}.active`)]
                 .map(s => s.dataset.pricingModel).filter(Boolean),
+            hasFreeTrial: document.getElementById('freeTrialFilter')?.classList.contains('active') ?? false,
             isFavourites,
         };
     }

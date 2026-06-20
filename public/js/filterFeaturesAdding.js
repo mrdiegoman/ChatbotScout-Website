@@ -92,7 +92,8 @@
         const pricingSpanClass = isFavourites
             ? 'favourites-filters-modal-body-pricing-single'
             : 'chatbot-filters-modal-body-pricing-single';
-        count += document.querySelectorAll(`.${pricingSpanClass}.active`).length;
+        count += document.querySelectorAll(`.${pricingSpanClass}.active:not(.chatbot-free-trial-filter):not(.favourites-free-trial-filter)`).length;
+        count += document.querySelectorAll('.chatbot-free-trial-filter.active, .favourites-free-trial-filter.active').length;
 
         if (filtersCountBadge) filtersCountBadge.style.display = count > 0 ? 'flex' : 'none';
         if (filtersCountNum)   filtersCountNum.textContent = count;
@@ -129,6 +130,7 @@
                 .filter(Boolean),
             activePricingModels: typeof window.getActivePricingModels === 'function'
                 ? window.getActivePricingModels() : [],
+            hasFreeTrial: document.getElementById('freeTrialFilter')?.classList.contains('active') ?? false,
             isFavourites: isFavourites,
         };
     }
@@ -166,6 +168,11 @@
                 span.textContent = `${name} (${count})`;
                 // span.style.display = count === 0 && !span.classList.contains('active') ? 'none' : '';
             });
+
+            const freeTrialButton = document.getElementById('freeTrialFilter');
+            if (freeTrialButton && data.free_trial_count !== undefined) {
+                freeTrialButton.textContent = `Free trial (${data.free_trial_count})`;
+            }
 
             // Live aktualizácia počtu výsledkov vedľa Clear all (iba na favouritesShowcase)
             if (filterResultsCount && data.total !== undefined) {

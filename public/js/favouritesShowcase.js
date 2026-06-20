@@ -59,6 +59,7 @@
     const filtersCloseBtn = document.getElementById('filtersCloseBtn');
     const filtersClearBtn = document.getElementById('filtersClearBtn');
     const filterResultsCount = document.getElementById('filterResultsCount');
+    const freeTrialFilter = document.getElementById('freeTrialFilter');
 
     // Rating modal
     const ratingOverlay      = document.getElementById('ratingModalOverlay');
@@ -174,6 +175,17 @@
             .join('');
     }
 
+    function buildFreeTrialTag(chatbot) {
+        if (!chatbot.has_free_trial) return '';
+
+        const days = Number(chatbot.free_trial_days);
+        const label = Number.isFinite(days) && days > 0
+            ? `${days}-day free trial`
+            : 'Free trial available';
+
+        return `<span class="favourites-tag-free-trial"><p>✦ ${label} ✦</p></span>`;
+    }
+
     function buildFeatureCards(features) {
         if (!features || features.length === 0) {
             return '<div class="favourites-page-main-content-chatbots-grid-view-item-card"><ul><li>No features listed</li></ul></div>';
@@ -236,6 +248,7 @@
         const reviewsUrl = `chatbot-reviews?chatbot=${encodeURIComponent(chatbot.id)}`;
         let badgeHtml = '';
         if (chatbot.is_sponsored) badgeHtml += `<span class="favourites-tag-sponsored"><p>✦ Sponsored ✦</p></span>`;
+        badgeHtml += buildFreeTrialTag(chatbot);
 
         return `
         <div class="favourites-page-main-content-chatbots-grid-view-item" data-chatbot-id="${escapeHtml(chatbot.id)}">
@@ -307,6 +320,7 @@
         const reviewsUrl = `chatbot-reviews?chatbot=${encodeURIComponent(chatbot.id)}`;
         let badgeHtml = '';
         if (chatbot.is_sponsored) badgeHtml += `<span class="favourites-tag-sponsored"><p>✦ Sponsored ✦</p></span>`;
+        badgeHtml += buildFreeTrialTag(chatbot);
 
         return `
         <div class="favourites-page-main-content-chatbots-list-view-item-containter" data-chatbot-id="${escapeHtml(chatbot.id)}">
@@ -689,6 +703,8 @@ function openRatingModal(chatbotId, chatbotName) {
             if (pmIds.length > 0) params['pricing[]'] = pmIds;
         }
 
+        if (freeTrialFilter?.classList.contains('active')) params.hasFreeTrial = '1';
+
         return params;
     }
 
@@ -900,6 +916,12 @@ function openRatingModal(chatbotId, chatbotName) {
         if (typeof window.triggerCurrencyCountsRefresh === 'function') window.triggerCurrencyCountsRefresh();
     }
 
+    function setFavouriteFreeTrialFilterActive(active) {
+        if (!freeTrialFilter) return;
+        freeTrialFilter.classList.toggle('active', active);
+        freeTrialFilter.setAttribute('aria-pressed', String(active));
+    }
+
     function restoreFavouriteDraftFromApplied() {
         Object.entries(favouriteNumberFilterKeys).forEach(([id, key]) => {
             const input = document.getElementById(id);
@@ -912,6 +934,8 @@ function openRatingModal(chatbotId, chatbotName) {
                 element.classList.toggle('active', selected.has(element.dataset[dataKey]));
             });
         });
+
+        setFavouriteFreeTrialFilterActive(appliedFilterParams.hasFreeTrial === '1' || appliedFilterParams.hasFreeTrial === true);
 
         refreshFavouriteDraftUi();
     }
@@ -940,6 +964,14 @@ function openRatingModal(chatbotId, chatbotName) {
             favouriteFilterGroups.forEach(([selector]) => {
                 document.querySelectorAll(selector).forEach(element => element.classList.remove('active'));
             });
+            setFavouriteFreeTrialFilterActive(false);
+            refreshFavouriteDraftUi();
+        });
+    }
+
+    if (freeTrialFilter) {
+        freeTrialFilter.addEventListener('click', () => {
+            setFavouriteFreeTrialFilterActive(!freeTrialFilter.classList.contains('active'));
             refreshFavouriteDraftUi();
         });
     }

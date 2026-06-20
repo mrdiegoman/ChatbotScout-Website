@@ -22,6 +22,7 @@ $isFavourites      = !empty($input['isFavourites']);
 $activeFeatureIds  = array_values(array_filter((array)($input['activeFeatureIds']  ?? []), fn($id) => is_string($id) && preg_match('/^[0-9a-f\-]{36}$/i', $id)));
 $activeIntIds      = array_values(array_filter((array)($input['activeIntegrationIds'] ?? []), fn($id) => is_string($id) && preg_match('/^[0-9a-f\-]{36}$/i', $id)));
 $activePricingModels = array_values(array_filter((array)($input['activePricingModels'] ?? []), fn($m) => in_array($m, ['free','freemium','recurring','one-time','usage-based','custom'], true)));
+$hasFreeTrial = filter_var($input['hasFreeTrial'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
 $allowedCurrencies = ['USD', 'EUR', 'GBP'];
 
@@ -40,6 +41,7 @@ try {
     if ($favoritesEnd   !== null) { $where[] = 'c.favorite_count  <= :favoritesEnd';   $params[':favoritesEnd']   = $favoritesEnd;   }
     if ($priceStart     !== null) { $where[] = 'c.starting_price  >= :priceStart';     $params[':priceStart']     = $priceStart;     }
     if ($priceEnd       !== null) { $where[] = 'c.starting_price  <= :priceEnd';       $params[':priceEnd']       = $priceEnd;       }
+    if ($hasFreeTrial) { $where[] = 'c.has_free_trial = 1'; }
 
     if (count($activeFeatureIds) > 0) {
         $fp = implode(',', array_map(fn($i) => ":fid{$i}", range(0, count($activeFeatureIds) - 1)));

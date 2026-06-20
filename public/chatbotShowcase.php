@@ -17,20 +17,22 @@ require '../inc/header.php';
 <div class="chatbot-page-wrapper">
     <main class="chatbot-page-main">
         <aside class="chatbot-page-main-banner">
-            <img src="img/chatbot_robot.png" alt="Chatbot Robot">
-            <div class="chatbot-page-main-banner-textdiv">
-                <h1>
-                    Chatbot Showcase
-                </h1>
-                <p>
-                    Explore all available chatbots in one place.
-                    Browse through the tools, compare what they
-                    can do, and use the filters to narrow the
-                    list to the features you need. Whether you are
-                    looking for something simple or more advanced,
-                    this showcase helps you quickly find the right
-                    chatbot for your website.
-                </p>
+            <div class="chatbot-page-main-banner-content">
+                <img src="img/chatbot_robot.png" alt="Chatbot Robot">
+                <div class="chatbot-page-main-banner-textdiv">
+                    <h1>
+                        Chatbot Showcase
+                    </h1>
+                    <p>
+                        Explore all available chatbots in one place.
+                        Browse through the tools, compare what they
+                        can do, and use the filters to narrow the
+                        list to the features you need. Whether you are
+                        looking for something simple or more advanced,
+                        this showcase helps you quickly find the right
+                        chatbot for your website.
+                    </p>
+                </div>
             </div>
         </aside>
 
@@ -330,6 +332,12 @@ require '../inc/header.php';
                 </span>
                 <div class="chatbot-filters-modal-body-features-container" id="pricingContainer">
                     <!-- Dynamicky plnené cez filterPricingAdding.js -->
+                </div>
+            </div>
+            <div class="chatbot-filters-modal-body-features-wrapper">
+                <span class="chatbot-filters-modal-body-row-group-label"><p>Free trial</p></span>
+                <div class="chatbot-filters-modal-body-features-container">
+                    <button type="button" class="chatbot-free-trial-filter" id="freeTrialFilter" aria-pressed="false">Free trial</button>
                 </div>
             </div>
         </div>

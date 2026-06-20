@@ -156,6 +156,7 @@
                 .map(s => s.dataset.integrationId).filter(Boolean),
             activePricingModels: typeof window.getActivePricingModels === 'function'
                 ? window.getActivePricingModels() : [],
+            hasFreeTrial: document.getElementById('freeTrialFilter')?.classList.contains('active') ?? false,
             isFavourites,
         };
     }

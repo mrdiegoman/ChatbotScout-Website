@@ -41,13 +41,17 @@
 .pr-cards {
     display: flex;
     flex-direction: column;
-    gap: 1.6rem;
+    width: 100%;
+    max-width: 112rem;
+    margin: 0 auto;
+    gap: 1.4rem;
 }
 
 /* Card */
 .pr-card {
     background: #fff;
-    border: 1.5px solid #e5e7eb;
+    min-width: 0;
+    border: 0.1rem solid #e5e7eb;
     border-radius: 1.2rem;
     padding: 2rem 2.4rem;
     transition: box-shadow 0.2s ease;
@@ -139,10 +143,13 @@
 
 /* Review text */
 .pr-review-text {
-    font-size: 1.4rem;
+    min-width: 0;
+    font-size: 1.45rem;
     color: #374151;
-    line-height: 1.6;
-    margin-bottom: 1rem;
+    line-height: 1.65;
+    margin: 1.6rem 0 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 /* Moderation note */
@@ -487,6 +494,7 @@
    ============================================ */
 
 @media (max-width: 600px) {
+    .pr-card { padding: 1.7rem; }
     .pr-card-header    { flex-direction: column; }
     .pr-card-header-right { align-items: flex-start; }
     .pr-modal-content  { border-radius: 1rem; }

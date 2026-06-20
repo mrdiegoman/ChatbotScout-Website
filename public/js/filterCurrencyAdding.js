@@ -45,6 +45,7 @@
             activeFeatureIds:     [...document.querySelectorAll(`.${featSpanClass}.active`)].map(s => s.dataset.featureId).filter(Boolean),
             activeIntegrationIds: [...document.querySelectorAll(`.${intSpanClass}.active`)].map(s => s.dataset.integrationId).filter(Boolean),
             activePricingModels:  typeof window.getActivePricingModels === 'function' ? window.getActivePricingModels() : [],
+            hasFreeTrial: document.getElementById('freeTrialFilter')?.classList.contains('active') ?? false,
             isFavourites,
         };
     }

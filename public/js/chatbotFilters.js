@@ -49,6 +49,18 @@ const FILTER_GROUPS = [
 
 let appliedFilterParams = {};
 
+function setFreeTrialFilterActive(active) {
+    const button = document.getElementById('freeTrialFilter');
+    if (!button) return;
+
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+}
+
+function isFreeTrialFilterActive() {
+    return document.getElementById('freeTrialFilter')?.classList.contains('active') ?? false;
+}
+
 function cloneParams(params) {
     return Object.fromEntries(
         Object.entries(params).map(([key, value]) => [key, Array.isArray(value) ? [...value] : value])
@@ -71,6 +83,8 @@ function collectDraftFilterParams() {
 
         if (selected.length) params[key] = selected;
     });
+
+    if (isFreeTrialFilterActive()) params.hasFreeTrial = '1';
 
     return params;
 }
@@ -96,6 +110,8 @@ function restoreDraftFromApplied() {
             element.classList.toggle('active', selected.has(element.dataset[dataKey]));
         });
     });
+
+    setFreeTrialFilterActive(appliedFilterParams.hasFreeTrial === '1' || appliedFilterParams.hasFreeTrial === true);
 
     refreshDraftUi();
 }
@@ -127,12 +143,19 @@ function clearAllFilters() {
         document.querySelectorAll(selector).forEach(element => element.classList.remove('active'));
     });
 
+    setFreeTrialFilterActive(false);
+
     refreshDraftUi();
 }
 
 if (filtersBtnBtn) filtersBtnBtn.addEventListener('click', openModal);
 if (closeFiltersBtn) closeFiltersBtn.addEventListener('click', () => closeModal());
 if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearAllFilters);
+
+document.getElementById('freeTrialFilter')?.addEventListener('click', () => {
+    setFreeTrialFilterActive(!isFreeTrialFilterActive());
+    refreshDraftUi();
+});
 
 if (overlay) {
     overlay.addEventListener('click', event => {

@@ -19,6 +19,7 @@
     --cs-purple: #7c3aed;
     --cs-purple-soft: #f3eeff;
     --cs-shadow: 0 12px 32px rgba(0, 87, 255, 0.1);
+    --cs-hero-desktop-height: 40.4rem;
 }
 
 body.page-contact,
@@ -81,6 +82,14 @@ body.page-affiliateDisclosure {
 .cs-about-page .cs-hero-actions,
 .cs-contact-page .cs-hero-actions {
     justify-content: center;
+}
+
+@media (min-width: 769px) {
+    .cs-about-page .cs-hero-inner,
+    .cs-contact-page .cs-hero-inner,
+    .cs-affiliate-page .cs-hero-inner {
+        min-height: var(--cs-hero-desktop-height);
+    }
 }
 
 .cs-kicker {

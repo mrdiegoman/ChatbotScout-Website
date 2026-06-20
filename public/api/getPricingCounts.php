@@ -68,6 +68,7 @@ $activePricingModels = array_values(array_filter(
     (array)($data['activePricingModels'] ?? []),
     fn($m) => in_array($m, $allowedModels, true)
 ));
+$hasFreeTrial = filter_var($data['hasFreeTrial'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
 $isFavourites = !empty($data['isFavourites']) && $isLoggedIn && !empty($user['id']);
 
@@ -99,6 +100,7 @@ try {
     if ($favoritesEnd   !== null) { $where[] = 'c.favorite_count <= :favoritesEnd';   $params[':favoritesEnd']   = $favoritesEnd;   }
     if ($priceStart     !== null) { $where[] = 'c.starting_price >= :priceStart';    $params[':priceStart']     = $priceStart;     }
     if ($priceEnd       !== null) { $where[] = 'c.starting_price <= :priceEnd';      $params[':priceEnd']       = $priceEnd;       }
+    if ($hasFreeTrial) { $where[] = 'c.has_free_trial = 1'; }
 
     // Features — AND logika
     if ($activeCount > 0) {

@@ -174,6 +174,17 @@
             .join('');
     }
 
+    function buildFreeTrialTag(chatbot) {
+        if (!chatbot.has_free_trial) return '';
+
+        const days = Number(chatbot.free_trial_days);
+        const label = Number.isFinite(days) && days > 0
+            ? `${days}-day free trial`
+            : 'Free trial available';
+
+        return `<span class="chatbot-tag-free-trial"><p>✦ ${label} ✦</p></span>`;
+    }
+
     function buildFeatureCards(features) {
         if (!features || features.length === 0) {
             return '<div class="chatbot-page-main-content-chatbots-list-view-item-card"><ul><li>No features listed</li></ul></div>';
@@ -227,6 +238,7 @@
         const favCount = chatbot.favorite_count ?? 0;
         let badgeHtml = '';
         if (chatbot.is_sponsored) badgeHtml += `<span class="chatbot-tag-sponsored"><p>✦ Sponsored ✦</p></span>`;
+        badgeHtml += buildFreeTrialTag(chatbot);
 
         return `
         <div class="chatbot-page-main-content-chatbots-grid-view-item">
@@ -310,6 +322,7 @@
         const favCount = chatbot.favorite_count ?? 0;
         let badgeHtml = '';
         if (chatbot.is_sponsored) badgeHtml += `<span class="chatbot-tag-sponsored"><p>✦ Sponsored ✦</p></span>`;
+        badgeHtml += buildFreeTrialTag(chatbot);
 
         return `
         <div class="chatbot-page-main-content-chatbots-list-view-item-containter">
