@@ -99,7 +99,9 @@ return [
     'google' => [
         'client_id'     => 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
         'client_secret' => 'YOUR_GOOGLE_CLIENT_SECRET',
-        'redirect_uri'  => 'http://localhost/mainwebsite/public/googleCallback.php',
+        // This is environment-specific. It must exactly match an Authorized
+        // redirect URI configured for the OAuth client in Google Cloud Console.
+        'redirect_uri'  => $_ENV['GOOGLE_REDIRECT_URI'] ?? 'http://localhost/MainWebsite/google-callback',
     ],
 
     // reCAPTCHA v3 — https://www.google.com/recaptcha/admin

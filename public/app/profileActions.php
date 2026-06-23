@@ -87,16 +87,14 @@ function profileSafeReturnUrl(?string $requestedUrl, string $fallbackTab = 'prof
         || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
     $scheme = $isHttps ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    $publicPath = rtrim(str_replace('\\', '/', dirname(dirname($_SERVER['SCRIPT_NAME'] ?? '/'))), '/');
-    $path = $parts['path'] ?? '';
-
     if (strcasecmp($parts['host'], $host) !== 0 || strtolower($parts['scheme']) !== $scheme) {
         return $fallback;
     }
 
-    if (strpos($path, $publicPath . '/') !== 0) {
-        return $fallback;
-    }
+    // The public site can be exposed either through /public/... or through rewrite URLs such as
+    // /checkout. Requiring the endpoint's physical /public path rejects a valid checkout return
+    // URL and makes Stripe Billing Portal fall back to the profile page. Same-origin validation
+    // above still prevents an external open redirect.
 
     return $requestedUrl;
 }

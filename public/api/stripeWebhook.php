@@ -48,6 +48,18 @@ try {
             markStripeInvoicePaymentFailed($db, $event->data->object);
             break;
 
+        case 'invoice.voided':
+            markStripeInvoiceCancelled($db, $event->data->object);
+            break;
+
+        case 'invoice.marked_uncollectible':
+            markStripeInvoicePaymentFailed($db, $event->data->object);
+            break;
+
+        case 'payment_intent.processing':
+            markStripePaymentIntentProcessing($db, $event->data->object);
+            break;
+
         case 'customer.subscription.created':
         case 'customer.subscription.updated':
         case 'customer.subscription.deleted':

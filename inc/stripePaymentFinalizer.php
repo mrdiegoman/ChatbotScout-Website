@@ -1383,7 +1383,6 @@ function stripeCancelPendingPaymentsForStripeSubscription(PDO $db, string $strip
         SET status = 'cancelled',
             failure_code = NULL,
             failure_message = :failure_message,
-            invoice_url = NULL,
             metadata = JSON_SET(
                 COALESCE(metadata, JSON_OBJECT()),
                 '$.cancelled_reason', 'stripe_subscription_cancelled'
@@ -2038,7 +2037,109 @@ function markStripeInvoicePaymentFailed(PDO $db, $invoice): void {
     }
 }
 
-function syncRecentPaidStripeInvoicesForUser(PDO $db, string $userId, int $limit = 5): void {
+function markStripeInvoiceCancelled(PDO $db, $invoice, ?string $expectedUserId = null): void {
+    $stripeInvoiceId = (string) stripeObjectValue($invoice, 'id', '');
+    if ($stripeInvoiceId === '') {
+        return;
+    }
+
+    $params = [
+        'stripe_invoice_id' => $stripeInvoiceId,
+        'failure_message' => 'Stripe invoice expired before payment was completed.',
+    ];
+    $userScope = '';
+    if ($expectedUserId !== null) {
+        $userScope = ' AND user_id = :user_id';
+        $params['user_id'] = $expectedUserId;
+    }
+
+    $db->prepare("
+        UPDATE payments
+        SET status = 'cancelled',
+            failure_code = NULL,
+            failure_message = :failure_message,
+            metadata = JSON_SET(
+                COALESCE(metadata, JSON_OBJECT()),
+                '$.cancelled_reason', 'stripe_invoice_void',
+                '$.stripe_invoice_status', 'void'
+            ),
+            updated_at = NOW()
+        WHERE status IN ('pending', 'processing')
+          AND stripe_invoice_id = :stripe_invoice_id{$userScope}
+    ")->execute($params);
+}
+
+function markStripePaymentIntentProcessing(PDO $db, $paymentIntent): void {
+    $paymentIntentId = (string) stripeObjectValue($paymentIntent, 'id', '');
+    if ($paymentIntentId === '') {
+        return;
+    }
+
+    $db->prepare("
+        UPDATE payments
+        SET status = 'processing',
+            updated_at = NOW()
+        WHERE status = 'pending'
+          AND stripe_payment_intent_id = :stripe_payment_intent_id
+    ")->execute(['stripe_payment_intent_id' => $paymentIntentId]);
+}
+
+function syncStripeInvoicePaymentStatus(PDO $db, $invoice, ?string $expectedUserId = null): array {
+    $invoiceStatus = (string) stripeObjectValue($invoice, 'status', '');
+    $invoicePaid = (bool) stripeObjectValue($invoice, 'paid', false);
+    $stripeInvoiceId = (string) stripeObjectValue($invoice, 'id', '');
+
+    if ($invoiceStatus === 'paid' || $invoicePaid) {
+        return finalizeStripePaidInvoice($db, $invoice, $expectedUserId);
+    }
+
+    if ($invoiceStatus === 'void') {
+        markStripeInvoiceCancelled($db, $invoice, $expectedUserId);
+        return ['finalized' => false, 'status' => 'void'];
+    }
+
+    if ($invoiceStatus === 'uncollectible') {
+        markStripeInvoicePaymentFailed($db, $invoice);
+        return ['finalized' => false, 'status' => 'uncollectible'];
+    }
+
+    if ($stripeInvoiceId === '') {
+        return ['finalized' => false, 'status' => $invoiceStatus ?: 'unknown'];
+    }
+
+    $paymentIntent = stripeObjectValue($invoice, 'payment_intent');
+    if (is_string($paymentIntent) && $paymentIntent !== '') {
+        $paymentIntent = \Stripe\PaymentIntent::retrieve($paymentIntent);
+    }
+    $paymentIntentStatus = (string) stripePaymentIntentValue($paymentIntent, 'status', '');
+    $localStatus = $paymentIntentStatus === 'processing' ? 'processing' : 'pending';
+
+    $params = [
+        'status' => $localStatus,
+        'stripe_invoice_id' => $stripeInvoiceId,
+    ];
+    $userScope = '';
+    if ($expectedUserId !== null) {
+        $userScope = ' AND user_id = :user_id';
+        $params['user_id'] = $expectedUserId;
+    }
+
+    $db->prepare("
+        UPDATE payments
+        SET status = :status,
+            updated_at = NOW()
+        WHERE status IN ('pending', 'processing')
+          AND stripe_invoice_id = :stripe_invoice_id{$userScope}
+    ")->execute($params);
+
+    return [
+        'finalized' => false,
+        'status' => $invoiceStatus ?: 'open',
+        'payment_intent_status' => $paymentIntentStatus,
+    ];
+}
+
+function syncRecentStripeInvoicesForUser(PDO $db, string $userId, int $limit = 5): void {
     $limit = max(1, min(20, $limit));
 
     $stmt = $db->prepare("
@@ -2060,8 +2161,11 @@ function syncRecentPaidStripeInvoicesForUser(PDO $db, string $userId, int $limit
 
     foreach ($invoiceIds as $invoiceId) {
         try {
-            $invoice = \Stripe\Invoice::retrieve($invoiceId);
-            finalizeStripePaidInvoice($db, $invoice, $userId);
+            $invoice = \Stripe\Invoice::retrieve([
+                'id' => $invoiceId,
+                'expand' => ['payment_intent'],
+            ]);
+            syncStripeInvoicePaymentStatus($db, $invoice, $userId);
         } catch (Exception $e) {
             error_log('Stripe invoice sync skipped ' . $invoiceId . ': ' . $e->getMessage());
         }

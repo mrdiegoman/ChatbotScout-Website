@@ -287,9 +287,14 @@ $upgradeNote = $isUpgradeCancelsAtPeriodEnd
                     <strong id="saved-payment-method-title">Saved card</strong>
                     <span id="saved-payment-method-meta"></span>
                 </div>
-                <button id="manage-payment-method-btn" class="checkout-payment__saved-card-action" type="button">
-                    Change or add card
-                </button>
+                <div class="checkout-payment__saved-card-actions">
+                    <button id="use-different-payment-method-btn" class="checkout-payment__saved-card-action" type="button">
+                        Use a different payment method
+                    </button>
+                    <button id="manage-payment-method-btn" class="checkout-payment__saved-card-action checkout-payment__saved-card-action--secondary" type="button">
+                        Manage saved method
+                    </button>
+                </div>
             </div>
             <div id="missing-payment-method" class="checkout-payment__saved-card checkout-payment__saved-card--empty" hidden>
                 <div class="checkout-payment__saved-card-icon" aria-hidden="true"></div>
@@ -303,6 +308,9 @@ $upgradeNote = $isUpgradeCancelsAtPeriodEnd
             <div id="stripe-loading">
                 <p style="color:#6b7280;font-size:14px;"><?php echo $isBundleUpgrade ? 'Calculating upgrade amount...' : 'Loading payment form...'; ?></p>
             </div>
+            <button id="use-saved-payment-method-btn" class="checkout-payment__back-to-saved" type="button" hidden>
+                &larr; Use saved payment method
+            </button>
             <div id="payment-element" style="display:none;"></div>
 
             <div id="checkoutError" class="checkout-payment__error" style="display:none;"></div>

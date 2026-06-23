@@ -5,7 +5,7 @@ require '../inc/header.php';
 
 <div class="tc-wrapper legal-document">
     <h1>Terms and Conditions</h1>
-    <p class="tc-date"><strong>Last updated:</strong> [DD Month YYYY]</p>
+    <p class="tc-date"><strong>Last updated:</strong> 21 June 2026</p>
 
     <p>
         These Terms and Conditions (“Terms”) govern access to and use of the website
@@ -302,8 +302,11 @@ require '../inc/header.php';
     </p>
 
     <p>
-        Payments may be processed by Stripe or another identified payment provider. The payment
-        provider’s terms and privacy policy also apply to its processing of the payment.
+        Payments are processed by Stripe or another payment provider identified at checkout. Where
+        available, Google Pay and Apple Pay are digital wallet payment options presented through
+        Stripe; they are not separate contracts or billing systems operated by ChatbotScout. The
+        relevant payment provider’s terms and privacy policy, and the Google Pay or Apple Pay terms
+        where you use the relevant wallet, also apply to the processing of the payment.
     </p>
 
     <h3>12.4 Cancellations and refunds</h3>

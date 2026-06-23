@@ -369,6 +369,17 @@
     transition: border-color 0.2s, background 0.2s;
 }
 
+.checkout-payment__saved-card-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.55rem;
+}
+
+.checkout-payment__saved-card-action--secondary {
+    color: #5f6b7a;
+}
+
 .checkout-payment__saved-card-action:hover {
     background: #f3f0ff;
     border-color: #b9a8ff;
@@ -377,6 +388,34 @@
 .checkout-payment__saved-card-action:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+.checkout-payment__back-to-saved {
+    align-self: flex-start;
+    border: 0;
+    background: transparent;
+    color: #4f2edb;
+    cursor: pointer;
+    font-family: outfit-semibold, sans-serif;
+    font-size: 0.98rem;
+    padding: 0.2rem 0;
+    text-decoration: none;
+}
+
+.checkout-payment__back-to-saved[hidden] {
+    display: none !important;
+}
+
+.checkout-payment__back-to-saved:hover,
+.checkout-payment__back-to-saved:focus-visible {
+    color: #3215aa;
+    text-decoration: underline;
+}
+
+.checkout-payment__back-to-saved:disabled {
+    color: #9ca3af;
+    cursor: not-allowed;
+    text-decoration: none;
 }
 
 #payment-element {
@@ -572,5 +611,9 @@
     .checkout-payment__saved-card-action {
         grid-column: 1 / -1;
         width: 100%;
+    }
+
+    .checkout-payment__saved-card-actions {
+        grid-column: 1 / -1;
     }
 }

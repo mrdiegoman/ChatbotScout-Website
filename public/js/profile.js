@@ -439,63 +439,359 @@ const statusFilter = document.getElementById('status-filter');
 const methodFilter = document.getElementById('method-filter');
 const resetFiltersBtn = document.getElementById('reset-filters');
 
-function filterPayments() {
-    if (!dateFilter || !statusFilter || !methodFilter) {
+const paymentsTbody = document.getElementById('payments-tbody');
+const paymentsTableWrapper = document.getElementById('payments-table-wrapper');
+const billingContainer = document.querySelector('.billing-container');
+const billingPaginationRow = document.getElementById('billing-pagination-row');
+const billingPaginationSummary = document.getElementById('billing-pagination-summary');
+const billingPagination = document.getElementById('billing-pagination');
+let billingHistoryRequest = null;
+
+function billingHistoryPageRange(currentPage, totalPages) {
+    if (totalPages <= 7) {
+        return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+    if (currentPage <= 4) {
+        return [1, 2, 3, 4, 5, '…', totalPages];
+    }
+    if (currentPage >= totalPages - 3) {
+        return [1, '…', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+    return [1, '…', currentPage - 1, currentPage, currentPage + 1, '…', totalPages];
+}
+
+function billingHistoryFilters() {
+    return {
+        billing_date: dateFilter?.value || 'all',
+        billing_status: statusFilter?.value || 'all',
+        billing_method: methodFilter?.value || 'all',
+    };
+}
+
+function billingHistoryUrl(page) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', 'billing');
+
+    if (page > 1) {
+        url.searchParams.set('billing_page', String(page));
+    } else {
+        url.searchParams.delete('billing_page');
+    }
+
+    Object.entries(billingHistoryFilters()).forEach(([parameter, value]) => {
+        if (value === 'all') {
+            url.searchParams.delete(parameter);
+        } else {
+            url.searchParams.set(parameter, value);
+        }
+    });
+
+    return url;
+}
+
+function paymentInfoIcon() {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('aria-hidden', 'true');
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 5.25a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm1.5 9h-3v-1.5h.75v-3h-.75v-1.5h2.25v4.5h.75v1.5Z');
+    svg.append(path);
+    return svg;
+}
+
+function paginationArrowIcon(direction) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('aria-hidden', 'true');
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', direction === 'previous' ? 'm15 18-6-6 6-6' : 'm9 18 6-6-6-6');
+    svg.append(path);
+    return svg;
+}
+
+function paymentStatusElement(payment) {
+    const status = String(payment.status || '').replace(/[^a-z_]/g, '');
+    const wrapper = document.createElement('div');
+    wrapper.className = 'payment-status';
+
+    if (status !== 'pending') {
+        const badge = document.createElement('span');
+        badge.className = `status-badge status-${status}`;
+        badge.textContent = payment.status_label;
+        wrapper.append(badge);
+        return wrapper;
+    }
+
+    const hintId = `payment-status-hint-${payment.id}`;
+    const help = document.createElement('span');
+    help.className = 'payment-status-help';
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = `status-badge status-${status} payment-status-help__trigger`;
+    trigger.setAttribute('aria-label', 'Why is this payment awaiting payment?');
+    trigger.setAttribute('aria-describedby', hintId);
+    const label = document.createElement('span');
+    label.textContent = payment.status_label;
+    trigger.append(label, paymentInfoIcon());
+
+    const tooltip = document.createElement('span');
+    tooltip.className = 'payment-status-help__tooltip';
+    tooltip.id = hintId;
+    tooltip.setAttribute('role', 'tooltip');
+    tooltip.textContent = 'This invoice is automatically cancelled if it remains unpaid for approximately 24 hours.';
+
+    help.append(trigger, tooltip);
+    wrapper.append(help);
+    return wrapper;
+}
+
+function paymentInvoiceElement(invoiceUrl) {
+    if (!invoiceUrl || !/^https?:\/\//i.test(invoiceUrl)) {
+        const empty = document.createElement('span');
+        empty.className = 'text-muted';
+        empty.textContent = '—';
+        return empty;
+    }
+
+    const link = document.createElement('a');
+    link.className = 'invoice-link';
+    link.href = invoiceUrl;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.textContent = 'View invoice';
+    return link;
+}
+
+function renderBillingPayments(data) {
+    if (!paymentsTbody || !billingPaginationRow || !billingPaginationSummary || !billingPagination) {
         return;
     }
 
-    const dateValue = dateFilter.value;
-    const statusValue = statusFilter.value;
-    const methodValue = methodFilter.value;
-    
-    const rows = document.querySelectorAll('#payments-tbody tr[data-date]');
-    
-    rows.forEach(row => {
-        let show = true;
-        
-        // Date filter
-        if (dateValue !== 'all') {
-            const rowDate = new Date(row.dataset.date);
-            const now = new Date();
-            
-            if (dateValue === 'this-month') {
-                show = show && rowDate.getMonth() === now.getMonth() && rowDate.getFullYear() === now.getFullYear();
-            } else if (dateValue === 'last-month') {
-                const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1);
-                show = show && rowDate.getMonth() === lastMonth.getMonth() && rowDate.getFullYear() === lastMonth.getFullYear();
-            } else if (dateValue === 'this-year') {
-                show = show && rowDate.getFullYear() === now.getFullYear();
+    const previousScrollLeft = paymentsTableWrapper?.scrollLeft || 0;
+    const rows = [];
+
+    if (data.payments.length === 0) {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 6;
+        cell.className = 'no-payments';
+        cell.textContent = data.has_filters ? 'No payments match these filters' : 'No payment history yet';
+        row.append(cell);
+        rows.push(row);
+    } else {
+        data.payments.forEach((payment) => {
+            const row = document.createElement('tr');
+            const date = document.createElement('td');
+            date.textContent = payment.date_label;
+
+            const packageCell = document.createElement('td');
+            packageCell.className = 'payment-package-cell';
+            const packageName = document.createElement('strong');
+            packageName.textContent = payment.package_name;
+            packageCell.append(packageName);
+            if (payment.package_meta) {
+                const packageMeta = document.createElement('span');
+                packageMeta.textContent = payment.package_meta;
+                packageCell.append(packageMeta);
             }
+
+            const method = document.createElement('td');
+            method.textContent = payment.method_label;
+            const amount = document.createElement('td');
+            amount.textContent = payment.amount_label;
+            const status = document.createElement('td');
+            status.append(paymentStatusElement(payment));
+            const invoice = document.createElement('td');
+            invoice.append(paymentInvoiceElement(payment.invoice_url));
+
+            row.append(date, packageCell, method, amount, status, invoice);
+            rows.push(row);
+        });
+    }
+
+    paymentsTbody.replaceChildren(...rows);
+    if (paymentsTableWrapper) {
+        paymentsTableWrapper.scrollLeft = previousScrollLeft;
+    }
+
+    const { page, per_page: perPage, total, total_pages: totalPages, offset } = data.pagination;
+    billingPaginationRow.hidden = total === 0;
+    billingPaginationSummary.textContent = `Showing ${offset + 1}–${Math.min(offset + perPage, total)} of ${total} payments`;
+    billingPagination.replaceChildren();
+    billingPagination.hidden = totalPages <= 1;
+
+    if (totalPages <= 1) {
+        return;
+    }
+
+    const addArrow = (direction, targetPage, disabled) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `billing-pagination__arrow${disabled ? ' is-disabled' : ''}`;
+        button.disabled = disabled;
+        button.setAttribute('aria-label', `${direction === 'previous' ? 'Previous' : 'Next'} billing history page`);
+        button.append(paginationArrowIcon(direction));
+        if (!disabled) {
+            button.addEventListener('click', () => loadBillingHistory(targetPage));
         }
-        
-        // Status filter
-        if (statusValue !== 'all') {
-            show = show && row.dataset.status === statusValue;
+        billingPagination.append(button);
+    };
+
+    addArrow('previous', page - 1, page === 1);
+    billingHistoryPageRange(page, totalPages).forEach((pageItem) => {
+        if (pageItem === '…') {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'billing-pagination__ellipsis';
+            ellipsis.setAttribute('aria-hidden', 'true');
+            ellipsis.textContent = '…';
+            billingPagination.append(ellipsis);
+            return;
         }
-        
-        // Method filter
-        if (methodValue !== 'all') {
-            show = show && row.dataset.method === methodValue;
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `billing-pagination__page${pageItem === page ? ' is-active' : ''}`;
+        button.textContent = String(pageItem);
+        if (pageItem === page) {
+            button.setAttribute('aria-current', 'page');
+        } else {
+            button.addEventListener('click', () => loadBillingHistory(pageItem));
         }
-        
-        row.style.display = show ? '' : 'none';
+        billingPagination.append(button);
     });
+    addArrow('next', page + 1, page === totalPages);
+}
+
+async function loadBillingHistory(page = 1, { updateUrl = true } = {}) {
+    if (!paymentsTbody || !billingContainer || !dateFilter || !statusFilter || !methodFilter) {
+        return;
+    }
+
+    billingHistoryRequest?.abort();
+    const requestController = new AbortController();
+    billingHistoryRequest = requestController;
+    const profileUrl = billingHistoryUrl(page);
+    const apiUrl = new URL('api/getBillingHistory.php', window.location.href);
+    profileUrl.searchParams.forEach((value, key) => apiUrl.searchParams.set(key, value));
+
+    billingContainer.classList.add('is-loading');
+    paymentsTableWrapper?.setAttribute('aria-busy', 'true');
+
+    try {
+        const response = await fetch(apiUrl, {
+            credentials: 'same-origin',
+            headers: { Accept: 'application/json' },
+            signal: requestController.signal,
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Could not load billing history.');
+        }
+
+        renderBillingPayments(data);
+        if (updateUrl) {
+            window.history.pushState({ billingHistory: true }, '', `${profileUrl.pathname}${profileUrl.search}`);
+        }
+    } catch (error) {
+        if (error.name !== 'AbortError') {
+            console.error('Billing history load error:', error);
+            window.alert(error.message || 'Could not load billing history. Please try again.');
+        }
+    } finally {
+        if (billingHistoryRequest === requestController) {
+            billingContainer.classList.remove('is-loading');
+            paymentsTableWrapper?.removeAttribute('aria-busy');
+        }
+    }
 }
 
 if (dateFilter && statusFilter && methodFilter) {
-    dateFilter.addEventListener('change', filterPayments);
-    statusFilter.addEventListener('change', filterPayments);
-    methodFilter.addEventListener('change', filterPayments);
+    dateFilter.addEventListener('change', () => loadBillingHistory());
+    statusFilter.addEventListener('change', () => loadBillingHistory());
+    methodFilter.addEventListener('change', () => loadBillingHistory());
 }
 
 if (resetFiltersBtn && dateFilter && statusFilter && methodFilter) {
-    resetFiltersBtn.addEventListener('click', () => {
+    resetFiltersBtn.addEventListener('click', (event) => {
+        event.preventDefault();
         dateFilter.value = 'all';
         statusFilter.value = 'all';
         methodFilter.value = 'all';
-        filterPayments();
+        loadBillingHistory();
     });
 }
+
+billingPagination?.addEventListener('click', (event) => {
+    const link = event.target.closest('a[href]');
+    if (!link) {
+        return;
+    }
+
+    event.preventDefault();
+    const targetUrl = new URL(link.href);
+    loadBillingHistory(Number(targetUrl.searchParams.get('billing_page')) || 1);
+});
+
+window.addEventListener('popstate', () => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('tab') !== 'billing' || !dateFilter || !statusFilter || !methodFilter) {
+        return;
+    }
+
+    dateFilter.value = url.searchParams.get('billing_date') || 'all';
+    statusFilter.value = url.searchParams.get('billing_status') || 'all';
+    methodFilter.value = url.searchParams.get('billing_method') || 'all';
+    loadBillingHistory(Number(url.searchParams.get('billing_page')) || 1, { updateUrl: false });
+});
+
+function initPaymentStatusTooltips() {
+    if (!paymentsTableWrapper || paymentsTableWrapper.dataset.tooltipEventsBound === 'true') {
+        return;
+    }
+
+    paymentsTableWrapper.dataset.tooltipEventsBound = 'true';
+    const updateDirection = (statusHelp) => {
+        const trigger = statusHelp.querySelector('.payment-status-help__trigger');
+        const tooltip = statusHelp.querySelector('.payment-status-help__tooltip');
+        if (!trigger || !tooltip) {
+            return;
+        }
+
+        const triggerRect = trigger.getBoundingClientRect();
+        const wrapperRect = paymentsTableWrapper.getBoundingClientRect();
+        const tooltipHeight = tooltip.offsetHeight;
+        const spacing = 10;
+        const viewportPadding = 12;
+        const lowerBoundary = Math.min(window.innerHeight - viewportPadding, wrapperRect.bottom - viewportPadding);
+        const upperBoundary = Math.max(viewportPadding, wrapperRect.top + viewportPadding);
+        const canOpenBelow = triggerRect.bottom + spacing + tooltipHeight <= lowerBoundary;
+        const canOpenAbove = triggerRect.top - spacing - tooltipHeight >= upperBoundary;
+
+        statusHelp.classList.toggle('payment-status-help--above', !canOpenBelow && canOpenAbove);
+    };
+
+    paymentsTableWrapper.addEventListener('pointerover', (event) => {
+        const statusHelp = event.target.closest('.payment-status-help');
+        if (!statusHelp || !paymentsTableWrapper.contains(statusHelp) || statusHelp.contains(event.relatedTarget)) {
+            return;
+        }
+        updateDirection(statusHelp);
+    });
+
+    const updateOpenTooltips = () => {
+        paymentsTableWrapper.querySelectorAll('.payment-status-help').forEach((statusHelp) => {
+            if (statusHelp.matches(':hover')) {
+                updateDirection(statusHelp);
+            }
+        });
+    };
+
+    paymentsTableWrapper.addEventListener('scroll', updateOpenTooltips, { passive: true });
+    window.addEventListener('resize', updateOpenTooltips, { passive: true });
+}
+
+initPaymentStatusTooltips();
 
 // ============================================
 // MODALS

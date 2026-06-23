@@ -226,7 +226,6 @@ require '../inc/header.php';
 
                     <?php
                     $popularChatbots = [];
-                    $tagNames        = [];
                     $homepageLogoSrc = static function (?string $path): string {
                         $value = trim((string) $path);
                         if ($value === '') {
@@ -271,8 +270,6 @@ require '../inc/header.php';
                                 c.rating_average,
                                 c.rating_count,
                                 c.favorite_count,
-                                c.has_affiliate_program,
-                                c.is_sponsored,
                                 c.click_count,
                                 {$homepagePromotionExistsSql} AS has_homepage_promotion
                             FROM chatbots c
@@ -287,28 +284,6 @@ require '../inc/header.php';
                         ");
                         $popularChatbots = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                        if (!empty($popularChatbots)) {
-                            $ids          = array_column($popularChatbots, 'id');
-                            $placeholders = implode(',', array_fill(0, count($ids), '?'));
-                            $tagStmt      = $db->prepare("
-                                SELECT ct.chatbot_id, t.name
-                                FROM chatbot_tags ct
-                                JOIN tags t ON ct.tag_id = t.id
-                                WHERE ct.chatbot_id IN ({$placeholders})
-                                  AND t.name NOT IN ('Popular', 'Sponsored', 'Affiliate')
-                                ORDER BY ct.chatbot_id,
-                                         t.name ASC
-                            ");
-                            $tagStmt->execute($ids);
-                            foreach ($tagStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-                                if (!isset($tagNames[$row['chatbot_id']])) {
-                                    $tagNames[$row['chatbot_id']] = [];
-                                }
-                                if (count($tagNames[$row['chatbot_id']]) < 2) {
-                                    $tagNames[$row['chatbot_id']][] = $row['name'];
-                                }
-                            }
-                        }
                     } catch (Exception $e) {
                         error_log('Homepage popular chatbots error: ' . $e->getMessage());
                     }
@@ -318,21 +293,8 @@ require '../inc/header.php';
                         $rating     = (float) $bot['rating_average'];
                         $fullStars  = (int) floor($rating);
                         $emptyStars = 5 - $fullStars;
-                        $botTags    = [];
-                        if (!empty($bot['has_homepage_promotion'])) {
-                            $botTags[] = 'Sponsored';
-                        }
-                        if (!empty($bot['has_affiliate_program']) && count($botTags) < 2) {
-                            $botTags[] = 'Affiliate';
-                        }
-                        foreach ($tagNames[$bot['id']] ?? [] as $tag) {
-                            if (count($botTags) >= 2) {
-                                break;
-                            }
-                            if (!in_array($tag, $botTags, true)) {
-                                $botTags[] = $tag;
-                            }
-                        }
+                        // Homepage badges are reserved exclusively for active sponsored placements.
+                        $botTags    = !empty($bot['has_homepage_promotion']) ? ['Sponsored'] : [];
                         $logoUrl    = $homepageLogoSrc($bot['logo_url'] ?? '');
                     ?>
                     <a href="chatbots?search=<?= urlencode($bot['name']) ?>" class="hp-pop-card">

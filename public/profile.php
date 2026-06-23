@@ -8,6 +8,7 @@
 require '../inc/bootstrap.php';
 require 'app/auth.php';
 require_once '../inc/stripePaymentFinalizer.php';
+require_once '../inc/billingHistory.php';
 
 // Redirect ak nie je prihlásený
 if (!$isLoggedIn) {
@@ -20,6 +21,49 @@ $activeTab = $_GET['tab'] ?? 'profile';
 $allowedTabs = ['profile', 'billing', 'settings', 'reviews'];
 if (!in_array($activeTab, $allowedTabs)) {
     $activeTab = 'profile';
+}
+
+$billingFilters = billingHistoryFilters($_GET);
+$billingDateFilter = $billingFilters['date'];
+$billingStatusFilter = $billingFilters['status'];
+$billingMethodFilter = $billingFilters['method'];
+$billingPage = billingHistoryPage($_GET['billing_page'] ?? 1);
+
+function profileBillingHistoryUrl(
+    int $page,
+    string $dateFilter,
+    string $statusFilter,
+    string $methodFilter
+): string {
+    $query = ['tab' => 'billing'];
+    if ($page > 1) {
+        $query['billing_page'] = $page;
+    }
+    if ($dateFilter !== 'all') {
+        $query['billing_date'] = $dateFilter;
+    }
+    if ($statusFilter !== 'all') {
+        $query['billing_status'] = $statusFilter;
+    }
+    if ($methodFilter !== 'all') {
+        $query['billing_method'] = $methodFilter;
+    }
+
+    return 'profile?' . http_build_query($query);
+}
+
+function profileBillingPaginationRange(int $currentPage, int $totalPages): array {
+    if ($totalPages <= 7) {
+        return range(1, $totalPages);
+    }
+    if ($currentPage <= 4) {
+        return [1, 2, 3, 4, 5, '…', $totalPages];
+    }
+    if ($currentPage >= $totalPages - 3) {
+        return [1, '…', $totalPages - 4, $totalPages - 3, $totalPages - 2, $totalPages - 1, $totalPages];
+    }
+
+    return [1, '…', $currentPage - 1, $currentPage, $currentPage + 1, '…', $totalPages];
 }
 
 // Load user's active subscriptions (if any)
@@ -64,7 +108,7 @@ try {
             if (!empty($stripeConfig['api_version'])) {
                 \Stripe\Stripe::setApiVersion($stripeConfig['api_version']);
             }
-            syncRecentPaidStripeInvoicesForUser($db, $user['id']);
+            syncRecentStripeInvoicesForUser($db, $user['id']);
         }
     }
     stripeCancelDuplicatePendingPromotionPaymentsForUser($db, $user['id']);
@@ -300,62 +344,15 @@ unset($sub);
 
 $subscription = $subscriptions[0] ?? null;
 
-// Load billing history
-$payments = [];
-    $paymentStmt = $db->prepare("
-        SELECT
-            p.*,
-            c.symbol AS currency_symbol,
-            c.code AS currency_code,
-            COALESCE(pr.slot_type, metadata_pr.slot_type) AS package_slot_type,
-            COALESCE(ch.name, payment_ch.name) AS package_chatbot_name,
-            COALESCE(
-                JSON_UNQUOTE(JSON_EXTRACT(p.metadata, '$.billing_period')),
-                JSON_UNQUOTE(JSON_EXTRACT(p.metadata, '$.period_type'))
-            ) AS package_metadata_billing_period,
-            COALESCE(bp.type, metadata_bp.type) AS package_plan_billing_period,
-            s.start_date AS package_start_date,
-            s.end_date AS package_end_date
-        FROM payments p
-        JOIN currencies c ON p.currency_id = c.id
-        LEFT JOIN subscriptions s ON p.subscription_id = s.id
-        LEFT JOIN promotions pr ON s.promotions_id = pr.id
-        LEFT JOIN billing_periods bp ON pr.billing_period_id = bp.id
-        LEFT JOIN promotions metadata_pr ON metadata_pr.id = JSON_UNQUOTE(JSON_EXTRACT(p.metadata, '$.promotion_id'))
-        LEFT JOIN billing_periods metadata_bp ON metadata_pr.billing_period_id = metadata_bp.id
-        LEFT JOIN chatbots ch ON s.chatbot_id = ch.id
-        LEFT JOIN chatbots payment_ch ON p.chatbot_id = payment_ch.id
-        WHERE p.user_id = :user_id
-        ORDER BY p.created_at DESC
-        LIMIT 50
-    ");
-    $paymentStmt->execute(['user_id' => $user['id']]);
-    $payments = $paymentStmt->fetchAll();
-
-    foreach ($payments as &$payment) {
-        $packageName = match($payment['package_slot_type'] ?? '') {
-            'Homepage'      => 'Homepage Visibility',
-            'Chatbots page' => 'Chatbots Page Visibility',
-            default         => $payment['package_slot_type'] ?: 'Promotion',
-        };
-        $billingPeriod = promotionNormalizeBillingPeriod($payment['package_metadata_billing_period'] ?? '', '');
-        if (!$billingPeriod) {
-            $billingPeriod = promotionBillingPeriodFromDates(
-                $payment['package_start_date'] ?? null,
-                $payment['package_end_date'] ?? null,
-                $payment['package_plan_billing_period'] ?? ''
-            );
-        }
-
-        $packageMeta = array_filter([
-            $payment['package_chatbot_name'] ?? '',
-            $billingPeriod ? promotionBillingPeriodLabel($billingPeriod) : '',
-        ]);
-
-        $payment['package_name'] = $packageName;
-        $payment['package_meta'] = implode(' · ', $packageMeta);
-    }
-    unset($payment);
+// Load a compact, filterable billing-history page.
+$paymentsPerPage = 10;
+$billingHistory = billingHistoryForUser($db, $user['id'], $billingFilters, $billingPage, $paymentsPerPage);
+$payments = $billingHistory['payments'];
+$billingPage = $billingHistory['page'];
+$billingOffset = $billingHistory['offset'];
+$totalPayments = $billingHistory['total'];
+$totalBillingPages = $billingHistory['total_pages'];
+$hasBillingFilters = $billingHistory['has_filters'];
 
 require '../inc/header.php';
 ?>
@@ -745,36 +742,43 @@ require '../inc/header.php';
                         <div class="filter-group">
                             <p class="info-field-static-label">Date</p>
                             <select id="date-filter">
-                                <option value="all">All</option>
-                                <option value="this-month">This Month</option>
-                                <option value="last-month">Last Month</option>
-                                <option value="this-year">This Year</option>
+                                <option value="all" <?php echo $billingDateFilter === 'all' ? 'selected' : ''; ?>>All</option>
+                                <option value="this-month" <?php echo $billingDateFilter === 'this-month' ? 'selected' : ''; ?>>This Month</option>
+                                <option value="last-month" <?php echo $billingDateFilter === 'last-month' ? 'selected' : ''; ?>>Last Month</option>
+                                <option value="this-year" <?php echo $billingDateFilter === 'this-year' ? 'selected' : ''; ?>>This Year</option>
                             </select>
                         </div>
                         <div class="filter-group">
                             <p class="info-field-static-label">Status</p>
                             <select id="status-filter">
-                                <option value="all">All</option>
-                                <option value="succeeded">Paid</option>
-                                <option value="pending">Pending</option>
-                                <option value="failed">Failed</option>
-                                <option value="refunded">Refunded</option>
+                                <option value="all" <?php echo $billingStatusFilter === 'all' ? 'selected' : ''; ?>>All</option>
+                                <option value="succeeded" <?php echo $billingStatusFilter === 'succeeded' ? 'selected' : ''; ?>>Paid</option>
+                                <option value="pending" <?php echo $billingStatusFilter === 'pending' ? 'selected' : ''; ?>>Awaiting payment</option>
+                                <option value="processing" <?php echo $billingStatusFilter === 'processing' ? 'selected' : ''; ?>>Payment processing</option>
+                                <option value="failed" <?php echo $billingStatusFilter === 'failed' ? 'selected' : ''; ?>>Failed</option>
+                                <option value="cancelled" <?php echo $billingStatusFilter === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
+                                <option value="refunded" <?php echo $billingStatusFilter === 'refunded' ? 'selected' : ''; ?>>Refunded</option>
                             </select>
                         </div>
                         <div class="filter-group">
                             <p class="info-field-static-label">Method</p>
                             <select id="method-filter">
-                                <option value="all">All</option>
-                                <option value="stripe">Card</option>
-                                <option value="paypal">PayPal</option>
-                                <option value="bank_transfer">Bank Transfer</option>
+                                <option value="all" <?php echo $billingMethodFilter === 'all' ? 'selected' : ''; ?>>All</option>
+                                <option value="stripe" <?php echo $billingMethodFilter === 'stripe' ? 'selected' : ''; ?>>Card</option>
+                                <option value="paypal" <?php echo $billingMethodFilter === 'paypal' ? 'selected' : ''; ?>>PayPal</option>
+                                <option value="bank_transfer" <?php echo $billingMethodFilter === 'bank_transfer' ? 'selected' : ''; ?>>Bank Transfer</option>
                             </select>
                         </div>
                         <button class="reset-btn" id="reset-filters">Reset</button>
                     </div>
 
                     <!-- Payments Table -->
-                    <div class="payments-table-wrapper">
+                    <div
+                        class="payments-table-wrapper"
+                        id="payments-table-wrapper"
+                        tabindex="0"
+                        aria-label="Payment history table. Scroll sideways to see all columns."
+                    >
                         <table class="payments-table">
                             <thead>
                                 <tr>
@@ -789,7 +793,9 @@ require '../inc/header.php';
                             <tbody id="payments-tbody">
                                 <?php if (empty($payments)): ?>
                                 <tr>
-                                    <td colspan="6" class="no-payments">No payment history yet</td>
+                                    <td colspan="6" class="no-payments">
+                                        <?php echo $hasBillingFilters ? 'No payments match these filters' : 'No payment history yet'; ?>
+                                    </td>
                                 </tr>
                                 <?php else: ?>
                                     <?php foreach ($payments as $payment): ?>
@@ -806,25 +812,59 @@ require '../inc/header.php';
                                         <td><?php echo ucfirst(str_replace('_', ' ', $payment['payment_method'])); ?></td>
                                         <td><?php echo $payment['currency_symbol'] . number_format($payment['amount'], 2); ?></td>
                                         <td>
-                                            <span class="status-badge status-<?php echo $payment['status']; ?>">
-                                                <?php 
-                                                    echo match($payment['status']) {
-                                                        'succeeded' => 'Paid',
-                                                        'pending'   => 'Processing...',
-                                                        'failed'    => 'Failed',
-                                                        'refunded'  => 'Refunded',
-                                                        'cancelled' => 'Cancelled',
-                                                        default     => ucfirst($payment['status']),
-                                                    };
-                                                ?>
-                                            </span>
+                                            <?php
+                                                $paymentStatus = $payment['status'];
+                                                $paymentStatusLabel = match($paymentStatus) {
+                                                    'succeeded' => 'Paid',
+                                                    'pending'   => 'Awaiting payment',
+                                                    'processing' => 'Payment processing',
+                                                    'failed'    => 'Failed',
+                                                    'refunded'  => 'Refunded',
+                                                    'partially_refunded' => 'Partially refunded',
+                                                    'cancelled' => 'Cancelled',
+                                                    default     => ucfirst($paymentStatus),
+                                                };
+                                                $paymentStatusHint = $paymentStatus === 'pending'
+                                                    ? 'This invoice is automatically cancelled if it remains unpaid for approximately 24 hours.'
+                                                    : '';
+                                            ?>
+                                            <div class="payment-status">
+                                                <?php if ($paymentStatusHint !== ''): ?>
+                                                    <?php $paymentStatusHintId = 'payment-status-hint-' . $payment['id']; ?>
+                                                    <span class="payment-status-help">
+                                                        <button
+                                                            type="button"
+                                                            class="status-badge status-<?php echo htmlspecialchars($paymentStatus, ENT_QUOTES, 'UTF-8'); ?> payment-status-help__trigger"
+                                                            aria-label="Why is this payment awaiting payment?"
+                                                            aria-describedby="<?php echo htmlspecialchars($paymentStatusHintId, ENT_QUOTES, 'UTF-8'); ?>"
+                                                        >
+                                                            <span><?php echo htmlspecialchars($paymentStatusLabel, ENT_QUOTES, 'UTF-8'); ?></span>
+                                                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                                <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 5.25a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm1.5 9h-3v-1.5h.75v-3h-.75v-1.5h2.25v4.5h.75v1.5Z" />
+                                                            </svg>
+                                                        </button>
+                                                        <span
+                                                            class="payment-status-help__tooltip"
+                                                            id="<?php echo htmlspecialchars($paymentStatusHintId, ENT_QUOTES, 'UTF-8'); ?>"
+                                                            role="tooltip"
+                                                        >
+                                                            <?php echo htmlspecialchars($paymentStatusHint, ENT_QUOTES, 'UTF-8'); ?>
+                                                        </span>
+                                                    </span>
+                                                <?php else: ?>
+                                                    <span class="status-badge status-<?php echo htmlspecialchars($paymentStatus, ENT_QUOTES, 'UTF-8'); ?>">
+                                                        <?php echo htmlspecialchars($paymentStatusLabel, ENT_QUOTES, 'UTF-8'); ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                            </div>
                                         </td>
                                         <td>
                                             <?php if ($payment['invoice_url']): ?>
                                                 <a href="<?php echo htmlspecialchars($payment['invoice_url']); ?>" 
                                                    target="_blank" 
+                                                   rel="noopener"
                                                    class="invoice-link">
-                                                    Download
+                                                    View invoice
                                                 </a>
                                             <?php else: ?>
                                                 <span class="text-muted">—</span>
@@ -835,6 +875,60 @@ require '../inc/header.php';
                                 <?php endif; ?>
                             </tbody>
                         </table>
+                    </div>
+
+                    <?php
+                        $firstPaymentNumber = $totalPayments > 0 ? $billingOffset + 1 : 0;
+                        $lastPaymentNumber = min($billingOffset + $paymentsPerPage, $totalPayments);
+                    ?>
+                    <div class="billing-pagination-row" id="billing-pagination-row" <?php echo $totalPayments === 0 ? 'hidden' : ''; ?>>
+                            <p class="billing-pagination-summary" id="billing-pagination-summary">
+                                Showing <?php echo $firstPaymentNumber; ?>–<?php echo $lastPaymentNumber; ?> of <?php echo $totalPayments; ?> payments
+                            </p>
+
+                            <nav class="billing-pagination" id="billing-pagination" aria-label="Billing history pages" <?php echo $totalBillingPages <= 1 ? 'hidden' : ''; ?>>
+                                <?php if ($totalBillingPages > 1): ?>
+                                    <?php if ($billingPage > 1): ?>
+                                        <a
+                                            class="billing-pagination__arrow"
+                                            href="<?php echo htmlspecialchars(profileBillingHistoryUrl($billingPage - 1, $billingDateFilter, $billingStatusFilter, $billingMethodFilter), ENT_QUOTES, 'UTF-8'); ?>"
+                                            aria-label="Previous billing history page"
+                                        >
+                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+                                        </a>
+                                    <?php else: ?>
+                                        <span class="billing-pagination__arrow is-disabled" aria-disabled="true">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+                                        </span>
+                                    <?php endif; ?>
+
+                                    <?php foreach (profileBillingPaginationRange($billingPage, $totalBillingPages) as $pageItem): ?>
+                                        <?php if ($pageItem === '…'): ?>
+                                            <span class="billing-pagination__ellipsis" aria-hidden="true">…</span>
+                                        <?php else: ?>
+                                            <a
+                                                class="billing-pagination__page <?php echo $pageItem === $billingPage ? 'is-active' : ''; ?>"
+                                                href="<?php echo htmlspecialchars(profileBillingHistoryUrl($pageItem, $billingDateFilter, $billingStatusFilter, $billingMethodFilter), ENT_QUOTES, 'UTF-8'); ?>"
+                                                <?php echo $pageItem === $billingPage ? 'aria-current="page"' : ''; ?>
+                                            ><?php echo $pageItem; ?></a>
+                                        <?php endif; ?>
+                                    <?php endforeach; ?>
+
+                                    <?php if ($billingPage < $totalBillingPages): ?>
+                                        <a
+                                            class="billing-pagination__arrow"
+                                            href="<?php echo htmlspecialchars(profileBillingHistoryUrl($billingPage + 1, $billingDateFilter, $billingStatusFilter, $billingMethodFilter), ENT_QUOTES, 'UTF-8'); ?>"
+                                            aria-label="Next billing history page"
+                                        >
+                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+                                        </a>
+                                    <?php else: ?>
+                                        <span class="billing-pagination__arrow is-disabled" aria-disabled="true">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+                                        </span>
+                                    <?php endif; ?>
+                                <?php endif; ?>
+                            </nav>
                     </div>
 
                 </div>

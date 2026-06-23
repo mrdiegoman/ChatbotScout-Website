@@ -5,7 +5,7 @@ require '../inc/header.php';
 
 <div class="pp-wrapper legal-document">
     <h1>Privacy and Cookie Policy</h1>
-    <p class="pp-date"><strong>Last updated:</strong> [DD Month YYYY]</p>
+    <p class="pp-date"><strong>Last updated:</strong> 21 June 2026</p>
 
     <p>
         This Privacy and Cookie Policy explains how the operator of ChatbotScout collects, uses,
@@ -83,9 +83,12 @@ require '../inc/header.php';
 
     <h3>3.3 Payment data</h3>
     <p>
-        Payments are processed by Stripe or another payment provider identified at checkout. Under
-        a standard hosted checkout or tokenized integration, we do not receive or store your full
-        card number, card security code or online banking credentials. We may receive limited
+        Payments are processed by Stripe or another payment provider identified at checkout. Where
+        available, Google Pay and Apple Pay are digital wallet options presented through Stripe.
+        Google or Apple, respectively, and the card issuer handle the wallet and card credentials;
+        Stripe receives the payment method data needed to process the payment. Under this tokenized
+        integration, we do not receive or store your full card number, card security code, Google
+        Pay or Apple Pay credentials, or online banking credentials. We may receive limited
         transaction information, such as payer name, billing details, payment status, amount,
         currency, payment method type and transaction identifier.
     </p>
@@ -234,9 +237,15 @@ require '../inc/header.php';
             <tbody>
                 <tr>
                     <td data-label="Provider">Google services / Google Ireland Limited and relevant Google entities</td>
-                    <td data-label="Purpose">Google sign-in, service email delivery, analytics or other Google services actually configured for the Service</td>
-                    <td data-label="Data">Account identifiers, email delivery data, technical data, cookie identifiers and usage data depending on the enabled service</td>
+                    <td data-label="Purpose">Google sign-in, service email delivery, analytics, Google Pay when selected at checkout, or other Google services actually configured for the Service</td>
+                    <td data-label="Data">Account identifiers, email delivery data, technical data, cookie identifiers, Google Pay wallet and transaction data, and usage data depending on the enabled service</td>
                     <td data-label="Role">Processor or independent controller depending on the specific service</td>
+                </tr>
+                <tr>
+                    <td data-label="Provider">Apple Inc. and relevant Apple entities</td>
+                    <td data-label="Purpose">Apple Pay when selected at checkout</td>
+                    <td data-label="Data">Apple Pay wallet, payment token, transaction and device data as required to provide the wallet payment service</td>
+                    <td data-label="Role">Processor or independent controller depending on the specific service and applicable terms</td>
                 </tr>
                 <tr>
                     <td data-label="Provider">Cloudflare, Inc. and/or its relevant contracting entity</td>
@@ -246,7 +255,7 @@ require '../inc/header.php';
                 </tr>
                 <tr>
                     <td data-label="Provider">Stripe and relevant Stripe entities</td>
-                    <td data-label="Purpose">Payment processing, fraud prevention, billing support and transaction administration</td>
+                    <td data-label="Purpose">Payment processing, including payments presented with Google Pay or Apple Pay, fraud prevention, billing support and transaction administration</td>
                     <td data-label="Data">Identity, billing, payment, transaction and device data</td>
                     <td data-label="Role">Processor and/or independent controller depending on the processing activity</td>
                 </tr>

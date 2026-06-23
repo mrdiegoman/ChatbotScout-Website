@@ -16,11 +16,14 @@ const stripe = Stripe(stripePubKey);
 const isUpgradeCheckout = Boolean(upgradeFromSubscriptionId);
 
 let elements = null;
+let paymentElement = null;
 let clientSecret = null;
 let paymentFormReady = false;
 let upgradePaymentCreated = false;
 let isProcessing = false;
 let savedPaymentMethodForCheckout = null;
+let availableSavedPaymentMethod = null;
+let isUsingDifferentPaymentMethod = false;
 let initialPaymentIntentStarted = false;
 
 const stripeLoading = document.getElementById('stripe-loading');
@@ -34,7 +37,9 @@ const savedPaymentMethod = document.getElementById('saved-payment-method');
 const missingPaymentMethod = document.getElementById('missing-payment-method');
 const savedPaymentMethodTitle = document.getElementById('saved-payment-method-title');
 const savedPaymentMethodMeta = document.getElementById('saved-payment-method-meta');
+const useDifferentPaymentMethodBtn = document.getElementById('use-different-payment-method-btn');
 const managePaymentMethodBtn = document.getElementById('manage-payment-method-btn');
+const useSavedPaymentMethodBtn = document.getElementById('use-saved-payment-method-btn');
 const businessCustomerAck = document.getElementById('businessCustomerAck');
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
@@ -173,6 +178,14 @@ if (managePaymentMethodBtn) {
     managePaymentMethodBtn.addEventListener('click', openPaymentMethodPortal);
 }
 
+if (useDifferentPaymentMethodBtn) {
+    useDifferentPaymentMethodBtn.addEventListener('click', showDifferentPaymentMethodForm);
+}
+
+if (useSavedPaymentMethodBtn) {
+    useSavedPaymentMethodBtn.addEventListener('click', restoreSavedPaymentMethod);
+}
+
 async function startUpgradePayment() {
     setLoading(true);
     clearError();
@@ -205,7 +218,7 @@ async function startUpgradePayment() {
         if (savedPaymentMethodForCheckout) {
             stripeLoading.style.display = 'none';
             paymentEl.style.display = 'none';
-            await confirmSavedPaymentMethod();
+            setLoading(false);
             return;
         }
 
@@ -273,6 +286,7 @@ async function validateCheckoutBeforeConfirm() {
 function mountPaymentElement() {
     paymentFormReady = false;
     savedPaymentMethodForCheckout = null;
+    unmountPaymentElement();
     syncPayButton();
 
     elements = stripe.elements({
@@ -291,15 +305,37 @@ function mountPaymentElement() {
         },
     });
 
-    const paymentElement = elements.create('payment');
+    paymentElement = elements.create('payment', {
+        // Apple Pay and Google Pay are wallets presented by Stripe for the existing card PaymentIntent.
+        // Each is shown only on supported browsers/devices with an eligible Wallet card.
+        wallets: {
+            applePay: 'auto',
+            googlePay: 'auto',
+        },
+        paymentMethodOrder: ['apple_pay', 'google_pay', 'card'],
+    });
     paymentElement.mount('#payment-element');
 
+    const mountedPaymentElement = paymentElement;
     paymentElement.on('ready', () => {
+        if (paymentElement !== mountedPaymentElement) {
+            return;
+        }
+
         stripeLoading.style.display = 'none';
         paymentEl.style.display = 'block';
         paymentFormReady = true;
         syncPayButton();
     });
+}
+
+function unmountPaymentElement() {
+    if (paymentElement) {
+        paymentElement.unmount();
+        paymentElement = null;
+    }
+
+    elements = null;
 }
 
 function setLoading(loading) {
@@ -317,6 +353,13 @@ function syncPayButton() {
     payBtn.disabled = isProcessing || missingBusinessConfirmation || waitingForInitialForm || needsReadyPaymentForm;
     if (managePaymentMethodBtn) {
         managePaymentMethodBtn.disabled = isProcessing;
+    }
+    if (useDifferentPaymentMethodBtn) {
+        useDifferentPaymentMethodBtn.disabled = isProcessing || !clientSecret;
+    }
+    if (useSavedPaymentMethodBtn) {
+        useSavedPaymentMethodBtn.hidden = !isUsingDifferentPaymentMethod || !availableSavedPaymentMethod;
+        useSavedPaymentMethodBtn.disabled = isProcessing;
     }
 }
 
@@ -349,6 +392,10 @@ function handleAlreadyPaidCheckout(data) {
     stripeLoading.innerHTML = '<p style="color:#16a34a;font-size:14px;">Payment confirmed. Redirecting...</p>';
     stripeLoading.style.display = 'block';
     paymentEl.style.display = 'none';
+    isUsingDifferentPaymentMethod = false;
+    if (useSavedPaymentMethodBtn) {
+        useSavedPaymentMethodBtn.hidden = true;
+    }
     payBtn.disabled = true;
     payBtnText.style.display = 'inline';
     payBtnLoader.style.display = 'none';
@@ -366,12 +413,16 @@ function renderPaymentMethod(paymentMethod) {
     }
 
     if (!paymentMethod) {
+        availableSavedPaymentMethod = null;
+        isUsingDifferentPaymentMethod = false;
         savedPaymentMethodForCheckout = null;
         savedPaymentMethod.hidden = true;
         missingPaymentMethod.hidden = false;
         return;
     }
 
+    availableSavedPaymentMethod = paymentMethod;
+    isUsingDifferentPaymentMethod = false;
     savedPaymentMethodForCheckout = paymentMethod;
     missingPaymentMethod.hidden = true;
     savedPaymentMethod.hidden = false;
@@ -385,6 +436,41 @@ function renderPaymentMethod(paymentMethod) {
     } else {
         savedPaymentMethodMeta.textContent = paymentMethod.type || 'Saved payment method';
     }
+}
+
+function showDifferentPaymentMethodForm() {
+    if (!clientSecret || isProcessing || !savedPaymentMethodForCheckout) {
+        return;
+    }
+
+    clearError();
+    availableSavedPaymentMethod = savedPaymentMethodForCheckout;
+    isUsingDifferentPaymentMethod = true;
+    savedPaymentMethodForCheckout = null;
+    paymentFormReady = false;
+    savedPaymentMethod.hidden = true;
+    missingPaymentMethod.hidden = true;
+    stripeLoading.innerHTML = '<p style="color:#6b7280;font-size:14px;">Loading payment options...</p>';
+    stripeLoading.style.display = 'block';
+    paymentEl.style.display = 'none';
+    mountPaymentElement();
+}
+
+function restoreSavedPaymentMethod() {
+    if (!availableSavedPaymentMethod || isProcessing) {
+        return;
+    }
+
+    clearError();
+    unmountPaymentElement();
+    isUsingDifferentPaymentMethod = false;
+    paymentFormReady = false;
+    savedPaymentMethodForCheckout = availableSavedPaymentMethod;
+    missingPaymentMethod.hidden = true;
+    savedPaymentMethod.hidden = false;
+    stripeLoading.style.display = 'none';
+    paymentEl.style.display = 'none';
+    syncPayButton();
 }
 
 async function openPaymentMethodPortal() {

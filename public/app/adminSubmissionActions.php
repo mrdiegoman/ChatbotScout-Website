@@ -72,12 +72,8 @@ function validateChatbot(PDO $db, string $id): array {
     $intStmt->execute(['id' => $id]);
     $integrationCount = (int)$intStmt->fetchColumn();
 
-    $isFree = $chatbot['pricing_model'] === 'free';
-
-    // Validate starting_price: if not free, must be > 0
-    $priceOk = $isFree
-        ? true
-        : ($chatbot['starting_price'] !== null && (float)$chatbot['starting_price'] > 0.00);
+    // A configured price of 0.00 is valid (for example, for free or freemium plans).
+    $priceOk = $chatbot['starting_price'] !== null && $chatbot['starting_price'] !== '';
 
     $rules = [
         [
@@ -93,11 +89,8 @@ function validateChatbot(PDO $db, string $id): array {
             'ok'    => !empty($chatbot['affiliate_link']),
         ],
         [
-            'label' => $isFree
-                ? 'Starting price (free — skipped)'
-                : 'Starting price is set (> 0.00)',
+            'label' => 'Starting price is set',
             'ok'    => $priceOk,
-            'skip'  => $isFree,
         ],
         [
             'label' => 'At least 1 feature',

@@ -398,11 +398,11 @@
 
 .reviews-loading-spinner {
     animation: reviews-spin 0.75s linear infinite;
-    border: 0.25rem solid #dbeafe;
+    border: 0.35rem solid #9ca3af;
     border-radius: 50%;
     border-top-color: #2563eb;
-    height: 2rem;
-    width: 2rem;
+    height: 4rem;
+    width: 4rem;
 }
 
 @keyframes reviews-spin {
@@ -436,7 +436,7 @@
 }
 
 .reviews-load-more:disabled {
-    cursor: wait;
+    cursor: default;
     opacity: 0.65;
 }
 

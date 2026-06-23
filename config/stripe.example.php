@@ -16,6 +16,9 @@ return [
     // Webhook secret — https://dashboard.stripe.com/webhooks
     'webhook_secret'  => 'whsec_YOUR_WEBHOOK_SECRET',
 
+    // Google Pay and Apple Pay do not need a second API key or webhook. Enable them in Stripe
+    // Dashboard and register every HTTPS checkout domain at Settings > Payment method domains.
+
     // URLs
     'success_url' => 'http://localhost/mainwebsite/public/payment-success.php',
     'cancel_url'  => 'http://localhost/mainwebsite/public/advertise.php',

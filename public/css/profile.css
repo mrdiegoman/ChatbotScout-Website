@@ -915,10 +915,20 @@
 
 .payments-table-wrapper {
     overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    transition: opacity 0.15s ease;
+}
+
+.billing-container.is-loading .payments-table-wrapper,
+.billing-container.is-loading .billing-pagination-row {
+    opacity: 0.55;
+    pointer-events: none;
 }
 
 .payments-table {
     width: 100%;
+    min-width: 94rem;
     border-collapse: collapse;
 }
 
@@ -934,6 +944,7 @@
     color: var(--profile-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    white-space: nowrap;
 }
 
 .payments-table td {
@@ -941,6 +952,40 @@
     border-bottom: 1px solid var(--profile-border);
     font-size: 1.4rem;
     color: var(--profile-text);
+}
+
+.payments-table th:nth-child(1),
+.payments-table td:nth-child(1) {
+    min-width: 11rem;
+}
+
+.payments-table th:nth-child(2),
+.payments-table td:nth-child(2) {
+    min-width: 22rem;
+}
+
+.payments-table th:nth-child(3),
+.payments-table td:nth-child(3) {
+    min-width: 11rem;
+    white-space: nowrap;
+}
+
+.payments-table th:nth-child(4),
+.payments-table td:nth-child(4) {
+    min-width: 14rem;
+    white-space: nowrap;
+}
+
+.payments-table th:nth-child(5),
+.payments-table td:nth-child(5) {
+    min-width: 20rem;
+    white-space: nowrap;
+}
+
+.payments-table th:nth-child(6),
+.payments-table td:nth-child(6) {
+    min-width: 13rem;
+    white-space: nowrap;
 }
 
 .payment-package-cell strong,
@@ -983,6 +1028,78 @@
     letter-spacing: 0.3px;
 }
 
+.payment-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.payment-status-help {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.payment-status-help__trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.4rem 1.2rem;
+    border: 0;
+    appearance: none;
+    cursor: pointer;
+}
+
+.payment-status-help__trigger svg {
+    display: block;
+    width: 1.7rem;
+    height: 1.7rem;
+    flex-shrink: 0;
+    fill: currentColor;
+}
+
+.payment-status-help__tooltip {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 1rem);
+    z-index: 30;
+    width: 26rem;
+    padding: 1rem 1.2rem;
+    border: 0.1rem solid var(--profile-info);
+    border-radius: 0.8rem;
+    background: var(--profile-card-bg);
+    box-shadow: var(--profile-shadow);
+    color: var(--profile-text);
+    font-family: outfit-medium, sans-serif;
+    font-size: 1.3rem;
+    line-height: 1.45;
+    white-space: normal;
+    overflow-wrap: break-word;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-0.4rem);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    visibility: hidden;
+}
+
+.payment-status-help.payment-status-help--above .payment-status-help__tooltip {
+    top: auto;
+    bottom: calc(100% + 1rem);
+    transform: translateY(0.4rem);
+}
+
+.payment-status-help:hover .payment-status-help__tooltip {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}
+
+.payment-status-help__trigger:focus-visible {
+    outline: 0.2rem solid var(--profile-info);
+    outline-offset: 0.3rem;
+    border-radius: 1.2rem;
+}
+
 .status-succeeded {
     background: #E8F5E9;
     color: #2E7D32;
@@ -1011,6 +1128,7 @@
     text-decoration: none;
     font-family: outfit-semibold, sans-serif;
     transition: color 0.2s ease;
+    white-space: nowrap;
 }
 
 .invoice-link:hover {
@@ -1020,6 +1138,99 @@
 
 .text-muted {
     color: var(--profile-text-muted);
+}
+
+.billing-pagination-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.6rem;
+    /* margin-top: 2rem; */
+    padding-top: 2rem;
+    border-top: 1px solid var(--profile-border);
+}
+
+.billing-pagination-summary {
+    margin: 0;
+    color: var(--profile-text-muted);
+    font-size: 1.3rem;
+}
+
+.billing-pagination {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.billing-pagination__page,
+.billing-pagination__arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3.5rem;
+    height: 3.5rem;
+    padding: 0 0.75rem;
+    border: 0.15rem solid var(--profile-border);
+    border-radius: 0.75rem;
+    background: var(--profile-card-bg);
+    color: var(--profile-text);
+    cursor: pointer;
+    font-family: outfit-medium, sans-serif;
+    font-size: 1.5rem;
+    line-height: 1;
+    text-decoration: none;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.billing-pagination__arrow {
+    padding: 0;
+}
+
+.billing-pagination__arrow svg {
+    display: block;
+    width: 1.8rem;
+    height: 1.8rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2.5;
+}
+
+.billing-pagination__page:hover,
+.billing-pagination__arrow:not(.is-disabled):hover {
+    border-color: var(--profile-primary);
+    background: var(--profile-bg);
+}
+
+.billing-pagination__page.is-active {
+    border-color: var(--profile-accent);
+    background: var(--profile-accent);
+    color: #ffffff;
+    font-family: outfit-semibold, sans-serif;
+}
+
+.billing-pagination__page:focus-visible,
+.billing-pagination__arrow:focus-visible,
+.payments-table-wrapper:focus-visible {
+    outline: 0.2rem solid var(--profile-info);
+    outline-offset: 0.3rem;
+}
+
+.billing-pagination__arrow.is-disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
+.billing-pagination__arrow:disabled {
+    cursor: not-allowed;
+}
+
+.billing-pagination__ellipsis {
+    padding: 0 0.25rem;
+    color: var(--profile-text-muted);
+    font-size: 1.5rem;
+    user-select: none;
 }
 
 /* ============================================
@@ -1859,6 +2070,10 @@
         flex-direction: column;
     }
 
+    .billing-container {
+        padding: 2rem 1.6rem;
+    }
+
     .filter-group {
         width: 100%;
     }
@@ -1870,6 +2085,25 @@
     .payments-table th,
     .payments-table td {
         padding: 0.8rem 1.2rem;
+    }
+
+    .payment-status-help__tooltip {
+        right: auto;
+        left: 0;
+        width: min(26rem, calc(100vw - 6.4rem));
+    }
+
+    .billing-pagination-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 1.2rem;
+    }
+
+    .billing-pagination {
+        width: 100%;
+        justify-content: center;
+        overflow-x: auto;
+        padding-bottom: 0.2rem;
     }
 
     .modal-content {

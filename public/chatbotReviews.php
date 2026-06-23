@@ -148,9 +148,8 @@ require '../inc/header.php';
                 </div>
             </div>
 
-            <div class="reviews-loading" id="reviewsLoading" aria-live="polite">
+            <div class="reviews-loading" id="reviewsLoading" aria-live="polite" aria-label="Loading reviews">
                 <span class="reviews-loading-spinner" aria-hidden="true"></span>
-                Loading reviews…
             </div>
             <div class="reviews-cards" id="reviewsContainer"></div>
             <div class="reviews-empty" id="reviewsEmpty" hidden></div>
