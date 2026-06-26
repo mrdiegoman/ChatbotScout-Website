@@ -136,6 +136,24 @@ CREATE TABLE IF NOT EXISTS `visitor_user_links` (
     REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- História fingerprintov priradených ku consented visitorovi.
+-- visitor_id cookie je hlavná identita; fingerprint je len pomocný signál.
+CREATE TABLE IF NOT EXISTS `visitor_fingerprints` (
+  `id` CHAR(36) NOT NULL,
+  `visitor_id` CHAR(36) NOT NULL,
+  `fingerprint` VARCHAR(64) NOT NULL,
+  `first_seen` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_seen` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_visitor_fingerprint` (`visitor_id`, `fingerprint`),
+  UNIQUE KEY `uq_fingerprint` (`fingerprint`),
+  KEY `idx_visitor_last_seen` (`visitor_id`, `last_seen`),
+
+  CONSTRAINT `fk_visitor_fingerprints_visitor` FOREIGN KEY (`visitor_id`)
+    REFERENCES `visitors` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ============================================
 -- Settings table
 -- ============================================
@@ -162,7 +180,8 @@ INSERT IGNORE INTO `settings` (`key`, `value`) VALUES
 CREATE TABLE IF NOT EXISTS `chatbots` (
   `id` CHAR(36) NOT NULL COMMENT 'Chatbot UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p"',
   `owner_user_id` CHAR(36) NULL COMMENT 'Owner UUID, e.g., "550e8400-e29b-41d4-a716-446655440000", "7c9e6679-7425-40de-944b-e07fc1f90ae7"',
-  `verified_reviewer` BOOLEAN NULL default FALSE,
+  `created_by_admin_id` CHAR(36) NULL COMMENT 'Admin audit UUID that manually created this chatbot, NULL for user submissions',
+  `created_source` ENUM('submission','admin') NOT NULL DEFAULT 'submission' COMMENT 'How the listing was created',
 
   -- Basic Info
   `name` VARCHAR(200) NOT NULL COMMENT 'Chatbot/company name, e.g., "Intercom", "Drift", "Tidio"',
@@ -212,6 +231,8 @@ CREATE TABLE IF NOT EXISTS `chatbots` (
 
   PRIMARY KEY (`id`),
   KEY `idx_owner` (`owner_user_id`),
+  KEY `idx_created_by_admin` (`created_by_admin_id`),
+  KEY `idx_created_source_owner` (`created_source`, `owner_user_id`, `status`, `created_at`),
   KEY `idx_listing_status` (`status`, `is_featured`, `rating_average`),
   KEY `idx_active_listings` (`status`, `deleted_at`, `created_at`),
   KEY `idx_affiliate_program` (`has_affiliate_program`, `status`),

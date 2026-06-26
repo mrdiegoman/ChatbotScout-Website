@@ -140,6 +140,7 @@ if (!in_array($filterSubStatus, $allowedSubStatuses, true)) {
 }
 
 $allSubStatuses = "('pending','reviewed','active','rejected','removed')";
+$subVisibleCondition = "(c.submitted_at IS NOT NULL OR c.created_source = 'admin')";
  
 $subWhere  = $filterSubStatus !== 'all'
     ? 'WHERE c.status = :status'
@@ -151,7 +152,7 @@ $subTotalStmt = $db->prepare("
     SELECT COUNT(*) FROM chatbots c
     LEFT JOIN users u ON c.owner_user_id = u.id
     $subWhere
-    AND c.submitted_at IS NOT NULL
+    AND $subVisibleCondition
 ");
 $subTotalStmt->execute($subParams);
 $subTotal   = (int)$subTotalStmt->fetchColumn();
@@ -160,6 +161,7 @@ $subHasMore = $subTotal > 10;
 $subStmt = $db->prepare("
     SELECT
         c.id, c.name, c.website_url, c.logo_url,
+        c.created_at, c.created_source, c.created_by_admin_id,
         c.status, c.is_verified,
         c.submitted_at, c.approved_at, c.rejected_at, c.deleted_at, c.verified_at,
         c.access_note, c.admin_notes, c.owner_user_id,
@@ -168,10 +170,10 @@ $subStmt = $db->prepare("
     FROM chatbots c
     LEFT JOIN users u ON c.owner_user_id = u.id
     $subWhere
-    AND c.submitted_at IS NOT NULL
+    AND $subVisibleCondition
     ORDER BY
         CASE c.status WHEN 'pending' THEN 0 ELSE 1 END,
-        c.submitted_at DESC
+        COALESCE(c.submitted_at, c.created_at) DESC
     LIMIT 10
 ");
 $subStmt->execute($subParams);
@@ -180,9 +182,9 @@ $submissions = $subStmt->fetchAll();
 // Submission counts per status
 $subCountStmt = $db->query("
     SELECT status, COUNT(*) as cnt
-    FROM chatbots
-    WHERE status IN ('pending','reviewed','active','rejected','removed')
-    AND submitted_at IS NOT NULL
+    FROM chatbots c
+    WHERE c.status IN ('pending','reviewed','active','rejected','removed')
+    AND $subVisibleCondition
     GROUP BY status
 ");
 $subCounts = ['all' => 0, 'pending' => 0, 'reviewed' => 0, 'active' => 0, 'rejected' => 0, 'removed' => 0];
@@ -602,6 +604,12 @@ require '../inc/header.php';
 
     <div class="admin-tab-pane <?= $activeTab === 'submissions' ? 'active' : '' ?>" id="submissions-tab">
 
+        <div class="admin-submissions-toolbar">
+            <button type="button" class="admin-add-chatbot-btn" onclick="openAdminChatbotCreatePopup()">
+                Add chatbot
+            </button>
+        </div>
+
         <!-- Status filter tabs -->
         <div class="admin-tabs">
             <?php foreach ([
@@ -652,8 +660,15 @@ require '../inc/header.php';
                             || strpos($subLogoUrl, '../') === 0
                             ? $subLogoUrl
                             : (strpos($subLogoUrl, 'public/') === 0 ? '../' . $subLogoUrl : $subLogoUrl);
+                        $subIsAdminCreated = ($sub['created_source'] ?? '') === 'admin';
+                        $subIsUnassigned = $subIsAdminCreated && empty($sub['owner_user_id']);
+                        $subOwnerName = trim(($sub['first_name'] ?? '') . ' ' . ($sub['last_name'] ?? ''));
+                        $subDisplayDate = $sub['submitted_at'] ?: $sub['created_at'];
                     ?>
-                    <div class="admin-message-card admin-submission-card" data-id="<?= $subId ?>" data-status="<?= htmlspecialchars($sub['status']) ?>">
+                    <div class="admin-message-card admin-submission-card"
+                         data-id="<?= $subId ?>"
+                         data-status="<?= htmlspecialchars($sub['status']) ?>"
+                         data-owner-id="<?= htmlspecialchars($sub['owner_user_id'] ?? '') ?>">
 
                         <div class="admin-message-card-header">
                             <div class="admin-message-card-header-left">
@@ -668,18 +683,29 @@ require '../inc/header.php';
                                     <span class="admin-message-sender">
                                         <?= htmlspecialchars($sub['name']) ?>
                                     </span>
+                                    <?php if ($subIsUnassigned): ?>
+                                        <span class="admin-admin-added-badge">Admin added</span>
+                                        <span class="admin-unassigned-badge">Unassigned</span>
+                                    <?php endif; ?>
                                 </div>
                                 <span class="admin-message-email">
-                                    Submitted by <?= htmlspecialchars($sub['first_name'] . ' ' . $sub['last_name']) ?>
-                                    · <a href="mailto:<?= htmlspecialchars($sub['user_email']) ?>"><?= htmlspecialchars($sub['user_email']) ?></a>
+                                    <?php if ($subIsUnassigned): ?>
+                                        Added by admin. Assign an account before accepting or selling a promotion.
+                                    <?php elseif ($subIsAdminCreated): ?>
+                                        Assigned to <?= htmlspecialchars($subOwnerName ?: 'user') ?>
+                                        · <a href="mailto:<?= htmlspecialchars($sub['user_email'] ?? '') ?>"><?= htmlspecialchars($sub['user_email'] ?? '') ?></a>
+                                    <?php else: ?>
+                                        Submitted by <?= htmlspecialchars($subOwnerName ?: 'user') ?>
+                                        · <a href="mailto:<?= htmlspecialchars($sub['user_email'] ?? '') ?>"><?= htmlspecialchars($sub['user_email'] ?? '') ?></a>
+                                    <?php endif; ?>
                                 </span>
                             </div>
                             <div class="admin-message-card-header-right">
                                 <span class="admin-status-badge submission-status-<?= $sub['status'] ?>">
                                     <?= ucfirst($sub['status']) ?>
                                 </span>
-                                <span class="admin-message-date">
-                                    <?= date('d M Y, H:i', strtotime($sub['submitted_at'])) ?>
+                                <span class="admin-message-date" title="<?= $sub['submitted_at'] ? 'Submitted' : 'Added by admin' ?>">
+                                    <?= $subDisplayDate ? date('d M Y, H:i', strtotime($subDisplayDate)) : '' ?>
                                 </span>
                             </div>
                         </div>
@@ -740,19 +766,45 @@ require '../inc/header.php';
                                         onclick="toggleSection(this, 'sub-notes-<?= $subId ?>')">
                                     📝 Notes
                                 </button>
-                                <?php if (!empty($sub['is_submission_blocked'])): ?>
-                                    <button class="admin-block-btn admin-block-btn--blocked"
-                                            onclick="unblockUser('<?= $sub['owner_user_id'] ?? '' ?>', 'submission', this)">
-                                        🔓 Unblock Submissions
+                                <?php if ($subIsUnassigned): ?>
+                                    <button class="admin-toggle-btn admin-assign-btn"
+                                            onclick="toggleSection(this, 'sub-assign-<?= $subId ?>')">
+                                        Assign account
                                     </button>
                                 <?php else: ?>
-                                    <button class="admin-block-btn"
-                                            onclick="blockUser('<?= $sub['owner_user_id'] ?? '' ?>', 'submission', this)">
-                                        🚫 Block Submissions
-                                    </button>
+                                    <?php if (!empty($sub['is_submission_blocked'])): ?>
+                                        <button class="admin-block-btn admin-block-btn--blocked"
+                                                onclick="unblockUser('<?= $sub['owner_user_id'] ?? '' ?>', 'submission', this)">
+                                            🔓 Unblock Submissions
+                                        </button>
+                                    <?php else: ?>
+                                        <button class="admin-block-btn"
+                                                onclick="blockUser('<?= $sub['owner_user_id'] ?? '' ?>', 'submission', this)">
+                                            🚫 Block Submissions
+                                        </button>
+                                    <?php endif; ?>
                                 <?php endif; ?>
                             </div>
                         </div>
+
+                        <?php if ($subIsUnassigned): ?>
+                            <div class="admin-assign-section" id="sub-assign-<?= $subId ?>" style="display:none;">
+                                <label>Assign to existing account <span class="admin-reply-hint">(exact email search)</span></label>
+                                <div class="admin-assign-search-row">
+                                    <input type="email"
+                                           class="admin-assign-email-input"
+                                           placeholder="user@example.com"
+                                           autocomplete="off"
+                                           maxlength="255">
+                                    <button type="button"
+                                            class="admin-save-btn admin-assign-search-btn"
+                                            onclick="searchAccountForChatbot('<?= $subId ?>', this)">
+                                        Search
+                                    </button>
+                                </div>
+                                <div class="admin-assign-result" id="sub-assign-result-<?= $subId ?>"></div>
+                            </div>
+                        <?php endif; ?>
 
                         <!-- Reject section -->
                         <div class="admin-reply-section" id="sub-reject-<?= $subId ?>" style="display:none;">

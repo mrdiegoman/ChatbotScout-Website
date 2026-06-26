@@ -84,6 +84,16 @@
     // HELPERS
     // ============================================
 
+    function setRatingSubmitText(text) {
+        ratingSubmitBtn.classList.remove('is-loading');
+        ratingSubmitBtn.textContent = text;
+    }
+
+    function setRatingSubmitLoading() {
+        ratingSubmitBtn.classList.add('is-loading');
+        ratingSubmitBtn.innerHTML = '<span class="chatbot-rating-submit-spinner" aria-hidden="true"></span><span>Submitting</span>';
+    }
+
     function hasPreferencesConsent() {
         try {
             const rawConsent = localStorage.getItem('cookie_consent_v2');
@@ -106,6 +116,40 @@
         if (!hasPreferencesConsent()) return;
 
         try { localStorage.setItem(key, value); } catch (_) {}
+    }
+
+    function hasStatisticsConsent() {
+        return Boolean(
+            window.chatbotScoutConsent &&
+            typeof window.chatbotScoutConsent.hasStatistics === 'function' &&
+            window.chatbotScoutConsent.hasStatistics()
+        );
+    }
+
+    function ensureVisitorReady() {
+        if (!hasStatisticsConsent()) return Promise.resolve(null);
+
+        if (window.chatbotScoutVisitor && typeof window.chatbotScoutVisitor.ready === 'function') {
+            return window.chatbotScoutVisitor.ready().catch(() => null);
+        }
+
+        if (typeof window.collectAndSendVisitor === 'function') {
+            return window.collectAndSendVisitor().catch(() => null);
+        }
+
+        return Promise.resolve(null);
+    }
+
+    function recordChatbotVisit(chatbotId) {
+        return ensureVisitorReady().then(() => fetch('api/recordVisit.php', {
+            method: 'POST',
+            keepalive: true,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chatbot_id: chatbotId,
+                source_page: window.location.pathname
+            }),
+        })).catch(() => {});
     }
 
     function setLoading(on, isSearch = false) {
@@ -493,14 +537,7 @@
         if (!link) return;
         const chatbotId = link.dataset.chatbotId;
         if (!chatbotId) return;
-        fetch('api/recordVisit.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                chatbot_id: chatbotId,
-                source_page: window.location.pathname
-            }),
-        }).catch(() => {});
+        recordChatbotVisit(chatbotId);
     });
 
     // ============================================
@@ -546,7 +583,7 @@ function openRatingModal(chatbotId, chatbotName) {
 
     // Zablokuj submit kým sa neoverí či user už dal review
     ratingSubmitBtn.disabled = true;
-    ratingSubmitBtn.textContent = 'Checking...';
+    setRatingSubmitText('Checking...');
 
     updatePickerStars(0);
 
@@ -561,16 +598,16 @@ function openRatingModal(chatbotId, chatbotName) {
                 ratingModalError.textContent = 'You have already submitted a review for this chatbot.';
                 ratingModalError.style.display = 'block';
                 ratingSubmitBtn.disabled = true;
-                ratingSubmitBtn.textContent = 'Already Reviewed';
+                setRatingSubmitText('Already Reviewed');
             } else {
                 ratingSubmitBtn.disabled = false;
-                ratingSubmitBtn.textContent = 'Submit Review';
+                setRatingSubmitText('Submit Review');
             }
         })
         .catch(() => {
             // Pri chybe siete odblokuj — submit server-side validácia to aj tak chytí
             ratingSubmitBtn.disabled = false;
-            ratingSubmitBtn.textContent = 'Submit Review';
+            setRatingSubmitText('Submit Review');
         });
 }
 
@@ -622,7 +659,7 @@ function openRatingModal(chatbotId, chatbotName) {
             return;
         }
         ratingSubmitBtn.disabled = true;
-        ratingSubmitBtn.textContent = 'Submitting...';
+        setRatingSubmitLoading();
 
         fetch('api/submitReview.php', {
             method: 'POST',
@@ -636,21 +673,20 @@ function openRatingModal(chatbotId, chatbotName) {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                ratingModalSuccess.textContent = data.message;
-                ratingModalError.style.display = 'block';
-                ratingSubmitBtn.textContent = 'Submitted!';
-                setTimeout(closeRatingModal, 2000);
+                closeRatingModal();
+                showNotification('Review submitted.', 'success');
             } else {
                 ratingModalError.textContent = data.message || 'Something went wrong.';
                 ratingModalError.style.display = 'block';
                 ratingSubmitBtn.disabled = false;
-                ratingSubmitBtn.textContent = 'Submit Review';
+                setRatingSubmitText('Submit Review');
             }
         })
         .catch(() => {
             ratingModalError.textContent = 'Server error. Please try again.';
+            ratingModalError.style.display = 'block';
             ratingSubmitBtn.disabled = false;
-            ratingSubmitBtn.textContent = 'Submit Review';
+            setRatingSubmitText('Submit Review');
         });
     });
 

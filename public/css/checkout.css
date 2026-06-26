@@ -418,6 +418,32 @@
     text-decoration: none;
 }
 
+.checkout-payment__express-checkout {
+    width: 100%;
+}
+
+.checkout-payment__express-checkout[hidden] {
+    display: none;
+}
+
+.checkout-payment__express-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.25rem 0 0.25rem;
+    color: #7b8494;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.checkout-payment__express-divider::before,
+.checkout-payment__express-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #e5e7eb;
+}
+
 #payment-element {
     margin-top: 0.4rem;
 }

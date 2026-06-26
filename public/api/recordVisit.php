@@ -31,28 +31,18 @@ try {
         WHERE id = :id AND status = 'active' AND deleted_at IS NULL
     ")->execute([':id' => $chatbotId]);
 
-    // $visitorId comes from bootstrap.php
-    // It is NULL if the user declined cookies or has not consented yet
-    // In that case we skip the detailed chatbot_clicks tracking entirely
-    $cookieVisitorId = $visitorId ?? null;
+    // Detailed per-visitor click analytics are optional Statistics tracking.
+    // Without current Statistics consent, only the aggregate click_count above is kept.
+    $cookieVisitorId = null;
 
-    // Fallback for logged-in users without a visitor cookie:
-    // Find visitor_id via visitor_user_links by user_id from session
-    // Only runs if consent was explicitly accepted — never for declined users
-    $cookieConsent = $_COOKIE['cookie_consent'] ?? null;
-    if (empty($cookieVisitorId) && $cookieConsent === 'accepted' && !empty($_SESSION['user']['id'])) {
-        $stmt = $db->prepare("
-            SELECT visitor_id
-            FROM visitor_user_links
-            WHERE user_id = :user_id
-            ORDER BY converted_at DESC
-            LIMIT 1
-        ");
-        $stmt->execute(['user_id' => $_SESSION['user']['id']]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (hasStatisticsConsent()) {
+        $cookieVisitorId = $visitorId ?? null;
 
-        if ($row) {
-            $cookieVisitorId = $row['visitor_id'];
+        // Fallback for logged-in users whose visitor cookie has not reached this
+        // request yet, but who already have a consented visitor link.
+        if (empty($cookieVisitorId) && !empty($_SESSION['user']['id'])) {
+            $visitor = new Visitor();
+            $cookieVisitorId = $visitor->findLatestForUser((string)$_SESSION['user']['id']);
         }
     }
 

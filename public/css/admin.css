@@ -225,6 +225,52 @@
 .admin-tab-helpful:hover  { background: #fef3c7; }
 .admin-tab-helpful.active { background: #f59e0b; border-color: #f59e0b; color: #fff; }
 
+.admin-submissions-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1.2rem;
+}
+
+.admin-add-chatbot-btn {
+    min-height: 3.6rem;
+    border: 1.5px solid #4F46E5;
+    border-radius: 0.6rem;
+    background: #4F46E5;
+    color: #fff;
+    padding: 0 1.4rem;
+    font-size: 1.3rem;
+    font-family: outfit-semibold, sans-serif;
+    cursor: pointer;
+    transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.admin-add-chatbot-btn:hover {
+    background: #4338CA;
+    border-color: #4338CA;
+    box-shadow: 0 0.45rem 1.1rem rgba(79, 70, 229, 0.18);
+}
+
+.admin-admin-added-badge,
+.admin-unassigned-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2rem;
+    padding: 0.2rem 0.7rem;
+    border-radius: 999px;
+    font-size: 1.05rem;
+    font-family: outfit-semibold, sans-serif;
+}
+
+.admin-admin-added-badge {
+    background: #EEF2FF;
+    color: #3730A3;
+}
+
+.admin-unassigned-badge {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
 /* ============================================
    EMPTY STATE
    ============================================ */
@@ -472,6 +518,150 @@
 .admin-save-btn:hover    { background: #4338CA; }
 .admin-save-btn:active   { background: #3730A3; }
 .admin-save-btn:disabled { background: #93c5fd; cursor: not-allowed; }
+
+.admin-chatbot-create-box {
+    max-width: 620px;
+}
+
+.admin-chatbot-create-box .sub-popup-footer .admin-cancel-btn,
+.admin-chatbot-create-box .sub-popup-footer .admin-save-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 12rem;
+    min-height: 3.8rem;
+    margin-top: 0;
+    padding: 0 1.6rem;
+    font-size: 1.35rem;
+    line-height: 1;
+}
+
+.admin-create-chatbot-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.admin-create-chatbot-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    color: #374151;
+    font-size: 1.25rem;
+    font-family: outfit-semibold, sans-serif;
+}
+
+.admin-create-chatbot-field--wide {
+    grid-column: 1 / -1;
+}
+
+.admin-create-chatbot-field input,
+.admin-create-chatbot-field textarea,
+.admin-assign-email-input {
+    width: 100%;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 0.6rem;
+    background: #fff;
+    color: #111827;
+    font: inherit;
+    font-family: outfit-medium, sans-serif;
+    padding: 0.8rem 1rem;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-create-chatbot-field textarea {
+    resize: vertical;
+    min-height: 8rem;
+    max-height: 18rem;
+}
+
+.admin-create-chatbot-field input:focus,
+.admin-create-chatbot-field textarea:focus,
+.admin-assign-email-input:focus {
+    border-color: #4F46E5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.admin-assign-section {
+    margin-top: 1.4rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid #f3f4f6;
+}
+
+.admin-assign-section label {
+    display: block;
+    font-size: 1.3rem;
+    font-family: outfit-semibold, sans-serif;
+    color: #374151;
+    margin-bottom: 0.7rem;
+}
+
+.admin-assign-search-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 0.75rem;
+}
+
+.admin-assign-search-btn,
+.admin-assign-add-btn {
+    margin-top: 0;
+    min-height: 3.8rem;
+}
+
+.admin-assign-result {
+    margin-top: 1rem;
+}
+
+.admin-assign-empty,
+.admin-assign-user-card {
+    border: 1px solid #E5E7EB;
+    border-radius: 0.6rem;
+    background: #F9FAFB;
+    padding: 0.9rem 1rem;
+    color: #4B5563;
+    font-size: 1.25rem;
+}
+
+.admin-assign-user-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.admin-assign-user-card div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.admin-assign-user-card strong {
+    color: #111827;
+    font-size: 1.35rem;
+}
+
+.admin-assign-user-card span {
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+    .admin-create-chatbot-grid,
+    .admin-assign-search-row {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-submissions-toolbar {
+        justify-content: stretch;
+    }
+
+    .admin-add-chatbot-btn {
+        width: 100%;
+    }
+}
 
 /* ============================================
    HELPFUL
@@ -761,6 +951,23 @@
     cursor: not-allowed;
 }
 
+.admin-accept-edit-btn {
+    padding: 0.5rem 1.25rem;
+    border: 1px solid #C7D2FE;
+    background: #EEF2FF;
+    color: #3730A3;
+    border-radius: 0.375rem;
+    font-size: 1.5rem;
+    font-family: outfit-semibold, sans-serif;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.admin-accept-edit-btn:hover {
+    background: #E0E7FF;
+    border-color: #A5B4FC;
+}
+
 .admin-edit-listing-btn {
     border-color: #C7D2FE;
     color: #3730A3;
@@ -851,6 +1058,19 @@
     padding: 0.65rem 0.75rem;
     outline: none;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sub-edit-field select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    padding-right: 2.6rem;
+    background-color: #fff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.15rem 1.15rem;
 }
 
 .sub-edit-field textarea {
@@ -1085,6 +1305,7 @@
     height: 1rem;
     accent-color: #4F46E5;
     flex: 0 0 auto;
+    cursor: pointer;
 }
 
 .sub-edit-option-name {

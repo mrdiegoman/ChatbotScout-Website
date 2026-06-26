@@ -99,8 +99,10 @@ return [
     'google' => [
         'client_id'     => 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
         'client_secret' => 'YOUR_GOOGLE_CLIENT_SECRET',
-        // This is environment-specific. It must exactly match an Authorized
-        // redirect URI configured for the OAuth client in Google Cloud Console.
+        // Environment-specific. Leave GOOGLE_REDIRECT_URI blank in app.php to
+        // build it from the current host, or set the exact production URI:
+        // https://chatbotscout.com/google-callback
+        // It must exactly match an Authorized redirect URI in Google Cloud Console.
         'redirect_uri'  => $_ENV['GOOGLE_REDIRECT_URI'] ?? 'http://localhost/MainWebsite/google-callback',
     ],
 

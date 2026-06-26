@@ -19,7 +19,7 @@
     --cs-purple: #7c3aed;
     --cs-purple-soft: #f3eeff;
     --cs-shadow: 0 12px 32px rgba(0, 87, 255, 0.1);
-    --cs-hero-desktop-height: 40.4rem;
+    --cs-hero-desktop-height: 32rem;
 }
 
 body.page-contact,
@@ -31,7 +31,7 @@ body.page-affiliateDisclosure {
 .cs-page {
     width: 100%;
     flex: 1;
-    margin-top: 10rem;
+    margin-top: 6rem;
     background: var(--cs-bg);
 }
 
@@ -49,7 +49,7 @@ body.page-affiliateDisclosure {
 .cs-hero-inner {
     width: min(100%, var(--cs-page-max));
     margin: 0 auto;
-    padding: clamp(4.4rem, 7vw, 7.2rem) 2.4rem;
+    padding: clamp(3.2rem, 5vw, 5rem) 2.4rem;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(26rem, 34rem);
     align-items: center;
@@ -621,7 +621,7 @@ body.page-affiliateDisclosure {
 
 @media (max-width: 640px) {
     .cs-page {
-        margin-top: 12rem;
+        margin-top: 6rem;
     }
 
     .cs-hero-inner,

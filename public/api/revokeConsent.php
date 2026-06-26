@@ -19,15 +19,18 @@ validateCsrfToken();
 
 $appConfig = require __DIR__ . '/../../config/app.php';
 
-// Vymaž visitor_id cookie
-setcookie(
-    $appConfig['visitor']['cookie_name'],
-    '',
-    time() - 3600,
-    '/',
-    '',
-    false,
-    true
-);
+$cookieName = $appConfig['visitor']['cookie_name'];
+
+// Vymaž HttpOnly visitor_id cookie. Historické analytické záznamy v DB nemažeme
+// automaticky; revocation zastaví ďalšie identifikované tracking requesty.
+setcookie($cookieName, '', [
+    'expires'  => time() - 3600,
+    'path'     => '/',
+    'secure'   => (bool)$appConfig['visitor']['cookie_secure'],
+    'httponly' => true,
+    'samesite' => 'Lax',
+]);
+
+unset($_COOKIE[$cookieName]);
 
 echo json_encode(['success' => true]);

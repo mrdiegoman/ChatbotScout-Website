@@ -1,13 +1,80 @@
 /**
- * visitor.js - Custom Browser Fingerprinting
+ * visitor.js - consent-gated visitor identification
  *
- * Zbiera stabilné signály z browsera a generuje hash.
- * Nemení sa po vymazaní cookies.
+ * The server-side HttpOnly visitor_id cookie is canonical. Browser
+ * fingerprinting and localStorage backup are used only after Statistics consent.
  */
 (function () {
+    'use strict';
+
+    var COOKIE_V2 = 'cookie_consent_v2';
+    var COOKIE_OLD = 'cookie_consent';
+    var STORAGE_KEY = 'chatbotscout_visitor_id';
+    var UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    var pendingIdentify = null;
 
     // ============================================
-    // SIGNÁLY
+    // CONSENT
+    // ============================================
+
+    function getCookie(name) {
+        var escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        var match = document.cookie.match(new RegExp('(?:^|; )' + escaped + '=([^;]*)'));
+        return match ? decodeURIComponent(match[1]) : null;
+    }
+
+    function parseConsent(raw) {
+        if (!raw) return null;
+        try {
+            var consent = JSON.parse(raw);
+            if (consent && typeof consent === 'object' && consent.necessary !== undefined) {
+                return consent;
+            }
+        } catch (e) {}
+        return null;
+    }
+
+    function hasStatisticsConsent() {
+        if (window.chatbotScoutConsent && typeof window.chatbotScoutConsent.hasStatistics === 'function') {
+            return window.chatbotScoutConsent.hasStatistics();
+        }
+
+        var cookieConsent = parseConsent(getCookie(COOKIE_V2));
+        if (cookieConsent) return !!cookieConsent.statistics;
+
+        try {
+            var storageConsent = parseConsent(localStorage.getItem(COOKIE_V2));
+            if (storageConsent) return !!storageConsent.statistics;
+        } catch (e) {}
+
+        return getCookie(COOKIE_OLD) === 'accepted';
+    }
+
+    function getStoredVisitorId() {
+        try {
+            var value = localStorage.getItem(STORAGE_KEY);
+            return UUID_PATTERN.test(value || '') ? value : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function setStoredVisitorId(visitorId) {
+        if (!UUID_PATTERN.test(visitorId || '') || !hasStatisticsConsent()) return;
+
+        try {
+            localStorage.setItem(STORAGE_KEY, visitorId);
+        } catch (e) {}
+    }
+
+    function clearStoredVisitorId() {
+        try {
+            localStorage.removeItem(STORAGE_KEY);
+        } catch (e) {}
+    }
+
+    // ============================================
+    // SIGNALS
     // ============================================
 
     function getCanvasFingerprint() {
@@ -21,9 +88,9 @@
             ctx.fillStyle = '#f60';
             ctx.fillRect(100, 1, 62, 20);
             ctx.fillStyle = '#069';
-            ctx.fillText('FP test 🔐', 2, 2);
+            ctx.fillText('FP test', 2, 2);
             ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
-            ctx.fillText('FP test 🔐', 4, 4);
+            ctx.fillText('FP test', 4, 4);
             return canvas.toDataURL();
         } catch (e) {
             return 'canvas_error';
@@ -89,54 +156,55 @@
     }
 
     // ============================================
-    // SHA-256 HASH (pure JS, bez externých knižníc)
+    // SHA-256
     // ============================================
 
-    function sha256(str) {
+    function sha256Fallback(str) {
         function rightRotate(value, amount) {
             return (value >>> amount) | (value << (32 - amount));
         }
+
+        str = encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function (_, p1) {
+            return String.fromCharCode(parseInt(p1, 16));
+        });
 
         var mathPow = Math.pow;
         var maxWord = mathPow(2, 32);
         var lengthProperty = 'length';
         var i, j;
         var result = '';
-
         var words = [];
         var asciiBitLength = str[lengthProperty] * 8;
-
-        var hash = sha256.h = sha256.h || [];
-        var k = sha256.k = sha256.k || [];
+        var hash = sha256Fallback.h ? sha256Fallback.h.slice(0) : [];
+        var k = sha256Fallback.k ? sha256Fallback.k.slice(0) : [];
         var primeCounter = k[lengthProperty];
-
         var isComposite = {};
+
         for (var candidate = 2; primeCounter < 64; candidate++) {
             if (!isComposite[candidate]) {
-                for (i = 0; i < 313; i += candidate) {
-                    isComposite[i] = candidate;
-                }
-                hash[primeCounter] = (mathPow(candidate, .5) * maxWord) | 0;
+                for (i = 0; i < 313; i += candidate) isComposite[i] = candidate;
+                hash[primeCounter] = (mathPow(candidate, 0.5) * maxWord) | 0;
                 k[primeCounter++] = (mathPow(candidate, 1 / 3) * maxWord) | 0;
             }
         }
+
+        sha256Fallback.h = hash.slice(0);
+        sha256Fallback.k = k.slice(0);
 
         str += '\x80';
         while (str[lengthProperty] % 64 - 56) str += '\x00';
         for (i = 0; i < str[lengthProperty]; i++) {
             j = str.charCodeAt(i);
-            if (j >> 8) return '';
             words[i >> 2] |= j << ((3 - i) % 4) * 8;
         }
         words[words[lengthProperty]] = ((asciiBitLength / maxWord) | 0);
-        words[words[lengthProperty]] = (asciiBitLength);
+        words[words[lengthProperty]] = asciiBitLength;
 
         for (j = 0; j < words[lengthProperty];) {
             var w = words.slice(j, j += 16);
-            var oldHash = hash.slice(0, 8);
+            var oldHash = hash.slice(0);
 
             for (i = 0; i < 64; i++) {
-                var i2 = i + j - 16;
                 var w15 = w[i - 15], w2 = w[i - 2];
                 var a = hash[0], e = hash[4];
                 var temp1 = hash[7]
@@ -171,12 +239,35 @@
         return result;
     }
 
+    function sha256(str) {
+        if (window.crypto && window.crypto.subtle && window.TextEncoder) {
+            return window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(str))
+                .then(function (buffer) {
+                    return Array.prototype.map.call(new Uint8Array(buffer), function (x) {
+                        return ('00' + x.toString(16)).slice(-2);
+                    }).join('');
+                });
+        }
+
+        return Promise.resolve(sha256Fallback(str));
+    }
+
     // ============================================
-    // ZBIERANIE + ODOSLANIE
+    // COLLECT + SEND
     // ============================================
 
-    function collectAndSend() {
-        var signals = [
+    function getUtmPayload() {
+        var payload = {};
+        var params = new URLSearchParams(window.location.search);
+        ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'].forEach(function (key) {
+            var value = params.get(key);
+            if (value) payload[key] = value;
+        });
+        return payload;
+    }
+
+    function buildSignals() {
+        return [
             getCanvasFingerprint(),
             getWebGLFingerprint(),
             getScreenInfo(),
@@ -186,38 +277,64 @@
             getPlugins(),
             navigator.userAgent
         ].join('|||');
-
-        var fingerprint = sha256(signals);
-
-        if (!fingerprint) return;
-        
-        fetch('api/identify.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fingerprint: fingerprint })
-        })
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-            // Ak server vrátil iné visitor_id (restored), okamžite aktualizuj cookie
-            // aby ďalšie AJAX volania (napr. recordVisit) použili správne ID
-            if (data && data.visitor_id) {
-                var expires = new Date();
-                expires.setFullYear(expires.getFullYear() + 1);
-                document.cookie = 'visitor_id=' + data.visitor_id
-                    + '; path=/'
-                    + '; expires=' + expires.toUTCString();
-            }
-        })
-        .catch(function () {});
     }
 
-    // Spusti po načítaní stránky
+    function collectAndSend() {
+        if (!hasStatisticsConsent()) {
+            clearStoredVisitorId();
+            return Promise.resolve({ success: true, action: 'no_consent_client' });
+        }
+
+        if (pendingIdentify) {
+            return pendingIdentify;
+        }
+
+        pendingIdentify = sha256(buildSignals())
+            .then(function (fingerprint) {
+                if (!fingerprint) return null;
+
+                var payload = Object.assign({
+                    fingerprint: fingerprint,
+                    stored_visitor_id: getStoredVisitorId(),
+                    landing_page: window.location.pathname + window.location.search,
+                    referrer_url: document.referrer || null
+                }, getUtmPayload());
+
+                return fetch('api/identify.php', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            })
+            .then(function (response) {
+                return response ? response.json() : null;
+            })
+            .then(function (data) {
+                if (data && data.visitor_id) {
+                    setStoredVisitorId(data.visitor_id);
+                }
+                pendingIdentify = null;
+                return data;
+            })
+            .catch(function () {
+                pendingIdentify = null;
+                return null;
+            });
+
+        return pendingIdentify;
+    }
+
+    window.collectAndSendVisitor = collectAndSend;
+    window.chatbotScoutVisitor = {
+        ready: collectAndSend,
+        getStoredVisitorId: getStoredVisitorId,
+        clearStoredVisitorId: clearStoredVisitorId
+    };
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', collectAndSend);
     } else {
         collectAndSend();
     }
-
-    // Expose pre Consent.js (ak skript už bol načítaný)
-    window.collectAndSendVisitor = collectAndSend;
 })();

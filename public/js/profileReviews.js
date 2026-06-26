@@ -18,6 +18,12 @@
     let editingReviewId  = null;
     let currentRating    = 0;
     let isReviewBlocked  = false;   // nastavené po načítaní z API
+    const reviewState = {
+        offset: 0,
+        total: 0,
+        hasMore: false,
+        loading: false,
+    };
 
     const starLabels = {
         1: 'Poor',
@@ -34,6 +40,8 @@
     const reviewsContainer = document.getElementById('myReviewsContainer');
     const reviewsLoading   = document.getElementById('myReviewsLoading');
     const reviewsEmpty     = document.getElementById('myReviewsEmpty');
+    const reviewsLoadMore  = document.getElementById('myReviewsLoadMore');
+    const reviewsLoadMoreWrap = reviewsLoadMore ? reviewsLoadMore.closest('.pr-load-more-wrap') : null;
 
     // Edit modal
     const editOverlay      = document.getElementById('editReviewOverlay');
@@ -59,46 +67,93 @@
     // LOAD REVIEWS
     // ============================================
 
-    function loadReviews() {
+    function loadReviews(reset = false) {
+        if (!reviewsContainer || reviewState.loading) return;
+
+        if (reset) {
+            reviewState.offset = 0;
+            reviewState.total = 0;
+            reviewState.hasMore = false;
+            reviewsContainer.innerHTML = '';
+            if (reviewsEmpty) reviewsEmpty.style.display = 'none';
+            if (reviewsLoadMore) reviewsLoadMore.hidden = true;
+            if (reviewsLoadMoreWrap) reviewsLoadMoreWrap.hidden = true;
+        }
+
+        reviewState.loading = true;
         setLoading(true);
 
-        fetch('api/getUserReviews.php')
+        const url = new URL('api/getUserReviews.php', window.location.href);
+        url.searchParams.set('offset', reviewState.offset);
+
+        fetch(url, { headers: { Accept: 'application/json' } })
             .then(res => res.json())
             .then(data => {
                 if (!data.success) {
-                    showEmpty();
+                    if (reviewState.offset === 0) showEmpty();
                     return;
                 }
 
                 // Ulož blocked flag
                 isReviewBlocked = !!data.is_review_blocked;
 
-                if (data.reviews.length === 0) {
+                const reviews = Array.isArray(data.reviews) ? data.reviews : [];
+                reviewState.total = Number(data.total) || 0;
+                reviewState.hasMore = !!data.has_more;
+
+                if (reviews.length === 0 && reviewState.offset === 0) {
                     showEmpty();
                     return;
                 }
-                renderReviews(data.reviews);
+
+                appendReviews(reviews);
+                reviewState.offset += reviews.length;
+                updateLoadMore();
             })
-            .catch(() => showEmpty())
-            .finally(() => setLoading(false));
+            .catch(() => {
+                if (reviewState.offset === 0) showEmpty();
+            })
+            .finally(() => {
+                reviewState.loading = false;
+                setLoading(false);
+                updateLoadMore();
+            });
     }
 
     function setLoading(state) {
-        if (reviewsLoading) reviewsLoading.style.display = state ? 'flex' : 'none';
+        if (reviewsLoading) {
+            reviewsLoading.style.display = state && reviewState.offset === 0 ? 'flex' : 'none';
+        }
+
+        if (reviewsLoadMore) {
+            reviewsLoadMore.disabled = state;
+            reviewsLoadMore.textContent = state && reviewState.offset > 0 ? 'Loading...' : 'Load more reviews';
+        }
     }
 
     function showEmpty() {
         if (reviewsEmpty)     reviewsEmpty.style.display     = 'block';
         if (reviewsContainer) reviewsContainer.innerHTML     = '';
+        if (reviewsLoadMore)  reviewsLoadMore.hidden         = true;
+        if (reviewsLoadMoreWrap) reviewsLoadMoreWrap.hidden  = true;
+    }
+
+    function updateLoadMore() {
+        if (!reviewsLoadMore) return;
+        const shouldShow = reviewState.hasMore && reviewState.offset > 0;
+        reviewsLoadMore.hidden = !shouldShow;
+        if (reviewsLoadMoreWrap) reviewsLoadMoreWrap.hidden = !shouldShow;
+        if (!reviewState.loading) reviewsLoadMore.textContent = 'Load more reviews';
     }
 
     // ============================================
     // RENDER
     // ============================================
 
-    function renderReviews(reviews) {
+    function appendReviews(reviews) {
         if (reviewsEmpty) reviewsEmpty.style.display = 'none';
-        reviewsContainer.innerHTML = reviews.map(buildReviewCard).join('');
+        if (!reviews.length) return;
+        reviewsContainer.insertAdjacentHTML('beforeend', reviews.map(buildReviewCard).join(''));
     }
 
     function buildReviewCard(r) {
@@ -153,7 +208,7 @@
             ${notesBlock}
 
             <div class="pr-card-actions">
-                <button class="pr-edit-btn${editExtraClass}"${editDisabled} onclick="openEditReviewModal('${escHtml(r.id)}', this)">
+                <button class="pr-edit-btn${editExtraClass}"${editDisabled} data-review-id="${escHtml(r.id)}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
                          fill="none" stroke="currentColor" stroke-width="2.2"
                          stroke-linecap="round" stroke-linejoin="round">
@@ -162,7 +217,7 @@
                     </svg>
                     Edit
                 </button>
-                <button class="pr-delete-btn"${deleteDisabled} onclick="openDeleteReviewModal('${escHtml(r.id)}')">
+                <button class="pr-delete-btn"${deleteDisabled} data-review-id="${escHtml(r.id)}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
                          fill="none" stroke="currentColor" stroke-width="2.2"
                          stroke-linecap="round" stroke-linejoin="round">
@@ -341,15 +396,21 @@
     // ============================================
 
     window.openDeleteReviewModal = function (reviewId) {
+        if (!deleteOverlay) return;
         pendingDeleteId = reviewId;
         deleteOverlay.classList.add('active');
         lockScroll();
     };
 
     function closeDeleteModal() {
+        if (!deleteOverlay) return;
         deleteOverlay.classList.remove('active');
         unlockScroll();
         pendingDeleteId = null;
+        if (deleteConfirmBtn) {
+            deleteConfirmBtn.disabled = false;
+            deleteConfirmBtn.textContent = 'Yes, delete';
+        }
     }
 
     if (deleteCloseBtn)  deleteCloseBtn.addEventListener('click', closeDeleteModal);
@@ -359,6 +420,7 @@
         deleteConfirmBtn.addEventListener('click', async () => {
             if (!pendingDeleteId) return;
 
+            const reviewId = pendingDeleteId;
             deleteConfirmBtn.disabled    = true;
             deleteConfirmBtn.textContent = 'Deleting...';
 
@@ -366,30 +428,61 @@
                 const res  = await fetch('api/updateReview.php', {
                     method:  'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'delete', id: pendingDeleteId }),
+                    body: JSON.stringify({ action: 'delete', id: reviewId }),
                 });
                 const data = await res.json();
 
                 if (data.success) {
-                    const card = reviewsContainer.querySelector(`.pr-card[data-id="${pendingDeleteId}"]`);
+                    const card = reviewsContainer.querySelector(`.pr-card[data-id="${reviewId}"]`);
+                    closeDeleteModal();
+                    showNotification('Review deleted.', 'success');
+
                     if (card) {
                         card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
                         card.style.opacity    = '0';
                         card.style.transform  = 'translateY(-8px)';
                         setTimeout(() => {
                             card.remove();
-                            if (!reviewsContainer.querySelector('.pr-card')) showEmpty();
+                            reviewState.offset = Math.max(0, reviewState.offset - 1);
+                            reviewState.total = Math.max(0, reviewState.total - 1);
+
+                            if (!reviewsContainer.querySelector('.pr-card')) {
+                                if (reviewState.hasMore) {
+                                    loadReviews();
+                                } else {
+                                    showEmpty();
+                                }
+                            } else {
+                                updateLoadMore();
+                            }
                         }, 300);
                     }
-                    closeDeleteModal();
                 } else {
                     deleteConfirmBtn.disabled    = false;
                     deleteConfirmBtn.textContent = 'Yes, delete';
-                    alert(data.message || 'Failed to delete review');
+                    showNotification(data.message || 'Failed to delete review.', 'error');
                 }
             } catch (err) {
                 deleteConfirmBtn.disabled    = false;
                 deleteConfirmBtn.textContent = 'Yes, delete';
+                showNotification('Failed to delete review. Please try again.', 'error');
+            }
+        });
+    }
+
+    if (reviewsContainer) {
+        reviewsContainer.addEventListener('click', (event) => {
+            const editBtn = event.target.closest('.pr-edit-btn');
+            if (editBtn && reviewsContainer.contains(editBtn)) {
+                if (editBtn.disabled) return;
+                window.openEditReviewModal(editBtn.dataset.reviewId, editBtn);
+                return;
+            }
+
+            const deleteBtn = event.target.closest('.pr-delete-btn');
+            if (deleteBtn && reviewsContainer.contains(deleteBtn)) {
+                if (deleteBtn.disabled) return;
+                window.openDeleteReviewModal(deleteBtn.dataset.reviewId);
             }
         });
     }
@@ -421,14 +514,18 @@
         reviewsTabBtn.addEventListener('click', () => {
             if (!reviewsContainer.dataset.loaded) {
                 reviewsContainer.dataset.loaded = '1';
-                loadReviews();
+                loadReviews(true);
             }
         });
     }
 
+    if (reviewsLoadMore) {
+        reviewsLoadMore.addEventListener('click', () => loadReviews());
+    }
+
     if (document.getElementById('reviews-tab')?.classList.contains('active')) {
         reviewsContainer.dataset.loaded = '1';
-        loadReviews();
+        loadReviews(true);
     }
 
 })();

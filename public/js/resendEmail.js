@@ -73,7 +73,7 @@ async function resendEmail() {
         
         if (result.success) {
             // ✅ Success - start countdown
-            showNotification('✅ Verification email sent successfully!', 'success');
+            showNotification('Verification email sent successfully!', 'success');
             
             // Save timestamp to LocalStorage
             const storageKey = `resend_timer_${email}`;
@@ -153,81 +153,3 @@ function enableButton(button) {
     button.textContent = 'Resend Verification Email';
     button.classList.remove('countdown-active');
 }
-
-// ============================================
-// NOTIFICATION SYSTEM
-// ============================================
-
-function showNotification(message, type = 'info') {
-    // Remove existing notifications
-    const existing = document.querySelector('.notification');
-    if (existing) existing.remove();
-    
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.textContent = message;
-    
-    // Add to body
-    document.body.appendChild(notification);
-    
-    // Trigger animation
-    setTimeout(() => {
-        notification.classList.add('show');
-    }, 10);
-    
-    // Remove after 4s
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }, 4000);
-}
-
-// ============================================
-// NOTIFICATION STYLES (inject into page)
-// ============================================
-
-const notificationStyles = document.createElement('style');
-notificationStyles.textContent = `
-    .notification {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 16px 24px;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-        font-size: 14px;
-        font-family: outfit-semibold, sans-serif;
-        z-index: 10000;
-        opacity: 0;
-        transform: translateX(100px);
-        transition: all 0.3s ease;
-        max-width: 400px;
-    }
-    .notification.show {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    .notification-success {
-        border-left: 4px solid #4CAF50;
-        color: #2E7D32;
-    }
-    .notification-error {
-        border-left: 4px solid #EF233C;
-        color: #C62828;
-    }
-    .notification-info {
-        border-left: 4px solid #2196F3;
-        color: #1976D2;
-    }
-    
-    /* Button countdown state */
-    .btn-resend.countdown-active {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-`;
-document.head.appendChild(notificationStyles);

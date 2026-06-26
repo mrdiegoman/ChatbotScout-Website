@@ -1,7 +1,8 @@
 <?php
 /**
  * Admin Submission Actions
- * Actions: validate_chatbot | accept | review | reject | remove | save_notes
+ * Actions: create_admin_chatbot | search_user_by_email | assign_chatbot_owner
+ *          validate_chatbot | accept | review | reject | remove | save_notes
  */
 
 require '../../inc/bootstrap.php';
@@ -19,14 +20,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 validateCsrfToken();
 
-$input  = json_decode(file_get_contents('php://input'), true);
+$input  = json_decode(file_get_contents('php://input'), true) ?? [];
 $action = $input['action'] ?? '';
 $id     = trim($input['id'] ?? '');
-
-if (empty($id)) {
-    echo json_encode(['success' => false, 'message' => 'Missing chatbot ID.']);
-    exit;
-}
 
 $db        = Database::getInstance()->getConnection();
 $appConfig = require '../../config/app.php';
@@ -35,8 +31,72 @@ $appConfig = require '../../config/app.php';
 function getPendingCount(PDO $db): int {
     return (int)$db->query("
         SELECT COUNT(*) FROM chatbots
-        WHERE status = 'pending' AND submitted_at IS NOT NULL
+        WHERE status = 'pending'
+          AND (submitted_at IS NOT NULL OR created_source = 'admin')
     ")->fetchColumn();
+}
+
+function getAdminSubmissionRow(PDO $db, string $id): ?array {
+    $stmt = $db->prepare("
+        SELECT
+            c.id, c.name, c.website_url, c.logo_url,
+            c.owner_user_id, c.created_by_admin_id, c.created_source, c.created_at,
+            c.status, c.is_verified,
+            c.submitted_at, c.approved_at, c.rejected_at, c.deleted_at, c.verified_at,
+            c.access_note, c.admin_notes,
+            u.first_name, u.last_name, u.email AS user_email,
+            u.is_submission_blocked
+        FROM chatbots c
+        LEFT JOIN users u ON c.owner_user_id = u.id
+        WHERE c.id = :id
+          AND (c.submitted_at IS NOT NULL OR c.created_source = 'admin')
+        LIMIT 1
+    ");
+    $stmt->execute(['id' => $id]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$row) {
+        return null;
+    }
+
+    $row['submitted_at_formatted'] = $row['submitted_at']
+        ? date('d M Y, H:i', strtotime($row['submitted_at'])) : null;
+    $row['created_at_formatted'] = $row['created_at']
+        ? date('d M Y, H:i', strtotime($row['created_at'])) : null;
+    $row['display_date_formatted'] = $row['submitted_at_formatted'] ?: $row['created_at_formatted'];
+    $row['approved_at_formatted'] = $row['approved_at']
+        ? date('d M Y, H:i', strtotime($row['approved_at'])) : null;
+    $row['rejected_at_formatted'] = $row['rejected_at']
+        ? date('d M Y, H:i', strtotime($row['rejected_at'])) : null;
+    $row['deleted_at_formatted'] = $row['deleted_at']
+        ? date('d M Y, H:i', strtotime($row['deleted_at'])) : null;
+    $row['verified_at_formatted'] = $row['verified_at']
+        ? date('d M Y, H:i', strtotime($row['verified_at'])) : null;
+    $row['is_verified'] = (bool)$row['is_verified'];
+    $row['is_submission_blocked'] = (bool)$row['is_submission_blocked'];
+    $row['is_admin_added'] = ($row['created_source'] ?? '') === 'admin' && empty($row['owner_user_id']);
+
+    return $row;
+}
+
+function getAdminSubmissionCounts(PDO $db): array {
+    $countStmt = $db->query("
+        SELECT status, COUNT(*) as cnt
+        FROM chatbots
+        WHERE status IN ('pending','reviewed','active','rejected','removed')
+          AND (submitted_at IS NOT NULL OR created_source = 'admin')
+        GROUP BY status
+    ");
+
+    $counts = ['all' => 0, 'pending' => 0, 'reviewed' => 0, 'active' => 0, 'rejected' => 0, 'removed' => 0];
+    foreach ($countStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        if (isset($counts[$row['status']])) {
+            $counts[$row['status']] = (int)$row['cnt'];
+        }
+        $counts['all'] += (int)$row['cnt'];
+    }
+
+    return $counts;
 }
 
 // ── Helper: validate chatbot readiness ────────────────────────────────────────
@@ -44,7 +104,8 @@ function validateChatbot(PDO $db, string $id): array {
     // Fetch chatbot data
     $stmt = $db->prepare("
         SELECT c.description, c.logo_url, c.affiliate_link,
-               c.starting_price, c.pricing_model
+               c.starting_price, c.pricing_model,
+               c.owner_user_id, c.created_source
         FROM chatbots c
         WHERE c.id = :id
     ");
@@ -75,7 +136,17 @@ function validateChatbot(PDO $db, string $id): array {
     // A configured price of 0.00 is valid (for example, for free or freemium plans).
     $priceOk = $chatbot['starting_price'] !== null && $chatbot['starting_price'] !== '';
 
-    $rules = [
+    $rules = [];
+
+    if (($chatbot['created_source'] ?? '') === 'admin' || empty($chatbot['owner_user_id'])) {
+        $rules[] = [
+            'code'  => 'account_assigned',
+            'label' => 'Account is assigned',
+            'ok'    => !empty($chatbot['owner_user_id']),
+        ];
+    }
+
+    $rules = array_merge($rules, [
         [
             'label' => 'Description is set',
             'ok'    => !empty($chatbot['description']),
@@ -100,7 +171,7 @@ function validateChatbot(PDO $db, string $id): array {
             'label' => 'At least 1 integration',
             'ok'    => $integrationCount >= 1,
         ],
-    ];
+    ]);
 
     $allPassed = array_reduce($rules, function (bool $carry, array $rule): bool {
         return $carry && ($rule['ok'] || ($rule['skip'] ?? false));
@@ -193,7 +264,8 @@ function getSubmissionEditData(PDO $db, string $id): array {
             starting_price, pricing_model, pricing_currency, pricing_url,
             status
         FROM chatbots
-        WHERE id = :id AND submitted_at IS NOT NULL
+        WHERE id = :id
+          AND (submitted_at IS NOT NULL OR created_source = 'admin')
         LIMIT 1
     ");
     $stmt->execute(['id' => $id]);
@@ -273,10 +345,6 @@ function saveSubmissionEditData(PDO $db, string $id, array $input): array {
     $affiliateLink = cleanNullableString($fields['affiliate_link'] ?? null, 1000);
     $pricingUrl = cleanNullableString($fields['pricing_url'] ?? null, 500);
 
-    if ($affiliateLink === null) {
-        throw new InvalidArgumentException('Outbound link is required.');
-    }
-
     foreach ([$affiliateLink, $pricingUrl] as $url) {
         if ($url !== null && !filter_var($url, FILTER_VALIDATE_URL)) {
             throw new InvalidArgumentException('Affiliate and pricing URLs must be valid URLs when filled.');
@@ -301,7 +369,7 @@ function saveSubmissionEditData(PDO $db, string $id, array $input): array {
     }
     $startingPrice = number_format((float)$startingPrice, 2, '.', '');
 
-    $hasAffiliateProgram = !empty($fields['has_affiliate_program']);
+    $hasAffiliateProgram = !empty($fields['has_affiliate_program']) && $affiliateLink !== null;
 
     $commissionTypes = ['', 'percentage', 'flat', 'cpa'];
     $commissionType = trim((string)($fields['affiliate_commission_type'] ?? ''));
@@ -464,14 +532,210 @@ function deleteUnusedFeature(PDO $db, string $featureId): void {
     $delete->execute(['id' => $featureId]);
 }
 
+// ── CREATE ADMIN CHATBOT ──────────────────────────────────────────────────────
+if ($action === 'create_admin_chatbot') {
+    try {
+        $name = trim((string)($input['name'] ?? ''));
+        $websiteUrl = trim((string)($input['website_url'] ?? ''));
+        $logoUrl = cleanNullableString($input['logo_url'] ?? null, 500);
+        $adminNotes = cleanNullableString($input['admin_notes'] ?? null, 5000);
+
+        if ($name === '' || mb_strlen($name) > 200) {
+            throw new InvalidArgumentException('Chatbot name is required and must be max 200 characters.');
+        }
+
+        if ($websiteUrl === '' || mb_strlen($websiteUrl) > 500 || !filter_var($websiteUrl, FILTER_VALIDATE_URL)) {
+            throw new InvalidArgumentException('Website URL must be a valid URL.');
+        }
+
+        $chatbotId = generateUUID();
+        $adminId = $GLOBALS['adminUser']['audit_user_id'] ?? null;
+
+        $stmt = $db->prepare("
+            INSERT INTO chatbots (
+                id, owner_user_id, created_by_admin_id, created_source,
+                name, website_url, logo_url, status, admin_notes,
+                starting_price, pricing_model, pricing_currency,
+                has_free_trial, has_affiliate_program
+            ) VALUES (
+                :id, NULL, :created_by_admin_id, 'admin',
+                :name, :website_url, :logo_url, 'pending', :admin_notes,
+                0.00, 'free', 'USD',
+                0, 0
+            )
+        ");
+        $stmt->execute([
+            'id' => $chatbotId,
+            'created_by_admin_id' => $adminId,
+            'name' => $name,
+            'website_url' => $websiteUrl,
+            'logo_url' => $logoUrl,
+            'admin_notes' => $adminNotes,
+        ]);
+
+        AuditLog::log('chatbot', $chatbotId, 'created',
+            null,
+            ['source' => 'admin', 'name' => $name, 'owner_user_id' => null],
+            $adminId
+        );
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Chatbot added. Assign an account when you are ready.',
+            'submission' => getAdminSubmissionRow($db, $chatbotId),
+            'counts' => getAdminSubmissionCounts($db),
+        ]);
+    } catch (InvalidArgumentException $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    } catch (Throwable $e) {
+        error_log('Admin chatbot create error: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Could not add chatbot.']);
+    }
+    exit;
+}
+
+if (empty($id)) {
+    echo json_encode(['success' => false, 'message' => 'Missing chatbot ID.']);
+    exit;
+}
+
+// ── SEARCH USER FOR ASSIGNMENT ────────────────────────────────────────────────
+if ($action === 'search_user_by_email') {
+    try {
+        $email = trim((string)($input['email'] ?? ''));
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new InvalidArgumentException('Enter a valid email address.');
+        }
+
+        $chatbotStmt = $db->prepare("
+            SELECT id, owner_user_id, created_source
+            FROM chatbots
+            WHERE id = :id
+              AND created_source = 'admin'
+            LIMIT 1
+        ");
+        $chatbotStmt->execute(['id' => $id]);
+        $targetChatbot = $chatbotStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$targetChatbot) {
+            throw new InvalidArgumentException('Admin-added chatbot not found.');
+        }
+
+        if (!empty($targetChatbot['owner_user_id'])) {
+            throw new InvalidArgumentException('This chatbot is already assigned to an account.');
+        }
+
+        $stmt = $db->prepare("
+            SELECT id, first_name, last_name, email, status, is_email_verified
+            FROM users
+            WHERE email = :email
+            LIMIT 1
+        ");
+        $stmt->execute(['email' => $email]);
+        $foundUser = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        echo json_encode([
+            'success' => true,
+            'found' => (bool)$foundUser,
+            'user' => $foundUser ?: null,
+            'message' => $foundUser ? 'Account found.' : 'No account found with that email.',
+        ]);
+    } catch (InvalidArgumentException $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    } catch (Throwable $e) {
+        error_log('Admin chatbot user search error: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Could not search account.']);
+    }
+    exit;
+}
+
+// ── ASSIGN ADMIN CHATBOT TO ACCOUNT ───────────────────────────────────────────
+if ($action === 'assign_chatbot_owner') {
+    try {
+        $ownerUserId = trim((string)($input['user_id'] ?? ''));
+        if (!preg_match('/^[0-9a-f-]{36}$/i', $ownerUserId)) {
+            throw new InvalidArgumentException('Invalid account ID.');
+        }
+
+        $chatbotStmt = $db->prepare("
+            SELECT id, owner_user_id, created_source, name
+            FROM chatbots
+            WHERE id = :id
+              AND created_source = 'admin'
+            LIMIT 1
+        ");
+        $chatbotStmt->execute(['id' => $id]);
+        $targetChatbot = $chatbotStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$targetChatbot) {
+            throw new InvalidArgumentException('Admin-added chatbot not found.');
+        }
+
+        if (!empty($targetChatbot['owner_user_id'])) {
+            throw new InvalidArgumentException('This chatbot is already assigned to an account.');
+        }
+
+        $userStmt = $db->prepare("
+            SELECT id, first_name, last_name, email
+            FROM users
+            WHERE id = :id
+            LIMIT 1
+        ");
+        $userStmt->execute(['id' => $ownerUserId]);
+        $owner = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$owner) {
+            throw new InvalidArgumentException('Account not found.');
+        }
+
+        $assignStmt = $db->prepare("
+            UPDATE chatbots
+            SET owner_user_id = :owner_user_id,
+                updated_at = NOW()
+            WHERE id = :id
+              AND owner_user_id IS NULL
+              AND created_source = 'admin'
+        ");
+        $assignStmt->execute([
+            'id' => $id,
+            'owner_user_id' => $ownerUserId,
+        ]);
+
+        if ($assignStmt->rowCount() < 1) {
+            throw new InvalidArgumentException('This chatbot is already assigned to an account.');
+        }
+
+        AuditLog::log('chatbot', $id, 'updated',
+            ['owner_user_id' => null],
+            ['owner_user_id' => $ownerUserId, 'source' => 'admin_assign']
+        );
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Chatbot assigned to account.',
+            'user' => $owner,
+            'submission' => getAdminSubmissionRow($db, $id),
+            'counts' => getAdminSubmissionCounts($db),
+        ]);
+    } catch (InvalidArgumentException $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    } catch (Throwable $e) {
+        error_log('Admin chatbot assign error: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Could not assign account.']);
+    }
+    exit;
+}
+
 // ── Fetch chatbot + owner ──────────────────────────────────────────────────────
 $stmt = $db->prepare("
     SELECT c.id, c.name, c.website_url, c.status, c.is_verified,
+           c.owner_user_id, c.created_source,
            c.approved_at, c.rejected_at, c.deleted_at, c.last_verified_at, c.verified_at,
            u.email AS user_email, u.first_name, u.last_name
     FROM chatbots c
-    JOIN users u ON c.owner_user_id = u.id
-    WHERE c.id = :id AND c.submitted_at IS NOT NULL
+    LEFT JOIN users u ON c.owner_user_id = u.id
+    WHERE c.id = :id
+      AND (c.submitted_at IS NOT NULL OR c.created_source = 'admin')
 ");
 $stmt->execute(['id' => $id]);
 $chatbot = $stmt->fetch();
@@ -560,6 +824,14 @@ switch ($action) {
 
     // ── ACCEPT → status=active, is_verified=1, approved_at, verified_at, email ─
     case 'accept':
+        if (empty($chatbot['owner_user_id']) || empty($chatbot['user_email'])) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Assign this admin-added chatbot to an account before accepting it.',
+            ]);
+            break;
+        }
+
         $validation = validateChatbot($db, $id);
         if (!$validation['valid']) {
             echo json_encode([
@@ -635,17 +907,19 @@ switch ($action) {
                 ['status' => 'reviewed', 'is_verified' => false, 'delist_reason' => $reason]
             );
  
-            $userName = trim($chatbot['first_name'] . ' ' . $chatbot['last_name']) ?: 'there';
-            try {
-                $email = new Email();
-                $email->sendChatbotDelisted(
-                    $chatbot['user_email'],
-                    $userName,
-                    $chatbot['name'],
-                    $reason
-                );
-            } catch (Exception $e) {
-                error_log('Delist email error (review): ' . $e->getMessage());
+            if (!empty($chatbot['user_email'])) {
+                $userName = trim(($chatbot['first_name'] ?? '') . ' ' . ($chatbot['last_name'] ?? '')) ?: 'there';
+                try {
+                    $email = new Email();
+                    $email->sendChatbotDelisted(
+                        $chatbot['user_email'],
+                        $userName,
+                        $chatbot['name'],
+                        $reason
+                    );
+                } catch (Exception $e) {
+                    error_log('Delist email error (review): ' . $e->getMessage());
+                }
             }
  
             echo json_encode([
@@ -717,17 +991,19 @@ switch ($action) {
             ['status' => 'rejected', 'is_verified' => false, 'rejection_reason' => $reason]
         );
  
-        $userName = trim($chatbot['first_name'] . ' ' . $chatbot['last_name']) ?: 'there';
-        try {
-            $email = new Email();
-            $email->sendChatbotRejected(
-                $chatbot['user_email'],
-                $userName,
-                $chatbot['name'],
-                $reason
-            );
-        } catch (Exception $e) {
-            error_log('Reject email error: ' . $e->getMessage());
+        if (!empty($chatbot['user_email'])) {
+            $userName = trim(($chatbot['first_name'] ?? '') . ' ' . ($chatbot['last_name'] ?? '')) ?: 'there';
+            try {
+                $email = new Email();
+                $email->sendChatbotRejected(
+                    $chatbot['user_email'],
+                    $userName,
+                    $chatbot['name'],
+                    $reason
+                );
+            } catch (Exception $e) {
+                error_log('Reject email error: ' . $e->getMessage());
+            }
         }
  
         echo json_encode([
@@ -766,8 +1042,8 @@ switch ($action) {
             ['status' => 'removed', 'is_verified' => false]
         );
  
-        if ($wasActive) {
-            $userName = trim($chatbot['first_name'] . ' ' . $chatbot['last_name']) ?: 'there';
+        if ($wasActive && !empty($chatbot['user_email'])) {
+            $userName = trim(($chatbot['first_name'] ?? '') . ' ' . ($chatbot['last_name'] ?? '')) ?: 'there';
             try {
                 $email = new Email();
                 $email->sendChatbotDelisted(

@@ -296,7 +296,7 @@ function buildPricingDisplay(array $chatbot): string
 $result = [];
 foreach ($chatbots as $chatbot) {
     $id   = $chatbot['id'];
-    $link = ($chatbot['has_affiliate_program'] && !empty($chatbot['affiliate_link']))
+    $link = !empty($chatbot['affiliate_link'])
         ? $chatbot['affiliate_link'] : $chatbot['website_url'];
     $displayTags = $tagMap[$id] ?? [];
     if (!empty($chatbot['has_affiliate_program'])) {

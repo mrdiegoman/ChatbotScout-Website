@@ -116,8 +116,8 @@
             </div>
         </div>
         <div class="cookie-banner-buttons">
-            <button id="cookie-btn-reject-all"  class="cookie-btn cookie-btn--reject">Reject All</button>
-            <button id="cookie-btn-manage"       class="cookie-btn cookie-btn--manage">Manage Preferences</button>
+            <button id="cookie-btn-reject-all"  class="cookie-btn cookie-btn--reject">Decline All</button>
+            <button id="cookie-btn-manage"       class="cookie-btn cookie-btn--manage">Manage</button>
             <button id="cookie-btn-accept-all"  class="cookie-btn cookie-btn--accept">Accept All</button>
         </div>
     </div>
@@ -139,22 +139,17 @@
         <!-- Body -->
         <div class="cookie-modal-body">
 
-            <!-- Intro -->
             <div class="cookie-modal-intro">
-                Cookies are small text files that can be used by websites to make a user's experience more efficient.
-                The law states that we can store cookies on your device if they are strictly necessary for the operation of this site.
-                For all other types of cookies we need your permission.
-                You can at any time change or withdraw your consent.
-                Learn more in our <a href="privacy-policy">Privacy Policy</a>.
-                <!-- Please state your consent ID and date when you contact us regarding your consent. -->
+                Necessary cookies keep the site working. Optional categories are off until you choose them.
+                You can change your choice anytime. Detailed cookie and storage information is available in our
+                <a href="privacy-policy">Privacy Policy</a>.
             </div>
 
-            <!-- ── NECESSARY ── -->
-            <div class="cookie-category">
+            <div class="cookie-category cookie-category--open">
                 <div class="cookie-category-header">
                     <div class="cookie-category-left">
                         <span class="cookie-category-name">Necessary</span>
-                        <span class="cookie-category-short-desc">Essential for the website to function properly.</span>
+                        <span class="cookie-category-short-desc">Required for security, login, payments and consent records.</span>
                     </div>
                     <div class="cookie-category-right">
                         <span class="cookie-always-active">Always active</span>
@@ -164,69 +159,17 @@
                 </div>
                 <div class="cookie-category-body">
                     <p class="cookie-category-body-desc">
-                        Necessary cookies help make ChatbotScout usable by enabling basic functions like page navigation,
-                        account login, secure payment processing and access to secure areas of the website.
-                        ChatbotScout cannot function properly without these cookies.
+                        These cookies and similar storage are needed for core website functions, including sessions,
+                        account access, checkout security, fraud prevention and remembering your privacy choice.
                     </p>
-                    <div class="cookie-table-wrapper">
-                        <table class="cookie-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Provider</th>
-                                    <th>Purpose</th>
-                                    <th>Expiry</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><code>PHPSESSID</code></td>
-                                    <td>ChatbotScout</td>
-                                    <td>PHP session — temporary storage of session data</td>
-                                    <td>Session</td>
-                                </tr>
-                                <tr>
-                                    <td><code>session_token</code></td>
-                                    <td>ChatbotScout</td>
-                                    <td>Maintains user login state</td>
-                                    <td>24h / 30 days (Remember me)</td>
-                                </tr>
-                                <tr>
-                                    <td><code>cookie_consent</code></td>
-                                    <td>ChatbotScout</td>
-                                    <td>Stores the user's cookie consent decision</td>
-                                    <td>6 months</td>
-                                </tr>
-                                <tr>
-                                    <td><code>cookie_consent_v2</code></td>
-                                    <td>ChatbotScout</td>
-                                    <td>Stores detailed cookie preferences (categories)</td>
-                                    <td>6 months</td>
-                                </tr>
-                                <tr>
-                                    <td><code>__stripe_mid</code></td>
-                                    <td>Stripe</td>
-                                    <td>Fraud prevention during payment processing</td>
-                                    <td>1 year</td>
-                                </tr>
-                                <tr>
-                                    <td><code>__stripe_sid</code></td>
-                                    <td>Stripe</td>
-                                    <td>Identifies the current payment session</td>
-                                    <td>30 minutes</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
                 </div>
             </div>
 
-            <!-- ── STATISTICS ── -->
             <div class="cookie-category">
                 <div class="cookie-category-header">
                     <div class="cookie-category-left">
                         <span class="cookie-category-name">Statistics</span>
-                        <span class="cookie-category-short-desc">Help us understand how visitors use the site.</span>
+                        <span class="cookie-category-short-desc">Analytics and chatbot click measurement.</span>
                     </div>
                     <div class="cookie-category-right">
                         <div id="cookie-toggle-statistics" class="cookie-toggle" role="switch" aria-checked="false" tabindex="0"></div>
@@ -235,51 +178,17 @@
                 </div>
                 <div class="cookie-category-body">
                     <p class="cookie-category-body-desc">
-                        Statistic cookies help us understand how visitors interact with ChatbotScout by collecting
-                        and reporting information. This includes anonymous visitor tracking and browser fingerprinting
-                        to help us improve our chatbot listings and overall user experience.
+                        Allows first-party visitor analytics, chatbot click analytics, Google Analytics and a browser
+                        fingerprint hash used only to keep consented analytics consistent.
                     </p>
-                    <div class="cookie-table-wrapper">
-                        <table class="cookie-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Provider</th>
-                                    <th>Purpose</th>
-                                    <th>Expiry</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><code>visitor_id</code></td>
-                                    <td>ChatbotScout</td>
-                                    <td>Anonymous visitor tracking and browser fingerprinting for analytics</td>
-                                    <td>1 year</td>
-                                </tr>
-                                <tr>
-                                    <td><code>_ga</code></td>
-                                    <td>Google Analytics</td>
-                                    <td>Distinguishes unique users by assigning a randomly generated number as a client identifier</td>
-                                    <td>2 years</td>
-                                </tr>
-                                <tr>
-                                    <td><code>_ga_*</code></td>
-                                    <td>Google Analytics</td>
-                                    <td>Stores and counts page views for this property</td>
-                                    <td>2 years</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
                 </div>
             </div>
 
-            <!-- ── PREFERENCES ── -->
             <div class="cookie-category">
                 <div class="cookie-category-header">
                     <div class="cookie-category-left">
                         <span class="cookie-category-name">Preferences</span>
-                        <span class="cookie-category-short-desc">Remember your settings and personalisation choices.</span>
+                        <span class="cookie-category-short-desc">Remember optional display settings.</span>
                     </div>
                     <div class="cookie-category-right">
                         <div id="cookie-toggle-preferences" class="cookie-toggle" role="switch" aria-checked="false" tabindex="0"></div>
@@ -288,44 +197,16 @@
                 </div>
                 <div class="cookie-category-body">
                     <p class="cookie-category-body-desc">
-                        Preference cookies enable ChatbotScout to remember information that changes the way the website
-                        behaves or looks, such as your preferred layout view on chatbot listing pages.
+                        Remembers optional settings such as the grid or list layout on chatbot listing pages.
                     </p>
-                    <div class="cookie-table-wrapper">
-                        <table class="cookie-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Provider</th>
-                                    <th>Purpose</th>
-                                    <th>Expiry</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><code>chatbot_showcase_view</code></td>
-                                    <td>ChatbotScout</td>
-                                    <td>Remembers preferred layout (grid/list) on the chatbot showcase</td>
-                                    <td>Persistent (localStorage)</td>
-                                </tr>
-                                <tr>
-                                    <td><code>favourites_showcase_view</code></td>
-                                    <td>ChatbotScout</td>
-                                    <td>Remembers preferred layout (grid/list) on the favourites showcase</td>
-                                    <td>Persistent (localStorage)</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
                 </div>
             </div>
 
-            <!-- ── MARKETING ── -->
             <div class="cookie-category">
                 <div class="cookie-category-header">
                     <div class="cookie-category-left">
                         <span class="cookie-category-name">Marketing</span>
-                        <span class="cookie-category-short-desc">Controls optional advertising storage and referral attribution.</span>
+                        <span class="cookie-category-short-desc">Optional ads and referral attribution storage.</span>
                     </div>
                     <div class="cookie-category-right">
                         <div id="cookie-toggle-marketing" class="cookie-toggle" role="switch" aria-checked="false" tabindex="0"></div>
@@ -334,31 +215,9 @@
                 </div>
                 <div class="cookie-category-body">
                     <p class="cookie-category-body-desc">
-                        This category controls optional marketing storage, including Google Consent Mode advertising
-                        storage where marketing tags are enabled, and affiliate referral attribution where applicable.
-                        ChatbotScout does not set a separate marketing cookie by default; your choice is stored in
-                        the consent settings cookie.
+                        Controls optional advertising storage, ad personalization signals and affiliate/referral
+                        attribution where these tools are enabled.
                     </p>
-                    <div class="cookie-table-wrapper">
-                        <table class="cookie-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Provider</th>
-                                    <th>Purpose</th>
-                                    <th>Expiry</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><code>cookie_consent_v2.marketing</code></td>
-                                    <td>ChatbotScout</td>
-                                    <td>Stores whether optional marketing storage is allowed</td>
-                                    <td>6 months</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
                 </div>
             </div>
 
@@ -371,7 +230,7 @@
                 <p id="cookie-consent-date"></p>
             </div>
             <div class="cookie-modal-footer-buttons">
-                <button id="cookie-modal-reject-all"  class="cookie-btn cookie-btn--reject">Reject All</button>
+                <button id="cookie-modal-reject-all"  class="cookie-btn cookie-btn--reject">Decline All</button>
                 <button id="cookie-modal-save"        class="cookie-btn cookie-btn--save">Save Preferences</button>
                 <button id="cookie-modal-accept-all"  class="cookie-btn cookie-btn--accept">Accept All</button>
             </div>

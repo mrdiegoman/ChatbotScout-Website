@@ -5,7 +5,7 @@ require '../inc/header.php';
 
 <div class="pp-wrapper legal-document">
     <h1>Privacy and Cookie Policy</h1>
-    <p class="pp-date"><strong>Last updated:</strong> 21 June 2026</p>
+    <p class="pp-date"><strong>Last updated:</strong> 26 June 2026</p>
 
     <p>
         This Privacy and Cookie Policy explains how the operator of ChatbotScout collects, uses,
@@ -70,6 +70,7 @@ require '../inc/header.php';
         <li><strong>Technical data:</strong> IP address, device type, operating system, browser type and version, language, time zone and basic device identifiers made available through standard internet protocols.</li>
         <li><strong>Security and log data:</strong> login times, failed login attempts, request logs, error logs, rate-limit events and indicators of suspicious or abusive activity.</li>
         <li><strong>Usage data:</strong> pages viewed, searches, filters, clicks, referring page, approximate session duration and interaction with features.</li>
+        <li><strong>Consented analytics identifiers:</strong> where Statistics consent is given, a first-party visitor identifier, a browser fingerprint hash and related local storage used to keep analytics consistent.</li>
         <li><strong>Affiliate click data:</strong> the fact that an affiliate link was clicked, the relevant listing or page, timestamp and a referral or campaign identifier where used.</li>
         <li><strong>Cookie and consent data:</strong> cookie identifiers, consent choices, consent timestamp and changes to preferences.</li>
     </ul>
@@ -169,7 +170,7 @@ require '../inc/header.php';
                 </tr>
                 <tr>
                     <td data-label="Purpose">Website analytics</td>
-                    <td data-label="Data">Usage, device, cookie and approximate location data</td>
+                    <td data-label="Data">Usage, device, cookie, local storage, browser fingerprint hash and approximate location data</td>
                     <td data-label="Legal basis">Consent for non-essential analytics cookies or similar technologies</td>
                     <td data-label="Retention">Google Analytics event data is configured for a maximum of 14 months, unless a shorter period is selected</td>
                 </tr>
@@ -345,7 +346,9 @@ require '../inc/header.php';
         <li>
             <strong>Analytics cookies:</strong> help us understand how the Service is used. Google
             Analytics and similar non-essential analytics tools are activated only after valid consent
-            where consent is required.
+            where consent is required. Where Statistics consent is given, our first-party analytics
+            may use a visitor identifier, local storage backup and browser fingerprint hash to keep
+            visitor and chatbot-click analytics consistent.
         </li>
         <li>
             <strong>Advertising or affiliate cookies:</strong> may attribute referrals, measure
@@ -373,12 +376,133 @@ require '../inc/header.php';
         obligation to obtain consent before using non-essential technologies where consent is required.
     </p>
 
-    <h3>9.4 Current cookie list</h3>
+    <h3>9.4 Current cookie and storage list</h3>
     <p>
-        The consent interface must display an up-to-date list of the cookies and similar technologies
-        actually used, including provider, purpose, category and duration. Do not activate Google
-        Analytics, advertising tags or affiliate tracking cookies until they appear in the consent
-        interface and the required consent has been obtained.
+        The table below describes the main cookies and similar browser storage currently used by
+        ChatbotScout. We update this list when we add, remove or materially change a cookie,
+        local storage item, analytics tag, advertising tag or similar technology. Non-essential
+        Statistics, Preferences and Marketing technologies are not activated unless the relevant
+        consent category is enabled.
+    </p>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name or technology</th>
+                    <th>Category</th>
+                    <th>Provider</th>
+                    <th>Purpose</th>
+                    <th>Typical duration</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td data-label="Name or technology"><code>PHPSESSID</code></td>
+                    <td data-label="Category">Necessary</td>
+                    <td data-label="Provider">ChatbotScout</td>
+                    <td data-label="Purpose">Maintains the PHP session needed for security, forms, page state and core website functionality.</td>
+                    <td data-label="Typical duration">Session</td>
+                </tr>
+                <tr>
+                    <td data-label="Name or technology"><code>session_token</code></td>
+                    <td data-label="Category">Necessary</td>
+                    <td data-label="Provider">ChatbotScout</td>
+                    <td data-label="Purpose">Keeps a registered user logged in and helps protect account access.</td>
+                    <td data-label="Typical duration">24 hours, or up to 30 days if "Remember me" is selected</td>
+                </tr>
+                <tr>
+                    <td data-label="Name or technology"><code>cookie_consent</code></td>
+                    <td data-label="Category">Necessary</td>
+                    <td data-label="Provider">ChatbotScout</td>
+                    <td data-label="Purpose">Legacy consent record used to remember whether non-essential cookies were accepted or declined.</td>
+                    <td data-label="Typical duration">6 months</td>
+                </tr>
+                <tr>
+                    <td data-label="Name or technology"><code>cookie_consent_v2</code></td>
+                    <td data-label="Category">Necessary</td>
+                    <td data-label="Provider">ChatbotScout</td>
+                    <td data-label="Purpose">Stores the selected cookie categories, consent ID and consent timestamp. A local storage mirror may be used so the banner does not repeatedly appear if normal cookies are unavailable.</td>
+                    <td data-label="Typical duration">6 months, or until browser storage is cleared</td>
+                </tr>
+                <tr>
+                    <td data-label="Name or technology"><code>__stripe_mid</code></td>
+                    <td data-label="Category">Necessary</td>
+                    <td data-label="Provider">Stripe</td>
+                    <td data-label="Purpose">Supports fraud prevention and secure payment processing when Stripe payment features are used.</td>
+                    <td data-label="Typical duration">Up to 1 year</td>
+                </tr>
+                <tr>
+                    <td data-label="Name or technology"><code>__stripe_sid</code></td>
+                    <td data-label="Category">Necessary</td>
+                    <td data-label="Provider">Stripe</td>
+                    <td data-label="Purpose">Identifies the current Stripe payment session and supports payment security.</td>
+                    <td data-label="Typical duration">About 30 minutes</td>
+                </tr>
+                <tr>
+                    <td data-label="Name or technology"><code>visitor_id</code></td>
+                    <td data-label="Category">Statistics</td>
+                    <td data-label="Provider">ChatbotScout</td>
+                    <td data-label="Purpose">First-party anonymous visitor identifier used to keep consented website analytics and chatbot-click analytics consistent.</td>
+                    <td data-label="Typical duration">Up to 1 year</td>
+                </tr>
+                <tr>
+                    <td data-label="Name or technology"><code>chatbotscout_visitor_id</code> local storage</td>
+                    <td data-label="Category">Statistics</td>
+                    <td data-label="Provider">ChatbotScout</td>
+                    <td data-label="Purpose">Backup copy of the anonymous visitor identifier, used only after Statistics consent to avoid creating duplicate visitor records when cookies are temporarily unavailable.</td>
+                    <td data-label="Typical duration">Until Statistics consent is withdrawn or browser storage is cleared</td>
+                </tr>
+                <tr>
+                    <td data-label="Name or technology">Browser fingerprint hash</td>
+                    <td data-label="Category">Statistics</td>
+                    <td data-label="Provider">ChatbotScout</td>
+                    <td data-label="Purpose">A server-side SHA-256 hash of selected browser and device signals. It is used only after Statistics consent to improve analytics consistency and reduce duplicate anonymous visitor records.</td>
+                    <td data-label="Typical duration">Stored server-side while related consented visitor analytics are retained</td>
+                </tr>
+                <tr>
+                    <td data-label="Name or technology"><code>_ga</code></td>
+                    <td data-label="Category">Statistics</td>
+                    <td data-label="Provider">Google Analytics</td>
+                    <td data-label="Purpose">Distinguishes users for consent-based Google Analytics measurement.</td>
+                    <td data-label="Typical duration">Up to 2 years</td>
+                </tr>
+                <tr>
+                    <td data-label="Name or technology"><code>_ga_*</code></td>
+                    <td data-label="Category">Statistics</td>
+                    <td data-label="Provider">Google Analytics</td>
+                    <td data-label="Purpose">Stores and counts page views for the configured Google Analytics property.</td>
+                    <td data-label="Typical duration">Up to 2 years</td>
+                </tr>
+                <tr>
+                    <td data-label="Name or technology"><code>chatbot_showcase_view</code> local storage</td>
+                    <td data-label="Category">Preferences</td>
+                    <td data-label="Provider">ChatbotScout</td>
+                    <td data-label="Purpose">Remembers the selected grid or list layout on chatbot listing pages.</td>
+                    <td data-label="Typical duration">Until Preferences consent is withdrawn or browser storage is cleared</td>
+                </tr>
+                <tr>
+                    <td data-label="Name or technology"><code>favourites_showcase_view</code> local storage</td>
+                    <td data-label="Category">Preferences</td>
+                    <td data-label="Provider">ChatbotScout</td>
+                    <td data-label="Purpose">Remembers the selected grid or list layout on favourites pages.</td>
+                    <td data-label="Typical duration">Until Preferences consent is withdrawn or browser storage is cleared</td>
+                </tr>
+                <tr>
+                    <td data-label="Name or technology">Google Consent Mode advertising signals</td>
+                    <td data-label="Category">Marketing</td>
+                    <td data-label="Provider">ChatbotScout / Google</td>
+                    <td data-label="Purpose">Stores whether optional advertising storage, ad user data and ad personalization may be used where advertising or referral tools are enabled.</td>
+                    <td data-label="Typical duration">Reflected in <code>cookie_consent_v2</code> for up to 6 months</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p>
+        ChatbotScout does not set a separate first-party marketing cookie by default. Marketing
+        storage may be used only if advertising, remarketing, referral attribution or similar tools
+        are enabled and the required Marketing consent has been given.
     </p>
 
     <h2>10. Direct marketing</h2>

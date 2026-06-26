@@ -4,9 +4,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!avatarBtn || !dropdown) return;
 
+    function hideNotifications() {
+        if (typeof window.hideNotifications === 'function') {
+            window.hideNotifications();
+        }
+    }
+
     avatarBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         dropdown.classList.toggle('active');
+        if (dropdown.classList.contains('active')) {
+            hideNotifications();
+        }
     });
 
     // Zatvor pri kliknutí kdekoľvek inde

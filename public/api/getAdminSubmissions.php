@@ -23,10 +23,11 @@ $limit  = min((int)($_GET['limit']  ?? 10), 50);
 $offset = max((int)($_GET['offset'] ?? 0),   0);
 
 $allStatuses = "('pending','reviewed','active','rejected','removed')";
+$visibleCondition = "(c.submitted_at IS NOT NULL OR c.created_source = 'admin')";
 
 $where  = $subStatus !== 'all'
-    ? "WHERE c.status = :status AND c.submitted_at IS NOT NULL"
-    : "WHERE c.status IN $allStatuses AND c.submitted_at IS NOT NULL";
+    ? "WHERE c.status = :status AND $visibleCondition"
+    : "WHERE c.status IN $allStatuses AND $visibleCondition";
 $params = $subStatus !== 'all' ? ['status' => $subStatus] : [];
 
 // Total count
@@ -42,7 +43,7 @@ $fetchParams['off']   = $offset;
 $stmt = $db->prepare("
     SELECT
         c.id, c.name, c.website_url, c.logo_url,
-        c.owner_user_id,
+        c.owner_user_id, c.created_by_admin_id, c.created_source, c.created_at,
         c.status, c.is_verified,
         c.submitted_at, c.approved_at, c.rejected_at, c.deleted_at, c.verified_at,
         c.access_note, c.admin_notes,
@@ -53,7 +54,7 @@ $stmt = $db->prepare("
     $where
     ORDER BY
         CASE c.status WHEN 'pending' THEN 0 ELSE 1 END,
-        c.submitted_at DESC
+        COALESCE(c.submitted_at, c.created_at) DESC
     LIMIT :limit OFFSET :off
 ");
 $stmt->execute($fetchParams);
@@ -63,6 +64,9 @@ $rows = $stmt->fetchAll();
 foreach ($rows as &$row) {
     $row['submitted_at_formatted'] = $row['submitted_at']
         ? date('d M Y, H:i', strtotime($row['submitted_at'])) : null;
+    $row['created_at_formatted'] = $row['created_at']
+        ? date('d M Y, H:i', strtotime($row['created_at'])) : null;
+    $row['display_date_formatted'] = $row['submitted_at_formatted'] ?: $row['created_at_formatted'];
     $row['approved_at_formatted']  = $row['approved_at']
         ? date('d M Y, H:i', strtotime($row['approved_at'])) : null;
     $row['rejected_at_formatted']  = $row['rejected_at']
@@ -73,15 +77,16 @@ foreach ($rows as &$row) {
         ? date('d M Y, H:i', strtotime($row['verified_at'])) : null;
     $row['is_verified']            = (bool)$row['is_verified'];
     $row['is_submission_blocked']  = (bool)$row['is_submission_blocked'];
+    $row['is_admin_added']         = ($row['created_source'] ?? '') === 'admin' && empty($row['owner_user_id']);
 }
 unset($row);
 
 // Counts per status
 $countStmt = $db->query("
     SELECT status, COUNT(*) as cnt
-    FROM chatbots
-    WHERE status IN ('pending','reviewed','active','rejected','removed')
-    AND submitted_at IS NOT NULL
+    FROM chatbots c
+    WHERE c.status IN ('pending','reviewed','active','rejected','removed')
+    AND $visibleCondition
     GROUP BY status
 ");
 $counts = ['all' => 0, 'pending' => 0, 'reviewed' => 0, 'active' => 0, 'rejected' => 0, 'removed' => 0];

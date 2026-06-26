@@ -17,6 +17,7 @@ const isUpgradeCheckout = Boolean(upgradeFromSubscriptionId);
 
 let elements = null;
 let paymentElement = null;
+let expressCheckoutElement = null;
 let clientSecret = null;
 let paymentFormReady = false;
 let upgradePaymentCreated = false;
@@ -28,6 +29,7 @@ let initialPaymentIntentStarted = false;
 
 const stripeLoading = document.getElementById('stripe-loading');
 const paymentEl = document.getElementById('payment-element');
+const expressCheckoutWrapper = document.getElementById('express-checkout-wrapper');
 const payBtn = document.getElementById('payBtn');
 const payBtnText = document.getElementById('payBtnText');
 const payBtnLoader = document.getElementById('payBtnLoader');
@@ -305,6 +307,8 @@ function mountPaymentElement() {
         },
     });
 
+    mountExpressCheckoutElement();
+
     paymentElement = elements.create('payment', {
         // Apple Pay and Google Pay are wallets presented by Stripe for the existing card PaymentIntent.
         // Each is shown only on supported browsers/devices with an eligible Wallet card.
@@ -329,7 +333,101 @@ function mountPaymentElement() {
     });
 }
 
+function mountExpressCheckoutElement() {
+    if (!elements || !expressCheckoutWrapper) {
+        return;
+    }
+
+    // Mount this separately from the Payment Element so eligible wallets are never
+    // hidden among card and local-method choices. It still confirms the same Stripe
+    // invoice/client secret as the regular form below.
+    expressCheckoutWrapper.hidden = false;
+    expressCheckoutElement = elements.create('expressCheckout', {
+        paymentMethods: {
+            applePay: 'auto',
+            googlePay: 'auto',
+            link: 'never',
+            amazonPay: 'never',
+            paypal: 'never',
+            klarna: 'never',
+        },
+        buttonType: {
+            applePay: 'buy',
+            googlePay: 'buy',
+        },
+        layout: {
+            maxColumns: 1,
+            maxRows: 1,
+            overflow: 'never',
+        },
+    });
+    expressCheckoutElement.mount('#express-checkout-element');
+
+    const mountedExpressCheckoutElement = expressCheckoutElement;
+    expressCheckoutElement.on('ready', (event) => {
+        if (expressCheckoutElement !== mountedExpressCheckoutElement) {
+            return;
+        }
+
+        const methods = event.availablePaymentMethods || {};
+        expressCheckoutWrapper.hidden = !(methods.googlePay || methods.applePay);
+    });
+
+    expressCheckoutElement.on('confirm', confirmExpressCheckout);
+    expressCheckoutElement.on('loaderror', (event) => {
+        if (expressCheckoutElement === mountedExpressCheckoutElement) {
+            expressCheckoutWrapper.hidden = true;
+        }
+        console.warn('Stripe wallet checkout could not be loaded.', event.error);
+    });
+}
+
+async function confirmExpressCheckout(event) {
+    if (isProcessing || !elements || !clientSecret) {
+        event.paymentFailed({ message: 'Payment is not ready yet. Please try again.' });
+        return;
+    }
+
+    setLoading(true);
+    clearError();
+
+    if (!(await validateCheckoutBeforeConfirm())) {
+        event.paymentFailed({ message: 'Please confirm the checkout details before paying.' });
+        setLoading(false);
+        return;
+    }
+
+    const { error: submitError } = await elements.submit();
+    if (submitError) {
+        event.paymentFailed({ message: submitError.message || 'Payment details could not be submitted.' });
+        showError(submitError.message || 'Payment details could not be submitted.');
+        setLoading(false);
+        return;
+    }
+
+    const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+            return_url: paymentSuccessReturnUrl(),
+        },
+    });
+
+    if (error) {
+        event.paymentFailed({ message: error.message || 'Payment could not be completed.' });
+        showError(error.message || 'Payment could not be completed.');
+        setLoading(false);
+    }
+}
+
 function unmountPaymentElement() {
+    if (expressCheckoutElement) {
+        expressCheckoutElement.unmount();
+        expressCheckoutElement = null;
+    }
+    if (expressCheckoutWrapper) {
+        expressCheckoutWrapper.hidden = true;
+    }
+
     if (paymentElement) {
         paymentElement.unmount();
         paymentElement = null;
@@ -340,6 +438,10 @@ function unmountPaymentElement() {
 
 function setLoading(loading) {
     isProcessing = loading;
+    if (expressCheckoutWrapper) {
+        expressCheckoutWrapper.style.pointerEvents = loading ? 'none' : '';
+        expressCheckoutWrapper.style.opacity = loading ? '0.55' : '';
+    }
     payBtnText.style.display = loading ? 'none' : 'inline';
     payBtnLoader.style.display = loading ? 'inline' : 'none';
     syncPayButton();

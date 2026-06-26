@@ -61,8 +61,8 @@ try {
         $stmt = $db->query("
             SELECT id FROM chatbots
             WHERE status = 'pending'
-              AND submitted_at IS NOT NULL
-            ORDER BY submitted_at ASC
+              AND (submitted_at IS NOT NULL OR created_source = 'admin')
+            ORDER BY COALESCE(submitted_at, created_at) ASC
             LIMIT 1
         ");
     }

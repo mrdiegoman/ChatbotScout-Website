@@ -20,6 +20,8 @@ $action = $_GET['action'] ?? '';
 
 header('Content-Type: application/json');
 
+// Bundle upgrades use a short retry window; normal promotion checkouts below are
+// deliberately reused until Stripe closes them, so duplicate invoices cannot exist.
 const STRIPE_CHECKOUT_REUSE_MINUTES = 60;
 
 if ($action === 'preview_bundle_upgrade') {
@@ -560,8 +562,14 @@ if ($action === 'create_payment_intent') {
 
         $latestInvoice = $stripeSubscription->latest_invoice ?? null;
         $paymentIntent = $latestInvoice ? ($latestInvoice->payment_intent ?? null) : null;
+        if (is_string($paymentIntent)) {
+            $paymentIntent = \Stripe\PaymentIntent::retrieve($paymentIntent);
+        }
+        $invoicePaymentIntent = stripeInvoicePaymentIntentDetails($latestInvoice);
         $clientSecret = $paymentIntent ? ($paymentIntent->client_secret ?? null) : null;
-
+        if (!$clientSecret && $invoicePaymentIntent) {
+            $clientSecret = $invoicePaymentIntent['client_secret'] ?? null;
+        }
         if (!$clientSecret && $latestInvoice && isset($latestInvoice->confirmation_secret->client_secret)) {
             $clientSecret = $latestInvoice->confirmation_secret->client_secret;
         }
@@ -574,7 +582,9 @@ if ($action === 'create_payment_intent') {
         $invoiceUrl = $latestInvoice
             ? (($latestInvoice->hosted_invoice_url ?? null) ?: ($latestInvoice->invoice_pdf ?? null))
             : null;
-        $stripePaymentIntentId = $paymentIntent ? ($paymentIntent->id ?? null) : null;
+        $stripePaymentIntentId = $paymentIntent
+            ? ($paymentIntent->id ?? null)
+            : ($invoicePaymentIntent['id'] ?? null);
 
         foreach ($lines as $line) {
             $db->prepare("
@@ -1282,8 +1292,83 @@ function checkoutPaymentClientSecret($invoice, $paymentIntent): ?string {
         return (string) $paymentIntent->client_secret;
     }
 
+    $invoicePaymentIntent = stripeInvoicePaymentIntentDetails($invoice);
+    if ($invoicePaymentIntent && !empty($invoicePaymentIntent['client_secret'])) {
+        return (string) $invoicePaymentIntent['client_secret'];
+    }
+
     if ($invoice && isset($invoice->confirmation_secret->client_secret)) {
         return (string) $invoice->confirmation_secret->client_secret;
+    }
+
+    return null;
+}
+
+/**
+ * Stripe Billing's newer invoice API stores the actual PaymentIntent under an
+ * InvoicePayment. Older stripe-php versions do not expose that resource yet, so use
+ * Stripe's read-only API endpoint as a compatibility bridge. Express Checkout needs
+ * the real PaymentIntent client secret to render Apple Pay / Google Pay.
+ */
+function stripeInvoicePaymentIntentDetails($invoice): ?array {
+    $invoiceId = is_object($invoice) ? (string) ($invoice->id ?? '') : trim((string) $invoice);
+    if ($invoiceId === '') {
+        return null;
+    }
+
+    global $stripeConfig;
+    $secretKey = (string) ($stripeConfig['secret_key'] ?? '');
+    if ($secretKey === '' || !function_exists('curl_init')) {
+        return null;
+    }
+
+    $url = 'https://api.stripe.com/v1/invoice_payments?invoice=' . rawurlencode($invoiceId)
+        . '&limit=10&expand[]=data.payment.payment_intent';
+    $request = curl_init($url);
+    if ($request === false) {
+        return null;
+    }
+
+    $headers = [];
+    if (!empty($stripeConfig['api_version'])) {
+        $headers[] = 'Stripe-Version: ' . $stripeConfig['api_version'];
+    }
+
+    curl_setopt_array($request, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_USERPWD => $secretKey . ':',
+        CURLOPT_HTTPHEADER => $headers,
+        CURLOPT_TIMEOUT => 10,
+    ]);
+    $response = curl_exec($request);
+    $status = (int) curl_getinfo($request, CURLINFO_RESPONSE_CODE);
+    curl_close($request);
+
+    if (!is_string($response) || $status < 200 || $status >= 300) {
+        return null;
+    }
+
+    $payload = json_decode($response, true);
+    if (!is_array($payload)) {
+        return null;
+    }
+
+    foreach ($payload['data'] ?? [] as $invoicePayment) {
+        $payment = $invoicePayment['payment'] ?? null;
+        if (!is_array($payment) || ($payment['type'] ?? '') !== 'payment_intent') {
+            continue;
+        }
+
+        $paymentIntent = $payment['payment_intent'] ?? null;
+        if (!is_array($paymentIntent) || empty($paymentIntent['id']) || empty($paymentIntent['client_secret'])) {
+            continue;
+        }
+
+        return [
+            'id' => (string) $paymentIntent['id'],
+            'client_secret' => (string) $paymentIntent['client_secret'],
+            'status' => (string) ($paymentIntent['status'] ?? ''),
+        ];
     }
 
     return null;
@@ -1419,8 +1504,6 @@ function findReusableStripeUpgradeCheckout(
     string $missingPromotionId,
     string $billingPeriod
 ): ?array {
-    $createdAfter = date('Y-m-d H:i:s', time() - (STRIPE_CHECKOUT_REUSE_MINUTES * 60));
-
     $stmt = $db->prepare("
         SELECT
             id,
@@ -1589,7 +1672,6 @@ function findReusableStripeCheckout(
     $promotionIds = array_values(array_map('strval', $promotionIds));
     sort($promotionIds, SORT_STRING);
     $expectedPromotionIds = implode(',', $promotionIds);
-    $createdAfter = date('Y-m-d H:i:s', time() - (STRIPE_CHECKOUT_REUSE_MINUTES * 60));
 
     $stmt = $db->prepare("
         SELECT
@@ -1609,7 +1691,6 @@ function findReusableStripeCheckout(
           AND chatbot_id = :chatbot_id
           AND payment_method = 'stripe'
           AND status IN ('pending', 'processing')
-          AND created_at >= :created_after
           AND COALESCE(
               JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.billing_period')),
               JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.period_type'))
@@ -1623,7 +1704,6 @@ function findReusableStripeCheckout(
     ");
     $stmt->bindValue(':user_id', $userId, PDO::PARAM_STR);
     $stmt->bindValue(':chatbot_id', $chatbotId, PDO::PARAM_STR);
-    $stmt->bindValue(':created_after', $createdAfter, PDO::PARAM_STR);
     $stmt->bindValue(':billing_period', $billingPeriod, PDO::PARAM_STR);
     $stmt->bindValue(':line_count', count($promotionIds), PDO::PARAM_INT);
     $stmt->bindValue(':promotion_ids', $expectedPromotionIds, PDO::PARAM_STR);
@@ -1658,7 +1738,7 @@ function findReusableStripeCheckout(
 
         $latestInvoice = $stripeSubscription->latest_invoice ?? null;
         if (!$latestInvoice) {
-            continue;
+            throw new RuntimeException('An existing checkout is still pending in Stripe. Please try again shortly.');
         }
 
         if (is_string($latestInvoice)) {
@@ -1683,13 +1763,10 @@ function findReusableStripeCheckout(
             continue;
         }
 
-        $clientSecret = $paymentIntent ? ($paymentIntent->client_secret ?? null) : null;
-        if (!$clientSecret && isset($latestInvoice->confirmation_secret->client_secret)) {
-            $clientSecret = $latestInvoice->confirmation_secret->client_secret;
-        }
+        $clientSecret = checkoutPaymentClientSecret($latestInvoice, $paymentIntent);
 
         if (!$clientSecret) {
-            continue;
+            throw new RuntimeException('An existing checkout is still pending in Stripe. Please try again shortly.');
         }
 
         return [

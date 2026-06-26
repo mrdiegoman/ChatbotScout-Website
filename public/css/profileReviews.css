@@ -61,6 +61,51 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
 }
 
+.pr-load-more-wrap {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    max-width: 112rem;
+    margin: 2rem auto 0;
+}
+
+.pr-load-more-wrap[hidden] {
+    display: none;
+}
+
+.pr-load-more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 4.4rem;
+    padding: 1rem 2.4rem;
+    border: none;
+    border-radius: 0.8rem;
+    background: #4CAF50;
+    color: #fff;
+    font-size: 1.45rem;
+    font-family: outfit-semibold, sans-serif;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pr-load-more[hidden] {
+    display: none;
+}
+
+.pr-load-more:hover:not(:disabled) {
+    background: #45a049;
+    box-shadow: 0 4px 14px rgba(76, 175, 80, 0.28);
+    transform: translateY(-1px);
+}
+
+.pr-load-more:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
 /* Card header */
 .pr-card-header {
     display: flex;
@@ -227,7 +272,7 @@
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.45);
-    z-index: 1000;
+    z-index: 3000;
     justify-content: center;
     align-items: center;
     padding: 2rem;

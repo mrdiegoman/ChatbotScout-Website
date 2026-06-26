@@ -92,12 +92,12 @@ if (avatarUpload) {
         // Validácia
         const maxSize = 5 * 1024 * 1024;
         if (file.size > maxSize) {
-            alert('File is too large. Maximum size is 5MB.');
+            showNotification('File is too large. Maximum size is 5MB.', 'error');
             return;
         }
         
         if (!['image/jpeg', 'image/png'].includes(file.type)) {
-            alert('Invalid file type. Please use JPG or PNG.');
+            showNotification('Invalid file type. Please use JPG or PNG.', 'error');
             return;
         }
         
@@ -696,7 +696,7 @@ async function loadBillingHistory(page = 1, { updateUrl = true } = {}) {
     } catch (error) {
         if (error.name !== 'AbortError') {
             console.error('Billing history load error:', error);
-            window.alert(error.message || 'Could not load billing history. Please try again.');
+            showNotification(error.message || 'Could not load billing history. Please try again.', 'error');
         }
     } finally {
         if (billingHistoryRequest === requestController) {
@@ -1527,145 +1527,6 @@ if (confirmDeleteBtn) {
         }
     });
 }
-
-// ============================================
-// NOTIFICATIONS
-// ============================================
-
-function showNotification(message, type = 'info') {
-    document.querySelectorAll('.notification').forEach(existing => {
-        existing.remove();
-    });
-
-    const titles = {
-        success: 'Saved',
-        error: 'Action needed',
-        info: 'Notice'
-    };
-    const icons = {
-        success: '✓',
-        error: '!',
-        info: 'i'
-    };
-
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.setAttribute('role', 'alert');
-
-    const icon = document.createElement('span');
-    icon.className = 'notification-icon';
-    icon.textContent = icons[type] || icons.info;
-
-    const content = document.createElement('span');
-    content.className = 'notification-content';
-
-    const title = document.createElement('span');
-    title.className = 'notification-title';
-    title.textContent = titles[type] || titles.info;
-
-    const text = document.createElement('span');
-    text.className = 'notification-message';
-    text.textContent = message;
-
-    content.appendChild(title);
-    content.appendChild(text);
-    notification.appendChild(icon);
-    notification.appendChild(content);
-
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.classList.add('show');
-    }, 10);
-
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }, 3000);
-}
-
-// Add notification styles
-const notificationStyles = document.createElement('style');
-notificationStyles.textContent = `
-    .notification {
-        position: fixed;
-        top: 82px;
-        right: 24px;
-        width: min(360px, calc(100vw - 32px));
-        padding: 14px 16px;
-        background: #fff;
-        border: 1px solid rgba(45, 49, 66, 0.10);
-        border-top: 3px solid var(--notification-accent);
-        border-radius: 14px;
-        box-shadow: 0 16px 44px rgba(45, 49, 66, 0.16);
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        z-index: 10000;
-        opacity: 0;
-        transform: translateY(-8px) scale(0.98);
-        transition: opacity 0.22s ease, transform 0.22s ease;
-    }
-    .notification.show {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-    .notification-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 999px;
-        background: var(--notification-soft);
-        color: var(--notification-accent);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        flex: 0 0 auto;
-        font-family: outfit-bold, sans-serif;
-        font-size: 15px;
-        line-height: 1;
-    }
-    .notification-content {
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
-        min-width: 0;
-    }
-    .notification-title {
-        color: var(--profile-primary);
-        font-family: outfit-semibold, sans-serif;
-        font-size: 14px;
-        line-height: 1.25;
-    }
-    .notification-message {
-        color: var(--profile-text-muted);
-        font-family: outfit-medium, sans-serif;
-        font-size: 13px;
-        line-height: 1.45;
-    }
-    .notification-success {
-        --notification-accent: var(--profile-accent);
-        --notification-soft: #E8F5E9;
-    }
-    .notification-error {
-        --notification-accent: var(--profile-danger);
-        --notification-soft: #FFEBEE;
-    }
-    .notification-info {
-        --notification-accent: var(--profile-info);
-        --notification-soft: #E3F2FD;
-    }
-    @media (max-width: 560px) {
-        .notification {
-            top: 72px;
-            right: 16px;
-            left: 16px;
-            width: auto;
-        }
-    }
-`;
-document.head.appendChild(notificationStyles);
 
 // ============================================
 // DRAG TO SCROLL — profile-tabs

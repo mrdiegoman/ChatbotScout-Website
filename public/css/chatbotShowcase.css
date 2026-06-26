@@ -35,12 +35,12 @@ body.page-chatbotShowcase .footer-main-bottom {
     justify-content: center;
     align-items: center;
     gap: clamp(3rem, 5vw, 5rem);
-    padding: clamp(4.4rem, 7vw, 7.2rem) 2.4rem;
+    padding: clamp(3.2rem, 5vw, 5rem) 2.4rem;
 }
 
 @media (min-width: 769px) {
     .chatbot-page-main-banner-content {
-        min-height: 40.4rem;
+        min-height: 32rem;
     }
 }
 
@@ -2025,6 +2025,11 @@ body.page-chatbotShowcase .footer-main-bottom {
 }
 
 .chatbot-rating-modal-submit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    min-width: 14.5rem;
     background: var(--green-color);
     border: none;
     border-radius: 0.75rem;
@@ -2043,6 +2048,20 @@ body.page-chatbotShowcase .footer-main-bottom {
 .chatbot-rating-modal-submit-btn:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+}
+
+.chatbot-rating-modal-submit-btn.is-loading {
+    opacity: 0.85;
+}
+
+.chatbot-rating-submit-spinner {
+    width: 1.6rem;
+    height: 1.6rem;
+    border: 0.22rem solid rgba(255, 255, 255, 0.45);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    flex: 0 0 auto;
+    animation: chatbot-spin 0.75s linear infinite;
 }
 
 /* .chatbot-card-badge {
@@ -2399,7 +2418,8 @@ body.page-chatbotShowcase .footer-main-bottom {
     }
 
     .chatbot-page-main-banner {
-        margin-bottom: 0;
+        /* Keep the controls visually separated from the dark hero on mobile too. */
+        margin-bottom: 2rem;
     }
     .chatbot-page-main-banner-content {
         padding: 2rem 4rem 1.5rem 4rem;
@@ -2417,9 +2437,6 @@ body.page-chatbotShowcase .footer-main-bottom {
     }
     .chatbot-page-main-banner-textdiv h1 {
         font-size: 3rem;
-    }
-    .chatbot-page-main-content-topbar {
-        padding-top: 0;
     }
 }
 

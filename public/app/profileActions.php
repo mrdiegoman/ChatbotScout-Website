@@ -1812,10 +1812,22 @@ if ($action === 'delete_account') {
         exit;
     }
  
-    // Vymaž visitor_id cookie z browsera
+    // Vymaž visitor/consent cookies z browsera
     $appConfig = require __DIR__ . '/../../config/app.php';
-    setcookie($appConfig['visitor']['cookie_name'], '', time() - 3600, '/');
-    setcookie('cookie_consent', '', time() - 3600, '/');
+    $expireCookie = static function (string $name, bool $httpOnly = false) use ($appConfig): void {
+        setcookie($name, '', [
+            'expires'  => time() - 3600,
+            'path'     => '/',
+            'secure'   => (bool)$appConfig['visitor']['cookie_secure'],
+            'httponly' => $httpOnly,
+            'samesite' => 'Lax',
+        ]);
+        unset($_COOKIE[$name]);
+    };
+
+    $expireCookie($appConfig['visitor']['cookie_name'], true);
+    $expireCookie('cookie_consent');
+    $expireCookie('cookie_consent_v2');
  
     logout();
     echo json_encode(['success' => true]);

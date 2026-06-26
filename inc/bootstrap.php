@@ -93,10 +93,12 @@ header(
     "default-src 'self'; " .
     $cspScriptSrc .
     "style-src 'self' 'unsafe-inline'; " .
-    "img-src 'self' data:; " .
+    "img-src 'self' data: https://*.stripe.com; " .
     "font-src 'self' data:; " .
-    "connect-src 'self' https://api.stripe.com https://js.stripe.com https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com; " .
-    "frame-src https://js.stripe.com; " .
+    // Stripe uses these endpoints for Payment Element telemetry, wallet checks and
+    // authentication/3DS return frames. Keep the allowlist limited to Stripe hosts.
+    "connect-src 'self' https://api.stripe.com https://js.stripe.com https://m.stripe.network https://r.stripe.com https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com; " .
+    "frame-src https://js.stripe.com https://hooks.stripe.com; " .
     "frame-ancestors 'none'; " .
     "base-uri 'self'; " .
     "object-src 'none'"
@@ -152,23 +154,60 @@ if (isset($_COOKIE[$appConfig['session']['cookie_name']])) {
 }
 
 // ============================================
-// GDPR CONSENT HELPER
-// Supports both v2 (JSON) and legacy (string) cookie
+// GDPR CONSENT HELPERS
+// Supports both v2 (JSON category consent) and legacy accepted/declined cookie.
 // ============================================
 
-function hasStatisticsConsent(): bool
+function getCookieConsent(): ?array
 {
-    // Check new v2 cookie first
     $v2 = $_COOKIE['cookie_consent_v2'] ?? null;
-    if ($v2) {
+    if (is_string($v2) && $v2 !== '') {
         $consent = json_decode($v2, true);
-        if (is_array($consent)) {
-            return !empty($consent['statistics']);
+        if (is_array($consent) && array_key_exists('necessary', $consent)) {
+            return [
+                'necessary'   => true,
+                'statistics'  => !empty($consent['statistics']),
+                'preferences' => !empty($consent['preferences']),
+                'marketing'   => !empty($consent['marketing']),
+            ];
         }
     }
 
-    // Fallback: legacy cookie
-    return ($_COOKIE['cookie_consent'] ?? null) === 'accepted';
+    $legacy = $_COOKIE['cookie_consent'] ?? null;
+    if ($legacy === 'accepted') {
+        return [
+            'necessary'   => true,
+            'statistics'  => true,
+            'preferences' => true,
+            'marketing'   => true,
+        ];
+    }
+
+    if ($legacy === 'declined') {
+        return [
+            'necessary'   => true,
+            'statistics'  => false,
+            'preferences' => false,
+            'marketing'   => false,
+        ];
+    }
+
+    return null;
+}
+
+function hasCookieCategoryConsent(string $category): bool
+{
+    if ($category === 'necessary') {
+        return true;
+    }
+
+    $consent = getCookieConsent();
+    return is_array($consent) && !empty($consent[$category]);
+}
+
+function hasStatisticsConsent(): bool
+{
+    return hasCookieCategoryConsent('statistics');
 }
 
 // ============================================
@@ -187,9 +226,15 @@ if (hasStatisticsConsent()) {
         $cookieVisitorId = $_COOKIE[$appConfig['visitor']['cookie_name']] ?? null;
 
         if ($cookieVisitorId) {
-            // Visitor už existuje — len aktualizuj last_seen
+            // Visitor už existuje — len aktualizuj last_seen. Ak cookie ukazuje na
+            // zmazaný/neplatný záznam, zmaž ju a nechaj identify.php vytvoriť nový.
             $visitor   = new Visitor();
-            $visitorId = $visitor->getExisting($cookieVisitorId);
+            $visitorId = $visitor->getExisting((string)$cookieVisitorId);
+
+            if ($visitorId === null) {
+                $visitor->clearCookie();
+                unset($_COOKIE[$appConfig['visitor']['cookie_name']]);
+            }
         }
         // Nový visitor sa vytvorí až cez ensureVisitor.php po súhlase
     }

@@ -223,10 +223,20 @@ function buildSubmissionCard(sub) {
     const name        = escHtml(sub.name);
     const status      = escHtml(sub.status);
     const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+    const isAdminCreated = sub.created_source === 'admin';
+    const isUnassigned   = isAdminCreated && !sub.owner_user_id;
+    const ownerName      = `${sub.first_name || ''} ${sub.last_name || ''}`.trim() || 'user';
+    const ownerEmail     = sub.user_email || '';
  
     const logoHtml = sub.logo_url
         ? `<img src="${escHtml(adminAssetSrc(sub.logo_url))}" alt="logo" class="admin-submission-logo">`
         : `<div class="admin-submission-logo admin-submission-logo--placeholder">🤖</div>`;
+    const adminBadges = isUnassigned
+        ? `<span class="admin-admin-added-badge">Admin added</span><span class="admin-unassigned-badge">Unassigned</span>`
+        : '';
+    const ownerLine = isUnassigned
+        ? 'Added by admin. Assign an account before accepting or selling a promotion.'
+        : `${isAdminCreated ? 'Assigned to' : 'Submitted by'} ${escHtml(ownerName)} · <a href="mailto:${escHtml(ownerEmail)}">${escHtml(ownerEmail)}</a>`;
  
     const accessNoteBlock = sub.access_note
         ? `<div class="admin-message-body"><strong>Access note:</strong><br>${nlToBr(sub.access_note)}</div>` : '';
@@ -258,32 +268,53 @@ function buildSubmissionCard(sub) {
     const isBlocked = !!sub.is_submission_blocked;
     const ownerId   = escHtml(sub.owner_user_id || '');
  
-    const blockBtn = isBlocked
-        ? `<button class="admin-block-btn admin-block-btn--blocked"
-                   onclick="unblockUser('${ownerId}', 'submission', this)">
-               🔓 Unblock Submissions
-           </button>`
-        : `<button class="admin-block-btn"
-                   onclick="blockUser('${ownerId}', 'submission', this)">
-               🚫 Block Submissions
-           </button>`;
+    const ownerActionBtn = isUnassigned
+        ? `<button class="admin-toggle-btn admin-assign-btn" onclick="toggleSection(this, 'sub-assign-${id}')">Assign account</button>`
+        : (isBlocked
+            ? `<button class="admin-block-btn admin-block-btn--blocked"
+                       onclick="unblockUser('${ownerId}', 'submission', this)">
+                   🔓 Unblock Submissions
+               </button>`
+            : `<button class="admin-block-btn"
+                       onclick="blockUser('${ownerId}', 'submission', this)">
+                   🚫 Block Submissions
+               </button>`);
+
+    const assignSection = isUnassigned
+        ? `<div class="admin-assign-section" id="sub-assign-${id}" style="display:none;">
+                <label>Assign to existing account <span class="admin-reply-hint">(exact email search)</span></label>
+                <div class="admin-assign-search-row">
+                    <input type="email"
+                           class="admin-assign-email-input"
+                           placeholder="user@example.com"
+                           autocomplete="off"
+                           maxlength="255">
+                    <button type="button"
+                            class="admin-save-btn admin-assign-search-btn"
+                            onclick="searchAccountForChatbot('${id}', this)">
+                        Search
+                    </button>
+                </div>
+                <div class="admin-assign-result" id="sub-assign-result-${id}"></div>
+            </div>`
+        : '';
  
     return `
-    <div class="admin-message-card admin-submission-card" data-id="${id}" data-status="${status}">
+    <div class="admin-message-card admin-submission-card" data-id="${id}" data-status="${status}" data-owner-id="${ownerId}">
         <div class="admin-message-card-header">
             <div class="admin-message-card-header-left">
                 <div class="admin-message-sender-row">
                     ${logoHtml}
                     <span class="admin-message-sender">${name}</span>
+                    ${adminBadges}
                 </div>
                 <span class="admin-message-email">
-                    Submitted by ${escHtml(sub.first_name + ' ' + sub.last_name)}
-                    · <a href="mailto:${escHtml(sub.user_email)}">${escHtml(sub.user_email)}</a>
+                    ${ownerLine}
                 </span>
             </div>
             <div class="admin-message-card-header-right">
                 <span class="admin-status-badge submission-status-${status}">${statusLabel}</span>
-                <span class="admin-message-date">${escHtml(sub.submitted_at_formatted || '')}</span>
+                <span class="admin-message-date">${escHtml(sub.display_date_formatted || sub.submitted_at_formatted || '')}</span>
             </div>
         </div>
  
@@ -299,9 +330,11 @@ function buildSubmissionCard(sub) {
             <div class="admin-toggle-actions">
                 <button class="admin-toggle-btn admin-edit-listing-btn" onclick="openSubmissionEditPopup('${id}')">Edit Listing</button>
                 <button class="admin-toggle-btn" onclick="toggleSection(this, 'sub-notes-${id}')">📝 Notes</button>
-                ${blockBtn}
+                ${ownerActionBtn}
             </div>
         </div>
+
+        ${assignSection}
  
         <!-- Reject section -->
         <div class="admin-reply-section" id="sub-reject-${id}" style="display:none;">

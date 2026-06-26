@@ -311,6 +311,10 @@ $upgradeNote = $isUpgradeCancelsAtPeriodEnd
             <button id="use-saved-payment-method-btn" class="checkout-payment__back-to-saved" type="button" hidden>
                 &larr; Use saved payment method
             </button>
+            <div id="express-checkout-wrapper" class="checkout-payment__express-checkout" hidden>
+                <div id="express-checkout-element"></div>
+                <div class="checkout-payment__express-divider" aria-hidden="true"><span>or use another payment method</span></div>
+            </div>
             <div id="payment-element" style="display:none;"></div>
 
             <div id="checkoutError" class="checkout-payment__error" style="display:none;"></div>

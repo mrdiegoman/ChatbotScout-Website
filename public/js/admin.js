@@ -11,51 +11,6 @@ function escapeAttr(str) {
 }
 
 // ============================================
-// NOTIFICATION SYSTEM
-// ============================================
-
-function showNotification(message, type = 'info') {
-    const existing = document.querySelector('.notification');
-    if (existing) existing.remove();
-
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.textContent = message;
-
-    document.body.appendChild(notification);
-    setTimeout(() => notification.classList.add('show'), 10);
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 300);
-    }, 4000);
-}
-
-const notifStyles = document.createElement('style');
-notifStyles.textContent = `
-    .notification {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 16px 24px;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-        font-size: 14px;
-        font-family: outfit-semibold, sans-serif;
-        z-index: 10000;
-        opacity: 0;
-        transform: translateX(100px);
-        transition: all 0.3s ease;
-        max-width: 400px;
-    }
-    .notification.show { opacity: 1; transform: translateX(0); }
-    .notification-success { border-left: 4px solid #4CAF50; color: #2E7D32; }
-    .notification-error   { border-left: 4px solid #EF233C; color: #C62828; }
-    .notification-info    { border-left: 4px solid #2196F3; color: #1976D2; }
-`;
-document.head.appendChild(notifStyles);
-
-// ============================================
 // MAIN TAB SWITCHING (Messages / Reviews / Settings)
 // ============================================
 
@@ -587,6 +542,224 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================
+// SUBMISSIONS — ADMIN-CREATED CHATBOTS
+// ============================================
+
+function openAdminChatbotCreatePopup() {
+    document.getElementById('admin-chatbot-create-popup')?.remove();
+
+    const popup = document.createElement('div');
+    popup.id = 'admin-chatbot-create-popup';
+    popup.className = 'sub-popup-overlay';
+    popup.innerHTML = `
+        <div class="sub-popup-box admin-chatbot-create-box">
+            <div class="sub-popup-header">
+                <h3>Add chatbot</h3>
+                <button type="button" class="modal-close sub-popup-close" onclick="closeAdminChatbotCreatePopup()" aria-label="Close">&times;</button>
+            </div>
+            <form id="admin-chatbot-create-form" onsubmit="createAdminChatbot(event)">
+                <div class="sub-popup-body">
+                    <div class="admin-create-chatbot-grid">
+                        <label class="admin-create-chatbot-field">
+                            <span>Name</span>
+                            <input name="name" type="text" maxlength="200" required>
+                        </label>
+                        <label class="admin-create-chatbot-field">
+                            <span>Website URL</span>
+                            <input name="website_url" type="url" maxlength="500" placeholder="https://example.com" required>
+                        </label>
+                        <label class="admin-create-chatbot-field">
+                            <span>Logo URL or path</span>
+                            <input name="logo_url" type="text" maxlength="500" placeholder="img/websiteLogos/logo.png">
+                        </label>
+                        <label class="admin-create-chatbot-field admin-create-chatbot-field--wide">
+                            <span>Admin notes</span>
+                            <textarea name="admin_notes" maxlength="5000" rows="4"></textarea>
+                        </label>
+                    </div>
+                </div>
+                <div class="sub-popup-footer">
+                    <button type="button" class="admin-cancel-btn" onclick="closeAdminChatbotCreatePopup()">Cancel</button>
+                    <button type="submit" class="admin-save-btn" data-admin-create-save>Add chatbot</button>
+                </div>
+            </form>
+        </div>`;
+
+    document.body.appendChild(popup);
+    requestAnimationFrame(() => popup.classList.add('visible'));
+}
+
+function closeAdminChatbotCreatePopup() {
+    const popup = document.getElementById('admin-chatbot-create-popup');
+    if (!popup) return;
+
+    popup.classList.remove('visible');
+    setTimeout(() => popup.remove(), 200);
+}
+
+async function createAdminChatbot(event) {
+    event.preventDefault();
+
+    const form = document.getElementById('admin-chatbot-create-form');
+    if (!form) return;
+
+    const saveBtn = form.querySelector('[data-admin-create-save]');
+    const payload = {
+        action: 'create_admin_chatbot',
+        name: form.elements['name'].value.trim(),
+        website_url: form.elements['website_url'].value.trim(),
+        logo_url: form.elements['logo_url'].value.trim(),
+        admin_notes: form.elements['admin_notes'].value.trim(),
+    };
+
+    if (!payload.name || !payload.website_url) {
+        showNotification('Name and website URL are required.', 'error');
+        return;
+    }
+
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Adding...';
+    }
+
+    try {
+        const res = await fetch('app/adminSubmissionActions.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        const result = await res.json();
+
+        if (!result.success) {
+            showNotification(result.message || 'Could not add chatbot.', 'error');
+            return;
+        }
+
+        closeAdminChatbotCreatePopup();
+        showNotification(result.message || 'Chatbot added.', 'success');
+        refreshSubmissionsAfterAdminChange(result.counts);
+    } catch (err) {
+        console.error(err);
+        showNotification('Could not add chatbot.', 'error');
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Add chatbot';
+        }
+    }
+}
+
+async function searchAccountForChatbot(chatbotId, btn) {
+    const section = document.getElementById(`sub-assign-${chatbotId}`);
+    const input = section?.querySelector('.admin-assign-email-input');
+    const resultEl = document.getElementById(`sub-assign-result-${chatbotId}`);
+    const email = input?.value.trim() || '';
+
+    if (!email) {
+        showNotification('Enter an email address first.', 'error');
+        input?.focus();
+        return;
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Searching...';
+    }
+    if (resultEl) {
+        resultEl.innerHTML = '';
+    }
+
+    try {
+        const res = await fetch('app/adminSubmissionActions.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'search_user_by_email', id: chatbotId, email }),
+        });
+        const result = await res.json();
+
+        if (!result.success) {
+            showNotification(result.message || 'Search failed.', 'error');
+            return;
+        }
+
+        if (!result.found || !result.user) {
+            if (resultEl) {
+                resultEl.innerHTML = `<div class="admin-assign-empty">No account found for ${escapeHtml(email)}.</div>`;
+            }
+            return;
+        }
+
+        const user = result.user;
+        const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'User';
+        if (resultEl) {
+            resultEl.innerHTML = `
+                <div class="admin-assign-user-card">
+                    <div>
+                        <strong>${escapeHtml(fullName)}</strong>
+                        <span>${escapeHtml(user.email)}</span>
+                    </div>
+                    <button type="button"
+                            class="admin-save-btn admin-assign-add-btn"
+                            onclick="assignChatbotToAccount('${escapeAttr(chatbotId)}', '${escapeAttr(user.id)}', this)">
+                        Add
+                    </button>
+                </div>`;
+        }
+    } catch (err) {
+        console.error(err);
+        showNotification('Search failed.', 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Search';
+        }
+    }
+}
+
+async function assignChatbotToAccount(chatbotId, userId, btn) {
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Adding...';
+    }
+
+    try {
+        const res = await fetch('app/adminSubmissionActions.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'assign_chatbot_owner', id: chatbotId, user_id: userId }),
+        });
+        const result = await res.json();
+
+        if (!result.success) {
+            showNotification(result.message || 'Could not assign account.', 'error');
+            return;
+        }
+
+        showNotification('Chatbot assigned to account.', 'success');
+        refreshSubmissionsAfterAdminChange(result.counts);
+    } catch (err) {
+        console.error(err);
+        showNotification('Could not assign account.', 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Add';
+        }
+    }
+}
+
+function refreshSubmissionsAfterAdminChange(counts = null) {
+    if (counts && typeof updateMainTabBadge === 'function') {
+        updateMainTabBadge('submissions', counts.pending ?? 0);
+    }
+
+    const refreshBtn = document.getElementById('refreshSubmissionsBtn');
+    if (typeof refreshSubmissions === 'function' && refreshBtn) {
+        refreshSubmissions(refreshBtn);
+    }
+}
+
+// ============================================
 // SUBMISSIONS — MARK REVIEWED (toggle, no email)
 // ============================================
 
@@ -782,9 +955,12 @@ function showAcceptPopup(id, chatbotName, rules, allPassed) {
     }).join('');
 
     const confirmDisabled = allPassed ? '' : ' disabled';
+    const accountNotAssigned = rules.some(rule => rule.code === 'account_assigned' && !rule.ok);
     const statusMsg = allPassed
         ? `<p class="accept-status-ok">✅ All requirements met. Ready to accept.</p>`
-        : `<p class="accept-status-fail">❌ Some requirements are not met. Fix them before accepting.</p>`;
+        : (accountNotAssigned
+            ? `<p class="accept-status-fail">❌ Account is not assigned yet. Assign this chatbot to an existing account before accepting.</p>`
+            : `<p class="accept-status-fail">❌ Some requirements are not met. Fix them before accepting.</p>`);
 
     const popup = document.createElement('div');
     popup.id    = 'sub-accept-popup';
@@ -803,8 +979,12 @@ function showAcceptPopup(id, chatbotName, rules, allPassed) {
             </div>
             <div class="sub-popup-footer">
                 <button class="admin-cancel-btn" onclick="closeAcceptPopup()">Cancel</button>
+                <button class="admin-accept-edit-btn"
+                        onclick="openSubmissionEditFromAccept('${escapeAttr(id)}')">
+                    Edit Listing
+                </button>
                 <button class="admin-accept-confirm-btn"${confirmDisabled}
-                        onclick="confirmAccept('${escHtml(id)}', this)">
+                        onclick="confirmAccept('${escapeAttr(id)}', this)">
                     ✅ Confirm Accept
                 </button>
             </div>
@@ -820,6 +1000,11 @@ function closeAcceptPopup() {
         popup.classList.remove('visible');
         setTimeout(() => popup.remove(), 200);
     }
+}
+
+function openSubmissionEditFromAccept(id) {
+    closeAcceptPopup();
+    setTimeout(() => openSubmissionEditPopup(id), 220);
 }
 
 async function confirmAccept(id, btn) {
@@ -1294,7 +1479,7 @@ function buildSubmissionEditOption(kind, item, selected) {
     const selectedClass = selected ? ' sub-edit-option--selected' : '';
 
     return `
-        <label class="sub-edit-option${selectedClass}" data-name-key="${escapeAttr(normalizeSubmissionEditName(item.name))}">
+        <div class="sub-edit-option${selectedClass}" data-name-key="${escapeAttr(normalizeSubmissionEditName(item.name))}">
             <input type="checkbox"
                    class="${checkClass}"
                    data-id="${escapeAttr(item.id)}"
@@ -1303,7 +1488,7 @@ function buildSubmissionEditOption(kind, item, selected) {
             <span class="sub-edit-option-name">${escapeHtml(item.name)}</span>
             ${badge}
             ${deleteButton}
-        </label>`;
+        </div>`;
 }
 
 function buildSubmissionEditSelector(kind, title, items, selectedIds) {
@@ -1330,13 +1515,13 @@ function buildSubmissionEditSelector(kind, title, items, selectedIds) {
                        maxlength="100"
                        placeholder="Create new ${isFeature ? 'feature' : 'integration'}">
                 ${isFeature ? `
-                    <label class="sub-edit-advanced-toggle">
+                    <div class="sub-edit-advanced-toggle">
                         <span>Advanced</span>
-                        <span class="toggle-switch">
+                        <label class="toggle-switch">
                             <input type="checkbox" id="sub-edit-new-feature-advanced">
                             <span class="toggle-slider"></span>
-                        </span>
-                    </label>` : ''}
+                        </label>
+                    </div>` : ''}
                 <button type="button" onclick="addSubmissionEditItem('${kind}')">Add</button>
             </div>
             <div class="sub-edit-options" id="sub-edit-${kind}-list">
@@ -1461,13 +1646,13 @@ function renderSubmissionEditPopup(data) {
                     <section class="sub-edit-section">
                         <h4>Affiliate</h4>
                         <div class="sub-edit-grid">
-                            <label class="sub-edit-toggle-field">
+                            <div class="sub-edit-toggle-field">
                                 <span>Affiliate program enabled</span>
-                                <span class="toggle-switch">
+                                <label class="toggle-switch">
                                     <input name="has_affiliate_program" type="checkbox"${checkedAttr(c.has_affiliate_program)}>
                                     <span class="toggle-slider"></span>
-                                </span>
-                            </label>
+                                </label>
+                            </div>
                             <label class="sub-edit-field sub-edit-field--wide">
                                 <span>Outbound / affiliate link</span>
                                 <input name="affiliate_link" type="url" maxlength="1000" value="${escapeAttr(c.affiliate_link || '')}">
@@ -1502,13 +1687,13 @@ function renderSubmissionEditPopup(data) {
                                 <span>Currency</span>
                                 <select name="pricing_currency">${currencyOptions}</select>
                             </label>
-                            <label class="sub-edit-toggle-field">
+                            <div class="sub-edit-toggle-field">
                                 <span>Free trial available</span>
-                                <span class="toggle-switch">
+                                <label class="toggle-switch">
                                     <input name="has_free_trial" type="checkbox" data-free-trial-toggle${checkedAttr(c.has_free_trial)}>
                                     <span class="toggle-slider"></span>
-                                </span>
-                            </label>
+                                </label>
+                            </div>
                             <label class="sub-edit-field">
                                 <span>Free trial days</span>
                                 <input name="free_trial_days" type="number" min="1" max="3650" step="1" data-free-trial-days${c.has_free_trial ? ' required aria-required="true"' : ''} value="${escapeAttr(c.free_trial_days || '')}">
@@ -1531,6 +1716,7 @@ function renderSubmissionEditPopup(data) {
 
     updateSubmissionEditCounts();
     bindSubmissionEditSearchHandlers();
+    bindSubmissionEditOptionHandlers();
     bindSubmissionFreeTrialControls();
 }
 
@@ -1566,6 +1752,27 @@ function bindSubmissionEditSearchHandlers() {
                 event.preventDefault();
             }
         });
+    });
+}
+
+function bindSubmissionEditOptionHandlers() {
+    const form = document.getElementById('sub-edit-form');
+    if (!form || form.dataset.optionHandlersBound === '1') return;
+
+    form.dataset.optionHandlersBound = '1';
+    form.addEventListener('click', event => {
+        const option = event.target.closest('.sub-edit-option');
+        if (!option || !form.contains(option)) return;
+
+        if (event.target.closest('button, input, label, a, select, textarea')) {
+            return;
+        }
+
+        const checkbox = option.querySelector('input[type="checkbox"]');
+        if (!checkbox || checkbox.disabled) return;
+
+        checkbox.checked = !checkbox.checked;
+        handleSubmissionEditOptionToggle(checkbox);
     });
 }
 
@@ -1632,6 +1839,7 @@ function handleSubmissionEditOptionToggle(checkbox) {
     const option = checkbox.closest('.sub-edit-option');
     if (option) {
         option.classList.toggle('sub-edit-option--selected', checkbox.checked);
+        option.setAttribute('aria-checked', checkbox.checked ? 'true' : 'false');
     }
     updateSubmissionEditCounts();
 }
@@ -1660,6 +1868,7 @@ function addSubmissionEditItem(kind) {
         const checkbox = existing.querySelector('input[type="checkbox"]');
         if (checkbox) checkbox.checked = true;
         existing.hidden = false;
+        existing.style.display = '';
         existing.scrollIntoView({ block: 'nearest' });
         updateSubmissionEditCounts();
         input.value = '';
@@ -1668,9 +1877,10 @@ function addSubmissionEditItem(kind) {
 
     list.querySelector('.sub-edit-empty-option')?.remove();
 
-    const label = document.createElement('label');
-    label.className = 'sub-edit-option sub-edit-option--new';
-    label.dataset.nameKey = key;
+    const option = document.createElement('div');
+    option.className = 'sub-edit-option sub-edit-option--new';
+    option.dataset.nameKey = key;
+    option.setAttribute('aria-checked', 'true');
 
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
@@ -1699,16 +1909,16 @@ function addSubmissionEditItem(kind) {
     deleteBtn.textContent = 'Delete';
     deleteBtn.addEventListener('click', event => deleteSubmissionEditNewItem(deleteBtn, event));
 
-    label.append(checkbox, text, badge);
+    option.append(checkbox, text, badge);
     if (isFeature && checkbox.dataset.advanced === '1') {
         const advancedBadge = document.createElement('span');
         advancedBadge.className = 'sub-edit-option-badge';
         advancedBadge.textContent = 'Advanced';
-        label.appendChild(advancedBadge);
+        option.appendChild(advancedBadge);
     }
-    label.appendChild(deleteBtn);
+    option.appendChild(deleteBtn);
 
-    list.prepend(label);
+    list.prepend(option);
     input.value = '';
     if (isFeature) {
         const advancedInput = document.getElementById('sub-edit-new-feature-advanced');
@@ -1719,7 +1929,11 @@ function addSubmissionEditItem(kind) {
 
 function updateSubmissionEditCounts() {
     document.querySelectorAll('.sub-edit-option input[type="checkbox"]').forEach(checkbox => {
-        checkbox.closest('.sub-edit-option')?.classList.toggle('sub-edit-option--selected', checkbox.checked);
+        const option = checkbox.closest('.sub-edit-option');
+        if (!option) return;
+
+        option.classList.toggle('sub-edit-option--selected', checkbox.checked);
+        option.setAttribute('aria-checked', checkbox.checked ? 'true' : 'false');
     });
 
     const featureCount = document.querySelectorAll('#sub-edit-features-list .sub-edit-feature-check:checked').length;

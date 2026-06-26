@@ -9,6 +9,28 @@
 $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
 
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$scheme = $isHttps ? 'https' : 'http';
+$requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '';
+$basePath = '';
+
+if (preg_match('#^(.*)/(?:google-auth|google-callback|login|sign-up)(?:/)?$#', $requestPath, $matches)) {
+    $basePath = $matches[1] === '/' ? '' : $matches[1];
+}
+
+$scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
+if ($basePath === '') {
+    $publicPathPosition = strpos($scriptName, '/public/');
+    $basePath = $publicPathPosition === false ? '' : substr($scriptName, 0, $publicPathPosition);
+}
+
+$basePath = rtrim($basePath, '/');
+$defaultGoogleRedirectUri = $scheme . '://' . $host . $basePath . '/google-callback';
+$googleRedirectUri = trim((string)($_ENV['GOOGLE_REDIRECT_URI'] ?? ''));
+if ($googleRedirectUri === '') {
+    $googleRedirectUri = $defaultGoogleRedirectUri;
+}
+
 return [
     // Session settings
     'session' => [
@@ -102,7 +124,8 @@ return [
     'google' => [
         'client_id'     => $_ENV['GOOGLE_CLIENT_ID']     ?? '',
         'client_secret' => $_ENV['GOOGLE_CLIENT_SECRET'] ?? '',
-        'redirect_uri'  => $_ENV['GOOGLE_REDIRECT_URI']  ?? '',
+        'redirect_uri'  => $googleRedirectUri,
+        'default_redirect_uri' => $defaultGoogleRedirectUri,
     ],
 
     // reCAPTCHA v3

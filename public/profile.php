@@ -977,6 +977,9 @@ require '../inc/header.php';
                 </div>
 
                 <div class="pr-cards" id="myReviewsContainer"></div>
+                <div class="pr-load-more-wrap">
+                    <button type="button" class="pr-load-more" id="myReviewsLoadMore" hidden>Load more reviews</button>
+                </div>
 
             </div>
 
@@ -1027,8 +1030,8 @@ require '../inc/header.php';
             <p>Are you sure you want to delete this review? This action cannot be undone.</p>
         </div>
         <div class="pr-delete-modal-footer">
-            <button class="pr-modal-cancel-btn" id="deleteReviewCancelBtn">Cancel</button>
-            <button class="pr-delete-confirm-btn" id="deleteReviewConfirmBtn">Yes, delete</button>
+            <button type="button" class="pr-modal-cancel-btn" id="deleteReviewCancelBtn">Cancel</button>
+            <button type="button" class="pr-delete-confirm-btn" id="deleteReviewConfirmBtn">Yes, delete</button>
         </div>
     </div>
 </div>

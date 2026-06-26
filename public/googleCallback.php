@@ -38,9 +38,11 @@ if (isset($_GET['error'])) {
 
 $receivedState = $_GET['state'] ?? '';
 $expectedState = $_SESSION['google_oauth_state'] ?? '';
+$oauthRedirectUri = $_SESSION['google_oauth_redirect_uri'] ?? '';
 
 // Vymaž state zo session (single-use)
 unset($_SESSION['google_oauth_state']);
+unset($_SESSION['google_oauth_redirect_uri']);
 
 if (empty($receivedState) || !hash_equals($expectedState, $receivedState)) {
     error_log("Google OAuth: Invalid state token");
@@ -66,12 +68,25 @@ if (empty($code)) {
 // ============================================
 
 $googleConfig = $appConfig['google'];
+$redirectUri = $oauthRedirectUri ?: ($googleConfig['redirect_uri'] ?? '');
+
+if (
+    empty($googleConfig['client_id'])
+    || empty($googleConfig['client_secret'])
+    || empty($redirectUri)
+    || !filter_var($redirectUri, FILTER_VALIDATE_URL)
+) {
+    error_log('Google OAuth callback is not configured correctly.');
+    $_SESSION['login_errors'] = ['general' => 'Google sign-in is temporarily unavailable. Please use email and password.'];
+    header('Location: login');
+    exit;
+}
 
 $tokenResponse = httpPost('https://oauth2.googleapis.com/token', [
     'code'          => $code,
     'client_id'     => $googleConfig['client_id'],
     'client_secret' => $googleConfig['client_secret'],
-    'redirect_uri'  => $googleConfig['redirect_uri'],
+    'redirect_uri'  => $redirectUri,
     'grant_type'    => 'authorization_code',
 ]);
 

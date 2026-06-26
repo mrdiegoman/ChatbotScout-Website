@@ -537,12 +537,15 @@
 }
 
 /* Popular carousel */
-.hp-pop-carousel { position: relative; }
+.hp-pop-carousel {
+    position: relative;
+    --hp-pop-arrow-gutter: 5.8rem;
+}
 
 .hp-pop-track-wrap {
     overflow: hidden;
     /* margin: 0 -8px; */
-    padding: 0.8rem 0.8rem 1.6rem;
+    padding: 0.8rem var(--hp-pop-arrow-gutter) 1.6rem;
 }
 
 .hp-pop-track {
@@ -678,8 +681,8 @@
     /* transform: translateY(-50%) scale(1.08); */
 }
 
-.hp-pop-arrow.hp-pop-prev { left: -1.5rem; }
-.hp-pop-arrow.hp-pop-next { right: -1.5rem; }
+.hp-pop-arrow.hp-pop-prev { left: 0.4rem; }
+.hp-pop-arrow.hp-pop-next { right: 0.4rem; }
 
 /* ============================================================
    FEATURES — CHAT UI
@@ -1351,7 +1354,13 @@
     .hp-chatbot-card.pos-left,
     .hp-chatbot-card.pos-right { opacity: 0; pointer-events: none; }
     .hp-hero-stats { gap: 1.6rem; }
-    /* .hp-pop-arrow { display: none; } */
+    .hp-pop-carousel { --hp-pop-arrow-gutter: 0.8rem; padding-bottom: 4.8rem; }
+    .hp-pop-arrow {
+        top: auto;
+        bottom: 0;
+    }
+    .hp-pop-arrow.hp-pop-prev { left: calc(50% - 4.8rem); }
+    .hp-pop-arrow.hp-pop-next { right: calc(50% - 4.8rem); }
     .hp-bubble { padding: 2rem 2rem; }
     .hp-discover-card { padding: 2.8rem 2rem; }
     .hp-carousel-dots {

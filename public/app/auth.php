@@ -45,12 +45,10 @@ function login(array $userData, bool $rememberMe = false): void
         $appConfig['session']['cookie_httponly']
     );
     
-    // GDPR: Konverzia visitor → user je povolená len s explicitným súhlasom.
-    // Ak user dal declined alebo ešte nerozhodol, visitor_user_links sa nevytvorí.
-    $cookieConsent = $_COOKIE['cookie_consent'] ?? null;
-    if ($cookieConsent === 'accepted' && isset($_COOKIE[$appConfig['visitor']['cookie_name']])) {
-        $visitorId = $_COOKIE[$appConfig['visitor']['cookie_name']];
-        
+    // GDPR: Konverzia visitor → user je povolená len s aktuálnym Statistics súhlasom.
+    if (hasStatisticsConsent() && isset($_COOKIE[$appConfig['visitor']['cookie_name']])) {
+        $visitorId = (string)$_COOKIE[$appConfig['visitor']['cookie_name']];
+
         $visitor = new Visitor();
         $visitor->convertToUser($visitorId, $userData['id']);
     }

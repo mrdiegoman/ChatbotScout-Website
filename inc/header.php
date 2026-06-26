@@ -286,11 +286,6 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
         </div>
     </header>
 
-    <!-- DEV BANNER — remove before going live -->
-    <div style="position:fixed;top:60px;left:0;width:100%;background:#f59e0b;color:#1c1917;text-align:center;padding:10px 16px;font-size:14px;font-family:inherit;z-index:999;">
-        This site is currently under development. Chatbot listings are not yet available.
-    </div>
-
     <!-- Mobile Menu Overlay -->
     <div class="header-mobile-menu">
         <div class="header-mobile-menu-content">
@@ -372,6 +367,7 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
 
     <script src="js/csrf.js?v=<?= filemtime(__DIR__ . '/../public/js/csrf.js') ?>"></script>
     <script src="js/scrollLock.js?v=<?= filemtime(__DIR__ . '/../public/js/scrollLock.js') ?>"></script>
+    <script src="js/notifications.js?v=<?= filemtime(__DIR__ . '/../public/js/notifications.js') ?>"></script>
     <script nonce="<?= $cspNonce ?>">
         function loadAvatar(img) {
             var real = img.getAttribute('data-src');

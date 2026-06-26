@@ -2,7 +2,7 @@
 /**
  * AJAX Endpoint - Get User Reviews
  *
- * Vracia všetky reviews prihláseného usera + is_review_blocked flag.
+ * Vracia paginated reviews prihláseného usera + is_review_blocked flag.
  */
 
 error_reporting(E_ALL);
@@ -26,6 +26,17 @@ if (!$isLoggedIn || empty($user['id'])) {
 
 try {
     $db = Database::getInstance()->getConnection();
+    $offset = max(0, min(10000, (int)($_GET['offset'] ?? 0)));
+    $limit = 1;
+
+    $countStmt = $db->prepare("
+        SELECT COUNT(*)
+        FROM reviews r
+        JOIN chatbots c ON r.chatbot_id = c.id
+        WHERE r.user_id = :user_id
+    ");
+    $countStmt->execute([':user_id' => $user['id']]);
+    $total = (int)$countStmt->fetchColumn();
 
     $stmt = $db->prepare("
         SELECT
@@ -41,10 +52,16 @@ try {
         FROM reviews r
         JOIN chatbots c ON r.chatbot_id = c.id
         WHERE r.user_id = :user_id
-        ORDER BY r.created_at DESC
+        ORDER BY r.created_at DESC, r.id DESC
+        LIMIT :limit OFFSET :offset
     ");
-    $stmt->execute([':user_id' => $user['id']]);
+    $stmt->bindValue(':user_id', $user['id']);
+    $stmt->bindValue(':limit', $limit + 1, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
     $reviews = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $hasMore = count($reviews) > $limit;
+    $reviews = array_slice($reviews, 0, $limit);
 
     foreach ($reviews as &$review) {
         $review['rating']                   = (int)$review['rating'];
@@ -57,6 +74,8 @@ try {
     echo json_encode([
         'success'            => true,
         'reviews'            => $reviews,
+        'total'              => $total,
+        'has_more'           => $hasMore,
         'is_review_blocked'  => (bool)($user['is_review_blocked'] ?? false),
     ]);
 

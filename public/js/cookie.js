@@ -1,71 +1,124 @@
 /**
- * cookieConsent.js v2 — ChatbotScout
+ * cookieConsent.js v2 - ChatbotScout
  *
- * Full GDPR-compliant cookie consent:
- *  - Backward compatible with old cookie_consent = accepted/declined
- *  - Granular categories: necessary, statistics, preferences, marketing
- *  - Consent ID + timestamp for GDPR records
- *  - Expandable category accordions with cookie tables
- *  - Fixed "Cookie Settings" button
+ * Granular consent for necessary, statistics, preferences and marketing.
+ * Statistics controls custom visitor tracking, browser fingerprinting and GA.
  */
 
 (function () {
     'use strict';
 
-    const COOKIE_V2     = 'cookie_consent_v2';
-    const COOKIE_OLD    = 'cookie_consent';
+    const COOKIE_V2 = 'cookie_consent_v2';
+    const COOKIE_OLD = 'cookie_consent';
     const COOKIE_MONTHS = 6;
+    const VISITOR_STORAGE_KEY = 'chatbotscout_visitor_id';
 
     // ============================================
     // COOKIE HELPERS
     // ============================================
 
     function getCookie(name) {
-        var match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+        var match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]*)'));
         return match ? decodeURIComponent(match[1]) : null;
     }
 
     function setCookie(name, value, months) {
         var expires = new Date();
         expires.setMonth(expires.getMonth() + months);
+
         document.cookie = name + '=' + encodeURIComponent(value)
             + '; path=/'
             + '; expires=' + expires.toUTCString()
-            + '; SameSite=Lax';
+            + '; SameSite=Lax'
+            + (window.location.protocol === 'https:' ? '; Secure' : '');
+    }
+
+    function domainVariants() {
+        var host = window.location.hostname;
+        var variants = [''];
+        var isIpAddress = /^(\d{1,3}\.){3}\d{1,3}$/.test(host) || host === 'localhost';
+
+        if (host && !isIpAddress && host.indexOf('.') !== -1) {
+            variants.push(host);
+            variants.push('.' + host);
+
+            var parts = host.split('.');
+            if (parts.length > 2) {
+                variants.push('.' + parts.slice(-2).join('.'));
+            }
+        }
+
+        return Array.from(new Set(variants));
+    }
+
+    function deleteCookie(name) {
+        domainVariants().forEach(function (domain) {
+            document.cookie = name + '=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; SameSite=Lax'
+                + (domain ? '; domain=' + domain : '')
+                + (window.location.protocol === 'https:' ? '; Secure' : '');
+        });
+    }
+
+    function deleteCookiesByPrefix(prefix) {
+        document.cookie.split(';').forEach(function (part) {
+            var name = part.split('=')[0].trim();
+            if (name.indexOf(prefix) === 0) {
+                deleteCookie(name);
+            }
+        });
     }
 
     function generateConsentId() {
-        return 'CBS-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        return 'CBS-' + Date.now() + '-' + Math.random().toString(36).slice(2, 11).toUpperCase();
     }
 
     // ============================================
     // CONSENT READ / WRITE
     // ============================================
 
+    function normaliseConsent(consent) {
+        if (!consent || typeof consent !== 'object' || consent.necessary === undefined) {
+            return null;
+        }
+
+        return {
+            necessary: true,
+            statistics: !!consent.statistics,
+            preferences: !!consent.preferences,
+            marketing: !!consent.marketing,
+            consentId: consent.consentId || generateConsentId(),
+            date: consent.date || new Date().toISOString()
+        };
+    }
+
+    function buildConsent(statistics, preferences, marketing, id) {
+        return {
+            necessary: true,
+            statistics: !!statistics,
+            preferences: !!preferences,
+            marketing: !!marketing,
+            consentId: id || generateConsentId(),
+            date: new Date().toISOString()
+        };
+    }
+
     function getConsent() {
-        // Check new v2 cookie first
         var v2 = getCookie(COOKIE_V2);
         if (v2) {
             try {
-                var parsed = JSON.parse(v2);
-                if (parsed && typeof parsed === 'object' && parsed.necessary !== undefined) {
-                    return parsed;
-                }
+                var parsed = normaliseConsent(JSON.parse(v2));
+                if (parsed) return parsed;
             } catch (e) {}
         }
 
-        // Fallback: localStorage works even when cookies are blocked (e.g. Brave Shields)
         try {
             var ls = localStorage.getItem(COOKIE_V2);
             if (ls) {
-                var parsedLs = JSON.parse(ls);
-                if (parsedLs && typeof parsedLs === 'object' && parsedLs.necessary !== undefined) {
-                    return parsedLs;
-                }
+                var parsedLs = normaliseConsent(JSON.parse(ls));
+                if (parsedLs) return parsedLs;
             }
         } catch (e) {}
 
-        // Migrate old cookie format
         var old = getCookie(COOKIE_OLD);
         if (old === 'accepted') {
             return buildConsent(true, true, true, generateConsentId());
@@ -77,52 +130,72 @@
         return null;
     }
 
-    function buildConsent(statistics, preferences, marketing, id) {
-        return {
-            necessary:   true,
-            statistics:  !!statistics,
-            preferences: !!preferences,
-            marketing:   !!marketing,
-            consentId:   id || generateConsentId(),
-            date:        new Date().toISOString()
-        };
+    function saveConsent(consent) {
+        consent = normaliseConsent(consent) || buildConsent(false, false, false);
+        consent.date = new Date().toISOString();
+
+        setCookie(COOKIE_V2, JSON.stringify(consent), COOKIE_MONTHS);
+        setCookie(COOKIE_OLD, consent.statistics ? 'accepted' : 'declined', COOKIE_MONTHS);
+
+        try {
+            localStorage.setItem(COOKIE_V2, JSON.stringify(consent));
+        } catch (e) {}
     }
 
-    function saveConsent(consent) {
-        if (!consent.consentId) consent.consentId = generateConsentId();
-        consent.date = new Date().toISOString();
-        setCookie(COOKIE_V2, JSON.stringify(consent), COOKIE_MONTHS);
-        // Keep old cookie for backward compatibility with identify.php / bootstrap.php
-        setCookie(COOKIE_OLD, consent.statistics ? 'accepted' : 'declined', COOKIE_MONTHS);
-        // Mirror to localStorage so browsers that block cookies (e.g. Brave) don't flash the banner
-        try { localStorage.setItem(COOKIE_V2, JSON.stringify(consent)); } catch (e) {}
+    function hasStatisticsConsent() {
+        var consent = getConsent();
+        return !!(consent && consent.statistics);
     }
+
+    window.chatbotScoutConsent = {
+        get: getConsent,
+        hasStatistics: hasStatisticsConsent,
+        hasPreferences: function () {
+            var consent = getConsent();
+            return !!(consent && consent.preferences);
+        },
+        hasMarketing: function () {
+            var consent = getConsent();
+            return !!(consent && consent.marketing);
+        }
+    };
 
     // ============================================
     // VISITOR.JS LOADER
-    // visitor.js sa postará o všetko — vytvorí visitora s fingerprintom hneď
-    // cez identify.php (createWithFingerprint). Žiadny dvojkrokový proces.
     // ============================================
 
     function loadVisitorScript() {
+        if (!hasStatisticsConsent()) return;
+
         if (document.getElementById('visitor-script')) {
-            // Skript už je načítaný — zavolaj collectAndSend priamo
             if (typeof window.collectAndSendVisitor === 'function') {
                 window.collectAndSendVisitor();
             }
             return;
         }
+
         var script = document.createElement('script');
-        script.id    = 'visitor-script';
-        script.src   = '../js/visitor.js';
+        script.id = 'visitor-script';
+        script.src = 'js/visitor.js';
         script.async = true;
         document.body.appendChild(script);
     }
 
+    function revokeStatisticsCookies() {
+        try {
+            localStorage.removeItem(VISITOR_STORAGE_KEY);
+        } catch (e) {}
+
+        fetch('api/revokeConsent.php', { method: 'POST' }).catch(function () {});
+
+        deleteCookie('visitor_id');
+        deleteCookie('_ga');
+        deleteCookiesByPrefix('_ga_');
+    }
+
     function applyConsent(consent) {
-        if (consent.statistics) {
-            loadVisitorScript();
-        }
+        consent = normaliseConsent(consent);
+        if (!consent) return;
 
         if (typeof gtag === 'function') {
             gtag('consent', 'update', {
@@ -131,6 +204,12 @@
                 'ad_user_data': consent.marketing ? 'granted' : 'denied',
                 'ad_personalization': consent.marketing ? 'granted' : 'denied'
             });
+        }
+
+        if (consent.statistics) {
+            loadVisitorScript();
+        } else {
+            revokeStatisticsCookies();
         }
     }
 
@@ -160,25 +239,25 @@
 
         var consent = getConsent();
         if (consent) {
-            setToggle('cookie-toggle-statistics',  consent.statistics);
+            setToggle('cookie-toggle-statistics', consent.statistics);
             setToggle('cookie-toggle-preferences', consent.preferences);
-            setToggle('cookie-toggle-marketing',   consent.marketing);
+            setToggle('cookie-toggle-marketing', consent.marketing);
 
-            var idEl   = document.getElementById('cookie-consent-id');
+            var idEl = document.getElementById('cookie-consent-id');
             var dateEl = document.getElementById('cookie-consent-date');
-            if (idEl)   idEl.textContent   = 'Consent ID: ' + consent.consentId;
+            if (idEl) idEl.textContent = 'Consent ID: ' + consent.consentId;
             if (dateEl) {
                 var d = new Date(consent.date);
                 dateEl.textContent = 'Date: ' + d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
             }
         } else {
-            setToggle('cookie-toggle-statistics',  false);
+            setToggle('cookie-toggle-statistics', false);
             setToggle('cookie-toggle-preferences', false);
-            setToggle('cookie-toggle-marketing',   false);
+            setToggle('cookie-toggle-marketing', false);
 
             var idEl2 = document.getElementById('cookie-consent-id');
-            if (idEl2) idEl2.textContent = '';
             var dateEl2 = document.getElementById('cookie-consent-date');
+            if (idEl2) idEl2.textContent = '';
             if (dateEl2) dateEl2.textContent = '';
         }
 
@@ -186,7 +265,6 @@
         requestAnimationFrame(function () {
             requestAnimationFrame(function () {
                 overlay.classList.add('cookie-modal--visible');
-                // Only lock scroll if overlay is actually visible (Brave Shields may block it)
                 if (getComputedStyle(overlay).display !== 'none') {
                     document.body.classList.add('cookie-modal-open');
                 }
@@ -212,6 +290,7 @@
         var toggle = document.getElementById(id);
         if (!toggle) return;
         toggle.classList.toggle('cookie-toggle--on', !!value);
+        toggle.setAttribute('aria-checked', value ? 'true' : 'false');
     }
 
     function getToggleValue(id) {
@@ -219,31 +298,13 @@
         return toggle ? toggle.classList.contains('cookie-toggle--on') : false;
     }
 
-    // ============================================
-    // CATEGORY ACCORDION
-    // ============================================
-
     function toggleCategory(header) {
         var category = header.closest('.cookie-category');
         if (category) category.classList.toggle('cookie-category--open');
     }
 
-    // ============================================
-    // REVOKE — vymaže cookies pri odvolaní súhlasu
-    // ============================================
-
-    function deleteCookie(name) {
-        document.cookie = name + '=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
-    }
-
-    function revokeStatisticsCookies() {
-        // visitor_id can also be set client-side by visitor.js, so remove both ways.
-        fetch('api/revokeConsent.php', { method: 'POST' }).catch(function () {});
-        // Fallback pokus pre prípad že nie je httponly (dev prostredie)
-        deleteCookie('visitor_id');
-    }
-
     function revokePreferencesCookies() {
+        try { localStorage.removeItem('preferredLayout'); } catch (e) {}
         try { localStorage.removeItem('chatbot_showcase_view'); } catch (e) {}
         try { localStorage.removeItem('favourites_showcase_view'); } catch (e) {}
     }
@@ -263,7 +324,7 @@
     function rejectAll() {
         var consent = buildConsent(false, false, false);
         saveConsent(consent);
-        revokeStatisticsCookies();
+        applyConsent(consent);
         revokePreferencesCookies();
         hideBanner();
         hideModal();
@@ -278,7 +339,6 @@
         saveConsent(consent);
         applyConsent(consent);
 
-        if (!consent.statistics)  revokeStatisticsCookies();
         if (!consent.preferences) revokePreferencesCookies();
 
         hideBanner();
@@ -286,33 +346,41 @@
     }
 
     // ============================================
-    // WIRE UP EVENT LISTENERS
+    // WIRE UP
     // ============================================
 
     function wireUp() {
         var btnAcceptAll = document.getElementById('cookie-btn-accept-all');
         var btnRejectAll = document.getElementById('cookie-btn-reject-all');
-        var btnManage    = document.getElementById('cookie-btn-manage');
+        var btnManage = document.getElementById('cookie-btn-manage');
 
         if (btnAcceptAll) btnAcceptAll.addEventListener('click', acceptAll);
         if (btnRejectAll) btnRejectAll.addEventListener('click', rejectAll);
-        if (btnManage)    btnManage.addEventListener('click', showModal);
+        if (btnManage) btnManage.addEventListener('click', showModal);
 
         var btnModalAccept = document.getElementById('cookie-modal-accept-all');
         var btnModalReject = document.getElementById('cookie-modal-reject-all');
-        var btnModalSave   = document.getElementById('cookie-modal-save');
-        var btnModalClose  = document.getElementById('cookie-modal-close');
+        var btnModalSave = document.getElementById('cookie-modal-save');
+        var btnModalClose = document.getElementById('cookie-modal-close');
 
         if (btnModalAccept) btnModalAccept.addEventListener('click', acceptAll);
         if (btnModalReject) btnModalReject.addEventListener('click', rejectAll);
-        if (btnModalSave)   btnModalSave.addEventListener('click', savePreferences);
-        if (btnModalClose)  btnModalClose.addEventListener('click', hideModal);
+        if (btnModalSave) btnModalSave.addEventListener('click', savePreferences);
+        if (btnModalClose) btnModalClose.addEventListener('click', hideModal);
 
         ['statistics', 'preferences', 'marketing'].forEach(function (cat) {
             var toggle = document.getElementById('cookie-toggle-' + cat);
             if (toggle) {
                 toggle.addEventListener('click', function () {
-                    this.classList.toggle('cookie-toggle--on');
+                    var next = !this.classList.contains('cookie-toggle--on');
+                    setToggle(this.id, next);
+                });
+                toggle.addEventListener('keydown', function (event) {
+                    if (event.key === ' ' || event.key === 'Enter') {
+                        event.preventDefault();
+                        var next = !this.classList.contains('cookie-toggle--on');
+                        setToggle(this.id, next);
+                    }
                 });
             }
         });
@@ -346,6 +414,7 @@
                 saveConsent(consent);
             }
         } else {
+            revokeStatisticsCookies();
             showBanner();
         }
     }
@@ -355,5 +424,4 @@
     } else {
         init();
     }
-
 })();
