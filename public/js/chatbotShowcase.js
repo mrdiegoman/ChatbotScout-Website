@@ -589,6 +589,8 @@
                 // Sync count po Apply / sort / page zmene
                 if (filterResultsCount) {
                     const t = data.total;
+                    filterResultsCount.classList.remove('is-loading');
+                    filterResultsCount.setAttribute('aria-busy', 'false');
                     filterResultsCount.textContent = `Found ${t} chatbot${t !== 1 ? 's' : ''}`;
                 }
 

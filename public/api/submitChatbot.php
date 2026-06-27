@@ -99,12 +99,12 @@ try {
         INSERT INTO chatbots (
             id, owner_user_id, name, website_url,
             status, submitted_at, access_note,
-            starting_price, pricing_model, pricing_currency,
+            starting_price, starting_price_eur, pricing_model, pricing_currency,
             has_free_trial, has_affiliate_program
         ) VALUES (
             :id, :owner_user_id, :name, :website_url,
             'pending', NOW(), :access_note,
-            0.00, 'free', 'USD',
+            0.00, 0.00, 'free', 'USD',
             0, 0
         )
     ");

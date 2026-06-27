@@ -812,8 +812,20 @@ a, button {
     flex-direction: row;
     background-color: var(--color-gray-fafafa);
     padding: 0 1rem 0 0.5rem;
+    border: 0.1rem solid var(--color-white-a18);
+    border-radius: 0.8rem;
+    box-shadow: 0 0.8rem 2rem var(--color-black-a20);
     text-decoration: none;
     flex: 0 0 auto;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.footer-main-content-first-logo:hover,
+.footer-main-content-first-logo:focus-visible {
+    box-shadow: 0 1rem 2.4rem var(--color-black-a30);
+    transform: translateY(-1px);
+    text-decoration: none;
+    outline: none;
 }
  
 .footer-main-content-first-logo img {
@@ -1457,9 +1469,17 @@ a, button {
 
 @media (max-width: 900px) {
     .footer-main-content {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(12rem, 0.7fr) minmax(14rem, 0.8fr);
         column-gap: clamp(2rem, 5vw, 5rem);
         row-gap: 0;
-        justify-content: space-between;
+        justify-content: start;
+        padding-left: clamp(2rem, 4vw, 3rem);
+        padding-right: clamp(2rem, 4vw, 3rem);
+    }
+
+    .footer-main-content-third {
+        justify-self: start;
     }
 }
 
@@ -1482,8 +1502,10 @@ a, button {
 
    /* Footer accordion layout */
     .footer-main-content {
+        display: flex;
         flex-direction: column;
         gap: 0;
+        padding: 0 2rem 1rem 2rem;
     }
 
     .footer-main-content-first-logo {

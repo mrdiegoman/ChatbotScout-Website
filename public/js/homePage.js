@@ -644,22 +644,6 @@ document.addEventListener('DOMContentLoaded', function () {
         updateButtons();
     })();
 
-
-    /* ════════════════════════════════════════════════
-       LIKE / HEART TOGGLE
-    ════════════════════════════════════════════════ */
-    document.querySelectorAll('.hp-pop-heart').forEach(heart => {
-        heart.addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            this.classList.toggle('liked');
-            this.innerHTML = this.classList.contains('liked')
-                ? '<i class="fa-solid fa-heart"></i>'
-                : '<i class="fa-regular fa-heart"></i>';
-        });
-    });
-
-
     /* ════════════════════════════════════════════════
        SCROLL ANIMATIONS  (IntersectionObserver)
     ════════════════════════════════════════════════ */

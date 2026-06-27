@@ -368,6 +368,7 @@ function saveSubmissionEditData(PDO $db, string $id, array $input): array {
         throw new InvalidArgumentException('Starting price must be a positive number or zero.');
     }
     $startingPrice = number_format((float)$startingPrice, 2, '.', '');
+    $startingPriceEur = chatbotPriceToEur($db, $startingPrice, $pricingCurrency);
 
     $hasAffiliateProgram = !empty($fields['has_affiliate_program']) && $affiliateLink !== null;
 
@@ -441,6 +442,7 @@ function saveSubmissionEditData(PDO $db, string $id, array $input): array {
                 has_free_trial = :has_free_trial,
                 free_trial_days = :free_trial_days,
                 starting_price = :starting_price,
+                starting_price_eur = :starting_price_eur,
                 pricing_model = :pricing_model,
                 pricing_currency = :pricing_currency,
                 pricing_url = :pricing_url,
@@ -461,6 +463,7 @@ function saveSubmissionEditData(PDO $db, string $id, array $input): array {
             'has_free_trial' => $hasFreeTrial ? 1 : 0,
             'free_trial_days' => $freeTrialDays,
             'starting_price' => $startingPrice,
+            'starting_price_eur' => $startingPriceEur,
             'pricing_model' => $pricingModel,
             'pricing_currency' => $pricingCurrency,
             'pricing_url' => $pricingUrl,
@@ -555,12 +558,12 @@ if ($action === 'create_admin_chatbot') {
             INSERT INTO chatbots (
                 id, owner_user_id, created_by_admin_id, created_source,
                 name, website_url, logo_url, status, admin_notes,
-                starting_price, pricing_model, pricing_currency,
+                starting_price, starting_price_eur, pricing_model, pricing_currency,
                 has_free_trial, has_affiliate_program
             ) VALUES (
                 :id, NULL, :created_by_admin_id, 'admin',
                 :name, :website_url, :logo_url, 'pending', :admin_notes,
-                0.00, 'free', 'USD',
+                0.00, 0.00, 'free', 'USD',
                 0, 0
             )
         ");

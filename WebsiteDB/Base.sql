@@ -202,6 +202,7 @@ CREATE TABLE IF NOT EXISTS `chatbots` (
   `has_free_trial` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Free trial available?, e.g., TRUE, FALSE',
   `free_trial_days` INT NULL COMMENT 'Trial length, e.g., 14, 30, 7',
   `starting_price` DECIMAL(10,2) NOT NULL COMMENT 'Starting price, e.g., 39.00, 99.00, 19.99',
+  `starting_price_eur` DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT 'Starting price normalized to EUR for approximate filtering/sorting',
   `pricing_model` ENUM('free', 'freemium', 'recurring', 'one-time', 'usage-based', 'custom') NOT NULL COMMENT 'Pricing model, e.g., "freemium", "subscription", "usage_based"',
   `pricing_currency` CHAR(3) NOT NULL DEFAULT 'USD' COMMENT 'Currency code, e.g., "USD", "EUR", "GBP"',
   `pricing_url` VARCHAR(500) NULL COMMENT 'Pricing page, e.g., "https://www.intercom.com/pricing", "https://drift.com/plans", "https://tidio.com/pricing"',
@@ -237,6 +238,7 @@ CREATE TABLE IF NOT EXISTS `chatbots` (
   KEY `idx_active_listings` (`status`, `deleted_at`, `created_at`),
   KEY `idx_affiliate_program` (`has_affiliate_program`, `status`),
   KEY `idx_pricing_filter` (`pricing_model`),
+  KEY `idx_starting_price_eur` (`status`, `deleted_at`, `starting_price_eur`),
   FULLTEXT KEY `idx_search` (`name`, `description`),
 
   CONSTRAINT `fk_chatbots_owner` FOREIGN KEY (`owner_user_id`)
@@ -483,6 +485,22 @@ CREATE TABLE IF NOT EXISTS `currencies` (
 
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_code` (`code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS `currency_rates` (
+  `currency_code` CHAR(3) NOT NULL COMMENT 'ISO 4217 code, e.g. EUR, USD, GBP',
+  `base_currency` CHAR(3) NOT NULL DEFAULT 'EUR' COMMENT 'Normalization base currency',
+  `rate_to_eur` DECIMAL(18,8) NOT NULL COMMENT 'EUR value of one unit of currency_code',
+  `source_rate` DECIMAL(18,8) NULL COMMENT 'Source quote, e.g. ECB units per EUR',
+  `rate_date` DATE NULL COMMENT 'Date published by the source feed',
+  `source` VARCHAR(100) NOT NULL DEFAULT 'fallback' COMMENT 'Exchange-rate source',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`currency_code`),
+  KEY `idx_rate_date` (`rate_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
@@ -845,6 +863,13 @@ INSERT IGNORE INTO `currencies` (`id`, `code`, `name`, `symbol`) VALUES
 (UUID(), 'USD', 'US Dollar', '$'),
 (UUID(), 'EUR', 'Euro', '€'),
 (UUID(), 'GBP', 'British Pound', '£');
+
+INSERT INTO `currency_rates` (`currency_code`, `base_currency`, `rate_to_eur`, `source_rate`, `rate_date`, `source`) VALUES
+('EUR', 'EUR', 1.00000000, 1.00000000, CURDATE(), 'fallback'),
+('USD', 'EUR', 1.00000000, NULL, CURDATE(), 'fallback'),
+('GBP', 'EUR', 1.00000000, NULL, CURDATE(), 'fallback')
+ON DUPLICATE KEY UPDATE
+  `base_currency` = VALUES(`base_currency`);
 
 -- Insert billing periods
 INSERT IGNORE INTO `billing_periods` (`id`, `type`, `duration_days`) VALUES

@@ -246,8 +246,8 @@ require '../inc/header.php';
             </div>
             <div class="chatbot-filters-modal-body-row-group">
                 <span class="chatbot-filters-modal-body-row-group-label">
-                    <p>Price in</p>
-                    <p class="chatbot-filters-modal-body-row-group-label-currency">$</p>
+                    <p>Price, approx. in&nbsp;</p>
+                    <p class="chatbot-filters-modal-body-row-group-label-currency">€</p>
                 </span>
                 <div class="chatbot-filters-modal-body-row-group-values">
                     <input type="number" min="0.00" max="10000.00" step="0.01" id="priceInputStart" placeholder="0.00">
@@ -264,7 +264,8 @@ require '../inc/header.php';
                     </svg>
                     <div class="chatbot-filters-modal-body-row-group-label-tooltip">
                         <p>Select one or more currencies. Results will include chatbots
-                        that use <strong>at least one</strong> of the selected currencies.</p>
+                        that use <strong>at least one</strong> of the selected currencies
+                        → the more you pick, the broader the results.</p>
                     </div>
                 </span>
                 <div class="chatbot-filters-modal-body-features-container" id="currencyContainer">
@@ -278,7 +279,7 @@ require '../inc/header.php';
                         <path d="M320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM288 224C288 206.3 302.3 192 320 192C337.7 192 352 206.3 352 224C352 241.7 337.7 256 320 256C302.3 256 288 241.7 288 224zM280 288L328 288C341.3 288 352 298.7 352 312L352 400L360 400C373.3 400 384 410.7 384 424C384 437.3 373.3 448 360 448L280 448C266.7 448 256 437.3 256 424C256 410.7 266.7 400 280 400L304 400L304 336L280 336C266.7 336 256 325.3 256 312C256 298.7 266.7 288 280 288z"/>
                     </svg>
                     <div class="chatbot-filters-modal-body-row-group-label-tooltip">
-                        <p>The number shows how many chatbots remain if that feature is selected, 
+                        <p>The number shows how many chatbots remain with that feature if it is selected,
                             together with the previously selected filters.</p>
                     </div>
                 </span>
@@ -327,7 +328,8 @@ require '../inc/header.php';
                     </svg>
                     <div class="chatbot-filters-modal-body-row-group-label-tooltip">
                         <p>Select one or more pricing models. Results will include chatbots
-                           that match <strong>at least one</strong> of the selected models.</p>
+                           that match <strong>at least one</strong> of the selected models
+                            → the more you pick, the broader the results.</p>
                     </div>
                 </span>
                 <div class="chatbot-filters-modal-body-features-container" id="pricingContainer">

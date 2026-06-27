@@ -71,6 +71,12 @@ $pricingModels = array_values(array_filter(
     fn($m) => in_array($m, ['free','freemium','recurring','one-time','usage-based','custom'], true)
 ));
 $pricingCount = count($pricingModels);
+$allowedCurrencyCodes = ['USD', 'EUR', 'GBP'];
+$currencyCodes = array_values(array_filter(
+    (array)($_GET['currency'] ?? []),
+    fn($c) => in_array($c, $allowedCurrencyCodes, true)
+));
+$currencyCount = count($currencyCodes);
 $hasFreeTrial = filter_var($_GET['hasFreeTrial'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
 $search = trim($_GET['search'] ?? '');
@@ -97,7 +103,7 @@ $orderBy = match($sort) {
     'rating'            => "c.rating_average $dir, c.rating_count $dir",
     'number-of-ratings' => "c.rating_count $dir, c.rating_average $dir",
     'date-added'        => "fav.created_at $dir",
-    'price'             => "ISNULL(c.starting_price) ASC, c.starting_price $dir",
+    'price'             => "ISNULL(c.starting_price_eur) ASC, c.starting_price_eur $dir, c.starting_price $dir",
     default             => "fav.created_at $dir",
 };
 $orderBy = $orderBy . ", c.created_at DESC";
@@ -115,8 +121,8 @@ if ($votesStart  !== null) { $where[] = 'c.rating_count >= :votesStart';    $par
 if ($votesEnd    !== null) { $where[] = 'c.rating_count <= :votesEnd';      $params[':votesEnd']    = $votesEnd;    }
 if ($favoritesStart !== null) { $where[] = 'c.favorite_count >= :favoritesStart'; $params[':favoritesStart'] = $favoritesStart; }
 if ($favoritesEnd   !== null) { $where[] = 'c.favorite_count <= :favoritesEnd';   $params[':favoritesEnd']   = $favoritesEnd;   }
-if ($priceStart  !== null) { $where[] = 'c.starting_price >= :priceStart';  $params[':priceStart']  = $priceStart;  }
-if ($priceEnd    !== null) { $where[] = 'c.starting_price <= :priceEnd';    $params[':priceEnd']    = $priceEnd;    }
+if ($priceStart  !== null) { $where[] = 'c.starting_price_eur >= :priceStart';  $params[':priceStart']  = $priceStart;  }
+if ($priceEnd    !== null) { $where[] = 'c.starting_price_eur <= :priceEnd';    $params[':priceEnd']    = $priceEnd;    }
 
 if ($featureCount > 0) {
     $fp = implode(',', array_map(fn($i) => ":fid{$i}", range(0, $featureCount - 1)));
@@ -147,6 +153,12 @@ if ($pricingCount > 0) {
     $pp = implode(',', array_map(fn($i) => ":pm{$i}", range(0, $pricingCount - 1)));
     $where[] = "c.pricing_model IN ({$pp})";
     foreach ($pricingModels as $i => $m) { $params[":pm{$i}"] = $m; }
+}
+
+if ($currencyCount > 0) {
+    $cp = implode(',', array_map(fn($i) => ":cur{$i}", range(0, $currencyCount - 1)));
+    $where[] = "c.pricing_currency IN ({$cp})";
+    foreach ($currencyCodes as $i => $c) { $params[":cur{$i}"] = $c; }
 }
 
 if ($hasFreeTrial) {

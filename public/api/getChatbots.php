@@ -97,7 +97,7 @@ $orderBy = match($sort) {
     'alphabetical'      => "c.name " . ($direction === 'asc' ? 'DESC' : 'ASC'),
     'rating'            => "c.rating_average $dir, c.rating_count $dir",
     'number-of-ratings' => "c.rating_count $dir, c.rating_average $dir",
-    'price'             => "ISNULL(c.starting_price) ASC, c.starting_price $dir",
+    'price'             => "ISNULL(c.starting_price_eur) ASC, c.starting_price_eur $dir, c.starting_price $dir",
     default             => "c.click_count $dir",
 };
 $orderBy = "{$activePromotionExistsSql} DESC, " . $orderBy . ", c.created_at DESC";
@@ -115,8 +115,8 @@ if ($votesStart  !== null) { $where[] = 'c.rating_count >= :votesStart';    $par
 if ($votesEnd    !== null) { $where[] = 'c.rating_count <= :votesEnd';      $params[':votesEnd']    = $votesEnd;    }
 if ($favoritesStart !== null) { $where[] = 'c.favorite_count >= :favoritesStart'; $params[':favoritesStart'] = $favoritesStart; }
 if ($favoritesEnd   !== null) { $where[] = 'c.favorite_count <= :favoritesEnd';   $params[':favoritesEnd']   = $favoritesEnd;   }
-if ($priceStart  !== null) { $where[] = 'c.starting_price >= :priceStart';  $params[':priceStart']  = $priceStart;  }
-if ($priceEnd    !== null) { $where[] = 'c.starting_price <= :priceEnd';    $params[':priceEnd']    = $priceEnd;    }
+if ($priceStart  !== null) { $where[] = 'c.starting_price_eur >= :priceStart';  $params[':priceStart']  = $priceStart;  }
+if ($priceEnd    !== null) { $where[] = 'c.starting_price_eur <= :priceEnd';    $params[':priceEnd']    = $priceEnd;    }
 
 // Chatbot musí mať VŠETKY vybrané features (relational division)
 if ($featureCount > 0) {

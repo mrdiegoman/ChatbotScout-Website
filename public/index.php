@@ -16,7 +16,9 @@ require '../inc/header.php';
         <!-- Left: text -->
         <div class="hp-hero-text">
             <h1 class="hp-hero-title">
-                Find the Best <span>AI Chatbot</span> for Your Website or App
+                <span class="hp-hero-title-main">Find the Best</span>
+                <span class="hp-hero-title-accent">AI Chatbot</span>
+                <span class="hp-hero-title-tail">for Your Website or App</span>
             </h1>
             <p class="hp-hero-subtitle">
                 Explore AI chatbots for your website, WhatsApp, Telegram, Instagram, and more.
@@ -111,7 +113,7 @@ require '../inc/header.php';
                         <div class="hp-msg hp-msg-user">I want to return shoes that don't fit.</div>
                         <div class="hp-msg hp-msg-bot">Sure! I'll walk you through the return process step by step.</div>
                         <div class="hp-msg hp-msg-user">Yes please, that would help!</div>
-                        <div class="hp-msg hp-msg-bot">Fill out the short form here: <a href="chatbots" style="color:#0057FF">returns-form</a></div>
+                        <div class="hp-msg hp-msg-bot">Fill out the short form here: <a class="hp-msg-link" href="chatbots">returns-form</a></div>
                     </div>
                     <div class="hp-card-input">
                         <span>Type your message...</span>
@@ -205,7 +207,7 @@ require '../inc/header.php';
 ═══════════════════════════════════════ -->
 <section class="hp-popular-section">
     <div class="hp-section-inner">
-        <div class="hp-section-top hp-fade-up">
+        <div class="hp-section-top">
             <h2 class="hp-section-title">Most Popular</h2>
             <a href="chatbots" class="hp-link-green">
                 See More <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
@@ -214,7 +216,7 @@ require '../inc/header.php';
             </a>
         </div>
 
-        <div class="hp-pop-carousel hp-fade-up">
+        <div class="hp-pop-carousel">
             <button class="hp-pop-arrow hp-pop-prev" id="hp-pop-prev" aria-label="Previous">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
@@ -305,15 +307,13 @@ require '../inc/header.php';
                                         <p>✦ <?= htmlspecialchars($tag) ?> ✦</p>
                                     </span>
                                 <?php endforeach; ?>
-                            <?php else: ?>
-                                <span class="hp-tag" style="visibility:hidden;"><p>placeholder</p></span>
                             <?php endif; ?>
                         </div>
                         <div class="hp-pop-name">
                             <?= htmlspecialchars($bot['name']) ?>
-                            <button class="hp-pop-heart" title="Add to favourites">
+                            <span class="hp-pop-heart" aria-hidden="true">
                                 <i class="fa-regular fa-heart"></i>
-                            </button>
+                            </span>
                         </div>
                         <div class="hp-pop-rating">
                             <div class="hp-stars">
@@ -327,7 +327,6 @@ require '../inc/header.php';
                                     src="<?= htmlspecialchars($logoUrl, ENT_QUOTES, 'UTF-8') ?>"
                                     alt="<?= htmlspecialchars($bot['name'], ENT_QUOTES, 'UTF-8') ?>"
                                     onerror="this.onerror=null;this.src='img/ChatbotScout_logo.png';"
-                                    style="width:100%;height:100%;object-fit:contain;border-radius:10px;"
                                 >
                             <?php else: ?>
                                 <i class="fa-solid fa-robot"></i>
@@ -335,6 +334,12 @@ require '../inc/header.php';
                         </div>
                     </a>
                     <?php endforeach; ?>
+
+                    <?php if (empty($popularChatbots)): ?>
+                        <div class="hp-pop-empty">
+                            Popular chatbot listings will appear here soon.
+                        </div>
+                    <?php endif; ?>
 
                 </div><!-- /hp-pop-track -->
             </div><!-- /hp-pop-track-wrap -->
@@ -355,19 +360,11 @@ require '../inc/header.php';
 <section class="hp-features-section">
     <div class="hp-features-inner">
 
-        <!-- Section label -->
-        <!-- <div class="hp-chat-label hp-fade-up">
-            <span>✦ Why ChatbotScout?</span>
-        </div> -->
-
         <!-- Messages -->
         <div class="hp-chat-messages">
 
             <!-- User message 1 -->
             <div class="hp-chat-row hp-chat-row-user hp-chat-animate">
-                <!-- <div class="hp-chat-avatar-user">
-                    <i class="fa-solid fa-user"></i>
-                </div> -->
                 <div class="hp-chat-msg hp-chat-msg-user">
                     How do I find the right AI chatbot widget for my website?
                 </div>
@@ -397,9 +394,6 @@ require '../inc/header.php';
 
             <!-- User message 2 -->
             <div class="hp-chat-row hp-chat-row-user hp-chat-animate">
-                 <!-- <div class="hp-chat-avatar-user">
-                    <i class="fa-solid fa-user"></i>
-                </div> -->
                 <div class="hp-chat-msg hp-chat-msg-user">
                     Can I find chatbots for WhatsApp, Telegram, or Instagram too?
                 </div>
@@ -489,10 +483,10 @@ require '../inc/header.php';
 
         <!-- Content -->
         <div class="hp-filter-content hp-fade-up">
-            <div class="hp-filter-badge">
+            <!-- <div class="hp-filter-badge">
                 Smart Filtering
-            </div>
-            <h2>Filter Chatbots by actual up-to-date <br> Features, Pricing, Integrations and more</h2>
+            </div> -->
+            <h2>Filter Chatbots by up-to-date <br> Features, Pricing, Integrations and more</h2>
             <div class="hp-filter-features">
                 <div class="hp-filter-feature">
                     <div class="hp-filter-feature-icon">
@@ -502,7 +496,7 @@ require '../inc/header.php';
                     </div>
                     <div class="hp-filter-feature-text">
                         <strong>Pricing that fits your budget</strong>
-                        <span>Filter by free, freemium, recurring, or usage-based plans - find what works for your business in any industry.</span>
+                        <span>Filter by free, freemium, recurring, or usage-based plans.</span>
                     </div>
                 </div>
                 <div class="hp-filter-feature">
@@ -513,7 +507,7 @@ require '../inc/header.php';
                     </div>
                     <div class="hp-filter-feature-text">
                         <strong>Filter by specific features</strong>
-                        <span>Live agent support, multilingual, AI agent, dashboard, file uploads and more - pick exactly what you need.</span>
+                        <span>Live agent support, multilingual, AI agent, dashboard, file uploads and more.</span>
                     </div>
                 </div>
                 <div class="hp-filter-feature">
@@ -561,7 +555,7 @@ require '../inc/header.php';
             </p>
             <p>
                 Share your experience by rating the AI chatbots you use and help thousands
-                of others discover reliable, high-performing options.
+                of others discover reliable, high-performing products.
             </p>
             <a href="chatbots" class="hp-btn hp-btn-blue">
                 Start Discovering <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
@@ -578,20 +572,6 @@ require '../inc/header.php';
 ═══════════════════════════════════════ -->
 <section class="hp-seo-section">
     <div class="hp-section-inner">
-        <!-- <h2 class="hp-section-title">Compare AI Chatbots by Use Case, Features, and Platform</h2>
-        <p>
-            ChatbotScout helps website owners compare AI chatbot software for ecommerce, lead generation, customer
-            support, and appointment booking. Use one place to evaluate pricing models, integrations, supported
-            platforms, and real user ratings.
-        </p>
-        <p>
-            Start with popular categories:
-            <a href="chatbots?platform=WordPress">AI chatbots for WordPress</a>,
-            <a href="chatbots?platform=Shopify">AI chatbots for Shopify</a>,
-            <a href="chatbots?pricing=Free">free AI chatbots</a>, and
-            <a href="chatbots?feature=Live+agent+support">chatbots with live agent support</a>.
-        </p> -->
-
         <div class="hp-faq">
             <h3>Frequently Asked Questions</h3>
 
@@ -614,15 +594,15 @@ require '../inc/header.php';
             </article>
 
             <article class="hp-faq-item">
-                <h4>Can I compare real user ratings before choosing?</h4>
+                <h4>Can I see real user ratings before choosing?</h4>
                 <p><span>Yes. Listings include rating data and review context so you can evaluate reliability before you
                     decide.</span></p>
             </article>
 
             <article class="hp-faq-item">
-                <h4>Can I find AI chatbots for WhatsApp, Telegram, or Instagram?</h4>
+                <h4>Can I find AI chatbots for an app like WhatsApp, Telegram, or Instagram?</h4>
                 <p><span>Yes. ChatbotScout lists chatbots for messaging apps including WhatsApp, Telegram, Instagram,
-                    Facebook Messenger, and more — not just website widgets. Filter by platform to find the right bot
+                    Facebook Messenger, and more. Filter by platform to find the right assistant
                     for your app.</span></p>
             </article>
         </div>
@@ -645,7 +625,7 @@ foreach ($popularChatbots as $index => $bot) {
         '@type' => 'ListItem',
         'position' => $index + 1,
         'name' => $bot['name'],
-        'url' => $baseUrl . '/chatbotShowcase.php?search=' . urlencode($bot['name']),
+        'url' => $baseUrl . '/chatbots?search=' . urlencode($bot['name']),
     ];
 }
 
@@ -699,6 +679,14 @@ $faqSchema = [
             'acceptedAnswer' => [
                 '@type' => 'Answer',
                 'text' => 'Yes. Listings include rating data and review context so you can evaluate reliability before you decide.',
+            ],
+        ],
+        [
+            '@type' => 'Question',
+            'name' => 'Can I find AI chatbots for WhatsApp, Telegram, or Instagram?',
+            'acceptedAnswer' => [
+                '@type' => 'Answer',
+                'text' => 'Yes. ChatbotScout lists chatbots for messaging apps including WhatsApp, Telegram, Instagram, Facebook Messenger, and more, not just website widgets. Filter by platform to find the right bot for your app.',
             ],
         ],
     ],

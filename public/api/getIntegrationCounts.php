@@ -87,8 +87,8 @@ try {
     if ($votesEnd       !== null) { $where[] = 'c.rating_count <= :votesEnd';        $params[':votesEnd']       = $votesEnd;       }
     if ($favoritesStart !== null) { $where[] = 'c.favorite_count >= :favoritesStart';$params[':favoritesStart'] = $favoritesStart; }
     if ($favoritesEnd   !== null) { $where[] = 'c.favorite_count <= :favoritesEnd';  $params[':favoritesEnd']   = $favoritesEnd;   }
-    if ($priceStart     !== null) { $where[] = 'c.starting_price >= :priceStart';    $params[':priceStart']     = $priceStart;     }
-    if ($priceEnd       !== null) { $where[] = 'c.starting_price <= :priceEnd';      $params[':priceEnd']       = $priceEnd;       }
+    if ($priceStart     !== null) { $where[] = 'c.starting_price_eur >= :priceStart';    $params[':priceStart']     = $priceStart;     }
+    if ($priceEnd       !== null) { $where[] = 'c.starting_price_eur <= :priceEnd';      $params[':priceEnd']       = $priceEnd;       }
     if ($hasFreeTrial) { $where[] = 'c.has_free_trial = 1'; }
 
     // Features — AND logika

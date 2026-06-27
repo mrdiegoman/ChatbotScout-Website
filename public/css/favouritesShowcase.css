@@ -1489,13 +1489,17 @@ body.page-favouritesShowcase .footer-main-bottom {
 .favourites-filters-modal-body-features-single{
     display: flex;
     align-items: center;
+    flex: 0 0 auto;
     border: 0.1rem solid var(--color-gray-232127);
     border-radius: 2rem;
     color: var(--color-gray-232127);
     font-size: 1.2rem;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
     background-color: none;
     padding: 0.5rem 0.5rem;
     cursor: pointer;
+    white-space: nowrap;
     transition: background-color 0.1s ease, color 0.1s ease;
     user-select: none;
 }
@@ -1670,10 +1674,34 @@ body.page-favouritesShowcase .footer-main-bottom {
 }
 
 .favourites-filters-modal-results-count {
+    display: inline-flex;
+    flex: 1 1 14rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    min-width: 0;
+    min-height: 2rem;
     font-size: 1.4rem;
     font-family: outfit-medium;
     color: var(--color-gray-232127);
+    text-align: center;
     white-space: nowrap;
+    transition: color 0.15s ease;
+}
+
+.favourites-filters-modal-results-count.is-loading {
+    color: var(--color-blue-4f2ef7);
+}
+
+.favourites-filters-modal-results-count.is-loading::before {
+    content: '';
+    width: 1.35rem;
+    height: 1.35rem;
+    flex: 0 0 1.35rem;
+    border: 0.18rem solid var(--color-blue-4f2ef7-a25);
+    border-top-color: var(--color-blue-4f2ef7);
+    border-radius: 50%;
+    animation: fav-spin 0.75s linear infinite;
 }
 
 /* ---- Rating trigger cursor ---- */

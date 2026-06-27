@@ -216,8 +216,8 @@ require '../inc/header.php';
             </div>
             <div class="favourites-filters-modal-body-row-group">
                 <span class="favourites-filters-modal-body-row-group-label">
-                    <p>Price in</p>
-                    <p class="favourites-filters-modal-body-row-group-label-currency">$</p>
+                    <p>Price, approx. in</p>
+                    <p class="favourites-filters-modal-body-row-group-label-currency">€</p>
                 </span>
                 <div class="favourites-filters-modal-body-row-group-values">
                     <input type="number" min="0.00" max="10000.00" step="0.01" id="priceInputStart" placeholder="0.00">

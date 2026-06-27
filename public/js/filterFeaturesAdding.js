@@ -143,7 +143,50 @@
     let resultsRequestVersion = 0;
 
     function clearResultsCount() {
-        if (filterResultsCount) filterResultsCount.textContent = '';
+        if (!filterResultsCount) return;
+        filterResultsCount.classList.remove('is-loading');
+        filterResultsCount.setAttribute('aria-busy', 'false');
+        filterResultsCount.textContent = '';
+    }
+
+    function setResultsCountLoading() {
+        if (!filterResultsCount) return;
+        filterResultsCount.classList.add('is-loading');
+        filterResultsCount.setAttribute('aria-live', 'polite');
+        filterResultsCount.setAttribute('aria-busy', 'true');
+        filterResultsCount.textContent = 'Searching...';
+    }
+
+    function setResultsCountFound(total) {
+        if (!filterResultsCount) return;
+        filterResultsCount.classList.remove('is-loading');
+        filterResultsCount.setAttribute('aria-live', 'polite');
+        filterResultsCount.setAttribute('aria-busy', 'false');
+        filterResultsCount.textContent = `Found ${total} chatbot${total !== 1 ? 's' : ''}`;
+    }
+
+    function setStableChipText(span, text) {
+        const currentWidth = span.getBoundingClientRect().width;
+        const lockedWidth = parseFloat(span.dataset.stableWidth || '0');
+
+        if (currentWidth > 0) {
+            const stableWidth = Math.ceil(Math.max(currentWidth, lockedWidth));
+            span.dataset.stableWidth = String(stableWidth);
+            span.style.minWidth = `${stableWidth}px`;
+        }
+
+        span.textContent = text;
+
+        requestAnimationFrame(() => {
+            const nextWidth = span.getBoundingClientRect().width;
+            const nextLockedWidth = parseFloat(span.dataset.stableWidth || '0');
+
+            if (nextWidth > nextLockedWidth) {
+                const stableWidth = Math.ceil(nextWidth);
+                span.dataset.stableWidth = String(stableWidth);
+                span.style.minWidth = `${stableWidth}px`;
+            }
+        });
     }
 
     function fetchAndUpdateCounts() {
@@ -157,7 +200,11 @@
         .then(res => res.json())
         .then(data => {
             // Staršia odpoveď nesmie prepísať počet po zmene filtrov.
-            if (!data.success || requestVersion !== resultsRequestVersion) return;
+            if (requestVersion !== resultsRequestVersion) return;
+            if (!data.success) {
+                clearResultsCount();
+                return;
+            }
 
             // Aktualizuj počty pri feature tagoch
             const counts = data.counts;
@@ -165,7 +212,7 @@
                 const fid   = span.dataset.featureId;
                 const name  = span.dataset.featureName;
                 const count = counts[fid] ?? 0;
-                span.textContent = `${name} (${count})`;
+                setStableChipText(span, `${name} (${count})`);
                 // span.style.display = count === 0 && !span.classList.contains('active') ? 'none' : '';
             });
 
@@ -176,17 +223,20 @@
 
             // Live aktualizácia počtu výsledkov vedľa Clear all (iba na favouritesShowcase)
             if (filterResultsCount && data.total !== undefined) {
-                const t = data.total;
-                filterResultsCount.textContent = `Found ${t} chatbot${t !== 1 ? 's' : ''}`;
+                setResultsCountFound(data.total);
+            } else {
+                clearResultsCount();
             }
         })
-        .catch(() => {}); // counts sú non-critical, ticho ignorujeme
+        .catch(() => {
+            if (requestVersion === resultsRequestVersion) clearResultsCount();
+        }); // counts sú non-critical, ticho ignorujeme
     }
 
     function scheduleFetch() {
         clearTimeout(debounceTimer);
         resultsRequestVersion++;
-        clearResultsCount();
+        setResultsCountLoading();
         debounceTimer = setTimeout(fetchAndUpdateCounts, 350);
     }
 

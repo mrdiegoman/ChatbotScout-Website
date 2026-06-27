@@ -33,6 +33,10 @@
     --hp-shadow-lg:   0 20px 60px var(--color-blue-0057ff-a18);
 }
 
+body.page-index {
+    overflow-x: hidden;
+}
+
 /* ============================================================
    HERO
    ============================================================ */
@@ -48,12 +52,23 @@
 .hp-hero::before {
     content: '';
     position: absolute;
-    top: -80px;
-    right: -80px;
-    width: 500px;
-    height: 500px;
-    border-radius: 50%;
-    background: radial-gradient(circle, var(--color-blue-0057ff-a25) 0%, var(--color-transparent) 70%);
+    inset: 0;
+    background:
+        linear-gradient(110deg, var(--color-transparent) 0%, var(--color-cyan-14b8a6-a15) 54%, var(--color-transparent) 100%),
+        repeating-linear-gradient(118deg, var(--color-white-a08) 0 0.1rem, var(--color-transparent) 0.1rem 8rem);
+    opacity: 0.48;
+    pointer-events: none;
+}
+
+.hp-hero::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 0.2rem;
+    background: linear-gradient(90deg, var(--color-transparent), var(--color-cyan-5eead4), var(--color-green-34d399), var(--color-transparent));
+    opacity: 0.72;
     pointer-events: none;
 }
 
@@ -65,7 +80,7 @@
     height: 180px;
     border-radius: 30px;
     background: linear-gradient(135deg, var(--color-orange-ff6b35), var(--color-red-f43f5e));
-    opacity: .18;
+    opacity: .12;
     transform: rotate(25deg);
     transform-origin: 52% 48%;
     animation: hp-hero-shape-drift-1 22s ease-in-out infinite;
@@ -80,7 +95,7 @@
     height: 60px;
     border-radius: 12px;
     background: var(--color-green-00c853);
-    opacity: .25;
+    opacity: .18;
     transform: rotate(15deg);
     transform-origin: 45% 55%;
     animation: hp-hero-shape-drift-2 17s ease-in-out -5s infinite;
@@ -95,7 +110,7 @@
     height: 90px;
     border-radius: 20px;
     background: var(--color-indigo-7c3aed);
-    opacity: .2;
+    opacity: .14;
     transform: rotate(-20deg);
     transform-origin: 58% 42%;
     animation: hp-hero-shape-drift-3 24s ease-in-out -9s infinite;
@@ -142,11 +157,17 @@
     margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 13rem;
+    gap: clamp(5.6rem, 8vw, 10rem);
     align-items: center;
     width: 100%;
     position: relative;
     z-index: 1;
+}
+
+.hp-hero-inner,
+.hp-hero-text,
+.hp-carousel-wrap {
+    min-width: 0;
 }
 
 /* ── Hero Text ─────────────────────────────────────────────── */
@@ -177,17 +198,25 @@
     line-height: 1.12;
     margin: 3rem 0 1.8rem;
     color: var(--color-white);
+    max-width: 11.5em;
+    text-wrap: balance;
 }
 
-.hp-hero-title span {
+.hp-hero-title-main,
+.hp-hero-title-accent,
+.hp-hero-title-tail {
+    display: inline;
+}
+
+.hp-hero-title-accent {
     color: var(--color-blue-2196f3);
 }
 
 .hp-hero-subtitle {
     font-size: 1.5rem;
     color: var(--color-blue-a0b4d6);
-    line-height: 2rem;
-    max-width: 460px;
+    line-height: 1.65;
+    max-width: 50rem;
     margin-bottom: 3.2rem;
 }
 
@@ -430,6 +459,19 @@
     border-bottom-right-radius: 4px;
 }
 
+.hp-msg-link {
+    color: var(--color-blue-0057ff);
+    font-family: Outfit-SemiBold, Outfit, sans-serif;
+    text-decoration: none;
+}
+
+.hp-msg-link:hover,
+.hp-msg-link:focus-visible {
+    color: var(--color-blue-0041cc);
+    text-decoration: underline;
+    outline: none;
+}
+
 .hp-card-input {
     padding: 1rem 1.4rem;
     display: flex;
@@ -535,8 +577,9 @@
    MOST POPULAR
    ============================================================ */
 .hp-popular-section {
-    padding: 6rem clamp(2.4rem, 5vw, 8rem);
-    background: var(--color-white);
+    padding: 5.6rem clamp(2.4rem, 5vw, 8rem) 6.8rem;
+    background:
+        linear-gradient(180deg, var(--color-white) 0%, var(--color-gray-f8fafc) 100%);
 }
 
 .hp-section-inner {
@@ -553,9 +596,10 @@
 
 .hp-section-title {
     font-family: outfit-semibold, sans-serif;
-    font-size: 1.88rem;
+    font-size: clamp(2.2rem, 3vw, 2.8rem);
     /* font-weight: 700; */
     color: var(--color-slate-0d1117);
+    line-height: 1.18;
 }
 
 .hp-link-green {
@@ -673,6 +717,7 @@
     gap: 0.5rem;
     margin-bottom: 1rem;
     flex-wrap: wrap;
+    min-height: 2.2rem;
 }
 
 .hp-tag {
@@ -708,16 +753,13 @@
 .hp-pop-heart {
     color: var(--color-gray-e2e8f4);
     font-size: 1.06rem;
-    cursor: pointer;
-    transition: color .2s, transform .2s;
+    transition: color .2s;
     background: none;
     border: none;
     padding: 0;
     flex-shrink: 0;
+    pointer-events: none;
 }
-
-.hp-pop-heart:hover { transform: scale(1.2); }
-.hp-pop-heart.liked { color: var(--color-red-f43f5e); }
 
 .hp-pop-rating {
     display: flex;
@@ -744,9 +786,23 @@
 }
 
 .hp-pop-logo img {
+    width: 100%;
+    height: 100%;
     max-width: 75%;
     max-height: 75%;
     object-fit: contain;
+    border-radius: 10px;
+}
+
+.hp-pop-empty {
+    width: 100%;
+    padding: 3.2rem 2.4rem;
+    border: 1px solid var(--color-gray-e2e8f4);
+    border-radius: var(--hp-radius);
+    background: var(--color-white);
+    color: var(--color-blue-6b7a99);
+    font-size: 1.5rem;
+    text-align: center;
 }
 
 .hp-pop-arrow {
@@ -1029,8 +1085,7 @@
    FILTER SECTION — redesigned
    ============================================================ */
 .hp-filter-section {
-    padding: 10rem clamp(2.4rem, 5vw, 8rem);
-    /* background-image: url('../img/assets/blue-6236762_1920.jpg'); */
+    padding: 8.8rem clamp(2.4rem, 5vw, 8rem);
     background-size: cover;
     background-position: center;
     position: relative;
@@ -1061,7 +1116,7 @@
     margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr 1.5fr;
-    gap: 72px;
+    gap: clamp(4.8rem, 7vw, 7.2rem);
     align-items: center;
     position: relative;
     z-index: 1;
@@ -1078,7 +1133,7 @@
     background: var(--color-white-a08);
     backdrop-filter: blur(12px);
     border: 1px solid var(--color-white-a10);
-    border-radius: 24px;
+    border-radius: var(--hp-radius);
     padding: 3.2rem 2.8rem;
     width: 280px;
     display: flex;
@@ -1199,6 +1254,7 @@
     /* font-weight: 900; */
     line-height: 1.15;
     margin-bottom: 3.2rem;
+    text-wrap: balance;
 }
 
 .hp-filter-features {
@@ -1266,8 +1322,7 @@
     display: inline-flex;
     align-items: center;
     align-self: flex-end;
-    /* justify-content: center; */
-    /* gap: 10px; */
+    justify-content: center;
     background: linear-gradient(135deg, var(--color-green-00c853), var(--color-green-00a344));
     color: var(--color-white);
     padding: 1.5rem 2.8rem;
@@ -1291,7 +1346,7 @@
    DISCOVER / RATE / SAVE
    ============================================================ */
 .hp-discover-section {
-    padding: 8rem clamp(2.4rem, 5vw, 8rem);
+    padding: 7.2rem clamp(2.4rem, 5vw, 8rem);
     background: var(--color-white);
 }
 
@@ -1299,7 +1354,7 @@
     max-width: 1100px;
     margin: 0 auto;
     background: var(--color-gray-f4f7ff);
-    border-radius: 24px;
+    border-radius: var(--hp-radius);
     padding: 5.2rem 6rem;
     display: grid;
     flex-wrap: nowrap;
@@ -1348,6 +1403,7 @@
     line-height: 1.3;
     color: var(--color-slate-0d1117);
     margin-bottom: 1.6rem;
+    text-wrap: balance;
 }
 
 .hp-discover-text h2 span { color: var(--color-blue-0057ff); }
@@ -1356,7 +1412,7 @@
     color: var(--color-blue-6b7a99);
     line-height: 1.75;
     margin-bottom: 1rem;
-    font-size: 1.25rem;
+    font-size: 1.4rem;
 }
 
 .hp-btn-blue {
@@ -1400,7 +1456,7 @@
 }
 
 @media (max-width: 960px) {
-    .hp-hero { padding: 7rem clamp(2.4rem, 6vw, 4rem) 8rem; }
+    .hp-hero { padding: 6.4rem clamp(2.4rem, 6vw, 4rem) 7.2rem; }
     .hp-hero-inner {
         grid-template-columns: 1fr;
         gap: 5.2rem;
@@ -1422,6 +1478,8 @@
     .hp-hero-title {
         font-size: clamp(2.9rem, 7vw, 3.8rem);
         margin-top: 1.6rem;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     .hp-hero-subtitle {
@@ -1442,17 +1500,72 @@
 }
 
 @media (max-width: 600px) {
-    .hp-hero { padding-inline: 2.2rem; }
-    .hp-hero-title { font-size: clamp(2.65rem, 8.5vw, 3.35rem); }
-    .hp-hero-subtitle { font-size: 1.35rem; }
-    .hp-carousel-wrap {
-        height: 43.5rem;
-        align-items: flex-start;
+    .hp-hero {
+        padding: 5.2rem 1.6rem 5.8rem;
     }
-    .hp-carousel-viewport { height: 35.5rem; }
+
+    .hp-hero-inner {
+        gap: 2.8rem;
+        width: 100%;
+        max-width: 38rem;
+    }
+
+    .hp-hero-text {
+        width: 100%;
+        padding-inline: 0;
+    }
+
+    .hp-hero-title {
+        width: 100%;
+        max-width: 31rem;
+        font-size: clamp(2.35rem, 7.6vw, 2.95rem);
+        line-height: 1.16;
+        margin-bottom: 1.5rem;
+    }
+
+    .hp-hero-title-main,
+    .hp-hero-title-accent,
+    .hp-hero-title-tail {
+        display: block;
+    }
+
+    .hp-hero-subtitle {
+        max-width: 30.5rem;
+        font-size: 1.35rem;
+        line-height: 1.62;
+        margin-bottom: 2.6rem;
+    }
+
+    .hp-btn {
+        width: 100%;
+        max-width: 24rem;
+        justify-content: center;
+    }
+
+    .hp-carousel-wrap {
+        width: 100%;
+        max-width: 32rem;
+        height: 42rem;
+        align-items: flex-start;
+        margin-inline: auto;
+    }
+
+    .hp-carousel-viewport {
+        height: 31rem;
+        margin-top: 2.4rem;
+    }
+
+    .hp-chatbot-card {
+        width: min(26rem, calc(100vw - 5rem));
+    }
+
+    .hp-card-body {
+        min-height: 20.5rem;
+    }
+
     .hp-carousel-btn {
         top: auto;
-        bottom: 0.4rem;
+        bottom: 1.2rem;
         transform: none;
         width: 3.8rem;
         height: 3.8rem;
@@ -1482,10 +1595,7 @@
     .hp-bubble { padding: 2rem 2rem; }
     .hp-discover-card { padding: 2.8rem 2rem; }
     .hp-carousel-dots {
-        bottom: 2rem;
-        /* transform: translateX(-50%);
-        display: flex;
-        gap: 6px; */
+        bottom: 2.3rem;
     }
 }
 
@@ -1494,6 +1604,21 @@
     .hp-discover-visual { display: none; }
     .hp-discover-card { grid-template-columns: 1fr; padding: 4.5rem 3.5rem; }
     /* .hp-pop-card { width: 80%; } */
+}
+
+@media (max-width: 380px) {
+    .hp-hero-title {
+        font-size: 2.3rem;
+        max-width: 29rem;
+    }
+
+    .hp-hero-subtitle {
+        font-size: 1.3rem;
+    }
+
+    .hp-chatbot-card {
+        width: min(24.5rem, calc(100vw - 4rem));
+    }
 }
 
 /* ============================================================
