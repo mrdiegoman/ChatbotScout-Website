@@ -7,10 +7,10 @@ require '../inc/header.php';
     <section class="cs-hero" aria-labelledby="about-title">
         <div class="cs-hero-inner">
             <div class="cs-hero-copy">
-                <h1 id="about-title">A clearer way to compare chatbot platforms</h1>
+                <h1 id="about-title">About Us</h1>
                 <p class="cs-hero-lead">
-                    ChatbotScout helps website owners find chatbot tools without spending
-                    hours reading scattered reviews, pricing pages, and unclear feature lists.
+                    ChatbotScout is a comparison website built to help people research 
+                    chatbot tools more clearly, quickly, and confidently.
                 </p>
                 <div class="cs-hero-actions">
                     <a class="cs-button cs-button--green" href="chatbots">Explore chatbots</a>
@@ -23,17 +23,18 @@ require '../inc/header.php';
         <div class="cs-about-overview-band">
             <section class="cs-about-overview" aria-labelledby="about-mission-title">
                 <div class="cs-text-stack">
-                    <h2 id="about-mission-title">Make chatbot research simpler, clearer, and more transparent.</h2>
+                    <h2 id="about-mission-title">Why we created ChatbotScout</h2>
                     <p>
-                        We started this project after realizing how overwhelming it can be to
-                        choose the right chatbot among so many platforms. ChatbotScout brings the
-                        important comparison points into one place.
+                        Choosing the right chatbot platform can be confusing. There are many 
+                        providers, different pricing models, feature lists, integrations, and 
+                        reviews spread across separate websites.
                     </p>
                     <div class="cs-about-detail-copy">
                         <p>
-                            Our website provides up-to-date information about different chatbot
-                            providers so you can understand their features, pricing, and suitability
-                            before committing your time or budget.
+                            We created ChatbotScout to bring the most useful comparison information 
+                            into one place. Our goal is to help website owners, businesses, and 
+                            creators understand which chatbot tools may fit their needs before 
+                            they spend time or money testing them.
                         </p>
                         <p>
                             We focus on the details that usually slow down comparison work like pricing
@@ -43,19 +44,30 @@ require '../inc/header.php';
                             with confidence.
                         </p>
                         <p>
-                            Our aim is to make ChatbotScout a tool that makes chatbot research more efficient,
-                            easy to scan and useful enough to return to when you are comparing new chatbot options.
+                            We focus on practical details such as pricing, supported platforms, features, 
+                            ratings, and suitability for different use cases. Instead of overwhelming 
+                            visitors with every possible technical detail, we try to make the research 
+                            process easier to scan and easier to compare.
                         </p>
                     </div>
                     <details class="cs-about-mobile-details">
                         <summary>How we keep comparisons useful</summary>
                         <p>
-                            We organize pricing, supported platforms, practical features, ratings,
-                            and next steps so you can shortlist chatbot tools faster.
+                            We created ChatbotScout to bring the most useful chatbot comparison information
+                            into one place. Our goal is to help website owners, businesses, and creators
+                            understand which chatbot tools may fit their needs before they spend time or
+                            money testing them.
                         </p>
                         <p>
-                            As the directory grows, we keep the experience easy to scan and transparent
-                            about affiliate links.
+                            We focus on practical details such as pricing, supported platforms, features,
+                            ratings, and suitability for different use cases. Instead of overwhelming
+                            visitors with every possible technical detail, we try to make the research
+                            process easier to scan and easier to compare.
+                        </p>
+                        <p>
+                            Some links on ChatbotScout may be affiliate links. When we use them, we aim
+                            to disclose that clearly and keep the comparison experience useful, honest,
+                            and transparent.
                         </p>
                     </details>
                 </div>
@@ -63,30 +75,31 @@ require '../inc/header.php';
                 <aside class="cs-feature-grid cs-about-values" aria-label="ChatbotScout values">
                     <article class="cs-card cs-list-card">
                         <div>
-                            <h3>Less comparison noise</h3>
+                            <h3>Built for easier research</h3>
                             <p>
-                                Use filters to discover chatbot products that fit your website by
-                                selecting the features and platforms that matter.
+                                We collect important chatbot comparison points so visitors do 
+                                not have to jump between multiple provider websites.
                             </p>
                         </div>
                     </article>
 
                     <article class="cs-card cs-list-card">
                         <div>
-                            <h3>Clearer product context</h3>
+                            <h3>Focused on practical details</h3>
                             <p>
-                                Listings are designed to make pricing, capabilities, and suitability
-                                easier to scan before you visit a provider.
+                                Our listings highlight information such as pricing, features, 
+                                supported platforms, and product fit, so tools are easier to 
+                                compare.
                             </p>
                         </div>
                     </article>
 
                     <article class="cs-card cs-list-card">
                         <div>
-                            <h3>Transparency by default</h3>
+                            <h3>Transparent by design</h3>
                             <p>
-                                Some links on our website are affiliate links. We disclose that clearly
-                                and keep the visitor experience at the center.
+                                Some links on ChatbotScout may be affiliate links. We disclose 
+                                this clearly and keep the visitor experience at the center.
                             </p>
                         </div>
                     </article>
