@@ -24,12 +24,12 @@
 
 :root {
     --ops-ink: var(--color-slate-151a2d);
-    --ops-muted: var(--color-blue-65728a);
-    --ops-line: var(--color-blue-dbe3f1);
+    --ops-muted: var(--color-blue-6b7a99);
+    --ops-line: var(--color-blue-dbeafe);
     --ops-panel: var(--color-white);
-    --ops-page: var(--color-gray-eef4ff);
+    --ops-page: var(--color-gray-eff6ff);
     --ops-blue: var(--color-blue-115dff);
-    --ops-green: var(--color-green-05c753);
+    --ops-green: var(--color-green-00c853);
     --ops-red: var(--color-red-ef233c);
 }
 
@@ -38,9 +38,9 @@ body.ops-access-page {
     margin: 0;
     font-family: 'Outfit', Arial, sans-serif;
     background:
-        radial-gradient(circle at 12% 18%, var(--color-blue-115dff-a13), var(--color-transparent) 24rem),
+        radial-gradient(circle at 12% 18%, var(--color-blue-0057ff-a12), var(--color-transparent) 24rem),
         radial-gradient(circle at 84% 12%, var(--color-green-05c753-a10), var(--color-transparent) 20rem),
-        var(--color-gray-eef4ff);
+        var(--color-gray-eff6ff);
     color: var(--color-slate-151a2d);
 }
 
@@ -54,9 +54,9 @@ body.ops-access-page {
 .ops-access-card {
     width: min(100%, 28rem);
     background: var(--color-white);
-    border: 1px solid var(--color-blue-dbe3f1);
+    border: 1px solid var(--color-blue-dbeafe);
     border-radius: 1.4rem;
-    box-shadow: 0 1.6rem 4rem var(--color-slate-151a2d-a12);
+    box-shadow: 0 1.6rem 4rem var(--color-slate-14122d-a14);
     padding: 2.1rem;
 }
 
@@ -78,7 +78,7 @@ body.ops-access-page {
 }
 
 .ops-access-brand:focus-visible {
-    box-shadow: 0 0 0 0.22rem var(--color-blue-115dff-a16);
+    box-shadow: 0 0 0 0.22rem var(--color-blue-0057ff-a16);
 }
 
 .ops-access-brand img {
@@ -109,7 +109,7 @@ body.ops-access-page {
 
 .ops-access-heading p:last-child {
     margin: 0.85rem 0 0;
-    color: var(--color-blue-65728a);
+    color: var(--color-blue-6b7a99);
     font-size: 1.02rem;
     line-height: 1.55;
 }
@@ -120,7 +120,7 @@ body.ops-access-page {
     border: 1px solid var(--color-red-ef233c-a28);
     border-radius: 0.75rem;
     background: var(--color-red-ef233c-a07);
-    color: var(--color-red-b41227);
+    color: var(--color-red-b91c1c);
     font-weight: 700;
 }
 
@@ -142,7 +142,7 @@ body.ops-access-page {
 .ops-access-field input {
     width: 100%;
     height: 3.4rem;
-    border: 1.5px solid var(--color-blue-dbe3f1);
+    border: 1.5px solid var(--color-blue-dbeafe);
     border-radius: 0.85rem;
     padding: 0 1rem;
     background: var(--color-white);
@@ -155,7 +155,7 @@ body.ops-access-page {
 
 .ops-access-field input:focus {
     border-color: var(--color-blue-115dff);
-    box-shadow: 0 0 0 0.22rem var(--color-blue-115dff-a12);
+    box-shadow: 0 0 0 0.22rem var(--color-blue-0057ff-a12);
 }
 
 .ops-access-submit {
@@ -166,15 +166,15 @@ body.ops-access-page {
     justify-content: center;
     border: 0;
     border-radius: 0.9rem;
-    background: var(--color-green-05c753);
-    color: var(--color-slate-071322);
+    background: var(--color-green-00c853);
+    color: var(--color-slate-111827);
     font: inherit;
     font-size: 1.05rem;
     font-weight: 800;
     text-align: center;
     cursor: pointer;
     transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
-    box-shadow: 0 0.75rem 1.45rem var(--color-green-05c753-a24);
+    box-shadow: 0 0.75rem 1.45rem var(--color-green-00c853-a25);
 }
 
 .ops-access-submit:hover {

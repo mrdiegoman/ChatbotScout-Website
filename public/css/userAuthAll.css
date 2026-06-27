@@ -74,7 +74,7 @@ body {
     justify-content: center;
     gap: 1.2rem;
     font-size: 1.5rem;
-    color: var(--color-gray-3c4043);
+    color: var(--color-gray-333333);
     cursor: pointer;
     transition: background-color 0.2s, box-shadow 0.2s;
     margin-bottom: 1rem;
@@ -210,12 +210,12 @@ body {
 }
 
 .toggle-password:hover {
-    background-color: var(--color-gray-f1f3f4);
+    background-color: var(--color-gray-f3f4f6);
 }
 
 .toggle-password.active {
     color: var(--color-blue-2065f9);
-    background-color: var(--color-blue-e8f0fe);
+    background-color: var(--color-blue-e8f0ff);
 }
 
 .toggle-password svg {
@@ -224,7 +224,7 @@ body {
 }
 
 .password-hint {
-    color: var(--color-gray-666666);
+    color: var(--color-blue-5f6368);
     font-size: 1.2rem;
     line-height: 1.5;
     margin-top: 0.6rem;
@@ -257,7 +257,7 @@ body {
 
 .password-requirements__icon {
     align-items: center;
-    border: 0.1rem solid var(--color-gray-9aa0a6);
+    border: 0.1rem solid var(--color-blue-9ca3af);
     border-radius: 50%;
     display: inline-flex;
     flex: 0 0 1.4rem;
@@ -400,7 +400,7 @@ body {
 }
 
 .submit-btn:hover {
-    background-color: var(--color-blue-1a56db);
+    background-color: var(--color-blue-1d4ed8);
     box-shadow: 0 0.2rem 0.5rem var(--color-blue-2065f9-a30);
 }
 
@@ -435,15 +435,15 @@ body {
 }
 
 .message.success {
-    background-color: var(--color-green-d4edda);
-    color: var(--color-green-155724);
-    border: 0.1rem solid var(--color-green-c3e6cb);
+    background-color: var(--color-green-d1fae5);
+    color: var(--color-green-14532d);
+    border: 0.1rem solid var(--color-green-d1fae5);
 }
 
 .message.error {
-    background-color: var(--color-red-f8d7da);
+    background-color: var(--color-red-fee2e2);
     color: var(--color-red-721c24);
-    border: 0.1rem solid var(--color-red-f5c6cb);
+    border: 0.1rem solid var(--color-red-fecdd3);
 }
 
 /* ✅ NOVÉ: Error message pod inputom */
@@ -481,7 +481,7 @@ textarea.error:focus {
 }
 
 .google-terms-text a {
-    color: var(--color-blue-4285f4);
+    color: var(--color-blue-3b82f6);
     text-decoration: none;
 }
 

@@ -5,7 +5,7 @@
 :root {
     --sc-purple:        var(--color-blue-6b3ff6);
     --sc-purple-light:  var(--color-indigo-8b5ff8);
-    --sc-purple-faint:  var(--color-gray-f5f0ff);
+    --sc-purple-faint:  var(--color-gray-eef2ff);
     --sc-green:         var(--color-green-22c55e);
     --sc-red:           var(--color-red-ef233c);
     --sc-border:        var(--color-gray-e5e7eb);
@@ -13,7 +13,7 @@
     --sc-text-muted:    var(--color-blue-6b7280);
     --sc-bg:            var(--color-gray-f9fafb);
     --sc-radius:        12px;
-    --sc-shadow:        0 4px 24px var(--color-black-a08);
+    --sc-shadow:        0 4px 24px var(--color-black-a10);
 }
 
 /* ── Layout ───────────────────────────────────────────────── */
@@ -112,7 +112,7 @@
     width: 3.2rem;
     height: 3.2rem;
     border-radius: 50%;
-    background: var(--color-white-a15);
+    background: var(--color-white-a10);
     border: 2px solid var(--color-white-a30);
     display: flex;
     align-items: center;
@@ -145,8 +145,8 @@
 
 /* Note box */
 .sc-sidebar__note {
-    background: var(--color-white-a07);
-    border: 1px solid var(--color-white-a12);
+    background: var(--color-white-a08);
+    border: 1px solid var(--color-white-a10);
     border-radius: 10px;
     padding: 1.6rem 1.8rem;
 }
@@ -155,7 +155,7 @@
     display: block;
     font-size: 1rem;
     font-family: outfit-semibold, sans-serif;
-    color: var(--color-white-a55);
+    color: var(--color-white-a60);
     letter-spacing: 0.08em;
     margin-bottom: 1.2rem;
     text-transform: uppercase;
@@ -175,7 +175,7 @@
     align-items: center;
     gap: 0.8rem;
     font-size: 1.2rem;
-    color: var(--color-white-a78);
+    color: var(--color-gray-fafafa-a75);
     line-height: 1.35;
 }
 
@@ -237,7 +237,7 @@
     border-left: 4px solid var(--color-blue-6b3ff6);
     border-radius: var(--sc-radius);
     padding: 1.5rem 1.8rem;
-    box-shadow: 0 2px 14px var(--color-slate-111827-a04);
+    box-shadow: 0 2px 14px var(--color-slate-0f172a-a05);
 }
 
 .sc-affiliate-banner__eyebrow {

@@ -87,13 +87,13 @@
     padding: 2rem;
     border: 0.1rem solid var(--color-gray-e2e8f4);
     border-radius: 0.8rem;
-    background: var(--color-gray-fbfcff);
+    background: var(--color-gray-f8fafc);
 }
 
 .cs-affiliate-highlight {
     justify-content: center;
     border-color: var(--color-gray-e2e8f4);
-    background: var(--color-gray-fbfcff);
+    background: var(--color-gray-f8fafc);
 }
 
 .cs-affiliate-highlight h3 {
@@ -110,7 +110,7 @@
     height: 3.4rem;
     flex: 0 0 auto;
     border-radius: 999px;
-    background: var(--color-blue-64748b);
+    background: var(--color-blue-6b7a99);
     box-shadow: inset 0 0 0 0.9rem var(--color-white);
 }
 
@@ -147,7 +147,7 @@
     height: 3.4rem;
     border-radius: 0.8rem;
     background: var(--color-gray-eef2ff);
-    color: var(--color-slate-334155);
+    color: var(--color-slate-374151);
     font-family: Outfit-Bold, Outfit, sans-serif;
     font-size: 1.3rem;
     line-height: 1;
@@ -155,7 +155,7 @@
 
 .cs-affiliate-flow li:last-child .cs-affiliate-flow-number {
     background: var(--color-gray-eef2ff);
-    color: var(--color-slate-334155);
+    color: var(--color-slate-374151);
 }
 
 .cs-affiliate-footer {

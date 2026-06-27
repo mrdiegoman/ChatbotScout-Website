@@ -72,14 +72,14 @@ body {
 
 /* Typography */
 h1 {
-    color: var(--color-slate-2d3748);
+    color: var(--color-slate-2d3142);
     font-size: 2.8rem;
     font-family: outfit-semibold, sans-serif;
     margin-bottom: 1.6rem;
 }
 
 .email-sent {
-    color: var(--color-blue-4a5568);
+    color: var(--color-blue-4b5563);
     font-size: 1.6rem;
     line-height: 1.6;
     margin-bottom: 3.2rem;
@@ -87,8 +87,8 @@ h1 {
 
 /* Email Address Display */
 .email-address {
-    background: var(--color-gray-f7fafc);
-    border: 1px solid var(--color-gray-e2e8f0);
+    background: var(--color-gray-f8fafc);
+    border: 1px solid var(--color-gray-e2e8f4);
     border-radius: 8px;
     padding: 1.2rem 1.6rem;
     color: var(--color-blue-667eea);
@@ -100,7 +100,7 @@ h1 {
 
 /* Instructions Box */
 .instructions {
-    background: var(--color-gray-edf2f7);
+    background: var(--color-gray-f3f4f6);
     border-left: 4px solid var(--color-blue-667eea);
     border-radius: 4px;
     padding: 1.6rem;
@@ -109,14 +109,14 @@ h1 {
 }
 
 .instructions h3 {
-    color: var(--color-slate-2d3748);
+    color: var(--color-slate-2d3142);
     font-size: 1.4rem;
     font-family: outfit-semibold, sans-serif;
     margin-bottom: 1.2rem;
 }
 
 .instructions ol {
-    color: var(--color-blue-4a5568);
+    color: var(--color-blue-4b5563);
     font-size: 1.4rem;
     line-height: 1.6;
     padding-left: 2rem;
@@ -128,7 +128,7 @@ h1 {
 
 /* Resend Section */
 .resend-section {
-    color: var(--color-blue-718096);
+    color: var(--color-blue-6b7a99);
     font-size: 1.4rem;
     margin-bottom: 2.4rem;
 }
@@ -183,13 +183,13 @@ h1 {
 /* Divider */
 .divider {
     height: 1px;
-    background: var(--color-gray-e2e8f0);
+    background: var(--color-gray-e2e8f4);
     margin: 2.4rem 0;
 }
 
 /* Spam Notice */
 .spam-notice {
-    color: var(--color-blue-a0aec0);
+    color: var(--color-blue-9ca3af);
     font-size: 1.2rem;
     line-height: 1.5;
 }

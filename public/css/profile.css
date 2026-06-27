@@ -4,7 +4,7 @@
 
 :root {
     --profile-primary: var(--color-slate-2d3142);
-    --profile-secondary: var(--color-blue-4f5d75);
+    --profile-secondary: var(--color-blue-4b5563);
     --profile-accent: var(--color-green-4caf50);
     --profile-danger: var(--color-red-ef233c);
     --profile-warning: var(--color-orange-ffa500);
@@ -14,8 +14,8 @@
     --profile-border: var(--color-gray-e0e0e0);
     --profile-text: var(--color-slate-2d3142);
     --profile-text-muted: var(--color-blue-6c757d);
-    --profile-shadow: 0 10px 28px var(--color-slate-111827-a06);
-    --profile-shadow-lg: 0 18px 40px var(--color-slate-111827-a09);
+    --profile-shadow: 0 10px 28px var(--color-slate-0f172a-a05);
+    --profile-shadow-lg: 0 18px 40px var(--color-slate-0f172a-a05);
 }
 
 /* ============================================
@@ -24,7 +24,7 @@
 
 .profile-page {
     min-height: 100vh;
-    background: var(--color-gray-f6f7f9);
+    background: var(--color-gray-f3f4f6);
     margin-top: 6rem;
     padding: 2.4rem 2rem 4rem;
 }
@@ -137,7 +137,7 @@
 
 .profile-card {
     background: var(--color-white);
-    border: 1px solid var(--color-gray-e6e8ee);
+    border: 1px solid var(--color-gray-e5e7eb);
     border-radius: 8px;
     padding: 2.8rem;
     box-shadow: var(--profile-shadow);
@@ -416,7 +416,7 @@
 
 .subscription-card.active {
     border-color: var(--color-green-4caf50);
-    background: linear-gradient(135deg, var(--color-gray-f1f8f4) 0%, var(--color-white) 100%);
+    background: linear-gradient(135deg, var(--color-gray-fafafa) 0%, var(--color-white) 100%);
 }
 
 .subscription-header {
@@ -471,8 +471,8 @@
    ============================================ */
 
 .danger-card {
-    border: 2px solid var(--color-red-ffe0e0);
-    background: var(--color-gray-fff5f5);
+    border: 2px solid var(--color-red-fee2e2);
+    background: var(--color-gray-fef2f2);
 }
 
 .danger-card p {
@@ -540,7 +540,7 @@
 .promotions-refresh-btn:hover {
     background: var(--color-gray-e8f5e9);
     border-color: var(--color-green-a7dfaf);
-    color: var(--color-green-1f6b25);
+    color: var(--color-green-137333);
 }
 
 .promotions-refresh-btn:focus-visible {
@@ -563,7 +563,7 @@
 }
 
 .subscriptions-empty {
-    border: 1px dashed var(--color-gray-cfd5dd);
+    border: 1px dashed var(--color-gray-d1d5db);
     border-radius: 8px;
     padding: 2.4rem;
     background: var(--color-white);
@@ -603,7 +603,7 @@
 }
 
 .subscriptions-empty__action:hover {
-    background: var(--color-green-3c9f43);
+    background: var(--color-green-45a049);
     transform: translateY(-1px);
 }
 
@@ -619,7 +619,7 @@
     padding: 0.2rem 0 1rem;
     scroll-snap-type: x proximity;
     scrollbar-width: thin;
-    scrollbar-color: var(--color-gray-cfd5dd) var(--color-transparent);
+    scrollbar-color: var(--color-gray-d1d5db) var(--color-transparent);
 }
 
 .subscription-list::-webkit-scrollbar {
@@ -631,13 +631,13 @@
 }
 
 .subscription-list::-webkit-scrollbar-thumb {
-    background: var(--color-gray-cfd5dd);
+    background: var(--color-gray-d1d5db);
     border-radius: 999px;
 }
 
 .subscription-card {
     background: var(--color-white);
-    border: 1px solid var(--color-gray-e3e6eb);
+    border: 1px solid var(--color-gray-e5e7eb);
     border-radius: 8px;
     padding: 1.8rem;
     box-shadow: var(--profile-shadow);
@@ -653,7 +653,7 @@
 
 .subscription-card.active {
     border-color: var(--color-green-a7dfaf);
-    background: linear-gradient(180deg, var(--color-white) 0%, var(--color-gray-f7fcf8) 100%);
+    background: linear-gradient(180deg, var(--color-white) 0%, var(--color-gray-fafafa) 100%);
 }
 
 .subscription-card__top,
@@ -796,7 +796,7 @@
 }
 
 .secondary-btn:hover {
-    background: var(--color-gray-e9ecef);
+    background: var(--color-gray-e5e7eb);
     border-color: var(--color-blue-6c757d);
 }
 
@@ -806,7 +806,7 @@
 }
 
 .danger-btn:hover {
-    background: var(--color-red-d32f2f);
+    background: var(--color-red-dc2626);
     transform: translateY(-1px);
     box-shadow: 0 4px 8px var(--color-red-ef233c-a30);
 }
@@ -833,7 +833,7 @@
 }
 
 .cancel-btn {
-    background: var(--color-gray-f5f5f5);
+    background: var(--color-gray-f3f4f6);
     color: var(--color-slate-2d3142);
 }
 
@@ -1113,13 +1113,13 @@
 
 .status-failed,
 .status-cancelled {
-    background: var(--color-gray-ffebee);
-    color: var(--color-red-c62828);
+    background: var(--color-gray-fef2f2);
+    color: var(--color-red-b91c1c);
 }
 
 .status-refunded,
 .status-partially_refunded {
-    background: var(--color-blue-e3f2fd);
+    background: var(--color-blue-e8f0ff);
     color: var(--color-blue-1976d2);
 }
 
@@ -1327,7 +1327,7 @@
 }
 
 .toggle-switch input:disabled + .toggle-slider:before {
-    box-shadow: 0 1px 3px var(--color-black-a16);
+    box-shadow: 0 1px 3px var(--color-black-a20);
 }
 
 /* ============================================
@@ -1461,7 +1461,7 @@
 }
 
 .modal-action-btn:hover {
-    background: var(--color-gray-e9ecef);
+    background: var(--color-gray-e5e7eb);
     border-color: var(--color-blue-6c757d);
     transform: translateX(4px);
 }
@@ -1474,11 +1474,11 @@
 
 .modal-action-btn.danger {
     color: var(--color-red-ef233c);
-    border-color: var(--color-red-ffe0e0);
+    border-color: var(--color-red-fee2e2);
 }
 
 .modal-action-btn.danger:hover {
-    background: var(--color-gray-fff5f5);
+    background: var(--color-gray-fef2f2);
     border-color: var(--color-red-ef233c);
 }
 
@@ -1493,7 +1493,7 @@
 }
 
 .warning-message.danger {
-    background: var(--color-gray-ffebee);
+    background: var(--color-gray-fef2f2);
     border-left-color: var(--color-red-ef233c);
 }
 
@@ -1542,7 +1542,7 @@
     padding: 0;
     border-radius: 10px;
     background: var(--color-white);
-    border: 1px solid var(--color-gray-eeeeee);
+    border: 1px solid var(--color-gray-f3f4f6);
 }
 
 .cancel-item-toggle {
@@ -1696,7 +1696,7 @@
 .delete-account-modal__header {
     align-items: center;
     padding: 2.8rem 3.2rem 2.2rem;
-    background: linear-gradient(180deg, var(--color-white) 0%, var(--color-gray-fff7f8) 100%);
+    background: linear-gradient(180deg, var(--color-white) 0%, var(--color-gray-fef2f2) 100%);
 }
 
 .delete-account-modal__eyebrow {
@@ -1812,18 +1812,18 @@
     padding: 1.4rem 1.5rem;
     border: 2px solid var(--color-red-fecdd3);
     border-radius: 12px;
-    background: var(--color-gray-fff1f2);
+    background: var(--color-gray-fef2f2);
 }
 
 .delete-account-modal__condition strong {
-    color: var(--color-red-dd220d);
+    color: var(--color-red-e20e0e);
     font-family: outfit-semibold, sans-serif;
     font-size: 1.35rem;
     line-height: 1.35;
 }
 
 .delete-account-modal__condition span {
-    color: var(--color-red-dd220d);
+    color: var(--color-red-e20e0e);
     font-size: 1.25rem;
     line-height: 1.5;
 }
@@ -1921,7 +1921,7 @@
 
 .radio-option input[type="radio"]:checked {
     border-color: var(--color-green-4caf50);
-    background: var(--color-gray-f0fdf4);
+    background: var(--color-gray-e8f5e9);
     box-shadow: 0 0 0 3px var(--color-green-4caf50-a14);
 }
 
@@ -1977,7 +1977,7 @@
 }
 
 .toggle-password:hover {
-    background-color: var(--color-gray-f1f3f4);
+    background-color: var(--color-gray-f3f4f6);
 }
 
 .toggle-password.active {
@@ -1993,13 +1993,13 @@
 /* Keep Plan / subscription card status variants */
 .subscription-card.past-due {
     border-color: var(--color-orange-f59e0b);
-    background: linear-gradient(135deg, var(--color-gray-fffbeb) 0%, var(--color-white) 100%);
+    background: linear-gradient(135deg, var(--color-gray-fff7ed) 0%, var(--color-white) 100%);
 }
 .subscription-card.pending {
-    border-color: var(--color-blue-94a3b8);
+    border-color: var(--color-blue-9ca3af);
     background: linear-gradient(135deg, var(--color-gray-f8fafc) 0%, var(--color-white) 100%);
 }
-.status-past_due  { background: var(--color-orange-fff3e0); color: var(--color-orange-e65100); }
+.status-past_due  { background: var(--color-orange-fff3e0); color: var(--color-orange-ea580c); }
 .status-cancelled { background: var(--color-gray-f3f4f6); color: var(--color-blue-6b7280); }
 .status-pending   { background: var(--color-gray-eff6ff); color: var(--color-blue-1d4ed8); }
 .status-failed    { background: var(--color-red-fee2e2); color: var(--color-red-991b1b); }

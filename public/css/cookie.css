@@ -11,7 +11,7 @@
     z-index: 9998;
     background-color: var(--color-slate-1e162e);
     border-top: 0.1rem solid var(--color-white-a10);
-    box-shadow: 0 -4px 24px var(--color-black-a35);
+    box-shadow: 0 -4px 24px var(--color-black-a30);
     padding: 1.6rem 2rem;
     display: none;
 }
@@ -100,25 +100,25 @@
 .cookie-btn--reject {
     background: var(--color-transparent);
     color: var(--color-gray-fafafa);
-    border: 0.15rem solid var(--color-gray-fafafa-a35) !important;
+    border: 0.15rem solid var(--color-white-a30) !important;
 }
 
 .cookie-btn--reject:hover {
-    border-color: var(--color-gray-fafafa-a70) !important;
-    background: var(--color-white-a06);
+    border-color: var(--color-white-a70) !important;
+    background: var(--color-white-a08);
 }
 
 .cookie-btn--manage {
-    background: linear-gradient(180deg, var(--color-gray-fafafa-a18), var(--color-gray-fafafa-a10));
+    background: linear-gradient(180deg, var(--color-white-a18), var(--color-white-a10));
     color: var(--color-gray-fafafa);
-    border: 0.15rem solid var(--color-gray-fafafa-a26) !important;
+    border: 0.15rem solid var(--color-gray-fafafa-a24) !important;
     box-shadow: inset 0 1px 0 var(--color-white-a08);
 }
 
 .cookie-btn--manage:hover {
-    border-color: var(--color-gray-fafafa-a42) !important;
-    background: linear-gradient(180deg, var(--color-gray-fafafa-a24), var(--color-gray-fafafa-a14));
-    box-shadow: 0 4px 14px var(--color-black-a16), inset 0 1px 0 var(--color-white-a12);
+    border-color: var(--color-white-a45) !important;
+    background: linear-gradient(180deg, var(--color-gray-fafafa-a24), var(--color-white-a10));
+    box-shadow: 0 4px 14px var(--color-black-a20), inset 0 1px 0 var(--color-white-a10);
     transform: translateY(-1px);
 }
 
@@ -160,7 +160,7 @@
     max-height: 88vh;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 20px 60px var(--color-black-a50);
+    box-shadow: 0 20px 60px var(--color-black-a45);
     overflow: hidden;
 }
 
@@ -182,7 +182,7 @@
 }
 
 .cookie-modal-close-btn {
-    color: var(--color-white-a78);
+    color: var(--color-gray-fafafa-a75);
 }
 
 .cookie-modal-close-btn:hover {
@@ -195,7 +195,7 @@
     overflow-y: auto;
     flex: 1;
     scrollbar-width: thin;
-    scrollbar-color: var(--color-white-a15) var(--color-transparent);
+    scrollbar-color: var(--color-white-a10) var(--color-transparent);
 }
 
 .cookie-modal-body::-webkit-scrollbar {
@@ -203,16 +203,16 @@
 }
 
 .cookie-modal-body::-webkit-scrollbar-thumb {
-    background: var(--color-white-a15);
+    background: var(--color-white-a10);
     border-radius: 2px;
 }
 
 .cookie-modal-intro {
     padding: 1.6rem 2.4rem;
     font-size: 1.3rem;
-    color: var(--color-gray-fafafa-a60);
+    color: var(--color-white-a60);
     line-height: 1.75;
-    border-bottom: 0.1rem solid var(--color-white-a06);
+    border-bottom: 0.1rem solid var(--color-white-a08);
 }
 
 .cookie-modal-intro a {
@@ -222,7 +222,7 @@
 
 /* ---- CATEGORY ACCORDION ---- */
 .cookie-category {
-    border-bottom: 0.1rem solid var(--color-white-a06);
+    border-bottom: 0.1rem solid var(--color-white-a08);
 }
 
 .cookie-category:last-child {
@@ -241,7 +241,7 @@
 }
 
 .cookie-category-header:hover {
-    background: var(--color-white-a03);
+    background: var(--color-white-a0);
 }
 
 .cookie-category-left {
@@ -260,7 +260,7 @@
 
 .cookie-category-short-desc {
     font-size: 1.2rem;
-    color: var(--color-gray-fafafa-a50);
+    color: var(--color-white-a45);
     line-height: 1.5;
 }
 
@@ -272,7 +272,7 @@
 }
 
 .cookie-category-arrow {
-    color: var(--color-white-a35);
+    color: var(--color-white-a30);
     font-size: 0.9rem;
     transition: transform 0.25s ease;
     flex-shrink: 0;
@@ -290,7 +290,7 @@
     width: 4.6rem;
     height: 2.6rem;
     border-radius: 2.6rem;
-    background: var(--color-white-a12);
+    background: var(--color-white-a10);
     border: 0.15rem solid var(--color-white-a18);
     cursor: pointer;
     transition: background 0.22s ease, border-color 0.22s ease;
@@ -350,7 +350,7 @@
 
 .cookie-category-body-desc {
     font-size: 1.3rem;
-    color: var(--color-gray-fafafa-a60);
+    color: var(--color-white-a60);
     line-height: 1.75;
     margin-bottom: 1.6rem;
 }
@@ -369,8 +369,8 @@
 }
 
 .cookie-table thead th {
-    background: var(--color-white-a05);
-    color: var(--color-gray-fafafa-a45);
+    background: var(--color-white-a08);
+    color: var(--color-white-a45);
     font-family: Outfit-SemiBold, sans-serif;
     font-size: 1.1rem;
     text-transform: uppercase;
@@ -383,14 +383,14 @@
 .cookie-table td {
     color: var(--color-gray-fafafa-a75);
     padding: 0.9rem 1.2rem;
-    border-top: 0.1rem solid var(--color-white-a05);
+    border-top: 0.1rem solid var(--color-white-a08);
     vertical-align: top;
     font-size: 1.25rem;
     line-height: 1.5;
 }
 
 .cookie-table tbody tr:hover td {
-    background: var(--color-white-a02);
+    background: var(--color-white-a0);
 }
 
 .cookie-table code {
@@ -399,7 +399,7 @@
     padding: 0.15rem 0.5rem;
     border-radius: 0.3rem;
     font-size: 1.1rem;
-    color: var(--color-gray-fafafa-a90);
+    color: var(--color-white-a90);
     white-space: nowrap;
 }
 
@@ -416,7 +416,7 @@
 
 .cookie-consent-info p {
     font-size: 1.1rem;
-    color: var(--color-gray-fafafa-a30);
+    color: var(--color-white-a30);
     margin: 0 0 0.2rem 0;
     line-height: 1.5;
 }
@@ -441,9 +441,9 @@ body.cookie-modal-open {
     right: 1rem;
     z-index: 9997;
     background: var(--color-slate-1e162e);
-    border: 0.1rem solid var(--color-white-a15);
+    border: 0.1rem solid var(--color-white-a10);
     border-radius: 0.8rem;
-    color: var(--color-gray-fafafa-a65);
+    color: var(--color-white-a70);
     font-size: 1.2rem;
     font-family: Outfit-SemiBold, sans-serif;
     padding: 0.75rem;
@@ -459,7 +459,7 @@ body.cookie-modal-open {
     border-color: var(--color-white-a30);
     color: var(--color-gray-fafafa);
     transform: translateY(-1px);
-    box-shadow: 0 4px 16px var(--color-black-a40);
+    box-shadow: 0 4px 16px var(--color-black-a45);
 }
 
 #cookie-settings-btn {

@@ -31,7 +31,7 @@
 .admin-session-label {
     display: inline-flex;
     margin-top: 0.8rem;
-    color: var(--color-blue-64748b);
+    color: var(--color-blue-6b7a99);
     font-size: 1.1rem;
     font-family: outfit-semibold, sans-serif;
 }
@@ -42,10 +42,10 @@
 
 .admin-logout-btn {
     min-height: 3.6rem;
-    border: 1.5px solid var(--color-blue-dbe3f1);
+    border: 1.5px solid var(--color-blue-dbeafe);
     border-radius: 0.8rem;
     background: var(--color-white);
-    color: var(--color-blue-475569);
+    color: var(--color-blue-4b5563);
     padding: 0 1.4rem;
     font-family: outfit-semibold, sans-serif;
     font-size: 1.2rem;
@@ -55,8 +55,8 @@
 
 .admin-logout-btn:hover {
     color: var(--color-slate-111827);
-    border-color: var(--color-blue-9fb0c8);
-    box-shadow: 0 0.45rem 1.1rem var(--color-slate-0f172a-a08);
+    border-color: var(--color-blue-9ca3af);
+    box-shadow: 0 0.45rem 1.1rem var(--color-slate-0f172a-a05);
 }
 
 @media (max-width: 640px) {
@@ -204,7 +204,7 @@
 }
 
 .admin-tab.active .admin-tab-badge {
-    background: var(--color-white-a25);
+    background: var(--color-white-a30);
     color: var(--color-white);
 }
 
@@ -220,7 +220,7 @@
 .admin-tab-helpful {
     border-color: var(--color-orange-fbbf24);
     color: var(--color-orange-92400e);
-    background: var(--color-gray-fffbeb);
+    background: var(--color-gray-fff7ed);
 }
 .admin-tab-helpful:hover  { background: var(--color-yellow-fef3c7); }
 .admin-tab-helpful.active { background: var(--color-orange-f59e0b); border-color: var(--color-orange-f59e0b); color: var(--color-white); }
@@ -303,11 +303,11 @@
     transition: box-shadow 0.2s ease;
 }
 
-.admin-message-card:hover { box-shadow: 0 4px 20px var(--color-black-a07); }
+.admin-message-card:hover { box-shadow: 0 4px 20px var(--color-black-a10); }
 
 .admin-message-card.is-helpful {
     border-color: var(--color-orange-fbbf24);
-    background: var(--color-gray-fffdf0);
+    background: var(--color-gray-fff7ed);
 }
 
 /* Card header */
@@ -361,7 +361,7 @@
 
 /* Existing response / moderation notes */
 .admin-existing-response {
-    background: var(--color-gray-f0fdf4);
+    background: var(--color-gray-e8f5e9);
     border-left: 3px solid var(--color-green-4caf50);
     border-radius: 0 0.6rem 0.6rem 0;
     padding: 1.2rem 1.4rem;
@@ -405,7 +405,7 @@
 .review-status-pending  { background: var(--color-yellow-fef3c7); color: var(--color-orange-92400e); }
 .review-status-approved { background: var(--color-green-d1fae5); color: var(--color-green-065f46); }
 .review-status-rejected { background: var(--color-red-fee2e2); color: var(--color-red-991b1b); }
-.review-status-flagged  { background: var(--color-orange-ffedd5); color: var(--color-orange-9a3412); }
+.review-status-flagged  { background: var(--color-orange-fff3e0); color: var(--color-orange-9a3412); }
 .review-status-removed  { background: var(--color-gray-f3f4f6); color: var(--color-blue-6b7280); }
 
 /* ============================================
@@ -517,7 +517,7 @@
 
 .admin-save-btn:hover    { background: var(--color-blue-4338ca); }
 .admin-save-btn:active   { background: var(--color-blue-3730a3); }
-.admin-save-btn:disabled { background: var(--color-blue-93c5fd); cursor: not-allowed; }
+.admin-save-btn:disabled { background: var(--color-blue-8ec5fc); cursor: not-allowed; }
 
 .admin-chatbot-create-box {
     max-width: 620px;
@@ -787,7 +787,7 @@
 .sub-popup-box {
     background: var(--color-white);
     border-radius: 0.75rem;
-    box-shadow: 0 8px 32px var(--color-black-a18);
+    box-shadow: 0 8px 32px var(--color-black-a20);
     width: 100%;
     max-width: 480px;
     overflow: hidden;
@@ -881,7 +881,7 @@
     background: var(--color-red-fee2e2);
     padding: 0.5rem 0.75rem;
     border-radius: 0.375rem;
-    border: 1px solid var(--color-red-fecaca);
+    border: 1px solid var(--color-red-fecdd3);
 }
 
 .accept-info-note {
@@ -964,8 +964,8 @@
 }
 
 .admin-accept-edit-btn:hover {
-    background: var(--color-blue-e0e7ff);
-    border-color: var(--color-blue-a5b4fc);
+    background: var(--color-blue-ebeaff);
+    border-color: var(--color-blue-93b8ff);
 }
 
 .admin-edit-listing-btn {
@@ -975,8 +975,8 @@
 }
 
 .admin-edit-listing-btn:hover {
-    background: var(--color-blue-e0e7ff);
-    border-color: var(--color-blue-a5b4fc);
+    background: var(--color-blue-ebeaff);
+    border-color: var(--color-blue-93b8ff);
 }
 
 .sub-edit-popup-box {
@@ -1292,12 +1292,12 @@
 .sub-edit-option--selected {
     border-color: var(--color-blue-6366f1);
     background: var(--color-gray-eef2ff);
-    box-shadow: 0 0 0 1px var(--color-blue-6366f1-a16);
+    box-shadow: 0 0 0 1px var(--color-blue-6366f1-a14);
 }
 
 .sub-edit-option--selected:hover {
     border-color: var(--color-blue-4f46e5);
-    background: var(--color-blue-e0e7ff);
+    background: var(--color-blue-ebeaff);
 }
 
 .sub-edit-option input {
@@ -1321,7 +1321,7 @@
 
 .sub-edit-option--new {
     border-color: var(--color-green-a7f3d0);
-    background: var(--color-gray-ecfdf5);
+    background: var(--color-gray-e8f5e9);
 }
 
 .sub-edit-option-badge {
@@ -1355,7 +1355,7 @@
 .sub-edit-delete-feature-btn:hover:not(:disabled),
 .sub-edit-delete-item-btn:hover:not(:disabled) {
     background: var(--color-red-fee2e2);
-    border-color: var(--color-red-f87171);
+    border-color: var(--color-red-ff7070);
 }
 
 .sub-edit-delete-feature-btn--locked,
@@ -1445,7 +1445,7 @@
     cursor: pointer;
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
     border: 1.5px solid var(--color-red-fca5a5);
-    background: var(--color-gray-fff5f5);
+    background: var(--color-gray-fef2f2);
     color: var(--color-red-dc2626);
 }
  
@@ -1566,7 +1566,7 @@
 
 .admin-settings-field input:focus {
     border-color: var(--color-blue-3b82f6);
-    box-shadow: 0 0 0 3px var(--color-blue-3b82f6-a10);
+    box-shadow: 0 0 0 3px var(--color-blue-3b82f6-a12);
 }
 
 .admin-settings-hint {

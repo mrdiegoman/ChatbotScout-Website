@@ -58,7 +58,7 @@
 }
 
 .pr-card:hover {
-    box-shadow: 0 4px 20px var(--color-black-a07);
+    box-shadow: 0 4px 20px var(--color-black-a10);
 }
 
 .pr-load-more-wrap {
@@ -166,7 +166,7 @@
 }
 
 .pr-chatbot-name:hover .pr-chatbot-logo {
-    border-color: var(--color-blue-bfdbfe);
+    border-color: var(--color-blue-cfe0ff);
     background: var(--color-gray-eff6ff);
 }
 
@@ -220,7 +220,7 @@
 .pr-status-pending  { background: var(--color-yellow-fef3c7); color: var(--color-orange-92400e); }
 .pr-status-approved { background: var(--color-green-d1fae5); color: var(--color-green-065f46); }
 .pr-status-rejected { background: var(--color-red-fee2e2); color: var(--color-red-991b1b); }
-.pr-status-flagged  { background: var(--color-orange-ffedd5); color: var(--color-orange-9a3412); }
+.pr-status-flagged  { background: var(--color-orange-fff3e0); color: var(--color-orange-9a3412); }
 .pr-status-removed  { background: var(--color-gray-f3f4f6); color: var(--color-blue-6b7280); }
 
 /* Review title */
@@ -335,7 +335,7 @@
     max-width: 52rem;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 0.8rem 3rem var(--color-black-a18);
+    box-shadow: 0 0.8rem 3rem var(--color-black-a20);
     animation: pr-modal-in 0.2s ease;
 }
 
@@ -466,7 +466,7 @@
 }
 
 .pr-modal-error   { background: var(--color-gray-fef2f2); color: var(--color-red-dc2626); }
-.pr-modal-success { background: var(--color-gray-f0fdf4); color: var(--color-green-16a34a); }
+.pr-modal-success { background: var(--color-gray-e8f5e9); color: var(--color-green-16a34a); }
 
 .pr-modal-footer {
     display: flex;
@@ -516,7 +516,7 @@
     width: 100%;
     max-width: 38rem;
     padding: 2.5rem;
-    box-shadow: 0 0.8rem 3rem var(--color-black-a18);
+    box-shadow: 0 0.8rem 3rem var(--color-black-a20);
     animation: pr-modal-in 0.2s ease;
     display: flex;
     flex-direction: column;

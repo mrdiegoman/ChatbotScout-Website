@@ -36,6 +36,7 @@ Avoid any, unnecessary abstractions, duplicate components, and unrelated refacto
 Do not add a dependency when the feature can reasonably be implemented with existing tools.
 Preserve responsive behavior and accessibility.
 Use semantic HTML, labels for form fields, keyboard-accessible controls, visible focus states, and appropriate image alt text.
+When using colors in CSS, use an existing color variable from the central color list in `public/css/main.css`. If a genuinely new color is needed, add it to the color list in `public/css/main.css` first and reference it through a variable instead of hardcoding the color in another CSS file.
 When creating or changing a popup/modal, use the project's shared close button pattern: a top-right `modal-close` cross button with the same size, alignment, circular hover background, accessible label, and close-only behavior. Do not create one-off X buttons or close popups by clicking outside unless the user explicitly asks for that behavior.
 Handle relevant loading, error, empty, disabled, and success states.
 Do not claim something works unless it was actually verified.

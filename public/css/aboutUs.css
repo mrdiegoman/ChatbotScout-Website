@@ -9,7 +9,7 @@
     padding: clamp(5rem, 7vw, 8.4rem) max(2.4rem, calc((100vw - var(--cs-page-max)) / 2)) clamp(6.4rem, 8vw, 9.6rem);
     background:
         radial-gradient(circle at 84% 24%, var(--color-blue-d2e0ff-a62), var(--color-transparent) 38%),
-        linear-gradient(180deg, var(--color-gray-edf3ff) 0%, var(--color-gray-f1f5ff) 68%, var(--color-gray-f4f7ff) 100%);
+        linear-gradient(180deg, var(--color-gray-eef2ff) 0%, var(--color-gray-f4f7ff) 68%, var(--color-gray-f4f7ff) 100%);
 }
 
 .cs-about-overview {

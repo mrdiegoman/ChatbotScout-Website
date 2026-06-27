@@ -23,7 +23,7 @@
 .error-page-card {
     background-color: var(--color-gray-fafafa);
     border-radius: 2rem;
-    box-shadow: 0 4px 32px var(--color-blue-4f2ef7-a10), 0 1px 4px var(--color-black-a06);
+    box-shadow: 0 4px 32px var(--color-blue-4f2ef7-a10), 0 1px 4px var(--color-black-a10);
     padding: 5rem 4rem;
     max-width: 56rem;
     width: 100%;
@@ -88,7 +88,7 @@
 .error-page-description {
     font-size: 1.6rem;
     font-family: Outfit, sans-serif;
-    color: var(--color-gray-666666);
+    color: var(--color-blue-5f6368);
     line-height: 2.4rem;
     max-width: 42rem;
     margin: 0;

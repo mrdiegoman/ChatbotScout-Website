@@ -91,7 +91,7 @@
 
 .reviews-rating-overview {
     align-items: center;
-    border-top: 0.1rem solid var(--color-gray-eef0f3);
+    border-top: 0.1rem solid var(--color-gray-f3f4f6);
     display: flex;
     flex-wrap: wrap;
     gap: 1.6rem 2.4rem;
@@ -182,7 +182,7 @@
 }
 
 .reviews-breakdown {
-    border-top: 0.1rem solid var(--color-gray-eef0f3);
+    border-top: 0.1rem solid var(--color-gray-f3f4f6);
     margin-top: 2rem;
     padding-top: 1.8rem;
 }
@@ -209,7 +209,7 @@
 
 .reviews-breakdown-row:hover,
 .reviews-breakdown-row:focus-visible {
-    background: var(--color-gray-f0f7ff);
+    background: var(--color-gray-eff6ff);
     outline: none;
 }
 

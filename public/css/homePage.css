@@ -37,7 +37,7 @@
    HERO
    ============================================================ */
 .hp-hero {
-    background: linear-gradient(135deg, var(--color-slate-0a0e1f) 0%, var(--color-blue-0d1a3e) 40%, var(--color-blue-0f2060) 100%);
+    background: linear-gradient(135deg, var(--color-slate-111827) 0%, var(--color-blue-0f1c3f) 40%, var(--color-blue-0f2060) 100%);
     padding: 10rem clamp(2.4rem, 5vw, 8rem) 10rem;
     display: flex;
     align-items: center;
@@ -64,7 +64,7 @@
     width: 180px;
     height: 180px;
     border-radius: 30px;
-    background: linear-gradient(135deg, var(--color-orange-ff6b35), var(--color-red-ff3860));
+    background: linear-gradient(135deg, var(--color-orange-ff6b35), var(--color-red-f43f5e));
     opacity: .18;
     transform: rotate(25deg);
     transform-origin: 52% 48%;
@@ -180,7 +180,7 @@
 }
 
 .hp-hero-title span {
-    color: var(--color-blue-5b9dff);
+    color: var(--color-blue-2196f3);
 }
 
 .hp-hero-subtitle {
@@ -286,7 +286,7 @@
     background: var(--color-white);
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 20px 60px var(--color-black-a35);
+    box-shadow: 0 20px 60px var(--color-black-a30);
     transition:
         transform .45s cubic-bezier(.4,0,.2,1),
         opacity .45s cubic-bezier(.4,0,.2,1),
@@ -358,7 +358,7 @@
     width: 3.4rem;
     height: 3.4rem;
     border-radius: 50%;
-    background: var(--color-white-a20);
+    background: var(--color-white-a18);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -402,7 +402,7 @@
 
 .hp-card-body {
     padding: 1.4rem;
-    background: var(--color-gray-f8faff);
+    background: var(--color-gray-f8fafc);
     min-height: 230px;
     display: flex;
     flex-direction: column;
@@ -419,7 +419,7 @@
 
 .hp-msg-bot {
     background: var(--color-white);
-    border: 1px solid var(--color-gray-e8edf5);
+    border: 1px solid var(--color-gray-e2e8f4);
     align-self: flex-start;
     border-bottom-left-radius: 4px;
 }
@@ -435,14 +435,14 @@
     display: flex;
     align-items: center;
     gap: 0.8rem;
-    border-top: 1px solid var(--color-gray-e8edf5);
+    border-top: 1px solid var(--color-gray-e2e8f4);
     background: var(--color-white);
 }
 
 .hp-card-input span {
     flex: 1;
     font-size: 1rem;
-    color: var(--color-blue-b0bacf);
+    color: var(--color-blue-a0b4d6);
 }
 
 .hp-card-send {
@@ -460,7 +460,7 @@
 .hp-theme-blue  .hp-card-header { background: linear-gradient(135deg,var(--color-blue-0057ff),var(--color-blue-3b82f6)); }
 .hp-theme-purple .hp-card-header { background: linear-gradient(135deg,var(--color-indigo-7c3aed),var(--color-indigo-a855f7)); }
 .hp-theme-green .hp-card-header { background: linear-gradient(135deg,var(--color-green-059669),var(--color-green-10b981)); }
-.hp-theme-orange .hp-card-header { background: linear-gradient(135deg,var(--color-orange-ea580c),var(--color-orange-f97316)); }
+.hp-theme-orange .hp-card-header { background: linear-gradient(135deg,var(--color-orange-ea580c),var(--color-orange-f57c00)); }
 .hp-theme-pink  .hp-card-header { background: linear-gradient(135deg,var(--color-pink-db2777),var(--color-pink-ec4899)); }
 
 .hp-theme-blue   .hp-msg-user { background: var(--color-blue-0057ff); }
@@ -493,13 +493,13 @@
     justify-content: center;
     cursor: pointer;
     transition: all .2s;
-    box-shadow: 0 4px 16px var(--color-black-a25);
+    box-shadow: 0 4px 16px var(--color-black-a20);
 }
 
 .hp-carousel-btn:hover {
     background: var(--color-white);
     /* transform: translateY(-50%) scale(1.1); */
-    box-shadow: 0 6px 20px var(--color-black-a35);
+    box-shadow: 0 6px 20px var(--color-black-a30);
     border: 2px solid var(--color-blue-0057ff);
 }
 
@@ -519,7 +519,7 @@
     width: 0.7rem;
     height: 0.7rem;
     border-radius: 50%;
-    background: var(--color-white-a35);
+    background: var(--color-white-a30);
     transition: all .3s;
     cursor: pointer;
     border: none;
@@ -734,7 +734,7 @@
     width: 100%;
     aspect-ratio: 1;
     border-radius: 10px;
-    background: linear-gradient(135deg,var(--color-gray-f0f4ff),var(--color-gray-e8ecfa));
+    background: linear-gradient(135deg,var(--color-gray-eef2ff),var(--color-gray-e2e8f4));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -757,15 +757,15 @@
     width: 3.8rem;
     height: 3.8rem;
     border-radius: 50%;
-    background: var(--color-white-a84);
-    border: 1.5px solid var(--color-gray-e2e8f4-a82);
+    background: var(--color-white-a82);
+    border: 1.5px solid var(--color-white-a82);
     color: var(--color-slate-1a2236);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     font-size: 1.06rem;
-    box-shadow: 0 10px 30px var(--color-slate-1a2236-a12);
+    box-shadow: 0 10px 30px var(--color-slate-14122d-a14);
     backdrop-filter: blur(10px);
     transition: opacity .2s, visibility .2s, transform .2s, border-color .2s, color .2s, background-color .2s, box-shadow .2s;
 }
@@ -878,7 +878,7 @@
 }
 
 .hp-chat-avatar-user {
-    background: linear-gradient(135deg, var(--color-gray-e2e8f4), var(--color-blue-cbd5e8));
+    background: linear-gradient(135deg, var(--color-gray-e2e8f4), var(--color-blue-cfe0ff));
     color: var(--color-blue-6b7a99);
 }
 
@@ -933,8 +933,8 @@
 
 /* Green variant bot bubble */
 .hp-chat-msg-bot-green {
-    background: var(--color-gray-f0fdf6);
-    border-color: var(--color-green-86efac);
+    background: var(--color-gray-e8f5e9);
+    border-color: var(--color-green-6ee7a0);
 }
 
 .hp-chat-msg-bot-green h3 {
@@ -1075,9 +1075,9 @@
 }
 
 .hp-filter-visual-card {
-    background: var(--color-white-a07);
+    background: var(--color-white-a08);
     backdrop-filter: blur(12px);
-    border: 1px solid var(--color-white-a15);
+    border: 1px solid var(--color-white-a10);
     border-radius: 24px;
     padding: 3.2rem 2.8rem;
     width: 280px;
@@ -1139,7 +1139,7 @@
     display: flex;
     align-items: center;
     gap: 1rem;
-    background: var(--color-white-a06);
+    background: var(--color-white-a08);
     border: 1px solid var(--color-white-a10);
     border-radius: 10px;
     padding: 0.8rem 1.2rem;
@@ -1216,14 +1216,14 @@
     border-radius: 14px;
     font-size: 1.25rem;
     line-height: 1;
-    background: var(--color-white-a07);
+    background: var(--color-white-a08);
     border: 1px solid var(--color-white-a10);
     transition: background .2s, border-color .2s;
 }
 
 .hp-filter-feature:hover {
-    background: var(--color-white-a12);
-    border-color: var(--color-white-a20);
+    background: var(--color-white-a10);
+    border-color: var(--color-white-a18);
 }
 
 .hp-filter-feature-icon {
