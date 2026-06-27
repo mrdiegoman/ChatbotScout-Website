@@ -25,13 +25,44 @@ body.page-favouritesShowcase .footer-main-bottom {
     max-width: 1360px;
 }
 .favourites-page-main-banner {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     width: 100%;
     height: fit-content;
-    background-color: var(--color-blue-0f1c3f);
+    background:
+        linear-gradient(120deg, var(--color-blue-0f1c3f) 0%, var(--color-blue-0f2060) 48%, var(--color-indigo-1e1040) 125%);
     margin: 0 auto 2.6rem auto;
 }
 
+.favourites-page-main-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(90deg, var(--color-transparent) 0%, var(--color-red-ef233c-a08) 54%, var(--color-transparent) 100%),
+        repeating-linear-gradient(118deg, var(--color-white-a08) 0 0.1rem, var(--color-transparent) 0.1rem 7.2rem);
+    opacity: 0.7;
+}
+
+.favourites-page-main-banner::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+    height: 0.2rem;
+    pointer-events: none;
+    background: linear-gradient(90deg, var(--color-transparent), var(--color-cyan-5eead4), var(--color-pink-ec4899), var(--color-transparent));
+    opacity: 0.85;
+}
+
 .favourites-page-main-banner-content {
+    position: relative;
+    z-index: 1;
     width: min(100%, 1120px);
     min-height: 100%;
     margin: 0 auto;
@@ -60,17 +91,18 @@ body.page-favouritesShowcase .footer-main-bottom {
     position: static;
     display: block;
     flex: 0 0 auto;
-    fill: var(--color-red-e20e0e);
-    color: var(--color-red-e20e0e);
+    fill: var(--color-red-ef233c);
+    color: var(--color-red-ef233c);
     transform: rotate(15deg);
     transform-origin: center; 
     width: clamp(9rem, 10vw, 12rem);
     height: auto;
     opacity: 0.85;
+    filter: drop-shadow(0 2rem 2.8rem var(--color-black-a30));
 }
 
 .favourites-page-main-banner svg path{
-    fill: var(--color-red-e20e0e);
+    fill: var(--color-red-ef233c);
 }
 
 .favourites-page-main-banner-textdiv {
@@ -88,10 +120,22 @@ body.page-favouritesShowcase .footer-main-bottom {
 .favourites-page-main-banner-textdiv h1 {
     color: var(--color-white);
     font-family: Outfit-Bold, Outfit-SemiBold, Outfit, sans-serif;
+    text-shadow: 0 0.8rem 2.4rem var(--color-black-a20);
+}
+
+.favourites-page-main-banner-textdiv h1::after {
+    content: '';
+    display: block;
+    width: 9rem;
+    height: 0.35rem;
+    margin-top: 1.4rem;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--color-cyan-5eead4), var(--color-pink-ec4899));
+    box-shadow: 0 0.8rem 2rem var(--color-red-ef233c-a28);
 }
 
 .favourites-page-main-banner-textdiv p{
-    color: var(--color-blue-c7d2fe);
+    color: var(--color-white-a82);
     font-size: 1.8rem;
     line-height: 1.65;
     opacity: 1;
@@ -2418,7 +2462,7 @@ body.page-favouritesShowcase .footer-main-bottom {
     }
     
     .favourites-page-main-banner {
-        margin-bottom: 0;
+        margin-bottom: 2rem;
     }
     .favourites-page-main-banner-content {
         padding: 2rem 4rem 1.5rem 4rem;

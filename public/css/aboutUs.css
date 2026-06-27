@@ -50,6 +50,11 @@
     box-shadow: 0 0.8rem 2.4rem var(--color-blue-0057ff-a08);
 }
 
+.cs-about-values .cs-card h3 {
+    font-size: 1.8rem;
+    line-height: 2.4rem;
+}
+
 .cs-about-page .cs-card--soft {
     width: min(calc(100% - 4.8rem), var(--cs-page-max));
     margin: clamp(4.8rem, 7vw, 7.2rem) auto 0;
@@ -99,7 +104,7 @@
 
     .cs-about-mobile-details {
         display: block;
-        padding: 1.5rem 1.6rem;
+        padding: 2rem;
         border: 0.1rem solid var(--color-gray-e2e8f4);
         border-radius: 0.8rem;
         background: var(--color-white);
@@ -115,8 +120,8 @@
         cursor: pointer;
         color: var(--color-slate-1a2236);
         font-family: Outfit-SemiBold, Outfit, sans-serif;
-        font-size: 1.45rem;
-        line-height: 2rem;
+        font-size: 1.8rem;
+        line-height: 2.4rem;
     }
 
     .cs-about-mobile-details summary::-webkit-details-marker {
@@ -144,9 +149,22 @@
     }
 
     .cs-about-mobile-details p {
-        margin-top: 1.2rem;
+        position: relative;
+        margin-top: 1.6rem;
+        padding-left: 1.8rem;
         color: var(--color-blue-6b7a99);
-        font-size: 1.4rem;
-        line-height: 1.7;
+        font-size: 1.5rem;
+        line-height: 1.75;
+    }
+
+    .cs-about-mobile-details p::before {
+        content: '';
+        position: absolute;
+        top: 0.85em;
+        left: 0;
+        width: 0.65rem;
+        height: 0.65rem;
+        border-radius: 50%;
+        background: var(--color-blue-0057ff);
     }
 }

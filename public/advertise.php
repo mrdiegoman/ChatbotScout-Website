@@ -28,7 +28,6 @@ require 'app/auth.php';
         <div class="adv-hero__blob adv-hero__blob--3"></div>
     </div>
     <div class="adv-hero__content">
-        <div class="adv-hero__badge">📢 Advertise on ChatbotScout</div>
         <h1 class="adv-hero__title">
             Reach More Users<br>
             <span class="adv-hero__title--accent">With ChatbotScout Ads</span>

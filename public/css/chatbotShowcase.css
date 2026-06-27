@@ -27,13 +27,44 @@ body.page-chatbotShowcase .footer-main-bottom {
 }
 
 .chatbot-page-main-banner {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     width: 100%;
     height: fit-content;
-    background-color: var(--color-blue-0f1c3f);
+    background:
+        linear-gradient(120deg, var(--color-blue-0f1c3f) 0%, var(--color-blue-0f2060) 48%, var(--color-green-065f46) 125%);
     margin: 0 auto 2.6rem auto;
 }
 
+.chatbot-page-main-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(90deg, var(--color-transparent) 0%, var(--color-cyan-14b8a6-a15) 52%, var(--color-transparent) 100%),
+        repeating-linear-gradient(118deg, var(--color-white-a08) 0 0.1rem, var(--color-transparent) 0.1rem 7.2rem);
+    opacity: 0.7;
+}
+
+.chatbot-page-main-banner::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+    height: 0.2rem;
+    pointer-events: none;
+    background: linear-gradient(90deg, var(--color-transparent), var(--color-cyan-5eead4), var(--color-green-34d399), var(--color-transparent));
+    opacity: 0.85;
+}
+
 .chatbot-page-main-banner-content {
+    position: relative;
+    z-index: 1;
     width: min(100%, 1120px);
     min-height: 100%;
     margin: 0 auto;
@@ -55,6 +86,8 @@ body.page-chatbotShowcase .footer-main-bottom {
     width: clamp(14rem, 15vw, 20rem);
     height: auto;
     flex: 0 0 auto;
+    filter: drop-shadow(0 2rem 2.8rem var(--color-black-a30));
+    transform: translateY(-0.2rem);
 }
 
 .chatbot-page-main-banner-textdiv {
@@ -72,10 +105,22 @@ body.page-chatbotShowcase .footer-main-bottom {
 .chatbot-page-main-banner-textdiv h1 {
     color: var(--color-white);
     font-family: Outfit-Bold, Outfit-SemiBold, Outfit, sans-serif;
+    text-shadow: 0 0.8rem 2.4rem var(--color-black-a20);
+}
+
+.chatbot-page-main-banner-textdiv h1::after {
+    content: '';
+    display: block;
+    width: 9rem;
+    height: 0.35rem;
+    margin-top: 1.4rem;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--color-cyan-5eead4), var(--color-green-34d399));
+    box-shadow: 0 0.8rem 2rem var(--color-cyan-14b8a6-a40);
 }
 
 .chatbot-page-main-banner-textdiv p {
-    color: var(--color-blue-c7d2fe);
+    color: var(--color-white-a82);
     font-size: 1.8rem;
     line-height: 1.65;
 }
