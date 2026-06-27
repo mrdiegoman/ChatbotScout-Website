@@ -13,8 +13,8 @@
 .pr-loading-spinner {
     width: 3.6rem;
     height: 3.6rem;
-    border: 0.3rem solid #e5e7eb;
-    border-top-color: #4CAF50;
+    border: 0.3rem solid var(--color-gray-e5e7eb);
+    border-top-color: var(--color-green-4caf50);
     border-radius: 50%;
     animation: pr-spin 0.75s linear infinite;
 }
@@ -28,12 +28,12 @@
     display: none;
     text-align: center;
     padding: 5rem 2rem;
-    color: #9ca3af;
+    color: var(--color-blue-9ca3af);
     font-size: 1.5rem;
 }
 
 .pr-empty a {
-    color: #4CAF50;
+    color: var(--color-green-4caf50);
     text-decoration: underline;
 }
 
@@ -49,16 +49,16 @@
 
 /* Card */
 .pr-card {
-    background: #fff;
+    background: var(--color-white);
     min-width: 0;
-    border: 0.1rem solid #e5e7eb;
+    border: 0.1rem solid var(--color-gray-e5e7eb);
     border-radius: 1.2rem;
     padding: 2rem 2.4rem;
     transition: box-shadow 0.2s ease;
 }
 
 .pr-card:hover {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+    box-shadow: 0 4px 20px var(--color-black-a07);
 }
 
 .pr-load-more-wrap {
@@ -81,8 +81,8 @@
     padding: 1rem 2.4rem;
     border: none;
     border-radius: 0.8rem;
-    background: #4CAF50;
-    color: #fff;
+    background: var(--color-green-4caf50);
+    color: var(--color-white);
     font-size: 1.45rem;
     font-family: outfit-semibold, sans-serif;
     cursor: pointer;
@@ -94,13 +94,13 @@
 }
 
 .pr-load-more:hover:not(:disabled) {
-    background: #45a049;
-    box-shadow: 0 4px 14px rgba(76, 175, 80, 0.28);
+    background: var(--color-green-45a049);
+    box-shadow: 0 4px 14px var(--color-green-4caf50-a28);
     transform: translateY(-1px);
 }
 
 .pr-load-more:disabled {
-    background: #9ca3af;
+    background: var(--color-blue-9ca3af);
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
@@ -139,14 +139,14 @@
     border-radius: 0.8rem;
     font-size: 1.55rem;
     font-family: outfit-semibold, sans-serif;
-    color: #1f2937;
+    color: var(--color-slate-1f2937);
     text-decoration: none;
     transition: background 0.15s ease, color 0.15s ease;
 }
 
 .pr-chatbot-name:hover {
-    background: #f8fafc;
-    color: #0057ff;
+    background: var(--color-gray-f8fafc);
+    color: var(--color-blue-0057ff);
 }
 
 .pr-chatbot-logo {
@@ -159,15 +159,15 @@
     padding: 0.25rem;
     box-sizing: border-box;
     border-radius: 0.65rem;
-    border: 0.1rem solid #e5e7eb;
-    background: #f8fafc;
+    border: 0.1rem solid var(--color-gray-e5e7eb);
+    background: var(--color-gray-f8fafc);
     overflow: hidden;
     transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .pr-chatbot-name:hover .pr-chatbot-logo {
-    border-color: #bfdbfe;
-    background: #eff6ff;
+    border-color: var(--color-blue-bfdbfe);
+    background: var(--color-gray-eff6ff);
 }
 
 .pr-chatbot-logo img {
@@ -192,19 +192,19 @@
     line-height: 1;
 }
 
-.pr-star-filled { color: #f59e0b; }
-.pr-star-empty  { color: #d1d5db; }
+.pr-star-filled { color: var(--color-orange-f59e0b); }
+.pr-star-empty  { color: var(--color-gray-d1d5db); }
 
 .pr-rating-num {
     font-size: 1.2rem;
     font-family: outfit-semibold, sans-serif;
-    color: #6b7280;
+    color: var(--color-blue-6b7280);
     margin-left: 0.4rem;
 }
 
 .pr-date {
     font-size: 1.25rem;
-    color: #9ca3af;
+    color: var(--color-blue-9ca3af);
 }
 
 /* Status badge */
@@ -217,17 +217,17 @@
     font-family: outfit-semibold, sans-serif;
 }
 
-.pr-status-pending  { background: #fef3c7; color: #92400e; }
-.pr-status-approved { background: #d1fae5; color: #065f46; }
-.pr-status-rejected { background: #fee2e2; color: #991b1b; }
-.pr-status-flagged  { background: #ffedd5; color: #9a3412; }
-.pr-status-removed  { background: #f3f4f6; color: #6b7280; }
+.pr-status-pending  { background: var(--color-yellow-fef3c7); color: var(--color-orange-92400e); }
+.pr-status-approved { background: var(--color-green-d1fae5); color: var(--color-green-065f46); }
+.pr-status-rejected { background: var(--color-red-fee2e2); color: var(--color-red-991b1b); }
+.pr-status-flagged  { background: var(--color-orange-ffedd5); color: var(--color-orange-9a3412); }
+.pr-status-removed  { background: var(--color-gray-f3f4f6); color: var(--color-blue-6b7280); }
 
 /* Review title */
 .pr-review-title {
     font-size: 1.5rem;
     font-family: outfit-semibold, sans-serif;
-    color: #1f2937;
+    color: var(--color-slate-1f2937);
     font-style: italic;
     margin-bottom: 0.6rem;
 }
@@ -236,7 +236,7 @@
 .pr-review-text {
     min-width: 0;
     font-size: 1.45rem;
-    color: #374151;
+    color: var(--color-slate-374151);
     line-height: 1.65;
     margin: 1.6rem 0 0;
     overflow-wrap: anywhere;
@@ -245,12 +245,12 @@
 
 /* Moderation note */
 .pr-moderation-note {
-    background: #fef3c7;
-    border-left: 3px solid #f59e0b;
+    background: var(--color-yellow-fef3c7);
+    border-left: 3px solid var(--color-orange-f59e0b);
     border-radius: 0 0.6rem 0.6rem 0;
     padding: 0.8rem 1.2rem;
     font-size: 1.3rem;
-    color: #78350f;
+    color: var(--color-orange-78350f);
     margin-bottom: 1rem;
 }
 
@@ -265,7 +265,7 @@
     gap: 0.8rem;
     margin-top: 1.2rem;
     padding-top: 1.2rem;
-    border-top: 1px solid #f3f4f6;
+    border-top: 1px solid var(--color-gray-f3f4f6);
 }
 
 .pr-edit-btn,
@@ -279,29 +279,29 @@
     font-family: outfit-semibold, sans-serif;
     cursor: pointer;
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-    border: 1.5px solid #e5e7eb;
+    border: 1.5px solid var(--color-gray-e5e7eb);
 }
 
 .pr-edit-btn {
-    background: #f9fafb;
-    color: #374151;
+    background: var(--color-gray-f9fafb);
+    color: var(--color-slate-374151);
 }
 
 .pr-edit-btn:hover {
-    background: #eff6ff;
-    border-color: #3b82f6;
-    color: #1d4ed8;
+    background: var(--color-gray-eff6ff);
+    border-color: var(--color-blue-3b82f6);
+    color: var(--color-blue-1d4ed8);
 }
 
 .pr-delete-btn {
-    background: #f9fafb;
-    color: #374151;
+    background: var(--color-gray-f9fafb);
+    color: var(--color-slate-374151);
 }
 
 .pr-delete-btn:hover:not(:disabled) {
-    background: #fef2f2;
-    border-color: #ef4444;
-    color: #dc2626;
+    background: var(--color-gray-fef2f2);
+    border-color: var(--color-red-ef4444);
+    color: var(--color-red-dc2626);
 }
 
 .pr-delete-btn:disabled {
@@ -317,7 +317,7 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.45);
+    background: var(--color-black-a45);
     z-index: 3000;
     justify-content: center;
     align-items: center;
@@ -329,13 +329,13 @@
 }
 
 .pr-modal-content {
-    background: #fff;
+    background: var(--color-white);
     border-radius: 1.5rem;
     width: 100%;
     max-width: 52rem;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 0.8rem 3rem rgba(0, 0, 0, 0.18);
+    box-shadow: 0 0.8rem 3rem var(--color-black-a18);
     animation: pr-modal-in 0.2s ease;
 }
 
@@ -349,23 +349,23 @@
     align-items: center;
     justify-content: space-between;
     padding: 2rem 2.5rem 1.5rem;
-    border-bottom: 0.1rem solid #e5e7eb;
+    border-bottom: 0.1rem solid var(--color-gray-e5e7eb);
 }
 
 .pr-modal-header h2 {
     font-size: 1.8rem;
     font-family: outfit-semibold, sans-serif;
     margin: 0;
-    color: #1f2937;
+    color: var(--color-slate-1f2937);
 }
 
 .pr-modal-close-btn {
-    color: #6b7280;
+    color: var(--color-blue-6b7280);
 }
 
 .pr-modal-close-btn:hover {
-    background: #f3f4f6;
-    color: #1f2937;
+    background: var(--color-gray-f3f4f6);
+    color: var(--color-slate-1f2937);
 }
 
 .pr-modal-body {
@@ -391,20 +391,20 @@
 
 .pr-modal-star {
     font-size: 4rem;
-    color: #d1d5db;
+    color: var(--color-gray-d1d5db);
     transition: color 0.1s ease, transform 0.1s ease;
     user-select: none;
     line-height: 1;
 }
 
 .pr-modal-star.active,
-.pr-modal-star.hover { color: #4CAF50; }
+.pr-modal-star.hover { color: var(--color-green-4caf50); }
 .pr-modal-star:hover  { transform: scale(1.15); }
 
 .pr-modal-stars-label {
     font-size: 1.5rem;
     font-family: outfit-semibold, sans-serif;
-    color: #374151;
+    color: var(--color-slate-374151);
     min-height: 2rem;
 }
 
@@ -418,22 +418,22 @@
 .pr-modal-field label {
     font-size: 1.5rem;
     font-family: outfit-semibold, sans-serif;
-    color: #374151;
+    color: var(--color-slate-374151);
 }
 
 .pr-modal-optional {
     font-family: outfit-medium, sans-serif;
-    color: #9ca3af;
+    color: var(--color-blue-9ca3af);
     font-size: 1.3rem;
 }
 
-.pr-modal-required { color: #ef4444; }
+.pr-modal-required { color: var(--color-red-ef4444); }
 
 .pr-modal-field input,
 .pr-modal-field textarea {
     padding: 1.1rem 1.2rem;
     font-size: 1.5rem;
-    border: 1.5px solid #e5e7eb;
+    border: 1.5px solid var(--color-gray-e5e7eb);
     border-radius: 0.75rem;
     outline: none;
     resize: vertical;
@@ -453,7 +453,7 @@
 
 .pr-modal-field input:focus,
 .pr-modal-field textarea:focus {
-    border-color: #4CAF50;
+    border-color: var(--color-green-4caf50);
 }
 
 .pr-modal-error,
@@ -465,8 +465,8 @@
     margin-top: -0.5rem;
 }
 
-.pr-modal-error   { background: #fef2f2; color: #dc2626; }
-.pr-modal-success { background: #f0fdf4; color: #16a34a; }
+.pr-modal-error   { background: var(--color-gray-fef2f2); color: var(--color-red-dc2626); }
+.pr-modal-success { background: var(--color-gray-f0fdf4); color: var(--color-green-16a34a); }
 
 .pr-modal-footer {
     display: flex;
@@ -474,49 +474,49 @@
     align-items: center;
     gap: 1rem;
     padding: 1.5rem 2.5rem 2rem;
-    border-top: 1px solid #f3f4f6;
+    border-top: 1px solid var(--color-gray-f3f4f6);
 }
 
 .pr-modal-cancel-btn {
     padding: 0.9rem 2rem;
     border-radius: 0.75rem;
-    border: 1.5px solid #e5e7eb;
-    background: #f9fafb;
+    border: 1.5px solid var(--color-gray-e5e7eb);
+    background: var(--color-gray-f9fafb);
     font-size: 1.45rem;
     font-family: outfit-semibold, sans-serif;
-    color: #374151;
+    color: var(--color-slate-374151);
     cursor: pointer;
     transition: background 0.15s ease;
 }
 
-.pr-modal-cancel-btn:hover { background: #f3f4f6; }
+.pr-modal-cancel-btn:hover { background: var(--color-gray-f3f4f6); }
 
 .pr-modal-submit-btn {
     padding: 0.9rem 2.4rem;
     border-radius: 0.75rem;
     border: none;
-    background: #4CAF50;
+    background: var(--color-green-4caf50);
     font-size: 1.45rem;
     font-family: outfit-semibold, sans-serif;
-    color: #fff;
+    color: var(--color-white);
     cursor: pointer;
     transition: background 0.15s ease;
 }
 
-.pr-modal-submit-btn:hover:not(:disabled) { background: #45a049; }
-.pr-modal-submit-btn:disabled { background: #9ca3af; cursor: not-allowed; }
+.pr-modal-submit-btn:hover:not(:disabled) { background: var(--color-green-45a049); }
+.pr-modal-submit-btn:disabled { background: var(--color-blue-9ca3af); cursor: not-allowed; }
 
 /* ============================================
    DELETE CONFIRM MODAL
    ============================================ */
 
 .pr-delete-modal-content {
-    background: #fff;
+    background: var(--color-white);
     border-radius: 1.2rem;
     width: 100%;
     max-width: 38rem;
     padding: 2.5rem;
-    box-shadow: 0 0.8rem 3rem rgba(0, 0, 0, 0.18);
+    box-shadow: 0 0.8rem 3rem var(--color-black-a18);
     animation: pr-modal-in 0.2s ease;
     display: flex;
     flex-direction: column;
@@ -532,13 +532,13 @@
 .pr-delete-modal-header h2 {
     font-size: 1.8rem;
     font-family: outfit-semibold, sans-serif;
-    color: #1f2937;
+    color: var(--color-slate-1f2937);
     margin: 0;
 }
 
 .pr-delete-modal-body p {
     font-size: 1.45rem;
-    color: #6b7280;
+    color: var(--color-blue-6b7280);
     line-height: 1.5;
     margin: 0;
 }
@@ -554,16 +554,16 @@
     padding: 0.9rem 2rem;
     border-radius: 0.75rem;
     border: none;
-    background: #ef4444;
+    background: var(--color-red-ef4444);
     font-size: 1.45rem;
     font-family: outfit-semibold, sans-serif;
-    color: #fff;
+    color: var(--color-white);
     cursor: pointer;
     transition: background 0.15s ease;
 }
 
-.pr-delete-confirm-btn:hover:not(:disabled) { background: #dc2626; }
-.pr-delete-confirm-btn:disabled { background: #9ca3af; cursor: not-allowed; }
+.pr-delete-confirm-btn:hover:not(:disabled) { background: var(--color-red-dc2626); }
+.pr-delete-confirm-btn:disabled { background: var(--color-blue-9ca3af); cursor: not-allowed; }
 
 .pr-edit-btn.pr-btn-blocked,
 .pr-edit-btn:disabled {
@@ -575,9 +575,9 @@
    DOPLNOK: Blocked edit button */
    
 .pr-edit-btn:disabled {
-    background: #f3f4f6;
-    border-color: #e5e7eb;
-    color: #9ca3af;
+    background: var(--color-gray-f3f4f6);
+    border-color: var(--color-gray-e5e7eb);
+    color: var(--color-blue-9ca3af);
 }
 
 /* ============================================

@@ -21,9 +21,9 @@
     flex-direction: column;
     gap: clamp(2.2rem, 4vw, 3.2rem);
     padding: clamp(2.4rem, 4vw, 4.4rem);
-    border: 0.1rem solid var(--cs-border);
+    border: 0.1rem solid var(--color-gray-e2e8f4);
     border-radius: 0.8rem;
-    background: var(--cs-surface);
+    background: var(--color-white);
     box-shadow: var(--cs-shadow);
 }
 
@@ -36,7 +36,7 @@
 }
 
 .cs-affiliate-label {
-    color: var(--cs-blue);
+    color: var(--color-blue-0057ff);
     font-family: Outfit-SemiBold, Outfit, sans-serif;
     font-size: 1.2rem;
     line-height: 1.6rem;
@@ -46,7 +46,7 @@
 
 .cs-affiliate-sheet h2,
 .cs-affiliate-sheet h3 {
-    color: var(--cs-text);
+    color: var(--color-slate-1a2236);
     font-family: Outfit-SemiBold, Outfit, sans-serif;
 }
 
@@ -62,13 +62,13 @@
 }
 
 .cs-affiliate-sheet p {
-    color: var(--cs-muted);
+    color: var(--color-blue-6b7a99);
     font-size: 1.5rem;
     line-height: 1.75;
 }
 
 .cs-affiliate-page strong {
-    color: var(--cs-text);
+    color: var(--color-slate-1a2236);
     font-family: Outfit-SemiBold, Outfit, sans-serif;
 }
 
@@ -85,15 +85,15 @@
     flex-direction: column;
     gap: 1.2rem;
     padding: 2rem;
-    border: 0.1rem solid var(--cs-border);
+    border: 0.1rem solid var(--color-gray-e2e8f4);
     border-radius: 0.8rem;
-    background: #fbfcff;
+    background: var(--color-gray-fbfcff);
 }
 
 .cs-affiliate-highlight {
     justify-content: center;
-    border-color: var(--cs-border);
-    background: #fbfcff;
+    border-color: var(--color-gray-e2e8f4);
+    background: var(--color-gray-fbfcff);
 }
 
 .cs-affiliate-highlight h3 {
@@ -102,7 +102,7 @@
 }
 
 .cs-affiliate-flow-panel {
-    background: #ffffff;
+    background: var(--color-white);
 }
 
 .cs-affiliate-highlight-dot {
@@ -110,13 +110,13 @@
     height: 3.4rem;
     flex: 0 0 auto;
     border-radius: 999px;
-    background: #64748b;
-    box-shadow: inset 0 0 0 0.9rem #ffffff;
+    background: var(--color-blue-64748b);
+    box-shadow: inset 0 0 0 0.9rem var(--color-white);
 }
 
 .cs-affiliate-section {
     padding-top: clamp(2rem, 3vw, 2.8rem);
-    border-top: 0.1rem solid var(--cs-border);
+    border-top: 0.1rem solid var(--color-gray-e2e8f4);
 }
 
 .cs-affiliate-flow {
@@ -134,9 +134,9 @@
     align-items: center;
     gap: 1.2rem;
     padding: 1.2rem;
-    border: 0.1rem solid var(--cs-border);
+    border: 0.1rem solid var(--color-gray-e2e8f4);
     border-radius: 0.8rem;
-    background: #f8fafc;
+    background: var(--color-gray-f8fafc);
 }
 
 .cs-affiliate-flow-number {
@@ -146,16 +146,16 @@
     width: 3.4rem;
     height: 3.4rem;
     border-radius: 0.8rem;
-    background: #eef2ff;
-    color: #334155;
+    background: var(--color-gray-eef2ff);
+    color: var(--color-slate-334155);
     font-family: Outfit-Bold, Outfit, sans-serif;
     font-size: 1.3rem;
     line-height: 1;
 }
 
 .cs-affiliate-flow li:last-child .cs-affiliate-flow-number {
-    background: #eef2ff;
-    color: #334155;
+    background: var(--color-gray-eef2ff);
+    color: var(--color-slate-334155);
 }
 
 .cs-affiliate-footer {
@@ -164,7 +164,7 @@
     justify-content: space-between;
     gap: 2rem;
     padding-top: clamp(2rem, 3vw, 2.8rem);
-    border-top: 0.1rem solid var(--cs-border);
+    border-top: 0.1rem solid var(--color-gray-e2e8f4);
 }
 
 .cs-affiliate-footer div {

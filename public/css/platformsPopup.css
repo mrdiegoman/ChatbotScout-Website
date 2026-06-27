@@ -8,7 +8,7 @@
     position: fixed;
     inset: 0;
     z-index: 9000;
-    background: rgba(0, 0, 0, 0.45);
+    background: var(--color-black-a45);
     align-items: center;
     justify-content: center;
     padding: 1.6rem;
@@ -20,10 +20,10 @@
     width: 36rem;
     max-width: 100%;
     max-height: 70vh;
-    background: var(--white-color-dark, #fff);
-    border: 0.15rem solid var(--grey-color-mid, #e5e7eb);
+    background: var(--color-gray-fafafa);
+    border: 0.15rem solid var(--color-gray-323232-a25);
     border-radius: 1.2rem;
-    box-shadow: 0 0.8rem 2.4rem rgba(0, 0, 0, 0.18);
+    box-shadow: 0 0.8rem 2.4rem var(--color-black-a18);
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -45,24 +45,24 @@
     align-items: center;
     justify-content: space-between;
     padding: 1.4rem 1.6rem 1.2rem;
-    border-bottom: 0.1rem solid var(--grey-color-mid, #e5e7eb);
+    border-bottom: 0.1rem solid var(--color-gray-323232-a25);
     flex-shrink: 0;
 }
 
 .platforms-popup-title {
     font-size: 1.55rem;
     font-family: outfit-semiBold, sans-serif;
-    color: var(--black-color-light, #1f2937);
+    color: var(--color-gray-232127);
     margin: 0;
 }
 
 .platforms-popup-close {
-    color: var(--grey-color, #9ca3af);
+    color: var(--grey-color, var(--color-blue-9ca3af));
 }
 
 .platforms-popup-close:hover {
-    color: #1f2937;
-    background: #f3f4f6;
+    color: var(--color-slate-1f2937);
+    background: var(--color-gray-f3f4f6);
 }
 
 /* ---- List ---- */
@@ -78,7 +78,7 @@
     padding: 0.9rem 1.6rem;
     font-size: 1.45rem;
     font-family: outfit-medium, sans-serif;
-    color: var(--black-color-light, #1f2937);
+    color: var(--color-gray-232127);
     cursor: default;
     transition: background 0.12s ease;
     display: flex;
@@ -92,19 +92,19 @@
     width: 0.65rem;
     height: 0.65rem;
     border-radius: 50%;
-    background: var(--blue-color-2, #2563eb);
+    background: var(--color-blue-4f2ef7);
     flex-shrink: 0;
 }
 
 .platforms-popup-item:hover {
-    background: var(--grey-hover-color, #f9fafb);
+    background: var(--color-gray-c8c8c8);
 }
 
 /* Empty state */
 .platforms-popup-empty {
     padding: 2rem 1.6rem;
     font-size: 1.4rem;
-    color: var(--grey-color, #9ca3af);
+    color: var(--grey-color, var(--color-blue-9ca3af));
     text-align: center;
 }
 

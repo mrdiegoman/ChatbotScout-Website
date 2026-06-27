@@ -8,7 +8,7 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     /* background-color: #f5f5f5; */
-    background-color: var(--blue-light);
+    background-color: var(--color-blue-ebeaff);
 }
 
 /* Auth page wrapper - centers content */
@@ -24,9 +24,9 @@ body {
 
 /* Auth container - the white card */
 .auth-container {
-    background: white;
+    background: var(--color-white);
     border-radius: 2rem;
-    box-shadow: 0 0.2rem 1rem rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0.2rem 1rem var(--color-black-a10);
     padding: clamp(2.2rem, 3vh, 2.8rem) clamp(2.4rem, 3vw, 3.2rem);
     width: 100%;
     max-width: 52rem;
@@ -49,7 +49,7 @@ body {
 .auth-header h1 {
     font-family: 'RubikDistressed', cursive;
     font-size: 2.3rem;
-    color: black;
+    color: var(--color-black);
 }
 
 /* Page title (Sign In / Create an account) */
@@ -66,15 +66,15 @@ body {
     width: 100%;
     min-height: 4.4rem;
     padding: 0.95rem 1.2rem;
-    border: 0.1rem solid #dadce0;
+    border: 0.1rem solid var(--color-gray-dadce0);
     border-radius: 0.6rem;
-    background: white;
+    background: var(--color-white);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 1.2rem;
     font-size: 1.5rem;
-    color: #3c4043;
+    color: var(--color-gray-3c4043);
     cursor: pointer;
     transition: background-color 0.2s, box-shadow 0.2s;
     margin-bottom: 1rem;
@@ -82,8 +82,8 @@ body {
 }
 
 .google-btn:hover {
-    background-color: #f8f9fa;
-    box-shadow: 0 0.1rem 0.3rem rgba(0, 0, 0, 0.1);
+    background-color: var(--color-gray-f8f9fa);
+    box-shadow: 0 0.1rem 0.3rem var(--color-black-a10);
 }
 
 .google-icon {
@@ -106,7 +106,7 @@ body {
     text-align: center;
     margin: 1.4rem 0;
     position: relative;
-    color: #5f6368;
+    color: var(--color-blue-5f6368);
     font-size: 1.4rem;
     font-family: outfit, sans-serif;
 }
@@ -116,7 +116,7 @@ body {
     top: 50%;
     width: 30%;
     height: 0.1rem;
-    background-color: #dadce0;
+    background-color: var(--color-gray-dadce0);
 }
 
 .auth-divider::before {
@@ -154,13 +154,13 @@ body {
 .form-group label {
     font-size: 1.4rem;
     font-family: outfit-medium;
-    color: #333;
+    color: var(--color-gray-333333);
 }
 
 .form-group input {
     min-height: 4.2rem;
     padding: 0.95rem 1.1rem;
-    border: 0.1rem solid #dadce0;
+    border: 0.1rem solid var(--color-gray-dadce0);
     border-radius: 0.6px;
     font-size: 1.6rem;
     transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
@@ -168,7 +168,7 @@ body {
 
 .form-group input:focus {
     outline: none;
-    border-color: var(--blue-color);
+    border-color: var(--color-blue-2065f9);
 }
 
 /* Password input wrapper with eye icon */
@@ -204,18 +204,18 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #5f6368;
+    color: var(--color-blue-5f6368);
     transition: color 0.2s, background-color 0.2s;
     border-radius: 0.4rem;
 }
 
 .toggle-password:hover {
-    background-color: #f1f3f4;
+    background-color: var(--color-gray-f1f3f4);
 }
 
 .toggle-password.active {
-    color: var(--blue-color);
-    background-color: #e8f0fe;
+    color: var(--color-blue-2065f9);
+    background-color: var(--color-blue-e8f0fe);
 }
 
 .toggle-password svg {
@@ -224,14 +224,14 @@ body {
 }
 
 .password-hint {
-    color: #666;
+    color: var(--color-gray-666666);
     font-size: 1.2rem;
     line-height: 1.5;
     margin-top: 0.6rem;
 }
 
 .password-requirements {
-    color: #5f6368;
+    color: var(--color-blue-5f6368);
     font-size: 1.2rem;
     line-height: 1.5;
     margin-top: 1rem;
@@ -257,7 +257,7 @@ body {
 
 .password-requirements__icon {
     align-items: center;
-    border: 0.1rem solid #9aa0a6;
+    border: 0.1rem solid var(--color-gray-9aa0a6);
     border-radius: 50%;
     display: inline-flex;
     flex: 0 0 1.4rem;
@@ -267,13 +267,13 @@ body {
 }
 
 .password-requirements li.is-met {
-    color: #137333;
+    color: var(--color-green-137333);
 }
 
 .password-requirements li.is-met .password-requirements__icon {
-    background: #137333;
-    border-color: #137333;
-    color: #fff;
+    background: var(--color-green-137333);
+    border-color: var(--color-green-137333);
+    color: var(--color-white);
 }
 
 .password-requirements li.is-met .password-requirements__icon::before {
@@ -306,9 +306,9 @@ body {
     width: 2rem;
     height: 2rem;
     min-width: 2rem;
-    border: 0.2rem solid #dadce0;
+    border: 0.2rem solid var(--color-gray-dadce0);
     border-radius: 0.4rem;
-    background-color: #fff;
+    background-color: var(--color-white);
     cursor: pointer;
     position: relative;
     transition: all 0.2s ease;
@@ -316,13 +316,13 @@ body {
 }
 
 .checkbox-group input[type="checkbox"]:hover {
-    border-color: var(--blue-color);
-    background-color: #f8f9fa;
+    border-color: var(--color-blue-2065f9);
+    background-color: var(--color-gray-f8f9fa);
 }
 
 .checkbox-group input[type="checkbox"]:checked {
-    background-color: var(--blue-color);
-    border-color: var(--blue-color);
+    background-color: var(--color-blue-2065f9);
+    border-color: var(--color-blue-2065f9);
 }
 
 .checkbox-group input[type="checkbox"]:checked::after {
@@ -332,7 +332,7 @@ body {
     top: 0.2rem;
     width: 0.6rem;
     height: 1rem;
-    border: solid white;
+    border: solid var(--color-white);
     border-width: 0 0.2rem 0.2rem 0;
     transform: rotate(45deg);
 }
@@ -340,14 +340,14 @@ body {
 .checkbox-group label {
     flex: 1;
     font-size: 1.4rem;
-    color: #5f6368;
+    color: var(--color-blue-5f6368);
     line-height: 1.5rem;
     cursor: pointer;
     user-select: none;
 }
 
 .checkbox-group label a {
-    color: var(--blue-color);
+    color: var(--color-blue-2065f9);
     text-decoration: none;
     font-family: outfit-medium;
 }
@@ -373,7 +373,7 @@ body {
 }
 
 .forgot-password a {
-    color: var(--blue-color);
+    color: var(--color-blue-2065f9);
     text-decoration: none;
 }
 
@@ -386,8 +386,8 @@ body {
     width: 65%;
     min-height: 4.4rem;
     padding: 0.95rem 1.2rem;
-    background-color: var(--blue-color);
-    color: white;
+    background-color: var(--color-blue-2065f9);
+    color: var(--color-white);
     border: none;
     border-radius: 1.5rem;
     font-size: 1.6rem;
@@ -400,8 +400,8 @@ body {
 }
 
 .submit-btn:hover {
-    background-color: rgb(26, 86, 219);
-    box-shadow: 0 0.2rem 0.5rem rgba(32, 101, 249, 0.3);
+    background-color: var(--color-blue-1a56db);
+    box-shadow: 0 0.2rem 0.5rem var(--color-blue-2065f9-a30);
 }
 
 /* Footer text with link */
@@ -409,11 +409,11 @@ body {
     text-align: center;
     margin-top: 1.1rem;
     font-size: 1.4rem;
-    color: #5f6368;
+    color: var(--color-blue-5f6368);
 }
 
 .auth-footer a {
-    color: var(--blue-color);
+    color: var(--color-blue-2065f9);
     text-decoration: none;
     font-family: outfit-medium;
 }
@@ -435,20 +435,20 @@ body {
 }
 
 .message.success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 0.1rem solid #c3e6cb;
+    background-color: var(--color-green-d4edda);
+    color: var(--color-green-155724);
+    border: 0.1rem solid var(--color-green-c3e6cb);
 }
 
 .message.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 0.1rem solid #f5c6cb;
+    background-color: var(--color-red-f8d7da);
+    color: var(--color-red-721c24);
+    border: 0.1rem solid var(--color-red-f5c6cb);
 }
 
 /* ✅ NOVÉ: Error message pod inputom */
 .error-message {
-    color: #dc2626;
+    color: var(--color-red-dc2626);
     font-size: 1.3rem;
     /* margin-top: 0.5rem; */
     display: block;
@@ -460,28 +460,28 @@ body {
 input.error,
 select.error,
 textarea.error {
-    border-color: #dc2626 !important;
-    background-color: #fef2f2;
+    border-color: var(--color-red-dc2626) !important;
+    background-color: var(--color-gray-fef2f2);
 }
 
 input.error:focus,
 select.error:focus,
 textarea.error:focus {
-    border-color: #dc2626 !important;
-    box-shadow: 0 0 0 0.3rem rgba(220, 38, 38, 0.1);
+    border-color: var(--color-red-dc2626) !important;
+    box-shadow: 0 0 0 0.3rem var(--color-red-dc2626-a10);
 }
 
 .google-terms-text {
     text-align: center;
     font-size: 1.2rem;
-    color: #6b7280;
+    color: var(--color-blue-6b7280);
     margin-top: 0.7rem;
     margin-bottom: 0;
     line-height: 1.4;
 }
 
 .google-terms-text a {
-    color: #4285F4;
+    color: var(--color-blue-4285f4);
     text-decoration: none;
 }
 

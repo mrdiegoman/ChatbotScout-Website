@@ -3,7 +3,7 @@
 }
 
 body {
-    background-color: white;
+    background-color: var(--color-white);
 }
 
 .tc-wrapper{
@@ -13,11 +13,11 @@ body {
 }
 
 .legal-document {
-    color: var(--black-color);
+    color: var(--color-gray-232127);
 }
 
 .tc-date {
-    color: var(--black-color-hover);
+    color: var(--color-gray-969696);
     font-size: 1.3rem;
 }
 
@@ -42,7 +42,7 @@ body {
 }
 
 .tc-wrapper a {
-    color: var(--blue-color);
+    color: var(--color-blue-2065f9);
     font-family: outfit-semibold, sans-serif;
     text-decoration: none;
 }
@@ -57,10 +57,10 @@ body {
     box-sizing: border-box;
     margin: 0 0 3rem 0;
     padding: 1.6rem 2rem;
-    border: 1px solid var(--black-color-hover);
+    border: 1px solid var(--color-gray-969696);
     border-radius: 8px;
-    background: #f8fbff;
-    color: var(--black-color-light);
+    background: var(--color-gray-f8fbff);
+    color: var(--color-gray-232127);
     font-style: normal;
     font-size: 1.5rem;
     line-height: 1.65;
@@ -85,7 +85,7 @@ body {
     position: absolute;
     left: -1.5rem;
     align-self: center;
-    color: var(--black-color-light);
+    color: var(--color-gray-232127);
     font-size: 2.25rem;
     line-height: 1.2rem;
 }

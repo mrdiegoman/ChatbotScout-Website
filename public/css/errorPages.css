@@ -8,7 +8,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--blue-light);
+    background-color: var(--color-blue-ebeaff);
     padding: 4rem 2rem;
 }
 
@@ -21,9 +21,9 @@
 /* ── Card ─────────────────────────────────── */
 
 .error-page-card {
-    background-color: var(--white-color-dark);
+    background-color: var(--color-gray-fafafa);
     border-radius: 2rem;
-    box-shadow: 0 4px 32px rgba(79, 46, 247, 0.10), 0 1px 4px rgba(0,0,0,0.06);
+    box-shadow: 0 4px 32px var(--color-blue-4f2ef7-a10), 0 1px 4px var(--color-black-a06);
     padding: 5rem 4rem;
     max-width: 56rem;
     width: 100%;
@@ -40,26 +40,26 @@
     width: 8rem;
     height: 8rem;
     border-radius: 50%;
-    background-color: rgba(79, 46, 247, 0.08);
+    background-color: var(--color-blue-4f2ef7-a08);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--blue-color-2);
+    color: var(--color-blue-4f2ef7);
     flex-shrink: 0;
 }
 
 .error-page-icon svg {
     width: 4rem;
     height: 4rem;
-    stroke: var(--blue-color-2);
+    stroke: var(--color-blue-4f2ef7);
 }
 
 .error-page-icon--warning {
-    background-color: rgba(255, 165, 0, 0.10);
+    background-color: var(--color-orange-ffa500-a10);
 }
 
 .error-page-icon--warning svg {
-    stroke: var(--accent-color);
+    stroke: var(--color-orange-ffa500);
 }
 
 /* ── Error Code ───────────────────────────── */
@@ -68,7 +68,7 @@
     font-size: 9rem;
     font-family: Outfit-ExtraBold, Outfit-Bold, Outfit, sans-serif;
     line-height: 1;
-    color: var(--dark-blue-color);
+    color: var(--color-slate-1e162e);
     letter-spacing: -0.3rem;
     margin: -0.5rem 0;
 }
@@ -78,7 +78,7 @@
 .error-page-title {
     font-size: 3rem;
     font-family: Outfit-Bold, Outfit, sans-serif;
-    color: var(--black-color-light);
+    color: var(--color-gray-232127);
     line-height: 1.2;
     margin: 0;
 }
@@ -88,7 +88,7 @@
 .error-page-description {
     font-size: 1.6rem;
     font-family: Outfit, sans-serif;
-    color: #666;
+    color: var(--color-gray-666666);
     line-height: 2.4rem;
     max-width: 42rem;
     margin: 0;
@@ -126,40 +126,40 @@
 }
 
 .error-page-btn--primary {
-    background-color: var(--blue-color-2);
-    color: var(--white-color-dark);
-    box-shadow: 0 2px 12px rgba(79, 46, 247, 0.25);
+    background-color: var(--color-blue-4f2ef7);
+    color: var(--color-gray-fafafa);
+    box-shadow: 0 2px 12px var(--color-blue-4f2ef7-a25);
 }
 
 .error-page-btn--primary svg {
-    stroke: var(--white-color-dark);
+    stroke: var(--color-gray-fafafa);
 }
 
 .error-page-btn--primary:hover {
-    background-color: var(--blue-color-2-hover-dark);
+    background-color: var(--color-blue-3109f8);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(79, 46, 247, 0.35);
+    box-shadow: 0 6px 20px var(--color-blue-4f2ef7-a35);
 }
 
 .error-page-btn--secondary {
-    background-color: transparent;
-    color: var(--blue-color-2);
-    border: 0.2rem solid var(--blue-color-2);
+    background-color: var(--color-transparent);
+    color: var(--color-blue-4f2ef7);
+    border: 0.2rem solid var(--color-blue-4f2ef7);
 }
 
 .error-page-btn--secondary svg {
-    stroke: var(--blue-color-2);
+    stroke: var(--color-blue-4f2ef7);
 }
 
 .error-page-btn--secondary:hover {
-    background-color: var(--blue-color-2);
-    color: var(--white-color-dark);
+    background-color: var(--color-blue-4f2ef7);
+    color: var(--color-gray-fafafa);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(79, 46, 247, 0.25);
+    box-shadow: 0 6px 20px var(--color-blue-4f2ef7-a25);
 }
 
 .error-page-btn--secondary:hover svg {
-    stroke: var(--white-color-dark);
+    stroke: var(--color-gray-fafafa);
 }
 
 /* ── Responsive ───────────────────────────── */

@@ -23,14 +23,14 @@
 }
 
 :root {
-    --ops-ink: #151a2d;
-    --ops-muted: #65728a;
-    --ops-line: #dbe3f1;
-    --ops-panel: #ffffff;
-    --ops-page: #eef4ff;
-    --ops-blue: #115dff;
-    --ops-green: #05c753;
-    --ops-red: #ef233c;
+    --ops-ink: var(--color-slate-151a2d);
+    --ops-muted: var(--color-blue-65728a);
+    --ops-line: var(--color-blue-dbe3f1);
+    --ops-panel: var(--color-white);
+    --ops-page: var(--color-gray-eef4ff);
+    --ops-blue: var(--color-blue-115dff);
+    --ops-green: var(--color-green-05c753);
+    --ops-red: var(--color-red-ef233c);
 }
 
 body.ops-access-page {
@@ -38,10 +38,10 @@ body.ops-access-page {
     margin: 0;
     font-family: 'Outfit', Arial, sans-serif;
     background:
-        radial-gradient(circle at 12% 18%, rgba(17, 93, 255, 0.13), transparent 24rem),
-        radial-gradient(circle at 84% 12%, rgba(5, 199, 83, 0.10), transparent 20rem),
-        var(--ops-page);
-    color: var(--ops-ink);
+        radial-gradient(circle at 12% 18%, var(--color-blue-115dff-a13), var(--color-transparent) 24rem),
+        radial-gradient(circle at 84% 12%, var(--color-green-05c753-a10), var(--color-transparent) 20rem),
+        var(--color-gray-eef4ff);
+    color: var(--color-slate-151a2d);
 }
 
 .ops-access-shell {
@@ -53,10 +53,10 @@ body.ops-access-page {
 
 .ops-access-card {
     width: min(100%, 28rem);
-    background: var(--ops-panel);
-    border: 1px solid var(--ops-line);
+    background: var(--color-white);
+    border: 1px solid var(--color-blue-dbe3f1);
     border-radius: 1.4rem;
-    box-shadow: 0 1.6rem 4rem rgba(21, 26, 45, 0.12);
+    box-shadow: 0 1.6rem 4rem var(--color-slate-151a2d-a12);
     padding: 2.1rem;
 }
 
@@ -78,7 +78,7 @@ body.ops-access-page {
 }
 
 .ops-access-brand:focus-visible {
-    box-shadow: 0 0 0 0.22rem rgba(17, 93, 255, 0.16);
+    box-shadow: 0 0 0 0.22rem var(--color-blue-115dff-a16);
 }
 
 .ops-access-brand img {
@@ -93,7 +93,7 @@ body.ops-access-page {
 
 .ops-access-kicker {
     margin: 0 0 0.45rem;
-    color: var(--ops-blue);
+    color: var(--color-blue-115dff);
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -109,7 +109,7 @@ body.ops-access-page {
 
 .ops-access-heading p:last-child {
     margin: 0.85rem 0 0;
-    color: var(--ops-muted);
+    color: var(--color-blue-65728a);
     font-size: 1.02rem;
     line-height: 1.55;
 }
@@ -117,10 +117,10 @@ body.ops-access-page {
 .ops-access-error {
     margin-bottom: 1.2rem;
     padding: 0.9rem 1rem;
-    border: 1px solid rgba(239, 35, 60, 0.28);
+    border: 1px solid var(--color-red-ef233c-a28);
     border-radius: 0.75rem;
-    background: rgba(239, 35, 60, 0.07);
-    color: #b41227;
+    background: var(--color-red-ef233c-a07);
+    color: var(--color-red-b41227);
     font-weight: 700;
 }
 
@@ -142,11 +142,11 @@ body.ops-access-page {
 .ops-access-field input {
     width: 100%;
     height: 3.4rem;
-    border: 1.5px solid var(--ops-line);
+    border: 1.5px solid var(--color-blue-dbe3f1);
     border-radius: 0.85rem;
     padding: 0 1rem;
-    background: #fff;
-    color: var(--ops-ink);
+    background: var(--color-white);
+    color: var(--color-slate-151a2d);
     font: inherit;
     font-weight: 600;
     outline: none;
@@ -154,8 +154,8 @@ body.ops-access-page {
 }
 
 .ops-access-field input:focus {
-    border-color: var(--ops-blue);
-    box-shadow: 0 0 0 0.22rem rgba(17, 93, 255, 0.12);
+    border-color: var(--color-blue-115dff);
+    box-shadow: 0 0 0 0.22rem var(--color-blue-115dff-a12);
 }
 
 .ops-access-submit {
@@ -166,26 +166,26 @@ body.ops-access-page {
     justify-content: center;
     border: 0;
     border-radius: 0.9rem;
-    background: var(--ops-green);
-    color: #071322;
+    background: var(--color-green-05c753);
+    color: var(--color-slate-071322);
     font: inherit;
     font-size: 1.05rem;
     font-weight: 800;
     text-align: center;
     cursor: pointer;
     transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
-    box-shadow: 0 0.75rem 1.45rem rgba(5, 199, 83, 0.24);
+    box-shadow: 0 0.75rem 1.45rem var(--color-green-05c753-a24);
 }
 
 .ops-access-submit:hover {
     transform: translateY(-1px);
     filter: brightness(1.02);
-    box-shadow: 0 0.95rem 1.75rem rgba(5, 199, 83, 0.3);
+    box-shadow: 0 0.95rem 1.75rem var(--color-green-05c753-a30);
 }
 
 .ops-access-submit:active {
     transform: translateY(0);
-    box-shadow: 0 0.45rem 1rem rgba(5, 199, 83, 0.2);
+    box-shadow: 0 0.45rem 1rem var(--color-green-05c753-a20);
 }
 
 @media (max-width: 520px) {

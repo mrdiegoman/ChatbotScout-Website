@@ -1,5 +1,5 @@
 .cs-contact-page .cs-hero-panel {
-    border-color: rgba(0, 200, 83, 0.25);
+    border-color: var(--color-green-00c853-a25);
 }
 
 .cs-contact-page .cs-contact-form-card {

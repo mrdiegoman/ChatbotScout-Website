@@ -9,8 +9,8 @@
     width: 2.2rem;
     height: 2.2rem;
     border-radius: 50%;
-    border: 1.5px solid transparent;
-    background: transparent;
+    border: 1.5px solid var(--color-transparent);
+    background: var(--color-transparent);
     color: inherit;
     cursor: pointer;
     transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
@@ -31,9 +31,9 @@
 }
 
 .admin-refresh-btn:hover {
-    background: rgba(59, 130, 246, 0.12);
-    border-color: #3b82f6;
-    color: #3b82f6;
+    background: var(--color-blue-3b82f6-a12);
+    border-color: var(--color-blue-3b82f6);
+    color: var(--color-blue-3b82f6);
 }
 
 .admin-refresh-btn.spinning svg {
@@ -56,7 +56,7 @@
 
 .admin-load-more-counter {
     font-size: 1.3rem;
-    color: var(--grey-color, #9ca3af);
+    color: var(--grey-color, var(--color-blue-9ca3af));
     flex: 1;
 }
 
@@ -64,8 +64,8 @@
 .admin-scroll-oldest-btn {
     padding: 0.7rem 1.4rem;
     border-radius: 0.8rem;
-    border: 0.15rem solid var(--black-color-light, #1f2937);
-    background: transparent;
+    border: 0.15rem solid var(--color-gray-232127);
+    background: var(--color-transparent);
     font-size: 1.35rem;
     font-family: outfit-medium, sans-serif;
     cursor: pointer;
@@ -73,13 +73,13 @@
 }
 
 .admin-show-more-btn:hover {
-    background: var(--blue-color-2, #2563eb);
-    color: #fff;
-    border-color: var(--blue-color-2, #2563eb);
+    background: var(--color-blue-4f2ef7);
+    color: var(--color-white);
+    border-color: var(--color-blue-4f2ef7);
 }
 
 .admin-scroll-oldest-btn:hover {
-    background: var(--grey-hover-color, #f3f4f6);
+    background: var(--color-gray-c8c8c8);
 }
 
 .admin-show-more-btn:disabled {

@@ -8,8 +8,8 @@
     width: 100%;
     padding: clamp(5rem, 7vw, 8.4rem) max(2.4rem, calc((100vw - var(--cs-page-max)) / 2)) clamp(6.4rem, 8vw, 9.6rem);
     background:
-        radial-gradient(circle at 84% 24%, rgba(210, 224, 255, 0.62), transparent 38%),
-        linear-gradient(180deg, #edf3ff 0%, #f1f5ff 68%, var(--cs-bg) 100%);
+        radial-gradient(circle at 84% 24%, var(--color-blue-d2e0ff-a62), var(--color-transparent) 38%),
+        linear-gradient(180deg, var(--color-gray-edf3ff) 0%, var(--color-gray-f1f5ff) 68%, var(--color-gray-f4f7ff) 100%);
 }
 
 .cs-about-overview {
@@ -47,7 +47,7 @@
 }
 
 .cs-about-values .cs-card {
-    box-shadow: 0 0.8rem 2.4rem rgba(0, 87, 255, 0.08);
+    box-shadow: 0 0.8rem 2.4rem var(--color-blue-0057ff-a08);
 }
 
 .cs-about-page .cs-card--soft {
@@ -56,11 +56,11 @@
 }
 
 .cs-about-page .cs-stat:first-child strong {
-    color: var(--cs-blue);
+    color: var(--color-blue-0057ff);
 }
 
 .cs-about-page .cs-stat:last-child strong {
-    color: var(--cs-green-dark);
+    color: var(--color-green-00a344);
 }
 
 @media (max-width: 1080px) {
@@ -100,10 +100,10 @@
     .cs-about-mobile-details {
         display: block;
         padding: 1.5rem 1.6rem;
-        border: 0.1rem solid var(--cs-border);
+        border: 0.1rem solid var(--color-gray-e2e8f4);
         border-radius: 0.8rem;
-        background: #ffffff;
-        box-shadow: 0 0.8rem 2.4rem rgba(0, 87, 255, 0.06);
+        background: var(--color-white);
+        box-shadow: 0 0.8rem 2.4rem var(--color-blue-0057ff-a06);
     }
 
     .cs-about-mobile-details summary {
@@ -113,7 +113,7 @@
         gap: 1.2rem;
         list-style: none;
         cursor: pointer;
-        color: var(--cs-text);
+        color: var(--color-slate-1a2236);
         font-family: Outfit-SemiBold, Outfit, sans-serif;
         font-size: 1.45rem;
         line-height: 2rem;
@@ -138,14 +138,14 @@
     }
 
     .cs-about-mobile-details summary:focus-visible {
-        outline: 0.2rem solid var(--cs-blue);
+        outline: 0.2rem solid var(--color-blue-0057ff);
         outline-offset: 0.4rem;
         border-radius: 0.4rem;
     }
 
     .cs-about-mobile-details p {
         margin-top: 1.2rem;
-        color: var(--cs-muted);
+        color: var(--color-blue-6b7a99);
         font-size: 1.4rem;
         line-height: 1.7;
     }

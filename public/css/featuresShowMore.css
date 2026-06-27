@@ -12,12 +12,12 @@
     align-items: center;
     justify-content: center;
     padding: 0.35rem 0.75rem;
-    border: 0.1rem solid var(--blue-color-2, #2563eb);
+    border: 0.1rem solid var(--color-blue-4f2ef7);
     border-radius: 2rem;
-    color: var(--blue-color-2, #2563eb);
+    color: var(--color-blue-4f2ef7);
     font-size: 1.2rem;
     font-family: outfit-medium, sans-serif;
-    background: transparent;
+    background: var(--color-transparent);
     cursor: pointer;
     user-select: none;
     white-space: nowrap;
@@ -26,16 +26,16 @@
 }
 
 .features-show-more-btn:hover {
-    background-color: var(--blue-color-2, #2563eb);
-    color: #fff;
+    background-color: var(--color-blue-4f2ef7);
+    color: var(--color-white);
 }
 
 .features-show-more-btn--open {
-    background-color: var(--blue-color-2, #2563eb);
-    color: #fff;
+    background-color: var(--color-blue-4f2ef7);
+    color: var(--color-white);
 }
 
 .features-show-more-btn--open:hover {
-    background-color: #1d4ed8;
-    border-color: #1d4ed8;
+    background-color: var(--color-blue-1d4ed8);
+    border-color: var(--color-blue-1d4ed8);
 }

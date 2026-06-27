@@ -3,7 +3,7 @@
 }
 
 body {
-    background-color: white;
+    background-color: var(--color-white);
 }
 
 .pp-wrapper{
@@ -13,11 +13,11 @@ body {
 }
 
 .legal-document {
-    color: var(--black-color);
+    color: var(--color-gray-232127);
 }
 
 .pp-date {
-    color: var(--black-color-hover);
+    color: var(--color-gray-969696);
     font-size: 1.3rem;
 }
 
@@ -41,7 +41,7 @@ body {
 }
 
 .pp-wrapper a {
-    color: var(--blue-color);
+    color: var(--color-blue-2065f9);
     font-family: outfit-semibold, sans-serif;
     text-decoration: none;
 }
@@ -56,10 +56,10 @@ body {
     box-sizing: border-box;
     margin: 0 0 3rem 0;
     padding: 1.6rem 2rem;
-    border: 1px solid var(--black-color-hover);
+    border: 1px solid var(--color-gray-969696);
     border-radius: 8px;
-    background: #f8fbff;
-    color: var(--black-color-light);
+    background: var(--color-gray-f8fbff);
+    color: var(--color-gray-232127);
     font-style: normal;
     font-size: 1.5rem;
     line-height: 1.65;
@@ -77,7 +77,7 @@ body {
     position: absolute;
     left: -1.5rem;
     align-self: center;
-    color: var(--black-color-light);
+    color: var(--color-gray-232127);
     font-size: 2.25rem;
     line-height: 1.2rem;
 }
@@ -101,7 +101,7 @@ table {
 }
 
 th, td {
-    border: 1px solid var(--black-color-hover);
+    border: 1px solid var(--color-gray-969696);
     padding: 12px;
     text-align: left;
     vertical-align: top;
@@ -109,7 +109,7 @@ th, td {
 }
 
 th {
-    background-color: #f2f2f2;
+    background-color: var(--color-gray-f2f2f2);
     font-family: outfit-semibold, sans-serif;
 }
 
@@ -136,7 +136,7 @@ th {
     }
 
     tr {
-        border: 1px solid var(--black-color-hover);
+        border: 1px solid var(--color-gray-969696);
         margin-bottom: 1.5rem;
         border-radius: 8px;
         overflow: hidden;
@@ -144,7 +144,7 @@ th {
 
     td {
         border: none;
-        border-bottom: 1px solid var(--black-color-hover);
+        border-bottom: 1px solid var(--color-gray-969696);
         padding: 10px 12px 10px 45%;
         position: relative;
         min-height: 2.5rem;
@@ -161,7 +161,7 @@ th {
         width: 40%;
         font-family: outfit-semibold, sans-serif;
         font-size: 1.2rem;
-        color: #555;
+        color: var(--color-gray-555555);
     }
 }
 
