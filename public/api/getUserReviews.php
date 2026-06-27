@@ -27,7 +27,7 @@ if (!$isLoggedIn || empty($user['id'])) {
 try {
     $db = Database::getInstance()->getConnection();
     $offset = max(0, min(10000, (int)($_GET['offset'] ?? 0)));
-    $limit = 1;
+    $limit = 10;
 
     $countStmt = $db->prepare("
         SELECT COUNT(*)
@@ -48,7 +48,8 @@ try {
             r.created_at,
             r.moderated_at,
             c.id   AS chatbot_id,
-            c.name AS chatbot_name
+            c.name AS chatbot_name,
+            c.logo_url AS chatbot_logo_url
         FROM reviews r
         JOIN chatbots c ON r.chatbot_id = c.id
         WHERE r.user_id = :user_id

@@ -3,7 +3,7 @@ const burgerBtn = document.querySelector('.header-burger-btn');
 const mobileMenu = document.querySelector('.header-mobile-menu');
 const closeBtn = document.querySelector('.header-mobile-close');
 
-function hideNotifications() {
+function dismissNotifications() {
     if (typeof window.hideNotifications === 'function') {
         window.hideNotifications();
     }
@@ -11,7 +11,7 @@ function hideNotifications() {
 
 if (burgerBtn && mobileMenu && closeBtn) {
     burgerBtn.addEventListener('click', () => {
-        hideNotifications();
+        dismissNotifications();
         mobileMenu.classList.add('active');
         lockScroll();
     });

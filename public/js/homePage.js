@@ -438,8 +438,16 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!track || !btnPrev || !btnNext) return;
 
         const viewport = track.parentElement;
+        const carousel = viewport.parentElement;
         let offset = 0;
         let resizeFrame = 0;
+        let isDragging = false;
+        let dragStarted = false;
+        let dragPointerId = null;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let dragStartOffset = 0;
+        let suppressCardClick = false;
 
         function getViewportPadding() {
             const styles = window.getComputedStyle(viewport);
@@ -493,9 +501,24 @@ document.addEventListener('DOMContentLoaded', function () {
             return Math.round(raw / cardStep) * cardStep;
         }
 
+        function setButtonHidden(button, shouldHide) {
+            button.classList.toggle('is-hidden', shouldHide);
+            button.setAttribute('aria-hidden', shouldHide ? 'true' : 'false');
+            button.tabIndex = shouldHide ? -1 : 0;
+        }
+
         function updateButtons() {
-            btnPrev.style.opacity = offset <= 0 ? '.35' : '1';
-            btnNext.style.opacity = offset >= getMax() ? '.35' : '1';
+            const max = getMax();
+            const canScroll = max > 1;
+            const atStart = offset <= 1;
+            const atEnd = max - offset <= 1;
+
+            setButtonHidden(btnPrev, !canScroll || atStart);
+            setButtonHidden(btnNext, !canScroll || atEnd);
+
+            carousel.classList.toggle('is-overflowing', canScroll);
+            carousel.classList.toggle('has-left-overflow', canScroll && !atStart);
+            carousel.classList.toggle('has-right-overflow', canScroll && !atEnd);
         }
 
         function applyOffset() {
@@ -515,6 +538,27 @@ document.addEventListener('DOMContentLoaded', function () {
             resizeFrame = requestAnimationFrame(applyOffset);
         }
 
+        function clearDragState() {
+            isDragging = false;
+            dragStarted = false;
+            dragPointerId = null;
+            carousel.classList.remove('is-dragging');
+        }
+
+        function finishDrag() {
+            if (!isDragging) return;
+
+            const shouldSuppressClick = dragStarted;
+            const finalOffset = offset;
+            clearDragState();
+
+            if (shouldSuppressClick) {
+                setOffset(finalOffset);
+                suppressCardClick = true;
+                setTimeout(() => { suppressCardClick = false; }, 350);
+            }
+        }
+
         btnNext.addEventListener('click', () => {
             const target = offset + getVisibleStep();
             setOffset(target >= getMax() ? getMax() : snapToCard(target));
@@ -523,6 +567,70 @@ document.addEventListener('DOMContentLoaded', function () {
         btnPrev.addEventListener('click', () => {
             setOffset(snapToCard(Math.max(offset - getVisibleStep(), 0)));
         });
+
+        viewport.addEventListener('pointerdown', (event) => {
+            if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
+            if (event.target.closest('button')) return;
+            if (getMax() <= 1) return;
+
+            isDragging = true;
+            dragStarted = false;
+            dragPointerId = event.pointerId;
+            dragStartX = event.clientX;
+            dragStartY = event.clientY;
+            dragStartOffset = offset;
+        });
+
+        viewport.addEventListener('pointermove', (event) => {
+            if (!isDragging || event.pointerId !== dragPointerId) return;
+
+            const deltaX = event.clientX - dragStartX;
+            const deltaY = event.clientY - dragStartY;
+            const absX = Math.abs(deltaX);
+            const absY = Math.abs(deltaY);
+
+            if (!dragStarted) {
+                if (absX < 6) return;
+
+                if (absY > absX + 4) {
+                    clearDragState();
+                    return;
+                }
+
+                dragStarted = true;
+                carousel.classList.add('is-dragging');
+                viewport.setPointerCapture?.(event.pointerId);
+            }
+
+            event.preventDefault();
+            setOffset(dragStartOffset - deltaX);
+        });
+
+        viewport.addEventListener('pointerup', (event) => {
+            if (event.pointerId === dragPointerId) {
+                finishDrag();
+            }
+        });
+
+        viewport.addEventListener('pointercancel', (event) => {
+            if (event.pointerId === dragPointerId) {
+                clearDragState();
+            }
+        });
+
+        window.addEventListener('pointerup', (event) => {
+            if (event.pointerId === dragPointerId) {
+                finishDrag();
+            }
+        });
+
+        track.addEventListener('click', (event) => {
+            if (!suppressCardClick) return;
+
+            event.preventDefault();
+            event.stopPropagation();
+            suppressCardClick = false;
+        }, true);
 
         window.addEventListener('resize', scheduleLayoutUpdate);
         window.addEventListener('load', scheduleLayoutUpdate);

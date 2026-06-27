@@ -156,6 +156,21 @@
         reviewsContainer.insertAdjacentHTML('beforeend', reviews.map(buildReviewCard).join(''));
     }
 
+    function logoSrc(path) {
+        const value = String(path || '').trim();
+        if (!value) return 'img/ChatbotScout_logo.png';
+        if (/^(https?:)?\/\//i.test(value) || value.startsWith('/') || value.startsWith('data:') || value.startsWith('../')) {
+            return value;
+        }
+        if (value.startsWith('websiteLogos/')) {
+            return `img/${value}`;
+        }
+        if (value.startsWith('public/')) {
+            return `../${value}`;
+        }
+        return value;
+    }
+
     function buildReviewCard(r) {
         const statusConfig = {
             pending:  { label: 'Pending',  cls: 'pr-status-pending'  },
@@ -186,12 +201,22 @@
 
         // Delete disabled pre removed status
         const deleteDisabled = r.status === 'removed' ? ' disabled' : '';
+        const chatbotLogo = escHtml(logoSrc(r.chatbot_logo_url));
+        const chatbotName = escHtml(r.chatbot_name);
+        const chatbotReviewsUrl = r.chatbot_id
+            ? escHtml(`chatbot-reviews?chatbot=${encodeURIComponent(String(r.chatbot_id))}`)
+            : 'chatbots';
 
         return `
         <div class="pr-card" data-id="${escHtml(r.id)}">
             <div class="pr-card-header">
                 <div class="pr-card-header-left">
-                    <span class="pr-chatbot-name">🤖 ${escHtml(r.chatbot_name)}</span>
+                    <a class="pr-chatbot-name" href="${chatbotReviewsUrl}">
+                        <span class="pr-chatbot-logo" aria-hidden="true">
+                            <img src="${chatbotLogo}" alt="" loading="lazy" onerror="this.onerror=null;this.src='img/ChatbotScout_logo.png';">
+                        </span>
+                        <span class="pr-chatbot-name-text">${chatbotName}</span>
+                    </a>
                     <div class="pr-stars-row">
                         ${stars}
                         <span class="pr-rating-num">${r.rating}/5</span>
@@ -246,7 +271,8 @@
         editingReviewId = reviewId;
 
         // Prečítaj dáta z karty
-        const chatbotName = card.querySelector('.pr-chatbot-name').textContent.replace('🤖 ', '').trim();
+        const chatbotName = card.querySelector('.pr-chatbot-name-text')?.textContent.trim()
+            || card.querySelector('.pr-chatbot-name').textContent.trim();
         const ratingNum   = parseInt(card.querySelector('.pr-rating-num').textContent);
         const textEl      = card.querySelector('.pr-review-text');
 
