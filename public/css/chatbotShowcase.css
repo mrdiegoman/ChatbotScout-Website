@@ -1,9 +1,14 @@
 :root{
     --cs-blue-dark: #0041cc;
+    --showcase-bg: #f4f7ff;
+    --showcase-surface: #ffffff;
+    --showcase-border: #e2e8f4;
+    --showcase-shadow: 0 1.2rem 3.2rem rgba(0, 87, 255, 0.10);
+    --showcase-shadow-hover: 0 1.8rem 4.2rem rgba(0, 87, 255, 0.14);
 }
 
-body {
-    background-color: var(--blue-light);
+body.page-chatbotShowcase {
+    background: var(--showcase-bg);
 }
 
 .chatbot-page-wrapper {
@@ -12,6 +17,8 @@ body {
     width: 100%;
     --showcase-results-width: 86rem;
     --showcase-side-gutter: 2rem;
+    background:
+        linear-gradient(180deg, #edf3ff 0, var(--showcase-bg) 34rem, var(--showcase-bg) 100%);
 }
 
 body.page-chatbotShowcase .footer-main-wrapper,
@@ -23,7 +30,7 @@ body.page-chatbotShowcase .footer-main-bottom {
     width: 100%;
     height: fit-content;
     background-color: #0f1c3f;
-    margin: 0 auto 2rem auto;
+    margin: 0 auto 2.6rem auto;
 }
 
 .chatbot-page-main-banner-content {
@@ -492,8 +499,9 @@ body.page-chatbotShowcase .footer-main-bottom {
 }
 
 .chatbot-page-main-content-chatbots-grid-view-item {
-    background: var(--white-color-dark);
-    box-shadow: 0 0 0.25rem 0 var(--grey-hover-color);
+    background: var(--showcase-surface);
+    border: 0.1rem solid var(--showcase-border);
+    box-shadow: var(--showcase-shadow);
     border-radius: 1rem;
     width: 100%;
     max-width: 42rem;
@@ -503,6 +511,12 @@ body.page-chatbotShowcase .footer-main-bottom {
     box-sizing: border-box;
     /* justify-content: space-between; */
     /* align-items: space-between; */
+    transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.chatbot-page-main-content-chatbots-grid-view-item:hover {
+    border-color: #cfe0ff;
+    box-shadow: var(--showcase-shadow-hover);
 }
 
 .chatbot-page-main-content-chatbots-grid-view-item-tags,
@@ -1171,13 +1185,20 @@ body.page-chatbotShowcase .footer-main-bottom {
 /* List view additional ------------------------------------------- */
 
 .chatbot-page-main-content-chatbots-list-view-item-containter {
-    background: var(--white-color-dark);
-    box-shadow: 0 0 0.25rem 0 var(--grey-hover-color);
+    background: var(--showcase-surface);
+    border: 0.1rem solid var(--showcase-border);
+    box-shadow: var(--showcase-shadow);
     display: flex;
     flex-direction: column;
     border-radius: 1rem;
     width: 100%;
     min-width: 30rem;
+    transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.chatbot-page-main-content-chatbots-list-view-item-containter:hover {
+    border-color: #cfe0ff;
+    box-shadow: var(--showcase-shadow-hover);
 }
 .chatbot-page-main-content-chatbots-list-view-item {
     width: 100%;

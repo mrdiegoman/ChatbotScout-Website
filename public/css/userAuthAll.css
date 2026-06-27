@@ -13,12 +13,13 @@ body {
 
 /* Auth page wrapper - centers content */
 .auth-page-wrapper {
-    min-height: 100vh;
+    min-height: calc(100vh - 60px);
+    min-height: calc(100dvh - 60px);
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 5rem 0;
-    margin-top: 6rem;
+    padding: clamp(1.6rem, 2.5vh, 2.4rem) 1.6rem;
+    margin-top: 60px;
 }
 
 /* Auth container - the white card */
@@ -26,9 +27,9 @@ body {
     background: white;
     border-radius: 2rem;
     box-shadow: 0 0.2rem 1rem rgba(0, 0, 0, 0.1);
-    padding: 4rem;
+    padding: clamp(2.2rem, 3vh, 2.8rem) clamp(2.4rem, 3vw, 3.2rem);
     width: 100%;
-    max-width: 550px;
+    max-width: 52rem;
 }
 
 /* Logo and branding section */
@@ -54,16 +55,17 @@ body {
 /* Page title (Sign In / Create an account) */
 .auth-title {
     text-align: center;
-    font-size: 2rem;
+    font-size: 1.9rem;
     line-height: 2rem;
-    margin-bottom: 4rem;
+    margin-bottom: 2.4rem;
     font-family: outfit-medium;
 }
 
 /* Google sign in/up button */
 .google-btn {
     width: 100%;
-    padding: 1.2rem;
+    min-height: 4.4rem;
+    padding: 0.95rem 1.2rem;
     border: 0.1rem solid #dadce0;
     border-radius: 0.6rem;
     background: white;
@@ -71,7 +73,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 1.2rem;
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     color: #3c4043;
     cursor: pointer;
     transition: background-color 0.2s, box-shadow 0.2s;
@@ -97,12 +99,12 @@ body {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    margin: 1rem 0;
+    margin: 0.6rem 0;
 }
 
 .auth-divider {
     text-align: center;
-    margin: 2.5rem 0;
+    margin: 1.4rem 0;
     position: relative;
     color: #5f6368;
     font-size: 1.4rem;
@@ -129,7 +131,7 @@ body {
 .auth-form {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.15rem;
 }
 
 .name-fields {
@@ -144,7 +146,7 @@ body {
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
+    gap: 0.55rem;
     width: 100%;
     height: fit-content;
 }
@@ -156,7 +158,8 @@ body {
 }
 
 .form-group input {
-    padding: 1.2rem;
+    min-height: 4.2rem;
+    padding: 0.95rem 1.1rem;
     border: 0.1rem solid #dadce0;
     border-radius: 0.6px;
     font-size: 1.6rem;
@@ -186,7 +189,7 @@ body {
 
 .password-wrapper input {
     width: 100%;
-    padding-right: 4.5rem;
+    padding-right: 4.2rem;
 }
 
 .toggle-password {
@@ -381,7 +384,8 @@ body {
 /* Submit button */
 .submit-btn {
     width: 65%;
-    padding: 1.2rem;
+    min-height: 4.4rem;
+    padding: 0.95rem 1.2rem;
     background-color: var(--blue-color);
     color: white;
     border: none;
@@ -390,7 +394,7 @@ body {
     font-family: outfit-semibold, sans-serif;
     cursor: pointer;
     transition: background-color 0.2s, box-shadow 0.2s;
-    margin-top: 1rem;
+    margin-top: 0.4rem;
     text-align: center;
     align-self: center;
 }
@@ -403,7 +407,7 @@ body {
 /* Footer text with link */
 .auth-footer {
     text-align: center;
-    margin-top: 1.5rem;
+    margin-top: 1.1rem;
     font-size: 1.4rem;
     color: #5f6368;
 }
@@ -471,9 +475,9 @@ textarea.error:focus {
     text-align: center;
     font-size: 1.2rem;
     color: #6b7280;
-    margin-top: 1rem;
+    margin-top: 0.7rem;
     margin-bottom: 0;
-    line-height: 1.5;
+    line-height: 1.4;
 }
 
 .google-terms-text a {
@@ -512,7 +516,7 @@ textarea.error:focus {
 
 @media (max-width: 480px) {
     .auth-container {
-        padding: 3rem 2rem;
+        padding: 2.4rem 2rem;
     }
     
     .auth-header h1 {
@@ -521,5 +525,6 @@ textarea.error:focus {
     
     .auth-title {
         font-size: 2rem;
+        margin-bottom: 2rem;
     }
 }
