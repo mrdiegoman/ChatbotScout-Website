@@ -114,6 +114,39 @@ $noIndexPages = [
 ];
 
 $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'index,follow';
+
+$cssFiles = [
+    'reset.css',
+    'main.css',
+];
+
+if (in_array($page, ['contact', 'aboutUs', 'affiliateDisclosure'], true)) {
+    $cssFiles[] = 'contentPages.css';
+}
+
+$pageCssFiles = [
+    'index' => ['homePage.css'],
+    'chatbotShowcase' => ['chatbotShowcase.css', 'featuresShowMore.css', 'platformsPopup.css'],
+    'contact' => ['contact.css'],
+    'aboutUs' => ['aboutUs.css'],
+    'affiliateDisclosure' => ['affiliateDisclosure.css'],
+    'favouritesShowcase' => ['favouritesShowcase.css', 'featuresShowMore.css', 'platformsPopup.css'],
+    'advertise' => ['advertise.css'],
+    'profile' => ['profile.css'],
+    'payment-success' => ['payment-success.css'],
+    '404' => ['errorPages.css'],
+    '500' => ['errorPages.css'],
+    'privacyPolicy' => ['privacyPolicy.css'],
+    'chatbotscout_privacy_and_cookie_policy' => ['privacyPolicy.css'],
+    'termsAndConditions' => ['termsAndConditions.css'],
+    'chatbotscout_terms_and_conditions' => ['termsAndConditions.css'],
+];
+
+if (in_array($page, $authPages, true)) {
+    $cssFiles[] = 'userAuthAll.css';
+} else {
+    $cssFiles = array_merge($cssFiles, $pageCssFiles[$page] ?? []);
+}
 ?>
 
 <!DOCTYPE html>
@@ -166,42 +199,9 @@ $robotsContent = in_array($page, $noIndexPages, true) ? 'noindex,follow' : 'inde
     <link rel="icon" type="image/x-icon" href="img/favicons/favicon.ico">
     <link rel="manifest" href="img/favicons/site.webmanifest">
 
-    <link rel="stylesheet" href="css/reset.css?v=<?= filemtime(__DIR__ . '/../public/css/reset.css') ?>">
-    <link rel="stylesheet" href="css/main.css?v=<?= filemtime(__DIR__ . '/../public/css/main.css') ?>">
-    <?php if (in_array($page, ['contact', 'aboutUs', 'affiliateDisclosure'], true)): ?>
-        <link rel="stylesheet" href="css/contentPages.css?v=<?= filemtime(__DIR__ . '/../public/css/contentPages.css') ?>">
-    <?php endif; ?>
-    <?php if ($page === 'index'): ?>
-        <link rel="stylesheet" href="css/homePage.css?v=<?= filemtime(__DIR__ . '/../public/css/homePage.css') ?>">
-    <?php elseif ($page === 'chatbotShowcase'): ?>
-        <link rel="stylesheet" href="css/chatbotShowcase.css?v=<?= filemtime(__DIR__ . '/../public/css/chatbotShowcase.css') ?>">
-        <link rel="stylesheet" href="css/featuresShowMore.css?v=<?= filemtime(__DIR__ . '/../public/css/featuresShowMore.css') ?>">
-        <link rel="stylesheet" href="css/platformsPopup.css?v=<?= filemtime(__DIR__ . '/../public/css/platformsPopup.css') ?>">
-    <?php elseif ($page === 'contact'): ?>
-        <link rel="stylesheet" href="css/contact.css?v=<?= filemtime(__DIR__ . '/../public/css/contact.css') ?>">
-    <?php elseif ($page === 'aboutUs'): ?>
-        <link rel="stylesheet" href="css/aboutUs.css?v=<?= filemtime(__DIR__ . '/../public/css/aboutUs.css') ?>">
-    <?php elseif ($page === 'affiliateDisclosure'): ?>
-        <link rel="stylesheet" href="css/affiliateDisclosure.css?v=<?= filemtime(__DIR__ . '/../public/css/affiliateDisclosure.css') ?>">
-    <?php elseif ($page === 'favouritesShowcase'): ?>
-        <link rel="stylesheet" href="css/favouritesShowcase.css?v=<?= filemtime(__DIR__ . '/../public/css/favouritesShowcase.css') ?>">
-        <link rel="stylesheet" href="css/featuresShowMore.css?v=<?= filemtime(__DIR__ . '/../public/css/featuresShowMore.css') ?>">
-        <link rel="stylesheet" href="css/platformsPopup.css?v=<?= filemtime(__DIR__ . '/../public/css/platformsPopup.css') ?>">
-    <?php elseif ($page === 'advertise'): ?>
-        <link rel="stylesheet" href="css/advertise.css?v=<?= filemtime(__DIR__ . '/../public/css/advertise.css') ?>">
-    <?php elseif ($page === 'profile'): ?>
-        <link rel="stylesheet" href="css/profile.css?v=<?= filemtime(__DIR__ . '/../public/css/profile.css') ?>">
-    <?php elseif ($page === 'payment-success'): ?>
-        <link rel="stylesheet" href="css/payment-success.css?v=<?= filemtime(__DIR__ . '/../public/css/payment-success.css') ?>">
-    <?php elseif (in_array($page, $authPages, true)): ?>
-        <link rel="stylesheet" href="css/userAuthAll.css?v=<?= filemtime(__DIR__ . '/../public/css/userAuthAll.css') ?>">
-    <?php elseif ($page === '404' || $page === '500'): ?>
-        <link rel="stylesheet" href="css/errorPages.css?v=<?= filemtime(__DIR__ . '/../public/css/errorPages.css') ?>">
-    <?php elseif ($page === 'privacyPolicy' || $page === 'chatbotscout_privacy_and_cookie_policy'): ?>
-        <link rel="stylesheet" href="css/privacyPolicy.css?v=<?= filemtime(__DIR__ . '/../public/css/privacyPolicy.css') ?>">
-    <?php elseif ($page === 'termsAndConditions' || $page === 'chatbotscout_terms_and_conditions'): ?>
-        <link rel="stylesheet" href="css/termsAndConditions.css?v=<?= filemtime(__DIR__ . '/../public/css/termsAndConditions.css') ?>">
-    <?php endif; ?>
+    <?php foreach ($cssFiles as $cssFile): ?>
+        <link rel="stylesheet" href="css/<?= htmlspecialchars($cssFile, ENT_QUOTES, 'UTF-8') ?>?v=<?= filemtime(__DIR__ . '/../public/css/' . $cssFile) ?>">
+    <?php endforeach; ?>
 
 </head>
 
