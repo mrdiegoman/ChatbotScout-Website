@@ -1018,6 +1018,7 @@ function openRatingModal(chatbotId, chatbotName) {
     if (applyFavFiltersBtn) {
         applyFavFiltersBtn.addEventListener('click', () => {
             appliedFilterParams = cloneFilterParams(collectDraftFilterParams());
+            if (typeof window.updateFilterBadge === 'function') window.updateFilterBadge(appliedFilterParams);
             closeFavouriteFiltersModal(false);
             window.applyFilters();
         });

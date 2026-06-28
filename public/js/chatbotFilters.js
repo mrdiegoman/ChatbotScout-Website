@@ -170,6 +170,7 @@ document.addEventListener('keydown', event => {
 if (applyFiltersBtn) {
     applyFiltersBtn.addEventListener('click', () => {
         appliedFilterParams = cloneParams(collectDraftFilterParams());
+        if (typeof window.updateFilterBadge === 'function') window.updateFilterBadge(appliedFilterParams);
         closeModal(false);
         if (typeof window.applyFilters === 'function') window.applyFilters();
     });

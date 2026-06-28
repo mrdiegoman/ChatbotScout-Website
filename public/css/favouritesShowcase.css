@@ -327,34 +327,63 @@ body.page-favouritesShowcase .footer-main-bottom {
     justify-content: center;
     border: 0.1rem solid var(--color-gray-323232-a25);
     border-radius: 1.5rem;
-    padding: 1rem 1rem;
+    padding: 0 1.1rem;
     background-color: var(--color-gray-fafafa);
+    color: var(--color-gray-232127);
+    cursor: pointer;
+    transition: background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
 }
 
 .favourites-page-main-content-topbar-group-filters-button p{
+    margin: 0;
     font-size: 1.75rem;
+    line-height: 1;
+}
+
+.favourites-page-main-content-topbar-group-filters-button:hover,
+.favourites-page-main-content-topbar-group-filters-button:focus-visible {
+    border-color: var(--color-blue-93b8ff-a35);
+    background-color: var(--color-gray-eff6ff);
+}
+
+.favourites-page-main-content-topbar-group-filters-button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 0.3rem var(--color-blue-2563eb-a06);
+}
+
+.favourites-page-main-content-topbar-group-filters-button.has-active-filters {
+    border-color: var(--color-blue-2563eb);
+    background-color: var(--color-blue-2563eb-a06);
+    color: var(--color-blue-1d4ed8);
+    box-shadow: 0 0.1rem 0.35rem var(--color-blue-2563eb-a06);
 }
 
 .favourites-page-main-content-topbar-group-sort-filters-button-icon {
     height: 2.5rem;
     width: auto;
     cursor: pointer;
+    flex: 0 0 auto;
 }
 
 .favourites-page-main-content-topbar-group-filters-button-count{
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 100%;
-    background-color: var(--color-blue-2065f9);
+    min-width: 2.15rem;
+    height: 2.15rem;
+    border-radius: 999rem;
+    padding: 0 0.65rem;
+    background-color: var(--color-blue-2563eb);
     display: flex;
     align-items: center;
     justify-content: center;
+    flex: 0 0 auto;
+    box-shadow: 0 0.25rem 0.7rem var(--color-blue-2065f9-a30);
 }
 
 .favourites-page-main-content-topbar-group-filters-button-count p{
     color: var(--color-gray-fafafa);
-    margin-bottom: 0.1rem;
-    font-size: 1.6rem;
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1;
     user-select: none;
 }
 

@@ -42,6 +42,7 @@
     // DOM — badge elementy + number inputy + results count
     // ============================================
 
+    const filtersButton      = document.getElementById('filtersBtn');
     const filtersCountBadge  = document.getElementById('filtersCount');
     const filtersCountNum    = document.getElementById('filtersCountNum');
     // Jediný zdroj live počtu výsledkov pre celý filter popup.
@@ -54,47 +55,56 @@
         'priceInputStart',  'priceInputEnd',
     ];
 
-    const numberInputPairs = [
-        ['ratingInputStart', 'ratingInputEnd'],
-        ['votesInputStart',  'votesInputEnd'],
-        ['favoritesInputStart', 'favoritesInputEnd'],
-        ['priceInputStart',  'priceInputEnd'],
+    const appliedNumberFilterPairs = [
+        ['ratingStart', 'ratingEnd'],
+        ['votesStart', 'votesEnd'],
+        ['favoritesStart', 'favoritesEnd'],
+        ['priceStart', 'priceEnd'],
     ];
 
     // ============================================
     // BADGE
     // ============================================
 
-    function updateBadge() {
+    function hasParamValue(value) {
+        return value !== undefined && value !== null && String(value).trim() !== '';
+    }
+
+    function countParamItems(value) {
+        if (Array.isArray(value)) return value.filter(hasParamValue).length;
+        return hasParamValue(value) ? 1 : 0;
+    }
+
+    function countAppliedFilters(params) {
         let count = 0;
 
-        numberInputPairs.forEach(([a, b]) => {
-            const elA = document.getElementById(a);
-            const elB = document.getElementById(b);
-            if ((elA && elA.value.trim() !== '') || (elB && elB.value.trim() !== '')) count++;
+        appliedNumberFilterPairs.forEach(([a, b]) => {
+            if (hasParamValue(params[a]) || hasParamValue(params[b])) count++;
         });
 
-        count += document.querySelectorAll(`.${spanClass}.active`).length;
-        
-        // Currency
-        const currSpanClass = isFavourites
-            ? 'favourites-filters-modal-body-currency-single'
-            : 'chatbot-filters-modal-body-currency-single';
-        count += document.querySelectorAll(`.${currSpanClass}.active`).length;
+        count += countParamItems(params['features[]']);
+        count += countParamItems(params['currency[]']);
+        count += countParamItems(params['integrations[]']);
+        count += countParamItems(params['pricing[]']);
 
-        // Rátaj aj aktívne integrácie
-        const intSpanClass = isFavourites
-            ? 'favourites-filters-modal-body-integrations-single'
-            : 'chatbot-filters-modal-body-integrations-single';
-        count += document.querySelectorAll(`.${intSpanClass}.active`).length;
+        if (params.hasFreeTrial === true || params.hasFreeTrial === '1') count++;
 
-        // Rátaj aj aktívne pricing modely
-        const pricingSpanClass = isFavourites
-            ? 'favourites-filters-modal-body-pricing-single'
-            : 'chatbot-filters-modal-body-pricing-single';
-        count += document.querySelectorAll(`.${pricingSpanClass}.active:not(.chatbot-free-trial-filter):not(.favourites-free-trial-filter)`).length;
-        count += document.querySelectorAll('.chatbot-free-trial-filter.active, .favourites-free-trial-filter.active').length;
+        return count;
+    }
 
+    function updateBadge(params = null) {
+        const appliedParams = params && typeof params === 'object'
+            ? params
+            : (typeof window.getActiveFilterParams === 'function' ? window.getActiveFilterParams() : {});
+        const count = countAppliedFilters(appliedParams);
+
+        if (filtersButton) {
+            filtersButton.classList.toggle('has-active-filters', count > 0);
+            filtersButton.setAttribute(
+                'aria-label',
+                count > 0 ? `Open filters, ${count} active` : 'Open filters'
+            );
+        }
         if (filtersCountBadge) filtersCountBadge.style.display = count > 0 ? 'flex' : 'none';
         if (filtersCountNum)   filtersCountNum.textContent = count;
 

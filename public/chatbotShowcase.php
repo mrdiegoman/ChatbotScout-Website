@@ -27,9 +27,8 @@ require '../inc/header.php';
                         Explore all available chatbots in one place.
                         Browse through the tools, compare what they
                         can do, and use the filters to narrow the
-                        list to the features you need. Whether you are
-                        looking for something simple or more advanced,
-                        this showcase helps you quickly find the right
+                        list to the features you need. This showcase 
+                        helps you quickly find the right
                         chatbot for your website.
                     </p>
                 </div>
@@ -69,7 +68,7 @@ require '../inc/header.php';
                     </button>
 
                     <div class="chatbot-page-main-content-topbar-group-in">
-                        <button class="chatbot-page-main-content-topbar-group-filters-button" id="filtersBtn">
+                        <button type="button" class="chatbot-page-main-content-topbar-group-filters-button" id="filtersBtn" aria-label="Open filters">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"
                                 class="chatbot-page-main-content-topbar-group-sort-filters-button-icon">
                                 <path fill="#232127"
