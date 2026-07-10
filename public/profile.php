@@ -403,8 +403,8 @@ require '../inc/header.php';
                     <!-- Avatar Section -->
                     <div class="profile-card avatar-card">
                         <div class="avatar-wrapper">                     
-                            <img src="img/default-avatar2.png"
-                                data-src="<?php echo htmlspecialchars(localProfilePictureUrl($user['profile_picture_url'] ?? null) ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                            <img src="<?php echo htmlspecialchars($profilePictureSrc, ENT_QUOTES, 'UTF-8'); ?>"
+                                data-fallback-src="<?php echo htmlspecialchars($defaultProfilePicture, ENT_QUOTES, 'UTF-8'); ?>"
                                 alt="Profile picture"
                                 class="profile-avatar user-avatar-img"
                                 id="current-avatar"
@@ -470,9 +470,9 @@ require '../inc/header.php';
                             <div class="field-display">
                                 <span id="email-display"></span>
                                 <input type="hidden" id="email-full" value="<?php echo htmlspecialchars($user['email'], ENT_QUOTES, 'UTF-8'); ?>">
-                                <button type="button" id="email-toggle" aria-label="Show email">
+                                <button type="button" id="email-toggle" aria-label="Show email" aria-pressed="false">
                                     <svg id="email-icon-show" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                    <svg id="email-icon-hide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                    <svg id="email-icon-hide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                                 </button>
                                 <?php if ($user['is_email_verified']): ?>
                                     <span class="verified-badge">
@@ -1009,8 +1009,7 @@ require '../inc/header.php';
                 <label for="editReviewTextInput">Your review</label>
                 <textarea id="editReviewTextInput" maxlength="5000" rows="5" wrap="soft" placeholder="Share your experience..."></textarea>
             </div>
-            <p class="pr-modal-error"   id="editReviewError" hidden></p>
-            <p class="pr-modal-success" id="editReviewSuccess" hidden></p>
+            <p class="pr-modal-error" id="editReviewError" role="alert" hidden></p>
         </div>
         <div class="pr-modal-footer">
             <button class="pr-modal-cancel-btn" id="editReviewCancelBtn">Cancel</button>

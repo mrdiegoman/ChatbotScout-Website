@@ -85,7 +85,7 @@ require '../inc/header.php';
 
             <div class="reviews-rating-overview">
                 <div class="reviews-average">
-                    <strong><?= $reviewCount > 0 ? number_format($ratingAverage, 1) : '—' ?></strong>
+                    <strong><?= $reviewCount > 0 ? number_format($ratingAverage, 1) : '–' ?></strong>
                     <span>out of 5</span>
                 </div>
                 <div>

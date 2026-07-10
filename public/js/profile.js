@@ -57,8 +57,6 @@ if (refreshPromotionsBtn) {
     const emailDisplay = document.getElementById('email-display');
     const emailFull    = document.getElementById('email-full');
     const emailToggle  = document.getElementById('email-toggle');
-    const iconShow     = document.getElementById('email-icon-show');
-    const iconHide     = document.getElementById('email-icon-hide');
 
     if (!emailDisplay || !emailFull || !emailToggle) return;
 
@@ -71,13 +69,18 @@ if (refreshPromotionsBtn) {
     }
 
     let visible = false;
-    emailDisplay.textContent = maskEmail(full);
+
+    function renderEmailVisibility() {
+        emailDisplay.textContent = visible ? full : maskEmail(full);
+        emailToggle.setAttribute('aria-pressed', String(visible));
+        emailToggle.setAttribute('aria-label', visible ? 'Hide email' : 'Show email');
+    }
+
+    renderEmailVisibility();
 
     emailToggle.addEventListener('click', () => {
         visible = !visible;
-        emailDisplay.textContent    = visible ? full : maskEmail(full);
-        setHidden(iconShow, visible);
-        setHidden(iconHide, !visible);
+        renderEmailVisibility();
     });
 })();
 

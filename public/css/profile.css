@@ -315,6 +315,15 @@
     height: 1.6rem;
 }
 
+#email-icon-hide,
+#email-toggle[aria-pressed="true"] #email-icon-show {
+    display: none;
+}
+
+#email-toggle[aria-pressed="true"] #email-icon-hide {
+    display: block;
+}
+
 .edit-btn {
     background: none;
     border: none;

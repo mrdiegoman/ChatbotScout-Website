@@ -488,9 +488,24 @@
         if (!append) container.innerHTML = '';
 
         if (chatbots.length === 0 && !append) {
-            emptyState.innerHTML = state.searchQuery
-                ? `<p>There are no chatbots with the name "<strong>${escapeHtml(state.searchQuery)}</strong>".</p>`
-                : `<p>No chatbots found.</p>`;
+            const hasSearch = state.searchQuery !== '';
+            const hasFilters = typeof window.hasAppliedChatbotFilters === 'function'
+                && window.hasAppliedChatbotFilters();
+
+            if (hasSearch && hasFilters) {
+                emptyState.innerHTML = `
+                    <p>No chatbots match "<strong>${escapeHtml(state.searchQuery)}</strong>" and the selected filters.</p>
+                    <button type="button" class="showcase-empty-clear" data-clear-chatbot-filters>Clear filters</button>`;
+            } else if (hasFilters) {
+                emptyState.innerHTML = `
+                    <p>No chatbots match the selected filters.</p>
+                    <button type="button" class="showcase-empty-clear" data-clear-chatbot-filters>Clear filters</button>`;
+            } else if (hasSearch) {
+                emptyState.innerHTML = `<p>No chatbots match "<strong>${escapeHtml(state.searchQuery)}</strong>".</p>`;
+            } else {
+                emptyState.innerHTML = '<p>No chatbots found.</p>';
+            }
+
             setHidden(emptyState, false);
             return;
         }
@@ -636,6 +651,15 @@
         loadChatbots(false);
     };
 
+    if (emptyState) {
+        emptyState.addEventListener('click', event => {
+            if (!event.target.closest('[data-clear-chatbot-filters]')) return;
+            if (typeof window.clearAppliedChatbotFilters === 'function') {
+                window.clearAppliedChatbotFilters();
+            }
+        });
+    }
+
     // ============================================
     // CLICK TRACKING (Go to Website)
     // ============================================
@@ -757,7 +781,7 @@
         state.ratingChatbotId = chatbotId;
         state.ratingValue = 0;
 
-        ratingModalTitle.textContent = `Rate: ${chatbotName}`;
+        ratingModalTitle.textContent = `Review — ${chatbotName}`;
         ratingTextInput.value = '';
         ratingModalError.textContent = '';
         setHidden(ratingModalError, true);

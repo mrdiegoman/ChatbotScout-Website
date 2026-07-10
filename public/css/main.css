@@ -286,6 +286,31 @@
     --red-heart-color: var(--color-red-e20e0e);
     --grid-item-padding: 1.5rem;
 }
+
+.showcase-empty-clear {
+    margin-top: 1.6rem;
+    padding: 1rem 1.6rem;
+    border: 0.1rem solid var(--color-blue-4f2ef7);
+    border-radius: 0.6rem;
+    background: var(--color-white);
+    color: var(--color-blue-4f2ef7);
+    font: inherit;
+    font-size: 1.6rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.showcase-empty-clear:hover {
+    background: var(--color-blue-4f2ef7);
+    color: var(--color-white);
+}
+
+.showcase-empty-clear:focus-visible {
+    outline: 0.2rem solid var(--color-blue-4f2ef7);
+    outline-offset: 0.2rem;
+}
+
 html {
     font-size: min(62.5%, 15px);
     color: var(--color-gray-232127);
@@ -695,6 +720,7 @@ a, button {
 .header-main-right-username {
     max-width: 15rem;
     position: relative;
+    z-index: 3000;
     cursor: default;
 }
 

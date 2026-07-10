@@ -37,6 +37,8 @@ Do not add a dependency when the feature can reasonably be implemented with exis
 Preserve responsive behavior and accessibility.
 Use semantic HTML, labels for form fields, keyboard-accessible controls, visible focus states, and appropriate image alt text.
 When using colors in CSS, use an existing color variable from the central color list in `public/css/main.css`. If a genuinely new color is needed, add it to the color list in `public/css/main.css` first and reference it through a variable instead of hardcoding the color in another CSS file.
+
+CSS variables do not resolve inside `data:image/svg+xml` URLs. For SVG masks embedded in CSS, use a valid fixed mask color such as `black` inside the data URL and apply the visible project color to the element's `background` through a `--color-*` variable.
 When creating or changing a popup/modal, use the project's shared close button pattern: a top-right `modal-close` cross button with the same size, alignment, circular hover background, accessible label, and close-only behavior. Do not create one-off X buttons or close popups by clicking outside unless the user explicitly asks for that behavior.
 Handle relevant loading, error, empty, disabled, and success states.
 Do not claim something works unless it was actually verified.
@@ -79,13 +81,23 @@ For PHP/API behavior:
 
 For key flows touched by the cleanup:
 
-- Header/profile email toggles must show exactly one eye icon at a time.
+- Header/profile email toggles must use the same `aria-pressed` state: masked email shows only the open-eye action, visible email shows only the crossed-eye action, and the accessible label changes between `Show email` and `Hide email`.
+- Server-rendered user avatars must put the validated local profile image directly in `src`; use `data-fallback-src` only for load failures and never show the default avatar first while waiting for JavaScript to swap it.
+- Profile `Edit review` and showcase rating modals must share the same palette: `--color-green-00e53a` accent, `--color-blue-4f2ef7` field focus, neutral gray text/borders, and matching hover/disabled feedback states.
+- Profile review edits mirror showcase review submission feedback: a disabled in-button spinner with `Submitting`, then immediate modal close plus a global success notification; API errors stay inside the open modal and restore the button.
+- Showcase rating modal titles use `Review — {chatbot name}` because they create a review; reserve `Edit Review` for the profile flow that updates an existing review.
+- Rating modal feedback visibility must be controlled only by `hidden`; base error/success classes must not set `display: none`, and errors use `role="alert"` so validation failures are announced.
 - The initial signup verification email must leave `verification_email_sent_at` empty. Only an explicit resend may set it and start the server-side cooldown; show sending/countdown state only once in the resend button.
 - Password reset tokens are single-use. Consume the token in the same atomic update that changes the password, reject used/expired tokens before rendering the form, reuse the verification failure component for that invalid state, and revoke all existing user sessions after a successful reset.
 - Showcase and favourites pages must keep loading, empty state, pagination bottom bar, show-more, filters, and rating messages synchronized through `hidden`.
+- Showcase empty states must distinguish genuinely empty data from zero search or filter matches; never describe the underlying collection as empty when active criteria merely hide its items.
+- A single card in showcase and favourites grid views must align to the left edge of the results container; keep multi-card grid spacing unchanged.
+- Standalone pages that reference shared `--color-*` tokens must load `main.css` before their page stylesheet, then scope any required base-layout overrides to their page body or shell.
 - Keep sort defaults aligned across showcase UI and APIs: alphabetical starts A-Z, price starts low-high, while popularity, rating, rating count, and date added start descending. The sort arrow points down for every default direction and flips up only when the user reverses that sort.
 - Favourites `renderChatbots(chatbots)` must not reference an `append` variable.
 - Checkout and advertise page configuration should stay in `#checkoutConfig` and `#advertiseConfig` datasets, not `window.checkoutData` or `window.advData` inline scripts.
+- Keep the second bundle promotion consistent as `data-secondary-promotion-id` / `dataset.secondaryPromotionId` in the DOM and `promotion_id_2` in checkout API JSON. Do not use numeric dash names such as `data-promotion-id-2`, because they do not map to `dataset.promotionId2`.
+- The standard Stripe checkout intentionally uses `payment_behavior=default_incomplete`; the first invoice can exist before confirmation so Stripe can provide its client secret. Never activate a promotion from invoice creation alone. Provision only after a paid invoice, and keep `customer.subscription.updated`, `customer.subscription.deleted`, and `invoice.voided` webhooks synchronizing abandoned `incomplete_expired` checkouts to local cancelled state.
 - Contact flash messages should stay in `data-contact-*` attributes, not `window._contact*` inline globals.
 - Review rating meters should avoid inline width styles; use `data-rating`, CSS rules, or semantic elements such as `progress`.
 

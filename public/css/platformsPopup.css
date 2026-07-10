@@ -84,7 +84,6 @@
     font-family: outfit-medium, sans-serif;
     color: var(--color-gray-232127);
     cursor: default;
-    transition: background 0.12s ease;
     display: flex;
     align-items: center;
     gap: 0.8rem;
@@ -98,10 +97,6 @@
     border-radius: 50%;
     background: var(--color-blue-4f2ef7);
     flex-shrink: 0;
-}
-
-.platforms-popup-item:hover {
-    background: var(--color-gray-c8c8c8);
 }
 
 /* Empty state */

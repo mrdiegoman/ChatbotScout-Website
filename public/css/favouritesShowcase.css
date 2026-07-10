@@ -612,6 +612,10 @@ body.page-favouritesShowcase .footer-main-bottom {
     transition: box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
+.favourites-page-main-content-chatbots-grid-view-item:only-child {
+    justify-self: start;
+}
+
 .favourites-page-main-content-chatbots-grid-view-item:hover {
     border-color: var(--color-blue-cfe0ff);
     box-shadow: var(--showcase-shadow-hover);

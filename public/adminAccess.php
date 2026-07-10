@@ -50,6 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Operations Access - ChatbotScout</title>
     <link rel="icon" type="image/png" sizes="32x32" href="img/favicons/favicon-32x32.png">
     <link rel="stylesheet" href="css/reset.css?v=<?= filemtime(__DIR__ . '/css/reset.css') ?>">
+    <link rel="stylesheet" href="css/main.css?v=<?= filemtime(__DIR__ . '/css/main.css') ?>">
     <link rel="stylesheet" href="css/adminAccess.css?v=<?= filemtime(__DIR__ . '/css/adminAccess.css') ?>">
 </head>
 <body class="ops-access-page">

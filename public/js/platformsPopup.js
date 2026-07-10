@@ -123,6 +123,13 @@
         }
     });
 
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !overlay.hidden) {
+            e.preventDefault();
+            closePopup();
+        }
+    });
+
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('.platforms-popup-trigger');
         if (!btn) return;

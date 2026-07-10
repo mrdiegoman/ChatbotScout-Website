@@ -50,7 +50,6 @@
     const editStarsLabel   = document.getElementById('editRatingStarsLabel');
     const editTextInput    = document.getElementById('editReviewTextInput');
     const editErrorEl      = document.getElementById('editReviewError');
-    const editSuccessEl    = document.getElementById('editReviewSuccess');
     const editSubmitBtn    = document.getElementById('editReviewSubmitBtn');
     const editCancelBtn    = document.getElementById('editReviewCancelBtn');
     const editCloseBtn     = document.getElementById('editReviewCloseBtn');
@@ -72,10 +71,6 @@
             editErrorEl.textContent = '';
             setHidden(editErrorEl, true);
         }
-        if (editSuccessEl) {
-            editSuccessEl.textContent = '';
-            setHidden(editSuccessEl, true);
-        }
     }
 
     function showEditError(message) {
@@ -84,10 +79,16 @@
         setHidden(editErrorEl, false);
     }
 
-    function showEditSuccess(message) {
-        if (!editSuccessEl) return;
-        editSuccessEl.textContent = message;
-        setHidden(editSuccessEl, false);
+    function setEditSubmitText(text) {
+        if (!editSubmitBtn) return;
+        editSubmitBtn.classList.remove('is-loading');
+        editSubmitBtn.textContent = text;
+    }
+
+    function setEditSubmitLoading() {
+        if (!editSubmitBtn) return;
+        editSubmitBtn.classList.add('is-loading');
+        editSubmitBtn.innerHTML = '<span class="pr-review-submit-spinner" aria-hidden="true"></span><span>Submitting</span>';
     }
 
     // ============================================
@@ -305,7 +306,10 @@
         editTextInput.value        = textEl  ? textEl.innerText : '';
 
         clearEditFeedback();
-        if (editSubmitBtn) { editSubmitBtn.disabled = false; editSubmitBtn.textContent = 'Save Changes'; }
+        if (editSubmitBtn) {
+            editSubmitBtn.disabled = false;
+            setEditSubmitText('Save Changes');
+        }
 
         // Nastav hviezdy
         currentRating = ratingNum || 0;
@@ -352,14 +356,20 @@
         editSubmitBtn.addEventListener('click', async () => {
             if (!editingReviewId) return;
 
+            const reviewId = editingReviewId;
+
             clearEditFeedback();
 
             if (!currentRating) {
                 showEditError('Please select a rating.');
                 return;
             }
-            editSubmitBtn.disabled    = true;
-            editSubmitBtn.textContent = 'Saving...';
+
+            const submittedRating = currentRating;
+            const submittedReviewText = editTextInput.value.trim();
+
+            editSubmitBtn.disabled = true;
+            setEditSubmitLoading();
 
             try {
                 const res  = await fetch('api/updateReview.php', {
@@ -367,33 +377,31 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action:      'edit',
-                        id:          editingReviewId,
-                        rating:      currentRating,
-                        review_text: editTextInput.value.trim(),
+                        id:          reviewId,
+                        rating:      submittedRating,
+                        review_text: submittedReviewText,
                     }),
                 });
                 const data = await res.json();
 
                 if (data.success) {
-                    showEditSuccess(data.message);
-                    editSubmitBtn.textContent   = 'Saved!';
-
-                    updateCardAfterEdit(editingReviewId, {
-                        rating:      currentRating,
-                        review_text: editTextInput.value.trim(),
+                    updateCardAfterEdit(reviewId, {
+                        rating:      submittedRating,
+                        review_text: submittedReviewText,
                         status:      'pending',
                     });
 
-                    setTimeout(closeEditModal, 1500);
+                    closeEditModal();
+                    showNotification(data.message || 'Review updated successfully.', 'success');
                 } else {
                     showEditError(data.message || 'Something went wrong.');
-                    editSubmitBtn.disabled    = false;
-                    editSubmitBtn.textContent = 'Save Changes';
+                    editSubmitBtn.disabled = false;
+                    setEditSubmitText('Save Changes');
                 }
             } catch (err) {
                 showEditError('Something went wrong.');
-                editSubmitBtn.disabled    = false;
-                editSubmitBtn.textContent = 'Save Changes';
+                editSubmitBtn.disabled = false;
+                setEditSubmitText('Save Changes');
             }
         });
     }

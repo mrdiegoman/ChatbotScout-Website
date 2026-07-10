@@ -480,9 +480,23 @@
         container.innerHTML = '';
 
         if (chatbots.length === 0) {
-            emptyState.innerHTML = state.searchQuery
-                ? `<p>There are no chatbots with the name "<strong>${escapeHtml(state.searchQuery)}</strong>".</p>`
-                : `<p>You have no favourites yet.</p>`;
+            const hasSearch = state.searchQuery !== '';
+            const hasFilters = hasAppliedFilters();
+
+            if (hasSearch && hasFilters) {
+                emptyState.innerHTML = `
+                    <p>No favourites match "<strong>${escapeHtml(state.searchQuery)}</strong>" and the selected filters.</p>
+                    <button type="button" class="showcase-empty-clear" data-clear-favourites-filters>Clear filters</button>`;
+            } else if (hasFilters) {
+                emptyState.innerHTML = `
+                    <p>No favourites match the selected filters.</p>
+                    <button type="button" class="showcase-empty-clear" data-clear-favourites-filters>Clear filters</button>`;
+            } else if (hasSearch) {
+                emptyState.innerHTML = `<p>No favourites match "<strong>${escapeHtml(state.searchQuery)}</strong>".</p>`;
+            } else {
+                emptyState.innerHTML = '<p>You have no favourites yet. <a href="chatbots">Browse chatbots</a></p>';
+            }
+
             setHidden(emptyState, false);
             return;
         }
@@ -590,7 +604,7 @@ function openRatingModal(chatbotId, chatbotName) {
     state.ratingChatbotId = chatbotId;
     state.ratingValue = 0;
 
-    ratingModalTitle.textContent = `Rate: ${chatbotName}`;
+    ratingModalTitle.textContent = `Review — ${chatbotName}`;
     ratingTextInput.value = '';
     ratingModalError.textContent = '';
     setHidden(ratingModalError, true);
@@ -714,6 +728,14 @@ function openRatingModal(chatbotId, chatbotName) {
         return Object.fromEntries(
             Object.entries(params).map(([key, value]) => [key, Array.isArray(value) ? [...value] : value])
         );
+    }
+
+    function hasAppliedFilters() {
+        return Object.values(appliedFilterParams).some(value => (
+            Array.isArray(value)
+                ? value.length > 0
+                : value !== '' && value !== null && value !== undefined && value !== false
+        ));
     }
 
     function collectDraftFilterParams() {
@@ -1037,6 +1059,17 @@ function openRatingModal(chatbotId, chatbotName) {
             if (typeof window.updateFilterBadge === 'function') window.updateFilterBadge(appliedFilterParams);
             closeFavouriteFiltersModal(false);
             window.applyFilters();
+        });
+    }
+
+    if (emptyState) {
+        emptyState.addEventListener('click', event => {
+            if (!event.target.closest('[data-clear-favourites-filters]')) return;
+
+            appliedFilterParams = {};
+            state.currentPage = 1;
+            restoreFavouriteDraftFromApplied();
+            loadFavourites();
         });
     }
 

@@ -7,7 +7,7 @@ const checkoutConfig = document.getElementById('checkoutConfig');
 const checkoutDataset = checkoutConfig?.dataset || {};
 const chatbotId = checkoutDataset.chatbotId || '';
 const promotionId = checkoutDataset.promotionId || '';
-const promotionId2 = checkoutDataset.promotionId2 || null;
+const secondaryPromotionId = checkoutDataset.secondaryPromotionId || null;
 const billingPeriod = checkoutDataset.billingPeriod || '';
 const upgradeFromSubscriptionId = checkoutDataset.upgradeFromSubscriptionId || null;
 const stripePubKey = checkoutDataset.stripePubKey || '';
@@ -269,7 +269,7 @@ async function fetchStripeAction(action) {
         body: JSON.stringify({
             chatbot_id: chatbotId,
             promotion_id: promotionId,
-            promotion_id2: promotionId2,
+            promotion_id_2: secondaryPromotionId,
             billing_period: billingPeriod,
             upgrade_from_subscription_id: upgradeFromSubscriptionId,
             business_customer_acknowledged: hasBusinessAcknowledgement(),

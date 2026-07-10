@@ -90,17 +90,19 @@ if ($promotionId2) {
     ");
     $stmt2->execute(['promotion_id' => $promotionId2]);
     $orderDetails2 = $stmt2->fetch(PDO::FETCH_ASSOC);
-    if ($orderDetails2) {
-        if ($orderDetails2['currency_code'] !== $orderDetails['currency_code']) {
-            header('Location: advertise');
-            exit;
-        }
-
-        $finalPrice2 = promotionBundleLineTotalPrice(
-            floatval($orderDetails2['price']),
-            $billingPeriod
-        );
+    if (!$orderDetails2
+        || $orderDetails2['promotion_id'] === $orderDetails['promotion_id']
+        || $orderDetails2['slot_type'] === $orderDetails['slot_type']
+        || $orderDetails2['currency_code'] !== $orderDetails['currency_code']
+    ) {
+        header('Location: advertise');
+        exit;
     }
+
+    $finalPrice2 = promotionBundleLineTotalPrice(
+        floatval($orderDetails2['price']),
+        $billingPeriod
+    );
 }
 
 if ($orderDetails2) {
@@ -349,7 +351,7 @@ $upgradeNote = $isUpgradeCancelsAtPeriodEnd
      hidden
      data-chatbot-id="<?php echo htmlspecialchars($chatbotId, ENT_QUOTES, 'UTF-8'); ?>"
      data-promotion-id="<?php echo htmlspecialchars($promotionId, ENT_QUOTES, 'UTF-8'); ?>"
-     data-promotion-id-2="<?php echo htmlspecialchars($promotionId2 ?: '', ENT_QUOTES, 'UTF-8'); ?>"
+     data-secondary-promotion-id="<?php echo htmlspecialchars($promotionId2 ?: '', ENT_QUOTES, 'UTF-8'); ?>"
      data-billing-period="<?php echo htmlspecialchars($billingPeriod, ENT_QUOTES, 'UTF-8'); ?>"
      data-upgrade-from-subscription-id="<?php echo htmlspecialchars($upgradeFromSubscriptionId ?: '', ENT_QUOTES, 'UTF-8'); ?>"
      data-stripe-pub-key="<?php echo htmlspecialchars($publishableKey, ENT_QUOTES, 'UTF-8'); ?>"></div>

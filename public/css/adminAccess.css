@@ -33,9 +33,14 @@
     --ops-red: var(--color-red-ef233c);
 }
 
+html {
+    font-size: 100%;
+}
+
 body.ops-access-page {
     min-height: 100vh;
     margin: 0;
+    display: block;
     font-family: 'Outfit', Arial, sans-serif;
     background:
         radial-gradient(circle at 12% 18%, var(--color-blue-0057ff-a12), var(--color-transparent) 24rem),
@@ -46,6 +51,7 @@ body.ops-access-page {
 
 .ops-access-shell {
     min-height: 100vh;
+    margin: 0;
     display: grid;
     place-items: center;
     padding: 2rem;
@@ -102,6 +108,7 @@ body.ops-access-page {
 
 .ops-access-heading h1 {
     margin: 0;
+    color: var(--ops-ink);
     font-size: clamp(2rem, 5vw, 2.55rem);
     line-height: 1.02;
     letter-spacing: 0;

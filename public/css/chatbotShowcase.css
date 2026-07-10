@@ -588,6 +588,10 @@ body.page-chatbotShowcase .footer-main-bottom {
     transition: box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
+.chatbot-page-main-content-chatbots-grid-view-item:only-child {
+    justify-self: start;
+}
+
 .chatbot-page-main-content-chatbots-grid-view-item:hover {
     border-color: var(--color-blue-cfe0ff);
     box-shadow: var(--showcase-shadow-hover);
@@ -2124,14 +2128,12 @@ body.page-chatbotShowcase .footer-main-bottom {
 }
 
 .chatbot-rating-modal-error {
-    display: none;
     font-size: 1.4rem;
     color: var(--color-red-ee5555);
     min-height: 1.8rem;
 }
 
 .chatbot-rating-modal-success {
-    display: none;
     font-size: 1.4rem;
     color: var(--color-green-00e53a);
     min-height: 1.8rem;

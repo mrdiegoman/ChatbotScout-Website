@@ -38,18 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
             : '';
     }
 
-    function loadReviewAvatars() {
-        reviewsContainer.querySelectorAll('.review-card-avatar[data-src]:not([data-avatar-loading])').forEach((img) => {
-            const realUrl = img.dataset.src;
-            if (!realUrl) return;
-
-            img.dataset.avatarLoading = 'true';
-            const preload = new Image();
-            preload.onload = () => { img.src = realUrl; };
-            preload.src = realUrl;
-        });
-    }
-
     function buildStars(rating) {
         let stars = '';
         for (let i = 1; i <= 5; i++) {
@@ -61,8 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function buildReviewCard(review) {
         const hasText = String(review.review_text ?? '').trim() !== '';
         const profilePicture = profilePictureUrl(review.profile_picture_url);
-        const profilePictureData = profilePicture
-            ? ` data-src="${escapeHtml(profilePicture)}"`
+        const profilePictureSrc = profilePicture || 'img/default-avatar2.png';
+        const profilePictureFallback = profilePicture
+            ? ' data-fallback-src="img/default-avatar2.png"'
             : '';
         const reviewText = hasText
             ? `<p class="review-card-message">${escapeHtml(review.review_text).replace(/\n/g, '<br>')}</p>`
@@ -71,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return `
             <article class="review-card${hasText ? '' : ' review-card--rating-only'}">
                 <header class="review-card-header">
-                    <img class="review-card-avatar" src="img/default-avatar2.png"${profilePictureData} alt="">
+                    <img class="review-card-avatar" src="${escapeHtml(profilePictureSrc)}"${profilePictureFallback} alt="">
                     <div class="review-card-author">
                         <h3>${escapeHtml(review.reviewer_name)}</h3>
                         <time datetime="${escapeHtml(review.created_at)}">${escapeHtml(review.created_at_formatted)}</time>
@@ -156,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (data.reviews.length) {
                 reviewsContainer.insertAdjacentHTML('beforeend', data.reviews.map(buildReviewCard).join(''));
-                loadReviewAvatars();
                 state.offset += data.reviews.length;
             }
 

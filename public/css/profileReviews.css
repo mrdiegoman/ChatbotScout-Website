@@ -335,7 +335,7 @@
 }
 
 .pr-modal-content {
-    background: var(--color-white);
+    background: var(--color-gray-fafafa);
     border-radius: 1.5rem;
     width: 100%;
     max-width: 52rem;
@@ -355,14 +355,14 @@
     align-items: center;
     justify-content: space-between;
     padding: 2rem 2.5rem 1.5rem;
-    border-bottom: 0.1rem solid var(--color-gray-e5e7eb);
+    border-bottom: 0.1rem solid var(--color-gray-323232-a25);
 }
 
 .pr-modal-header h2 {
     font-size: 1.8rem;
     font-family: outfit-semibold, sans-serif;
     margin: 0;
-    color: var(--color-slate-1f2937);
+    color: var(--color-gray-232127);
 }
 
 .pr-modal-close-btn {
@@ -397,20 +397,20 @@
 
 .pr-modal-star {
     font-size: 4rem;
-    color: var(--color-gray-d1d5db);
+    color: var(--color-gray-323232-a25);
     transition: color 0.1s ease, transform 0.1s ease;
     user-select: none;
     line-height: 1;
 }
 
 .pr-modal-star.active,
-.pr-modal-star.hover { color: var(--color-green-4caf50); }
+.pr-modal-star.hover { color: var(--color-green-00e53a); }
 .pr-modal-star:hover  { transform: scale(1.15); }
 
 .pr-modal-stars-label {
     font-size: 1.5rem;
-    font-family: outfit-semibold, sans-serif;
-    color: var(--color-slate-374151);
+    font-family: outfit-medium, sans-serif;
+    color: var(--color-gray-232127);
     min-height: 2rem;
 }
 
@@ -423,28 +423,30 @@
 
 .pr-modal-field label {
     font-size: 1.5rem;
-    font-family: outfit-semibold, sans-serif;
-    color: var(--color-slate-374151);
+    font-family: outfit-medium, sans-serif;
+    color: var(--color-gray-232127);
 }
 
 .pr-modal-optional {
     font-family: outfit-medium, sans-serif;
-    color: var(--color-blue-9ca3af);
+    color: var(--color-gray-323232-a25);
     font-size: 1.3rem;
 }
 
-.pr-modal-required { color: var(--color-red-ef4444); }
+.pr-modal-required { color: var(--color-red-ee5555); }
 
 .pr-modal-field input,
 .pr-modal-field textarea {
     padding: 1.1rem 1.2rem;
     font-size: 1.5rem;
-    border: 1.5px solid var(--color-gray-e5e7eb);
+    border: 0.1rem solid var(--color-gray-323232-a25);
     border-radius: 0.75rem;
     outline: none;
     resize: vertical;
     transition: border-color 0.15s ease;
     font-family: inherit;
+    background: var(--color-gray-fafafa);
+    color: var(--color-gray-232127);
 }
 
 .pr-modal-field textarea {
@@ -459,11 +461,10 @@
 
 .pr-modal-field input:focus,
 .pr-modal-field textarea:focus {
-    border-color: var(--color-green-4caf50);
+    border-color: var(--color-blue-4f2ef7);
 }
 
-.pr-modal-error,
-.pr-modal-success {
+.pr-modal-error {
     display: block;
     font-size: 1.35rem;
     padding: 0.6rem 1rem;
@@ -473,13 +474,11 @@
 
 .pr-loading[hidden],
 .pr-empty[hidden],
-.pr-modal-error[hidden],
-.pr-modal-success[hidden] {
+.pr-modal-error[hidden] {
     display: none !important;
 }
 
-.pr-modal-error   { background: var(--color-gray-fef2f2); color: var(--color-red-dc2626); }
-.pr-modal-success { background: var(--color-gray-e8f5e9); color: var(--color-green-16a34a); }
+.pr-modal-error   { background: var(--color-transparent); color: var(--color-red-ee5555); }
 
 .pr-modal-footer {
     display: flex;
@@ -487,37 +486,60 @@
     align-items: center;
     gap: 1rem;
     padding: 1.5rem 2.5rem 2rem;
-    border-top: 1px solid var(--color-gray-f3f4f6);
+    border-top: 0.1rem solid var(--color-gray-323232-a25);
 }
 
 .pr-modal-cancel-btn {
     padding: 0.9rem 2rem;
     border-radius: 0.75rem;
-    border: 1.5px solid var(--color-gray-e5e7eb);
-    background: var(--color-gray-f9fafb);
+    border: 0.15rem solid var(--color-gray-323232-a25);
+    background: var(--color-transparent);
     font-size: 1.45rem;
-    font-family: outfit-semibold, sans-serif;
-    color: var(--color-slate-374151);
+    font-family: outfit-medium, sans-serif;
+    color: var(--color-gray-232127);
     cursor: pointer;
     transition: background 0.15s ease;
 }
 
-.pr-modal-cancel-btn:hover { background: var(--color-gray-f3f4f6); }
+.pr-modal-cancel-btn:hover { background: var(--color-gray-c8c8c8); }
 
 .pr-modal-submit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    min-width: 14.5rem;
     padding: 0.9rem 2.4rem;
     border-radius: 0.75rem;
     border: none;
-    background: var(--color-green-4caf50);
+    background: var(--color-green-00e53a);
     font-size: 1.45rem;
     font-family: outfit-semibold, sans-serif;
-    color: var(--color-white);
+    color: var(--color-gray-fafafa);
     cursor: pointer;
-    transition: background 0.15s ease;
+    transition: opacity 0.15s ease;
 }
 
-.pr-modal-submit-btn:hover:not(:disabled) { background: var(--color-green-45a049); }
-.pr-modal-submit-btn:disabled { background: var(--color-blue-9ca3af); cursor: not-allowed; }
+.pr-modal-submit-btn:hover:not(:disabled) { opacity: 0.88; }
+.pr-modal-submit-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.pr-modal-submit-btn.is-loading {
+    opacity: 0.85;
+}
+
+.pr-review-submit-spinner {
+    width: 1.6rem;
+    height: 1.6rem;
+    flex: 0 0 auto;
+    border: 0.22rem solid var(--color-white-a45);
+    border-top-color: var(--color-white);
+    border-radius: 50%;
+    animation: pr-review-submit-spin 0.75s linear infinite;
+}
+
+@keyframes pr-review-submit-spin {
+    to { transform: rotate(360deg); }
+}
 
 /* ============================================
    DELETE CONFIRM MODAL

@@ -133,6 +133,21 @@ window.getActiveFilterParams = function () {
     return cloneParams(appliedFilterParams);
 };
 
+window.hasAppliedChatbotFilters = function () {
+    return Object.values(appliedFilterParams).some(value => (
+        Array.isArray(value)
+            ? value.length > 0
+            : value !== '' && value !== null && value !== undefined && value !== false
+    ));
+};
+
+window.clearAppliedChatbotFilters = function () {
+    appliedFilterParams = {};
+    restoreDraftFromApplied();
+
+    if (typeof window.applyFilters === 'function') window.applyFilters();
+};
+
 function clearAllFilters() {
     Object.keys(NUMBER_FILTERS).forEach(id => {
         const input = document.getElementById(id);

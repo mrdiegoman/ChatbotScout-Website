@@ -13,6 +13,8 @@ if ($userRole) {
 
 // Používaj iba avatar manuálne nahraný cez profil. Externé URL sa nikdy nenačítavajú.
 $profilePicture = localProfilePictureUrl($user['profile_picture_url'] ?? null);
+$defaultProfilePicture = 'img/default-avatar2.png';
+$profilePictureSrc = $profilePicture ?? $defaultProfilePicture;
 $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User';
 
 $scheme = appIsHttpsRequest() ? 'https' : 'http';
@@ -223,7 +225,7 @@ $cssFiles = array_merge($cssFiles, $pageCssFiles[$page] ?? []);
                 <div class="header-profile-dropdown-wrapper">
 
                     <a class="header-main-right-profile-avatar" id="profileAvatarBtn" title="<?php echo htmlspecialchars($userName); ?>">
-                        <img src="img/default-avatar2.png" data-src="<?php echo htmlspecialchars($profilePicture ?? '', ENT_QUOTES, 'UTF-8'); ?>" alt="Profile" class="profile-avatar-img user-avatar-img">
+                        <img src="<?php echo htmlspecialchars($profilePictureSrc, ENT_QUOTES, 'UTF-8'); ?>" data-fallback-src="<?php echo htmlspecialchars($defaultProfilePicture, ENT_QUOTES, 'UTF-8'); ?>" alt="Profile" class="profile-avatar-img user-avatar-img">
                     </a>
 
                     <div class="header-profile-dropdown" id="profileDropdown">
@@ -336,7 +338,7 @@ $cssFiles = array_merge($cssFiles, $pageCssFiles[$page] ?? []);
                     <a href="sign-up" class="header-mobile-signup">Sign Up</a>
                 <?php else: ?>
                     <a href="profile" class="header-mobile-profile">
-                        <img src="img/default-avatar2.png" data-src="<?php echo htmlspecialchars($profilePicture ?? '', ENT_QUOTES, 'UTF-8'); ?>" alt="Profile" class="user-avatar-img">
+                        <img src="<?php echo htmlspecialchars($profilePictureSrc, ENT_QUOTES, 'UTF-8'); ?>" data-fallback-src="<?php echo htmlspecialchars($defaultProfilePicture, ENT_QUOTES, 'UTF-8'); ?>" alt="Profile" class="user-avatar-img">
                         <span>Profile</span>
                     </a>
                     <a href="favourites" class="header-mobile-favourites">
@@ -359,7 +361,6 @@ $cssFiles = array_merge($cssFiles, $pageCssFiles[$page] ?? []);
     <script src="js/scrollLock.js?v=<?= filemtime(__DIR__ . '/../public/js/scrollLock.js') ?>"></script>
     <script src="js/notifications.js?v=<?= filemtime(__DIR__ . '/../public/js/notifications.js') ?>"></script>
     <script src="js/imageFallback.js?v=<?= filemtime(__DIR__ . '/../public/js/imageFallback.js') ?>" defer></script>
-    <script src="js/avatarLoader.js?v=<?= filemtime(__DIR__ . '/../public/js/avatarLoader.js') ?>" defer></script>
     <script src="js/BurgerMenuHeader.js?v=<?= filemtime(__DIR__ . '/../public/js/BurgerMenuHeader.js') ?>" defer></script>
     <script src="js/ProfileDropdown.js?v=<?= filemtime(__DIR__ . '/../public/js/ProfileDropdown.js') ?>" defer></script>
     

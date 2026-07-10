@@ -82,7 +82,7 @@ Pre test zlyhania a SCA použite Stripe test režim a príslušné Stripe testov
 - [ ] Google Pay a Apple Pay sú aktívne v Stripe **live mode**.
 - [ ] Každá produkčná checkout doména a subdoména je registrovaná a enabled v **Payment method domains**.
 - [ ] `config/stripe.php` obsahuje live publishable key, secret key a live webhook secret; tento súbor zostáva mimo Gitu.
-- [ ] Endpoint `https://<vas-host>/public/api/stripeWebhook.php` je v Stripe live webhook nastavení a počúva aspoň `invoice.paid`, `invoice.payment_succeeded`, `invoice.payment_failed`, `customer.subscription.created`, `customer.subscription.updated` a `customer.subscription.deleted`.
+- [ ] Endpoint `https://<vas-host>/public/api/stripeWebhook.php` je v Stripe live webhook nastavení a počúva aspoň `invoice.paid`, `invoice.payment_succeeded`, `invoice.payment_failed`, `invoice.voided`, `customer.subscription.created`, `customer.subscription.updated` a `customer.subscription.deleted`.
 - [ ] Produkčný test sa robí so skutočným Google Wallet a Apple Wallet účtom a malou, autorizovanou platbou; po overení sa podľa potreby refunduje cez Stripe.
 - [ ] Privacy Policy a Terms obsahujú aktuálne zmienky o Stripe, Google Pay a Apple Pay. Pred publikovaním právnych textov ich nechajte skontrolovať právnikom, ktorý pozná vaše sídlo, skutočne používané wallet služby a obchodný model.
 

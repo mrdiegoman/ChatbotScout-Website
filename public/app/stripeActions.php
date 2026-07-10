@@ -152,7 +152,7 @@ if ($action === 'validate_checkout') {
 
     $chatbotId = trim($input['chatbot_id'] ?? '');
     $promotionId = trim($input['promotion_id'] ?? '');
-    $promotionId2 = trim($input['promotion_id2'] ?? '');
+    $promotionId2 = trim($input['promotion_id_2'] ?? $input['promotion_id2'] ?? '');
     $requestedBillingPeriod = trim($input['billing_period'] ?? '');
     $upgradeFromSubscriptionId = trim($input['upgrade_from_subscription_id'] ?? '');
 
@@ -262,7 +262,7 @@ if ($action === 'create_payment_intent') {
 
     $chatbotId = trim($input['chatbot_id'] ?? '');
     $promotionId = trim($input['promotion_id'] ?? '');
-    $promotionId2 = trim($input['promotion_id2'] ?? '');
+    $promotionId2 = trim($input['promotion_id_2'] ?? $input['promotion_id2'] ?? '');
     $requestedBillingPeriod = trim($input['billing_period'] ?? '');
     $upgradeFromSubscriptionId = trim($input['upgrade_from_subscription_id'] ?? '');
 
@@ -270,7 +270,7 @@ if ($action === 'create_payment_intent') {
         'user_id' => $user['id'] ?? null,
         'chatbot_id' => $chatbotId,
         'promotion_id' => $promotionId,
-        'promotion_id2' => $promotionId2,
+        'promotion_id_2' => $promotionId2,
         'billing_period' => $requestedBillingPeriod,
         'upgrade_from_subscription_id' => $upgradeFromSubscriptionId,
     ]);

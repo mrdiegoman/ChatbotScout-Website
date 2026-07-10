@@ -348,7 +348,7 @@ require '../inc/header.php';
 <div class="chatbot-rating-modal-overlay" id="ratingModalOverlay">
     <div class="chatbot-rating-modal-content">
         <div class="chatbot-rating-modal-header">
-            <h2 id="ratingModalTitle">Rate this chatbot</h2>
+            <h2 id="ratingModalTitle">Review this chatbot</h2>
             <button type="button" class="modal-close chatbot-rating-modal-close-btn" id="ratingModalCloseBtn" aria-label="Close">&times;</button>
         </div>
         <div class="chatbot-rating-modal-body">
@@ -366,8 +366,8 @@ require '../inc/header.php';
                 <label for="ratingTextInput">Your review</label>
                 <textarea id="ratingTextInput" maxlength="5000" rows="4" wrap="soft" placeholder="Share your experience with this chatbot..."></textarea>
             </div>
-            <p class="chatbot-rating-modal-error" id="ratingModalError" hidden></p>
-            <p class="chatbot-rating-modal-success" id="ratingModalSuccess" hidden></p>
+            <p class="chatbot-rating-modal-error" id="ratingModalError" role="alert" hidden></p>
+            <p class="chatbot-rating-modal-success" id="ratingModalSuccess" role="status" hidden></p>
         </div>
         <div class="chatbot-rating-modal-footer">
             <button class="chatbot-rating-modal-cancel-btn" id="ratingModalCancelBtn">Cancel</button>

@@ -42,15 +42,6 @@ Tento subor vznikol po vacsom cleanup/audit passe, ked zmeny este nie su commitn
 - Upravy okolo `forgotPassword.php`, `resetPassword.php`, `verifyEmail.php`, `verificationSent.php`, `resendEmail.js`.
 - Upravy v `classes/User.php` a `classes/Email.php` kvoli email sanitizacii, verifikacii a reset flowu.
 - Login/logout a header user state boli cistene.
-- `verificationSent.php` bol zjednoduseny na jeden kratky responzivny panel bez krokov, blikajucej animacie a medzery pred footerom.
-- Success aj failed stav v `verifyEmail.php` pouzivaju rovnaky jednoduchy panel, sive pozadie, tlacidla a napojenie na footer ako `verificationSent.php`; panely maju povodny `2rem` radius z uspesneho overenia.
-- Pending verification email sa drzi v serverovej session a uz sa neposiela v URL query parametri.
-- Resend countdown vychadza zo serveroveho casu; `localStorage` uz nerozhoduje o tom, ci je resend povoleny.
-- Serverovy resend cooldown sa uklada do `users.verification_email_sent_at`, takze ho nevypne vypnutie alebo uprava JavaScriptu.
-- Prvy verifikacny email po registracii nechava `verification_email_sent_at` prazdne; 60-sekundovy cooldown zacne az explicitnym kliknutim na Resend.
-- Pridana DB migracia `WebsiteDB/2026_07_10_verification_resend_cooldown.sql`; na lokalnej databaze bola aplikovana.
-- Password requirements na sign up stranke su zhrnute do jednej kratkej, statickej a neutralnej vety; pocas pisania uz neukazuju splnene pravidla po jednom.
-- Password reset token sa spotrebuje atomovo spolu so zmenou hesla, pouzity link uz nezobrazi formular, failure stav zdiela dizajn s neuspesnou email verifikaciou a uspesny reset zrusi existujuce prihlasene sessions.
 
 ### Header, sidebar, cookies, shared JS
 
@@ -216,192 +207,163 @@ Ocakavanie:
 
 ## Manualny smoke test
 
-- [ ] Homepage sa nacita bez PHP warningov a bez JS errorov.
-- [ ] Header logo/linky funguju.
-- [ ] Desktop profile dropdown sa otvara a zatvara.
-- [ ] Email v profile dropdown-e je najprv maskovany.
-- [ ] Po kliknuti na oko sa email odkryje.
-- [ ] Pri odkryti je viditelna iba jedna ikona oka.
-- [ ] Po dalsom kliknuti sa email znovu zamaskuje.
-- [ ] Pri zamaskovani je viditelna iba jedna ikona oka.
-- [ ] Klik mimo dropdown zavrie dropdown.
-- [ ] Escape zavrie dropdown.
-- [ ] Avatar sa nacita, ak ma user custom avatar.
-- [ ] Ak avatar/logo neexistuje, fallback obrazok funguje.
+- [ -] Homepage sa nacita bez PHP warningov a bez JS errorov.
+- [ -] Header logo/linky funguju.
+- [- ] Desktop profile dropdown sa otvara a zatvara.
+- [- ] Email v profile dropdown-e je najprv maskovany.
+- [- ] Po kliknuti na oko sa email odkryje.
+- [- ] Pri odkryti je viditelna iba jedna ikona oka.
+- [- ] Po dalsom kliknuti sa email znovu zamaskuje.
+- [- ] Pri zamaskovani je viditelna iba jedna ikona oka.
+- [ -] Klik mimo dropdown zavrie dropdown.
+- [- ] Escape zavrie dropdown.
+- [- ] Avatar sa nacita, ak ma user custom avatar.
+- [ -] Ak avatar/logo neexistuje, fallback obrazok funguje.
 
 ## Header a mobilny sidebar
 
-- [ ] Na mobile otvor burger menu.
-- [ ] Menu sa otvori bez posunu layoutu a bez JS chyby.
-- [ ] Linky Chatbots, Contact, About Us maju rovnaky vizualny rytmus.
-- [ ] Pri prihlasenom userovi je viditelne Profile, Favourites, Log Out.
-- [ ] Log Out ma konzistentny, zamerne mierne mensi font ako ostatne dropdown polozky.
-- [ ] Log Out ma primeranu sirku a padding.
-- [ ] Log Out odosiela POST logout a nehlasi CSRF chybu.
-- [ ] Pri odhlasenom userovi su viditelne Log In a Sign Up.
-- [ ] Sidebar sa zatvara cez X, klik mimo a Escape.
+- [- ] Na mobile otvor burger menu.
+- [ -] Menu sa otvori bez posunu layoutu a bez JS chyby.
+- [- ] Linky Chatbots, Contact, About Us maju rovnaky vizualny rytmus.
+- [- ] Pri prihlasenom userovi je viditelne Profile, Favourites, Log Out.
+- [- ] Log Out ma rovnaku velkost fontu ako ostatne sidebar polozky.
+- [- ] Log Out ma primeranu sirku a padding.
+- [- ] Log Out odosiela POST logout a nehlasi CSRF chybu.
+- [- ] Pri odhlasenom userovi su viditelne Log In a Sign Up.
+- [ -] Sidebar sa zatvara cez X, klik mimo a Escape.
 
 ## Auth flow
 
-- [ ] Login s validnym userom funguje.
-- [ ] Login s neplatnym heslom ukaze chybu, nie fatal error.
-- [ ] Sign up funguje s validnymi datami.
-- [ ] Sign up odmietne chybny email alebo kratke heslo.
-- [ ] Password requirements ostavaju pocas pisania neutralne bez tickov, zelenej farby a stavov splnene/nesplnene.
-- [ ] Password requirements zaberaju na desktope jeden riadok, na mobile sa rozumne zalomia a nezatlacia suhlasy Terms ani marketing emails.
-- [ ] Neplatne heslo ukaze az po blur alebo submit iba vseobecnu klientsku chybu.
-- [ ] Vypnutie JavaScriptu neobide serverovu `PasswordPolicy` validaciu.
-- [ ] Forgot password odosle flow bez prezradenia, ci email existuje.
-- [ ] Reset password s platnym tokenom funguje.
-- [ ] Reset password s neplatnym/expirnutym tokenom ukaze bezpecnu chybu.
-- [ ] Opakovane otvorenie uz pouziteho reset linku nezobrazi formular a ponukne `Request a new link`.
-- [ ] Pouzity alebo neplatny reset link ma rovnaky panel, pozadie, cervenu ikonu, `2rem` radius a napojenie na footer ako `Verification failed`.
-- [ ] Opakovany POST s uz pouzitym reset tokenom heslo nezmeni.
-- [ ] Uspesny password reset zrusi vsetky existujuce sessions daneho uctu.
-- [ ] Verify email s platnym tokenom funguje.
-- [ ] Verify email s neplatnym tokenom nepadne.
-- [ ] Success a failed vysledok overenia pouzivaju rovnaky vizualny komponent ako `verification-sent` a maju zrozumitelne zelene/cervene stavove ikony.
-- [ ] `verification-sent` a vysledok `verify-email` maju rovnake sive pozadie, `2rem` zaoblenie panelu a nulovu medzeru pred footerom.
-- [ ] Resend verification email funguje a respektuje rate limit.
-- [ ] Login do neovereneho uctu presmeruje na `verification-sent` bez emailu v URL.
-- [ ] Verification panel zacina pod fixnym headerom; obalka sa neschovava pod header a neblika.
-- [ ] Verification stranka nema zbytocne vysoky prazdny pas a footer nadvazuje priamo na hlavnu sekciu.
-- [ ] Verification stranka nema horizontalny overflow na 390 px, 768 px ani desktop sirke.
-- [ ] Bezprostredne po registracii je prvy Resend aktivny a nezobrazuje odpocet.
-- [ ] Po kliknuti na Resend sa zobrazi iba jedno `Sending...` v tlacidle.
-- [ ] Po odoslani cez Resend tlacidlo ukazuje serverovy odpocet a je pocas neho disabled pri zapnutom JS.
-- [ ] Resend odpocet sa zobrazuje iba raz v tlacidle; pod tlacidlom nie je druhy timer ani prazdna medzera.
-- [ ] Refresh stranky pocas odpocitu nevrati odpocet na 60 ani neaktivuje tlacidlo predcasne.
-- [ ] Opakovany login do rovnakeho neovereneho uctu pocas odpocitu zobrazi zostavajuci serverovy cas.
-- [ ] Po vypnuti JavaScriptu resend funguje ako bezny POST formular, ale server odmietne predcasny resend.
-- [ ] Rucne odoslany POST request pocas cooldownu neposle dalsi email.
-- [ ] Po uplynuti cooldownu sa da verifikacny email odoslat znova.
-- [ ] Resend bez platneho CSRF tokenu vrati bezpecnu chybu a email neodosle.
-- [ ] Po uspesnej verifikacii sa stary pending verification stav zo session odstrani.
+- [- ] Login s validnym userom funguje.
+- [- ] Login s neplatnym heslom ukaze chybu, nie fatal error.
+- [- ] Sign up funguje s validnymi datami.
+- [- ] Sign up odmietne chybny email alebo kratke heslo.
+- [ -] Forgot password odosle flow bez prezradenia, ci email existuje.
+- [ -] Reset password s platnym tokenom funguje.
+- [- ] Reset password s neplatnym/expirnutym tokenom ukaze bezpecnu chybu.
+- [- ] Verify email s platnym tokenom funguje.
+- [- ] Verify email s neplatnym tokenom nepadne.
+- [ -] Resend verification email funguje a respektuje rate limit.
 
 ## Cookie a consent
 
-- [ ] Cookie banner sa zobrazi novemu navstevnikovi.
-- [ ] Accept All ulozi consent a banner zmizne.
-- [ ] Decline All ulozi odmietnutie a banner zmizne.
-- [ ] Save Preferences ulozi vybrane kategorie.
-- [ ] Cookie settings button otvori modal.
-- [ ] Klik na tmave pozadie mimo Cookie Preferences panelu modal zatvori a odstrani scroll lock.
-- [ ] Klik vo vnutri Cookie Preferences panelu ho nezatvori.
-- [ ] Klaves Escape zatvori Cookie Preferences modal.
-- [ ] Revoke consent API funguje bez fatal erroru.
-- [ ] Analytics sa nespusta pred consentom mimo povoleneho default denied stavu.
+- [ -] Cookie banner sa zobrazi novemu navstevnikovi.
+- [- ] Accept All ulozi consent a banner zmizne.
+- [ -] Decline All ulozi odmietnutie a banner zmizne.
+- [- ] Save Preferences ulozi vybrane kategorie.
+- [ -] Cookie settings button otvori modal.
+- [- ] Revoke consent API funguje bez fatal erroru.
+- [ -] Analytics sa nespusta pred consentom mimo povoleneho default denied stavu.
 
 ## Chatbot showcase
 
-- [ ] `chatbots` stranka sa nacita.
-- [ ] Loading spinner sa zobrazi a potom zmizne.
-- [ ] Grid view zobrazi chatbot karty.
-- [ ] List view zobrazi list karty.
-- [ ] Prepnutie grid/list funguje.
-- [ ] Sort dropdown funguje.
-- [ ] Prvy vyber `Alphabetical` zoradi chatboty A-Z so sipkou nadol; klik prepne Z-A a otoci sipku nahor.
-- [ ] Sort sipka sa otoci cez triedu a zoradenie sa zmeni.
-- [ ] Search funguje pre existujuce meno.
-- [ ] Search s prazdnym vysledkom ukaze empty state, nie rozbity layout.
-- [ ] Pagination na desktope funguje.
-- [ ] Mobile Show More funguje.
-- [ ] Bottom bar sa zobrazuje iba ked ma zmysel.
-- [ ] Go to Website klik funguje a nezablokuje navigaciu.
-- [ ] Visit tracking nevyhadzuje chybu v konzole.
-- [ ] Favourites button pre prihlaseneho usera toggluje stav.
-- [ ] Favourites button pre neprihlaseneho usera presmeruje na login.
-- [ ] Rating hviezdy pre neprihlaseneho usera presmeruju na login.
-- [ ] Rating modal pre prihlaseneho usera sa otvori.
-- [ ] Rating modal odmietne submit bez hviezdy.
-- [ ] Rating modal ukaze "already reviewed", ak user uz hodnotil.
-- [ ] Submit review funguje a modal sa zavrie.
+- [ -] `chatbots` stranka sa nacita.
+- [ -] Loading spinner sa zobrazi a potom zmizne.
+- [- ] Grid view zobrazi chatbot karty.
+- [ -] List view zobrazi list karty.
+- [ -] Prepnutie grid/list funguje.
+- [- ] Sort dropdown funguje.
+- [ -] Sort sipka sa otoci cez triedu a zoradenie sa zmeni.
+- [- ] Search funguje pre existujuce meno.
+- [- ] Search s prazdnym vysledkom ukaze empty state, nie rozbity layout.
+- [ ?] Pagination na desktope funguje.
+- [ ?] Mobile Show More funguje.
+- [ASI ANO ] Bottom bar sa zobrazuje iba ked ma zmysel.
+- [- ] Go to Website klik funguje a nezablokuje navigaciu.
+- [- ] Visit tracking nevyhadzuje chybu v konzole.
+- [ -] Favourites button pre prihlaseneho usera toggluje stav.
+- [- ] Favourites button pre neprihlaseneho usera presmeruje na login.
+- [- ] Rating hviezdy pre neprihlaseneho usera presmeruju na login.
+- [- ] Rating modal pre prihlaseneho usera sa otvori.
+- [- ] Rating modal odmietne submit bez hviezdy.
+- [- ] Rating modal ukaze "already reviewed", ak user uz hodnotil.
+- [- ] Submit review funguje a modal sa zavrie.
 
 ## Filters a platform popup
 
-- [ ] Filters modal sa otvori.
-- [ ] Filters modal sa zatvori cez X.
-- [ ] Filters modal sa zatvori klikom mimo.
-- [ ] Filters modal sa zatvori cez Escape.
-- [ ] Feature filtre sa nacitaju.
-- [ ] Advanced features show more/show less funguje.
-- [ ] Filter count badge sa zobrazi iba pri aktivnych filtroch.
-- [ ] Clear all vycisti filtre.
-- [ ] Apply Filters zmeni vysledky.
-- [ ] Live count "Found X chatbots" sa aktualizuje.
-- [ ] Platforms popup sa otvori z karty.
-- [ ] Platforms popup ukaze integracie alebo empty state.
-- [ ] Platforms popup sa zatvori cez X, overlay a Escape.
+- [- ] Filters modal sa otvori.
+- [- ] Filters modal sa zatvori cez X.
+- [- ] Filters modal sa zatvori klikom mimo.
+- [- ] Filters modal sa zatvori cez Escape.
+- [- ] Feature filtre sa nacitaju.
+- [- ] Advanced features show more/show less funguje.
+- [- ] Filter count badge sa zobrazi iba pri aktivnych filtroch.
+- [- ] Clear all vycisti filtre.
+- [- ] Apply Filters zmeni vysledky.
+- [ ] Filter bez vysledkov ukaze, ze filtrom nezodpovedaju ziadne chatboty, nie vseobecne `No chatbots found`.
+- [ ] `Clear filters` v prazdnom filtrovanom vysledku obnovi chatboty a odstrani filter badge.
+- [ -] Live count "Found X chatbots" sa aktualizuje.
+- [- ] Platforms popup sa otvori z karty.
+- [- ] Platforms popup ukaze integracie alebo empty state.
+- [- ] Platforms popup sa zatvori cez X, overlay a Escape.
 
 ## Favourites showcase
 
-- [ ] `favourites` stranka vyzaduje prihlaseneho usera.
-- [ ] Favourites sa nacitaju bez ReferenceError.
-- [ ] Empty favourites ukaze empty state.
-- [ ] Search v favourites funguje.
-- [ ] Sort v favourites funguje.
-- [ ] Prvy vyber `Alphabetical` vo favourites pouzije A-Z so sipkou nadol; klik prepne Z-A a sipku nahor.
-- [ ] Pagination v favourites funguje.
-- [ ] Filter modal vo favourites funguje.
-- [ ] Remove favourite odstrani kartu animaciou.
-- [ ] Po odstraneni poslednej karty sa zobrazi empty state.
-- [ ] Bottom bar zmizne, ked uz nie je co strankovat.
-- [ ] Rating modal vo favourites funguje rovnako ako v showcase.
+- [- ] `favourites` stranka vyzaduje prihlaseneho usera.
+- [ -] Favourites sa nacitaju bez ReferenceError.
+- [ -] Empty favourites ukaze empty state.
+- [ -] Search v favourites funguje.
+- [ -] Sort v favourites funguje.
+- [? ] Pagination v favourites funguje.
+- [ -] Filter modal vo favourites funguje.
+- [- ] Remove favourite odstrani kartu animaciou.
+- [- ] Po odstraneni poslednej karty sa zobrazi empty state.
+- [? ] Bottom bar zmizne, ked uz nie je co strankovat.
+- [ -] Rating modal vo favourites funguje rovnako ako v showcase.
 
 ## Chatbot reviews page
 
-- [ ] Klik na review count z karty otvori review stranku.
-- [ ] Review page pre existujuci chatbot zobrazi priemer a pocet reviews.
-- [ ] Star meter zodpoveda ratingu.
-- [ ] Breakdown toggle otvori distribuciu ratingov.
-- [ ] Breakdown bary sa zobrazia cez progress.
-- [ ] Klik na 5/4/3/2/1 star filter nacita reviews.
-- [ ] Load more reviews funguje.
-- [ ] Empty review filter ukaze empty state.
-- [ ] Neexistujuci chatbot vrati pekny 404 state.
+- [- ] Klik na review count z karty otvori review stranku.
+- [- ] Review page pre existujuci chatbot zobrazi priemer a pocet reviews.
+- [ -] Star meter zodpoveda ratingu.
+- [- ] Breakdown toggle otvori distribuciu ratingov.
+- [- ] Breakdown bary sa zobrazia cez progress.
+- [- ] Klik na 5/4/3/2/1 star filter nacita reviews.
+- [? ] Load more reviews funguje.
+- [- ] Empty review filter ukaze empty state.
+- [ -] Neexistujuci chatbot vrati pekny 404 state.
 
 ## Profile
 
-- [ ] Profile stranka sa nacita.
-- [ ] Profile tab switching funguje.
-- [ ] Email toggle na profile stranke meni text a ikony spravne.
-- [ ] Avatar upload funguje pre validny obrazok.
-- [ ] Avatar upload odmietne zly typ/subor.
-- [ ] Name edit funguje.
-- [ ] Password change funguje s platnym heslom.
-- [ ] Password change odmietne zle aktualne heslo.
-- [ ] Marketing emails toggle funguje.
-- [ ] Marketing emails toggle je pocas requestu disabled bez Windows `wait` kurzora a po odpovedi sa odomkne bez umelej pauzy.
-- [ ] My Reviews tab nacita reviews.
-- [ ] My Reviews empty state funguje.
-- [ ] Load more reviews funguje.
-- [ ] Edit review modal sa otvori.
-- [ ] Edit review hviezdy sa farbia cez triedy.
-- [ ] Edit review submit bez ratingu ukaze chybu.
-- [ ] Edit review validny submit zmeni kartu a status na Pending.
-- [ ] Delete review modal sa otvori.
-- [ ] Delete review cancel zatvori modal.
-- [ ] Delete review confirm odstrani kartu.
-- [ ] Manage subscription modal sa otvori a zatvori.
-- [ ] Cancel subscription modal funguje.
-- [ ] Delete account modal funguje az po potvrdeni.
+- [- ] Profile stranka sa nacita.
+- [- ] Profile tab switching funguje.
+- [ -] Email toggle na profile stranke meni text a ikony spravne.
+- [ -] Avatar upload funguje pre validny obrazok.
+- [? ] Avatar upload odmietne zly typ/subor.
+- [ -] Name edit funguje.
+- [ -] Password change funguje s platnym heslom.
+- [ -] Password change odmietne zle aktualne heslo.
+- [ -] Marketing emails toggle funguje.
+- [ -] My Reviews tab nacita reviews.
+- [ -] My Reviews empty state funguje.
+- [ ?] Load more reviews funguje.
+- [ -] Edit review modal sa otvori.
+- [- ] Edit review hviezdy sa farbia cez triedy.
+- [- ] Edit review submit bez ratingu ukaze chybu.
+- [- ] Edit review validny submit zmeni kartu a status na Pending.
+- [- ] Delete review modal sa otvori.
+- [ -] Delete review cancel zatvori modal.
+- [ -] Delete review confirm odstrani kartu.
+- [- ] Manage subscription modal sa otvori a zatvori.
+- [- ] Cancel subscription modal funguje.
+- [- ] Delete account modal funguje az po potvrdeni.
 
 ## Advertise
 
-- [ ] Advertise page sa nacita.
-- [ ] Promotion plans sa nacitaju.
-- [ ] Monthly/yearly toggle prepina ceny.
-- [ ] Yearly discount sa zobrazuje spravne.
-- [ ] Bundle discount sa pocita spravne.
-- [ ] Neprihlaseny user po kliknuti na plan ide na login.
-- [ ] Prihlaseny user otvori promotion modal.
-- [ ] Chatbot dropdown sa naplni listingami usera.
-- [ ] Empty listing state ukaze no listing warning.
-- [ ] Billing period v modali funguje.
-- [ ] Upgrade note sa zobrazi len ked ma.
-- [ ] Confirm button ukaze loader.
-- [ ] Stripe redirect overlay sa zobrazi pocas presmerovania.
-- [ ] View My Promotions link funguje po relevantnom stave.
+- [- ] Advertise page sa nacita.
+- [- ] Promotion plans sa nacitaju.
+- [- ] Monthly/yearly toggle prepina ceny.
+- [- ] Yearly discount sa zobrazuje spravne.
+- [- ] Bundle discount sa pocita spravne.
+- [- ] Neprihlaseny user po kliknuti na plan ide na login.
+- [ -] Prihlaseny user otvori promotion modal.
+- [ -] Chatbot dropdown sa naplni listingami usera.
+- [- ] Empty listing state ukaze no listing warning.
+- [ -] Billing period v modali funguje.
+- [- ] Upgrade note sa zobrazi len ked ma.
+- [- ] Confirm button ukaze loader.
+- [- ] Stripe redirect overlay sa zobrazi pocas presmerovania.
+- [- ] View My Promotions link funguje po relevantnom stave.
 
 ## Checkout a Stripe
 
@@ -422,15 +384,15 @@ Ocakavanie:
 
 ## Contact
 
-- [ ] Contact page sa nacita.
-- [ ] Flash success sa ukaze cez notification.
-- [ ] Flash error sa ukaze cez notification.
-- [ ] Subject dropdown sa otvori/zavrie.
-- [ ] Subject dropdown podporuje keyboard Enter, Space, Arrow Up/Down, Escape.
-- [ ] Submit prazdneho formulara ukaze validacne chyby.
-- [ ] Submit validneho formulara odosle spravu.
-- [ ] CSRF chyba nepadne fatal errorom.
-- [ ] Honeypot/anti-spam spravanie ostava funkcne.
+- [ -] Contact page sa nacita.
+- [- ] Flash success sa ukaze cez notification.
+- [ -] Flash error sa ukaze cez notification.
+- [ -] Subject dropdown sa otvori/zavrie.
+- [ -] Subject dropdown podporuje keyboard Enter, Space, Arrow Up/Down, Escape.
+- [- ] Submit prazdneho formulara ukaze validacne chyby.
+- [ -] Submit validneho formulara odosle spravu.
+- [- ] CSRF chyba nepadne fatal errorom.
+- [ -] Honeypot/anti-spam spravanie ostava funkcne.
 
 ## Admin
 
