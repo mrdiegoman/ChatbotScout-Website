@@ -15,13 +15,7 @@ if ($userRole) {
 $profilePicture = localProfilePictureUrl($user['profile_picture_url'] ?? null);
 $userName = $user['first_name'] ?? $user['username'] ?? $user['email'] ?? 'User';
 
-$scheme = 'http';
-if (
-    (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-    || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
-) {
-    $scheme = 'https';
-}
+$scheme = appIsHttpsRequest() ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: ('/' . $page . '.php');
 $isErrorPage = in_array($page, ['404', '500'], true);
@@ -133,6 +127,9 @@ $pageCssFiles = [
     'favouritesShowcase' => ['favouritesShowcase.css', 'featuresShowMore.css', 'platformsPopup.css'],
     'advertise' => ['advertise.css'],
     'profile' => ['profile.css'],
+    'resetPassword' => ['verificationSent.css'],
+    'verifyEmail' => ['verificationSent.css'],
+    'verificationSent' => ['verificationSent.css'],
     'payment-success' => ['payment-success.css'],
     '404' => ['errorPages.css'],
     '500' => ['errorPages.css'],
@@ -144,9 +141,9 @@ $pageCssFiles = [
 
 if (in_array($page, $authPages, true)) {
     $cssFiles[] = 'userAuthAll.css';
-} else {
-    $cssFiles = array_merge($cssFiles, $pageCssFiles[$page] ?? []);
 }
+
+$cssFiles = array_merge($cssFiles, $pageCssFiles[$page] ?? []);
 ?>
 
 <!DOCTYPE html>
@@ -154,22 +151,9 @@ if (in_array($page, $authPages, true)) {
 
 <head>
     <!-- Google Analytics (Consent Mode v2) -->
-    <script nonce="<?= $cspNonce ?>">
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('consent', 'default', {
-            'analytics_storage': 'denied',
-            'ad_storage': 'denied',
-            'ad_user_data': 'denied',
-            'ad_personalization': 'denied',
-            'wait_for_update': 500
-        });
-    </script>
+    <script src="js/analyticsConsent.js?v=<?= filemtime(__DIR__ . '/../public/js/analyticsConsent.js') ?>"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-17N57DRY59" nonce="<?= $cspNonce ?>"></script>
-    <script nonce="<?= $cspNonce ?>">
-        gtag('js', new Date());
-        gtag('config', 'G-17N57DRY59');
-    </script>
+    <script src="js/analyticsInit.js?v=<?= filemtime(__DIR__ . '/../public/js/analyticsInit.js') ?>" data-measurement-id="G-17N57DRY59"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <?php if ($documentBaseHref): ?>
@@ -245,9 +229,9 @@ if (in_array($page, $authPages, true)) {
                     <div class="header-profile-dropdown" id="profileDropdown">
                         <div class="header-profile-dropdown-email">
                             <span id="dropdown-email-text"></span>
-                            <button type="button" id="dropdown-email-toggle" aria-label="Show email">
+                            <button type="button" id="dropdown-email-toggle" aria-label="Show email" aria-pressed="false">
                                 <svg id="dropdown-email-icon-show" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                <svg id="dropdown-email-icon-hide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                <svg id="dropdown-email-icon-hide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                             </button>
                             <input type="hidden" id="dropdown-email-full" value="<?php echo htmlspecialchars($user['email'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                         </div>
@@ -264,10 +248,13 @@ if (in_array($page, $authPages, true)) {
                         </a>
                         <div class="header-profile-dropdown-divider"></div>
 
-                        <a href="logout" class="header-profile-dropdown-item header-profile-dropdown-item--logout">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                            Log Out
-                        </a>
+                        <form method="POST" action="logout" class="header-profile-dropdown-logout-form">
+                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+                            <button type="submit" class="header-profile-dropdown-item header-profile-dropdown-item--logout">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                                Log Out
+                            </button>
+                        </form>
                     </div>
                 </div>
             <?php endif; ?>
@@ -358,7 +345,10 @@ if (in_array($page, $authPages, true)) {
                         </svg>
                         Favourites
                     </a>
-                    <a href="logout" class="header-mobile-logout">Log Out</a>
+                    <form method="POST" action="logout" class="header-mobile-logout-form">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+                        <button type="submit" class="header-mobile-logout">Log Out</button>
+                    </form>
                 <?php endif; ?>
             </div>
 
@@ -368,19 +358,8 @@ if (in_array($page, $authPages, true)) {
     <script src="js/csrf.js?v=<?= filemtime(__DIR__ . '/../public/js/csrf.js') ?>"></script>
     <script src="js/scrollLock.js?v=<?= filemtime(__DIR__ . '/../public/js/scrollLock.js') ?>"></script>
     <script src="js/notifications.js?v=<?= filemtime(__DIR__ . '/../public/js/notifications.js') ?>"></script>
-    <script nonce="<?= $cspNonce ?>">
-        function loadAvatar(img) {
-            var real = img.getAttribute('data-src');
-            if (!real) return;
-            var tmp = new Image();
-            tmp.onload = function() { img.src = real; };
-            tmp.src = real;
-        }
-        document.querySelectorAll('img.user-avatar-img').forEach(loadAvatar);
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('img.user-avatar-img').forEach(loadAvatar);
-        });
-    </script>
+    <script src="js/imageFallback.js?v=<?= filemtime(__DIR__ . '/../public/js/imageFallback.js') ?>" defer></script>
+    <script src="js/avatarLoader.js?v=<?= filemtime(__DIR__ . '/../public/js/avatarLoader.js') ?>" defer></script>
     <script src="js/BurgerMenuHeader.js?v=<?= filemtime(__DIR__ . '/../public/js/BurgerMenuHeader.js') ?>" defer></script>
     <script src="js/ProfileDropdown.js?v=<?= filemtime(__DIR__ . '/../public/js/ProfileDropdown.js') ?>" defer></script>
     

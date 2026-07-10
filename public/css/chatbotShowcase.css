@@ -1333,10 +1333,23 @@ body.page-chatbotShowcase .footer-main-bottom {
 }
 
 /* Filters Overlay */
+.chatbot-filters-modal-overlay[hidden],
+.chatbot-page-main-content-topbar-group-filters-button-count[hidden],
+.chatbot-advanced-filters-modal-body-row-group-label[hidden],
+.chatbot-advanced-filters-modal-body-features-container[hidden],
+.chatbot-showcase-loading[hidden],
+.chatbot-showcase-empty[hidden],
+.chatbot-showcase-show-more-wrapper[hidden],
+.chatbot-showcase-bottom-bar[hidden],
+.chatbot-rating-modal-error[hidden],
+.chatbot-rating-modal-success[hidden] {
+    display: none !important;
+}
+
 .chatbot-filters-modal-overlay {
     position: fixed;
     inset: 0;
-    display: none;
+    display: flex;
     background: var(--color-black-a60); 
     z-index: 1000;
     justify-content: center;
@@ -1530,10 +1543,6 @@ body.page-chatbotShowcase .footer-main-bottom {
     align-items: center;
 }
 
-.chatbot-advanced-filters-modal-body-features-container{
-    display: none;
-}
-
 .chatbot-filters-modal-body-features-single{
     display: flex;
     align-items: center;
@@ -1630,9 +1639,6 @@ body.page-chatbotShowcase .footer-main-bottom {
 /* Hidden wrapper pre show more */
 .integrations-hidden-wrapper {
     display: none;
-}
-.integrations-hidden-wrapper[style*="contents"] {
-    display: contents;
 }
 
 .filters-modal-results-count {
@@ -1761,7 +1767,7 @@ body.page-chatbotShowcase .footer-main-bottom {
 
 /* ---- Loading spinner ---- */
 .chatbot-showcase-loading {
-    display: none;
+    display: flex;
     justify-content: center;
     align-items: center;
     padding: 4rem 0;
@@ -1790,9 +1796,19 @@ body.page-chatbotShowcase .footer-main-bottom {
     width: 100%;
 }
 
+.chatbot-page-main-content-chatbots-grid-view.is-search-loading,
+.chatbot-page-main-content-chatbots-list-view.is-search-loading {
+    opacity: 0.35;
+    transition: opacity 0.15s ease;
+}
+
+#sortArrow.is-reversed {
+    transform: scaleY(-1);
+}
+
 /* ---- Show More (mobile) ---- */
 .chatbot-showcase-show-more-wrapper {
-    display: none;
+    display: flex;
     justify-content: center;
     padding: 2rem;
     width: 100%;

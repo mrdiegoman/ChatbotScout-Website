@@ -90,7 +90,7 @@ if (!$isLoggedIn) {
             </div>
 
             <!-- Success state -->
-            <div class="sc-success" id="scSuccess" style="display:none;">
+            <div class="sc-success" id="scSuccess" hidden>
                 <div class="sc-success__icon">🎉</div>
                 <h2>We got your submission!</h2>
                 <p>Thanks for reaching out. We've sent a confirmation to <strong><?php echo htmlspecialchars($user['email']); ?></strong>.</p>
@@ -206,7 +206,7 @@ if (!$isLoggedIn) {
                     </p> -->
                     <button type="submit" class="sc-submit-btn" id="scSubmitBtn">
                         <span id="scSubmitText">Send Partnership Request</span>
-                        <span id="scSubmitLoader" style="display:none;">Sending...</span>
+                        <span id="scSubmitLoader" hidden>Sending...</span>
                     </button>
                 </div>
 

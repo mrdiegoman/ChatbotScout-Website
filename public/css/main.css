@@ -390,7 +390,7 @@ a, button {
     display: flex;
     align-items: center;
     z-index: 1000;
-    padding: 0 0 0 2rem;
+    padding: 0 var(--scrollbar-compensation, 0px) 0 2rem;
     container-type: inline-size;
     box-shadow: 0 0.1rem 0.4rem var(--color-black-a10);
 }
@@ -685,10 +685,6 @@ a, button {
 .header-main-right svg{
     width: 3rem;
     cursor: pointer;
-}
-
-.header-main-right path {
-    fill: var(--color-gray-fafafa);
 }
 
 .header-main-right-admin {
@@ -1191,7 +1187,7 @@ a, button {
     color: var(--color-white-a60);
     text-decoration: none;
     border-left: 0.2rem solid var(--color-transparent);
-    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+    transition: color 0.1s ease, background-color 0.1s ease, border-color 0.1s ease;
 }
 
 .header-mobile-nav-link svg {
@@ -1199,7 +1195,7 @@ a, button {
     height: 1.9rem;
     flex-shrink: 0;
     stroke: var(--color-white-a45);
-    transition: stroke 0.2s ease;
+    transition: stroke 0.1s ease;
 }
 
 .header-mobile-nav-link:hover {
@@ -1309,7 +1305,9 @@ a, button {
     transition: opacity 0.2s ease, transform 0.15s ease;
 }
 
-.header-mobile-signup:hover {
+.header-mobile-signup:hover,
+.header-mobile-signup:focus-visible {
+    color: var(--color-white);
     opacity: 0.88;
     transform: translateY(-1px);
 }
@@ -1406,16 +1404,22 @@ a, button {
     flex-shrink: 0;
 }
 
+.header-mobile-logout-form {
+    margin: 0;
+}
+
 .header-mobile-logout {
-    padding: 1rem 2rem;
-    border: 1.5px solid var(--color-red-ef233c-a72);
-    border-radius: 6px;
+    width: 100%;
+    padding: 1.1rem 2rem;
+    border: 0.15rem solid var(--color-red-ef233c-a72);
+    border-radius: 0.8rem;
     background: var(--color-slate-1e162e);
     color: var(--color-red-ef233c);
     font-family: Outfit-SemiBold;
-    font-size: 1.4rem;
+    font-size: 1.55rem;
     text-align: center;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
 }
 
 .header-mobile-logout:hover {
@@ -1455,7 +1459,7 @@ a, button {
 
     /* Upravenie headeru */
     .header-main {
-        padding: 0;
+        padding: 0 var(--scrollbar-compensation, 0px) 0 0;
     }
 
     .header-main-content {
@@ -1762,6 +1766,15 @@ a, button {
     height: 1.4rem;
 }
 
+#dropdown-email-icon-hide,
+#dropdown-email-toggle[aria-pressed="true"] #dropdown-email-icon-show {
+    display: none;
+}
+
+#dropdown-email-toggle[aria-pressed="true"] #dropdown-email-icon-hide {
+    display: block;
+}
+
 /* Divider */
 .header-profile-dropdown-divider {
     height: 1px;
@@ -1801,8 +1814,18 @@ a, button {
     stroke: var(--color-blue-a89cff);
 }
 
+.header-profile-dropdown-logout-form {
+    margin: 0;
+}
+
 .header-profile-dropdown-item--logout {
+    width: 100%;
+    border: 0;
+    background: transparent;
     color: var(--color-red-ff7070);
+    cursor: pointer;
+    font-size: 1.35rem;
+    text-align: left;
 }
 
 .header-profile-dropdown-item--logout svg {

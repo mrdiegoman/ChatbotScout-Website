@@ -10,6 +10,10 @@ function escapeAttr(str) {
     return String(str ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
+function setElementHidden(element, hidden) {
+    if (element) element.hidden = hidden;
+}
+
 // ============================================
 // MAIN TAB SWITCHING (Messages / Reviews / Settings)
 // ============================================
@@ -53,9 +57,9 @@ document.querySelectorAll('.admin-main-tab-btn').forEach(btn => {
 function toggleSection(btn, sectionId) {
     const section = document.getElementById(sectionId);
     if (!section) return;
-    const isVisible = section.style.display !== 'none';
-    section.style.display = isVisible ? 'none' : 'block';
-    btn.classList.toggle('active', !isVisible);
+    const shouldShow = section.hidden;
+    section.hidden = !shouldShow;
+    btn.classList.toggle('active', shouldShow);
 }
 
 // ============================================
@@ -268,8 +272,8 @@ async function loadAdminSettings() {
     const loadingEl = document.getElementById('settingsLoading');
     const contentEl = document.getElementById('settingsContent');
  
-    if (loadingEl) loadingEl.style.display = 'flex';
-    if (contentEl) contentEl.style.display = 'none';
+    setElementHidden(loadingEl, false);
+    setElementHidden(contentEl, true);
  
     try {
         const res  = await fetch('app/adminSettingsActions.php', { method: 'GET' });
@@ -299,14 +303,14 @@ async function loadAdminSettings() {
             updatedEl.textContent = updatedAt ? `Last updated: ${updatedAt}` : '';
         }
 
-        if (contentEl) contentEl.style.display = 'block';
+        setElementHidden(contentEl, false);
 
         loadNotificationEmails();
  
     } catch (err) {
         showNotification('Failed to load settings', 'error');
     } finally {
-        if (loadingEl) loadingEl.style.display = 'none';
+        setElementHidden(loadingEl, true);
     }
 }
 
@@ -409,11 +413,11 @@ function renderNotifEmailsList() {
     listEl.innerHTML = '';
 
     if (notifEmails.length === 0) {
-        if (emptyEl) emptyEl.style.display = 'block';
+        setElementHidden(emptyEl, false);
         return;
     }
 
-    if (emptyEl) emptyEl.style.display = 'none';
+    setElementHidden(emptyEl, true);
 
     notifEmails.forEach(item => {
         const div = document.createElement('div');
@@ -421,7 +425,7 @@ function renderNotifEmailsList() {
         div.dataset.id = item.id;
         div.innerHTML = `
             <span>${escapeHtml(item.email)}</span>
-            <button class="admin-notif-delete-btn" onclick="deleteNotificationEmail('${escapeAttr(item.id)}')" title="Remove">&#x2715;</button>
+            <button class="admin-notif-delete-btn" data-admin-action="deleteNotificationEmail" data-id="${escapeAttr(item.id)}" title="Remove">&#x2715;</button>
         `;
         listEl.appendChild(div);
     });
@@ -507,7 +511,7 @@ async function deleteNotificationEmail(id) {
 function openNotifEmailsPopup() {
     const popup = document.getElementById('notifEmailsPopup');
     if (!popup) return;
-    popup.style.display = 'flex';
+    setElementHidden(popup, false);
     requestAnimationFrame(() => popup.classList.add('visible'));
 }
 
@@ -515,7 +519,12 @@ function closeNotifEmailsPopup() {
     const popup = document.getElementById('notifEmailsPopup');
     if (!popup) return;
     popup.classList.remove('visible');
-    popup.addEventListener('transitionend', () => { popup.style.display = 'none'; }, { once: true });
+    popup.addEventListener('transitionend', () => { setElementHidden(popup, true); }, { once: true });
+    window.setTimeout(() => {
+        if (!popup.classList.contains('visible')) {
+            setElementHidden(popup, true);
+        }
+    }, 250);
 }
 
 function closeNotifEmailsPopupOnOverlay(event) {
@@ -555,9 +564,9 @@ function openAdminChatbotCreatePopup() {
         <div class="sub-popup-box admin-chatbot-create-box">
             <div class="sub-popup-header">
                 <h3>Add chatbot</h3>
-                <button type="button" class="modal-close sub-popup-close" onclick="closeAdminChatbotCreatePopup()" aria-label="Close">&times;</button>
+                <button type="button" class="modal-close sub-popup-close" data-admin-action="closeAdminChatbotCreatePopup" aria-label="Close">&times;</button>
             </div>
-            <form id="admin-chatbot-create-form" onsubmit="createAdminChatbot(event)">
+            <form id="admin-chatbot-create-form" data-admin-submit="createAdminChatbot">
                 <div class="sub-popup-body">
                     <div class="admin-create-chatbot-grid">
                         <label class="admin-create-chatbot-field">
@@ -579,7 +588,7 @@ function openAdminChatbotCreatePopup() {
                     </div>
                 </div>
                 <div class="sub-popup-footer">
-                    <button type="button" class="admin-cancel-btn" onclick="closeAdminChatbotCreatePopup()">Cancel</button>
+                    <button type="button" class="admin-cancel-btn" data-admin-action="closeAdminChatbotCreatePopup">Cancel</button>
                     <button type="submit" class="admin-save-btn" data-admin-create-save>Add chatbot</button>
                 </div>
             </form>
@@ -700,7 +709,9 @@ async function searchAccountForChatbot(chatbotId, btn) {
                     </div>
                     <button type="button"
                             class="admin-save-btn admin-assign-add-btn"
-                            onclick="assignChatbotToAccount('${escapeAttr(chatbotId)}', '${escapeAttr(user.id)}', this)">
+                            data-admin-action="assignChatbotToAccount"
+                            data-chatbot-id="${escapeAttr(chatbotId)}"
+                            data-user-id="${escapeAttr(user.id)}">
                         Add
                     </button>
                 </div>`;
@@ -854,7 +865,7 @@ async function rejectSubmission(id, btn) {
             });
 
             // Close reject section
-            section.style.display = 'none';
+            section.hidden = true;
             textarea.value = '';
 
             showNotification('Rejection sent successfully.', 'success');
@@ -969,7 +980,7 @@ function showAcceptPopup(id, chatbotName, rules, allPassed) {
         <div class="sub-popup-box">
             <div class="sub-popup-header">
                 <h3>Accept Chatbot</h3>
-                <button type="button" class="modal-close sub-popup-close" onclick="closeAcceptPopup()" aria-label="Close">&times;</button>
+                <button type="button" class="modal-close sub-popup-close" data-admin-action="closeAcceptPopup" aria-label="Close">&times;</button>
             </div>
             <div class="sub-popup-body">
                 <p>Reviewing <strong>${escHtml(chatbotName)}</strong> for activation.</p>
@@ -978,13 +989,15 @@ function showAcceptPopup(id, chatbotName, rules, allPassed) {
                 <p class="accept-info-note">Accepting will set status to <strong>active</strong>, mark as verified, and send a confirmation email to the owner.</p>
             </div>
             <div class="sub-popup-footer">
-                <button class="admin-cancel-btn" onclick="closeAcceptPopup()">Cancel</button>
+                <button class="admin-cancel-btn" data-admin-action="closeAcceptPopup">Cancel</button>
                 <button class="admin-accept-edit-btn"
-                        onclick="openSubmissionEditFromAccept('${escapeAttr(id)}')">
+                        data-admin-action="openSubmissionEditFromAccept"
+                        data-id="${escapeAttr(id)}">
                     Edit Listing
                 </button>
                 <button class="admin-accept-confirm-btn"${confirmDisabled}
-                        onclick="confirmAccept('${escapeAttr(id)}', this)">
+                        data-admin-action="confirmAccept"
+                        data-id="${escapeAttr(id)}">
                     ✅ Confirm Accept
                 </button>
             </div>
@@ -1135,7 +1148,7 @@ async function rejectSubmission(id, btn) {
         showNotification('Cannot reject an active chatbot. Use "Reviewed" or "Remove" to delist it first.', 'error');
         // Close the reject section
         const section = document.getElementById(`sub-reject-${id}`);
-        if (section) section.style.display = 'none';
+        setElementHidden(section, true);
         return;
     }
  
@@ -1168,7 +1181,7 @@ async function rejectSubmission(id, btn) {
  
         if (result.success) {
             updateCardStatus(id, 'rejected');
-            section.style.display = 'none';
+            section.hidden = true;
             textarea.value        = '';
             showNotification('Rejection sent successfully.', 'success');
             if (result.pendingCount !== undefined) {
@@ -1317,15 +1330,15 @@ function showChangeOfMindPopup(chatbotName, isRemove = false) {
             <div class="sub-popup-box sub-popup-box--warning">
                 <div class="sub-popup-header">
                     <h3>Confirm Status Change</h3>
-                    <button type="button" class="modal-close sub-popup-close" onclick="resolveChangePopup(false)" aria-label="Close">&times;</button>
+                    <button type="button" class="modal-close sub-popup-close" data-admin-action="resolveChangePopup" data-confirmed="false" aria-label="Close">&times;</button>
                 </div>
                 <div class="sub-popup-body">
                     <p>${actionText} <strong>${escHtml(chatbotName)}</strong>?</p>
                     
                 </div>
                 <div class="sub-popup-footer">
-                    <button class="admin-cancel-btn" onclick="resolveChangePopup(false)">Cancel</button>
-                    <button class="admin-confirm-change-btn" onclick="resolveChangePopup(true)">
+                    <button class="admin-cancel-btn" data-admin-action="resolveChangePopup" data-confirmed="false">Cancel</button>
+                    <button class="admin-confirm-change-btn" data-admin-action="resolveChangePopup" data-confirmed="true">
                         Confirm
                     </button>
                 </div>
@@ -1361,26 +1374,25 @@ function showDelistPopup(chatbotName) {
             <div class="sub-popup-box sub-popup-box--warning">
                 <div class="sub-popup-header">
                     <h3>Delist Chatbot</h3>
-                    <button type="button" class="modal-close sub-popup-close" onclick="resolveDelistPopup(false)" aria-label="Close">&times;</button>
+                    <button type="button" class="modal-close sub-popup-close" data-admin-action="resolveDelistPopup" data-confirmed="false" aria-label="Close">&times;</button>
                 </div>
                 <div class="sub-popup-body">
                     <p>You are about to delist <strong>${escHtml(chatbotName)}</strong> from ChatbotScout.</p>
                     <p>The owner will receive a <strong>Chatbot Delisted</strong> email with your reason.</p>
-                    <label style="display:block;margin-top:1rem;font-size:1.3rem;font-family: outfit-semibold, sans-serif;color:#374151;">
-                        Reason <span style="font-family: outfit-medium, sans-serif;color:#6B7280;">(optional — will be sent to the user)</span>
+                    <label class="admin-delist-reason-label">
+                        Reason <span class="admin-delist-reason-hint">(optional - will be sent to the user)</span>
                     </label>
                     <textarea
                         id="sub-delist-reason"
-                        class="admin-textarea"
+                        class="admin-textarea admin-delist-reason-textarea"
                         placeholder="e.g. The chatbot is no longer publicly accessible..."
-                        style="margin-top:0.5rem;"
                         rows="4"
                         maxlength="2000"
                     ></textarea>
                 </div>
                 <div class="sub-popup-footer">
-                    <button class="admin-cancel-btn" onclick="resolveDelistPopup(false)">Cancel</button>
-                    <button class="admin-confirm-change-btn" onclick="resolveDelistPopup(true)">
+                    <button class="admin-cancel-btn" data-admin-action="resolveDelistPopup" data-confirmed="false">Cancel</button>
+                    <button class="admin-confirm-change-btn" data-admin-action="resolveDelistPopup" data-confirmed="true">
                         Confirm &amp; Send Email
                     </button>
                 </div>
@@ -1464,15 +1476,15 @@ function buildSubmissionEditOption(kind, item, selected) {
         ? `Used by ${usageCount} chatbot(s). Remove it from all chatbots before deleting.`
         : 'Delete this unused feature';
     const deleteClass = usageCount > 0 ? ' sub-edit-delete-feature-btn--locked' : '';
-    const deleteAction = usageCount > 0
-        ? `event.preventDefault(); event.stopPropagation(); showNotification('This feature is used by ${usageCount} chatbot(s).', 'info')`
-        : `deleteSubmissionEditFeature('${escapeAttr(item.id)}', this, event)`;
+    const deleteAdminAction = usageCount > 0 ? 'showFeatureInUse' : 'deleteSubmissionEditFeature';
     const deleteButton = isFeature
         ? `<button type="button"
                    class="sub-edit-delete-feature-btn${deleteClass}"
                    title="${escapeAttr(deleteTitle)}"
                    aria-disabled="${usageCount > 0 ? 'true' : 'false'}"
-                   onclick="${deleteAction}">
+                   data-admin-action="${deleteAdminAction}"
+                   data-feature-id="${escapeAttr(item.id)}"
+                   data-usage-count="${usageCount}">
                Delete
            </button>`
         : '';
@@ -1483,7 +1495,7 @@ function buildSubmissionEditOption(kind, item, selected) {
             <input type="checkbox"
                    class="${checkClass}"
                    data-id="${escapeAttr(item.id)}"
-                   onchange="handleSubmissionEditOptionToggle(this)"
+                   data-admin-change="handleSubmissionEditOptionToggle"
                    ${checkedAttr(selected)}>
             <span class="sub-edit-option-name">${escapeHtml(item.name)}</span>
             ${badge}
@@ -1522,7 +1534,7 @@ function buildSubmissionEditSelector(kind, title, items, selectedIds) {
                             <span class="toggle-slider"></span>
                         </label>
                     </div>` : ''}
-                <button type="button" onclick="addSubmissionEditItem('${kind}')">Add</button>
+                <button type="button" data-admin-action="addSubmissionEditItem" data-kind="${kind}">Add</button>
             </div>
             <div class="sub-edit-options" id="sub-edit-${kind}-list">
                 ${rows || '<div class="sub-edit-empty-option">No items yet.</div>'}
@@ -1557,7 +1569,7 @@ async function openSubmissionEditPopup(id) {
         <div class="sub-popup-box sub-edit-popup-box">
             <div class="sub-popup-header">
                 <h3>Edit Listing</h3>
-                <button type="button" class="modal-close sub-popup-close" onclick="closeSubmissionEditPopup()" aria-label="Close">&times;</button>
+                <button type="button" class="modal-close sub-popup-close" data-admin-action="closeSubmissionEditPopup" aria-label="Close">&times;</button>
             </div>
             <div class="sub-popup-body sub-edit-popup-body">
                 <div class="sub-edit-loading">Loading listing details...</div>
@@ -1613,9 +1625,9 @@ function renderSubmissionEditPopup(data) {
         <div class="sub-popup-box sub-edit-popup-box">
             <div class="sub-popup-header">
                 <h3>Edit Listing</h3>
-                <button type="button" class="modal-close sub-popup-close" onclick="closeSubmissionEditPopup()" aria-label="Close">&times;</button>
+                <button type="button" class="modal-close sub-popup-close" data-admin-action="closeSubmissionEditPopup" aria-label="Close">&times;</button>
             </div>
-            <form id="sub-edit-form" data-chatbot-id="${escapeAttr(c.id)}" onsubmit="saveSubmissionEdit(event, '${escapeAttr(c.id)}')">
+            <form id="sub-edit-form" data-chatbot-id="${escapeAttr(c.id)}" data-admin-submit="saveSubmissionEdit">
                 <div class="sub-popup-body sub-edit-popup-body">
                     <section class="sub-edit-section">
                         <h4>Core details</h4>
@@ -1735,7 +1747,7 @@ function filterSubmissionEditList(kind, value) {
     const term = normalizeSubmissionEditName(value);
     list.querySelectorAll('.sub-edit-option').forEach(option => {
         const nameKey = option.dataset.nameKey || normalizeSubmissionEditName(option.textContent);
-        option.style.display = term === '' || nameKey.includes(term) ? '' : 'none';
+        option.hidden = term !== '' && !nameKey.includes(term);
     });
 }
 
@@ -1868,7 +1880,6 @@ function addSubmissionEditItem(kind) {
         const checkbox = existing.querySelector('input[type="checkbox"]');
         if (checkbox) checkbox.checked = true;
         existing.hidden = false;
-        existing.style.display = '';
         existing.scrollIntoView({ block: 'nearest' });
         updateSubmissionEditCounts();
         input.value = '';

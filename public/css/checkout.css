@@ -448,6 +448,26 @@
     margin-top: 0.4rem;
 }
 
+#stripe-loading[hidden],
+#payment-element[hidden],
+.checkout-payment__error[hidden] {
+    display: none !important;
+}
+
+.checkout-payment__loading-text {
+    color: var(--color-blue-6b7280);
+    font-size: 1.4rem;
+}
+
+.checkout-payment__loading-text--success {
+    color: var(--color-green-16a34a);
+}
+
+.checkout-payment__express-checkout.is-loading {
+    pointer-events: none;
+    opacity: 0.55;
+}
+
 .checkout-error,
 .checkout-payment__error {
     background: var(--color-gray-fef2f2);

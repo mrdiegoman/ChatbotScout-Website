@@ -2,6 +2,12 @@
    ADMIN PAGE
    ============================================ */
 
+.admin-wrapper [hidden],
+.sub-popup-overlay[hidden],
+.admin-hidden {
+    display: none !important;
+}
+
 .admin-wrapper {
     max-width: 900px;
     margin: 6rem auto auto;
@@ -808,6 +814,23 @@
     color: var(--color-orange-92400e);
 }
 
+.admin-delist-reason-label {
+    display: block;
+    margin-top: 1rem;
+    font-size: 1.3rem;
+    font-family: outfit-semibold, sans-serif;
+    color: var(--color-slate-374151);
+}
+
+.admin-delist-reason-hint {
+    font-family: outfit-medium, sans-serif;
+    color: var(--color-blue-6b7280);
+}
+
+.admin-delist-reason-textarea {
+    margin-top: 0.5rem;
+}
+
 /* Header */
 .sub-popup-header {
     display: flex;
@@ -1422,8 +1445,28 @@
    SUBMISSION ACTION BUTTONS (4 buttons)
    ============================================ */
 
-.submission-status-active  { background: var(--color-green-d1fae5); color: var(--color-green-065f46); }
+.admin-submission-logo {
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 0.5rem;
+    object-fit: contain;
+    background: var(--color-gray-f3f4f6);
+    flex-shrink: 0;
+}
+
+.admin-submission-logo--placeholder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    border: 1.5px solid var(--color-gray-e5e7eb);
+}
+
+.submission-status-active { background: var(--color-green-d1fae5); color: var(--color-green-065f46); }
 .submission-status-removed { background: var(--color-gray-f3f4f6); color: var(--color-blue-4b5563); }
+.submission-status-pending { background: var(--color-yellow-fef3c7); color: var(--color-orange-92400e); }
+.submission-status-reviewed { background: var(--color-green-d1fae5); color: var(--color-green-065f46); }
+.submission-status-rejected { background: var(--color-red-fee2e2); color: var(--color-red-991b1b); }
 
 
 .submission-action-btn.active.btn-accept   { background: var(--color-green-059669); color: var(--color-white); border-color: var(--color-green-059669); }
@@ -1507,6 +1550,10 @@
     border-radius: 1.2rem;
     padding: 2.8rem;
     max-width: 560px;
+}
+
+.admin-settings-card--spaced {
+    margin-top: 2.4rem;
 }
 
 .admin-settings-card-header {

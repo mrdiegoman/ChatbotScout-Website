@@ -29,15 +29,15 @@ document.addEventListener('DOMContentLoaded', function() {
         
         mobileSearchInput.addEventListener('input', function() {
             if (this.value.length > 0) {
-                clearIcon.classList.add('visible');
+                clearIcon?.classList.add('visible');
             } else {
-                clearIcon.classList.remove('visible');
+                clearIcon?.classList.remove('visible');
             }
         });
 
         mobileSearchClearBtn.addEventListener('click', function() {
             mobileSearchInput.value = '';
-            clearIcon.classList.remove('visible');
+            clearIcon?.classList.remove('visible');
             mobileSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
             mobileSearchInput.focus();
         });
@@ -47,12 +47,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (mobileSearchSubmitBtn && mobileSearchInput) {
         mobileSearchSubmitBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            const searchValue = mobileSearchInput.value.trim();
-            if (searchValue) {
-                console.log('Searching for:', searchValue);
-                // Tu môžeš pridať svoju search logiku
-                // Napríklad: performSearch(searchValue);
-            }
+            mobileSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
+            mobileSearchInput.blur();
         });
 
         // Enter key support

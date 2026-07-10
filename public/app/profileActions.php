@@ -17,7 +17,7 @@ $action = $_GET['action'] ?? '';
 
 header('Content-Type: application/json');
 
-// ✅ Exceptions - actions ktoré NEVYŽADUJÚ prihlásenie
+// Actions that do not require authentication still require CSRF for POST.
 $publicActions = ['resend_verification'];
 
 // Must be logged in (okrem public actions)
@@ -26,7 +26,7 @@ if (!in_array($action, $publicActions) && !$isLoggedIn) {
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !in_array($action, $publicActions)) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     validateCsrfToken();
 }
 
@@ -61,9 +61,7 @@ function deleteLocalProfilePicture(?string $profilePictureUrl): void
 
 function profileReturnUrl(string $tab = 'profile'): string
 {
-    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
-    $scheme = $isHttps ? 'https' : 'http';
+    $scheme = appIsHttpsRequest() ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     $publicPath = rtrim(str_replace('\\', '/', dirname(dirname($_SERVER['SCRIPT_NAME'] ?? '/'))), '/');
 
@@ -83,9 +81,7 @@ function profileSafeReturnUrl(?string $requestedUrl, string $fallbackTab = 'prof
         return $fallback;
     }
 
-    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
-    $scheme = $isHttps ? 'https' : 'http';
+    $scheme = appIsHttpsRequest() ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     if (strcasecmp($parts['host'], $host) !== 0 || strtolower($parts['scheme']) !== $scheme) {
         return $fallback;
@@ -781,111 +777,36 @@ function profileApplyPartialCancelImmediately($stripeSubscription, array $select
 // ============================================
 
 if ($action === 'resend_verification') {
-    $data = json_decode(file_get_contents('php://input'), true);
-    
-    $email = $data['email'] ?? '';
-    
-    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        echo json_encode(['success' => false, 'message' => 'Invalid email']);
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'message' => 'Method not allowed']);
         exit;
     }
-    
-    // ✅ 60-second timer check (session-based)
-    $lastSentKey = 'last_verification_sent_' . md5($email);
-    $lastSentTime = $_SESSION[$lastSentKey] ?? 0;
-    $timeSinceLastSend = time() - $lastSentTime;
-    
-    if ($timeSinceLastSend < 60) {
-        $remainingSeconds = 60 - $timeSinceLastSend;
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    $data = is_array($data) ? $data : [];
+    $sessionEmail = strtolower(trim((string)($_SESSION['pending_verification_email'] ?? '')));
+    $requestedEmail = strtolower(trim((string)($data['email'] ?? $sessionEmail)));
+
+    if (
+        !filter_var($sessionEmail, FILTER_VALIDATE_EMAIL)
+        || !hash_equals($sessionEmail, $requestedEmail)
+    ) {
+        http_response_code(400);
         echo json_encode([
-            'success' => false, 
-            'message' => "Please wait {$remainingSeconds} more seconds before resending.",
-            'remainingSeconds' => $remainingSeconds
+            'success' => false,
+            'message' => 'The verification request is no longer available. Please sign in again.',
+            'remainingSeconds' => 0,
         ]);
         exit;
     }
-    
-    // ✅ Rate limiting check
-    $rateLimiter = new RateLimiter();
-    $clientIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-    
-    if (!$rateLimiter->check('resend_verification', $clientIp)) {
-        $remaining = $rateLimiter->getRemainingLockoutTime('resend_verification', $clientIp);
-        if ($remaining >= 60) {
-            $minutes = ceil($remaining / 60);
-            echo json_encode([
-                'success' => false, 
-                'message' => "Too many requests. Please try again in {$minutes} minutes."
-            ]);
-        }
-        elseif ($remaining > 0) {
-                echo json_encode([
-                'success' => false, 
-                'message' => "Too many requests. Please try again in {$remaining} seconds."
-            ]);
-        }
-        exit;
+
+    $result = (new User())->resendVerificationEmail($sessionEmail, ClientIpResolver::current());
+    if (!$result['success'] && !empty($result['remainingSeconds'])) {
+        http_response_code(429);
     }
-    
-    $db = Database::getInstance()->getConnection();
-    
-    // Skontroluj user
-    $stmt = $db->prepare("
-        SELECT id, is_email_verified, first_name, last_name 
-        FROM users 
-        WHERE email = :email
-    ");
-    $stmt->execute(['email' => $email]);
-    $userCheck = $stmt->fetch();
-    
-    if (!$userCheck) {
-        // Security: Vráť success aj keď user neexistuje
-        $rateLimiter->recordFailedAttempt('resend_verification', $clientIp, $email);
-        echo json_encode(['success' => true, 'message' => 'If email exists, verification link was sent']);
-        exit;
-    }
-    
-    if ($userCheck['is_email_verified']) {
-        // ✅ Record failed attempt
-        $rateLimiter->recordFailedAttempt('resend_verification', $clientIp, $email);
-        echo json_encode(['success' => false, 'message' => 'Email is already verified']);
-        exit;
-    }
-    
-    // Generuj nový token
-    $appConfig = require __DIR__ . '/../../config/app.php';
-    $newToken = bin2hex(random_bytes(32));
-    $expiresAt = date('Y-m-d H:i:s', time() + $appConfig['email_verification']['token_lifetime']);
-    
-    // Ulož do DB
-    $stmt = $db->prepare("
-        UPDATE users 
-        SET email_verification_token = :token,
-            email_verification_expires_at = :expires
-        WHERE id = :id
-    ");
-    $stmt->execute([
-        'token' => $newToken,
-        'expires' => $expiresAt,
-        'id' => $userCheck['id']
-    ]);
-    
-    // Odošli cez Email class
-    $emailService = new Email();
-    $fullName = $userCheck['first_name'] . ' ' . $userCheck['last_name'];
-    $emailService->sendVerification($email, $fullName, $newToken);
-    $rateLimiter->recordFailedAttempt('resend_verification', $clientIp, $email);
-    
-    // ✅ Ulož timestamp do session (pre 60-sec timer)
-    $_SESSION[$lastSentKey] = time();
-    
-    // ✅ Reset rate limiter (úspešné odoslanie)
-    // $rateLimiter->reset('resend_verification', $clientIp);
-    
-    echo json_encode([
-        'success' => true,
-        'message' => 'Verification email has been resent successfully'
-    ]);
+
+    echo json_encode($result);
     
     exit;
 }

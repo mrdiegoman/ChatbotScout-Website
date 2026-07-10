@@ -50,7 +50,7 @@ class User
     ): array {
         // ✅ Rate limiting check
         $rateLimiter = new RateLimiter();
-        $clientIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $clientIp = ClientIpResolver::current();
         
         $errors = [];
 
@@ -144,7 +144,7 @@ class User
         $firstName = mb_convert_case($firstName, MB_CASE_TITLE, 'UTF-8');
         $lastName = mb_convert_case($lastName, MB_CASE_TITLE, 'UTF-8');
         
-        // Insert do databázy
+        // The initial verification email is not a resend, so it must not start the resend cooldown.
         $stmt = $this->db->prepare("
             INSERT INTO users (
                 id,
@@ -154,6 +154,7 @@ class User
                 password_hash,
                 email_verification_token,
                 email_verification_expires_at,
+                verification_email_sent_at,
                 terms_accepted,
                 marketing_emails,
                 status,
@@ -167,6 +168,7 @@ class User
                 :password_hash,
                 :token,
                 :token_expires,
+                NULL,
                 :terms_accepted,
                 :marketing_emails,
                 'pending_verification',
@@ -193,8 +195,8 @@ class User
         $fullName = $firstName . ' ' . $lastName;
         $emailService->sendVerification($email, $fullName, $verificationToken);
         
-        // ✅ Reset rate limiter (úspešná registrácia)
-        // $rateLimiter->reset('registration', $clientIp, $email);
+        // Count successful registrations too; otherwise only invalid signups are limited.
+        $rateLimiter->recordAttempt('registration', $clientIp);
         
         // Zaloguj úspešnú registráciu
         // error_log("✅ New user registered: $email");
@@ -242,13 +244,11 @@ class User
         $user = $stmt->fetch();
 
         $rateLimiter = new RateLimiter();
-        $clientIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $clientIp = ClientIpResolver::current();
         
         $errors = [];
 
-        // 🆕 ZMENA: check() dostáva aj $email - kontroluje IP aj email blokáciu
         if (!$rateLimiter->check('login', $clientIp, $email)) {
-            // 🆕 ZMENA: getRemainingLockoutTime() dostáva aj $email
             $remaining = $rateLimiter->getRemainingLockoutTime('login', $clientIp, $email);
             if ($remaining >= 60) {
                 $minutes = ceil($remaining / 60);
@@ -269,7 +269,6 @@ class User
         }
 
         if (!empty($errors)) {
-            // 🆕 ZMENA: recordFailedAttempt() dostáva aj $email
             $remaining = $rateLimiter->recordFailedAttempt('login', $clientIp, $email);
             if ($remaining >= 60) {
                 $minutes = ceil($remaining / 60);
@@ -306,7 +305,6 @@ class User
         
         // Overenie hesla
         if (!password_verify($password, $user['password_hash'])) {
-            // 🆕 ZMENA: recordFailedAttempt() dostáva aj $email
             $remaining = $rateLimiter->recordFailedAttempt('login', $clientIp, $email);
             if ($remaining >= 60) {
                 $minutes = ceil($remaining / 60);
@@ -319,45 +317,15 @@ class User
         }
 
         // Hard verification - user NEMÔŽE byť prihlásený bez verifikácie
-        $rateLimiter = new RateLimiter();
         if (!$user['is_email_verified']) {
-            if ($rateLimiter->check('resend_verification', $clientIp, $email)) {
-                if (!$this->checkEmailVerify($user['email_verification_expires_at'])){
-                    $verificationToken = bin2hex(random_bytes(32));
-                    $tokenExpires = date('Y-m-d H:i:s', time() + $this->appConfig['email_verification']['token_lifetime']);
-
-                    $updateStmt = $this->db->prepare("
-                        UPDATE users 
-                        SET email_verification_token = :token,
-                            email_verification_expires_at = :token_expires
-                        WHERE id = :id
-                    ");
-                    $updateStmt->execute([
-                        'token' => $verificationToken,
-                        'token_expires' => $tokenExpires,
-                        'id' => $user['id']
-                    ]);
-
-                    $emailService = new Email();
-                    $fullName = $user['first_name'] . ' ' . $user['last_name'];
-                    $emailService->sendVerification($email, $fullName, $verificationToken);
-                    
-                    $rateLimiter->recordFailedAttempt('resend_verification', $clientIp, $email);
-                    header('Location: verificationSent.php?email=' . urlencode($email));
-                }
-                header('Location: verificationSent.php?email=' . urlencode($email));
-                exit;
+            if (!$this->checkEmailVerify($user['email_verification_expires_at'] ?? null)) {
+                $this->resendVerificationEmail($email, $clientIp);
             }
-            else{
-                $remaining = $rateLimiter->getRemainingLockoutTime('resend_verification', $clientIp);
-                if ($remaining >= 60) {
-                    $minutes = ceil($remaining / 60);
-                    throw new Exception("Too many email verification attempts. Please try again in {$minutes} minutes.");
-                }
-                elseif ($remaining > 0) {
-                    throw new Exception("Too many email verification attempts. Please try again in {$remaining} seconds.");
-                }
-            }
+
+            return [
+                'requires_email_verification' => true,
+                'email' => $email,
+            ];
         }
         
         // Kontrola statusu účtu
@@ -384,13 +352,195 @@ class User
         return $user;
     }
     
-    private function checkEmailVerify(string $emailVerificationExpiresAt): bool
+    private function checkEmailVerify(?string $emailVerificationExpiresAt): bool
     {
         // Kontrola expirácie false=> token expiroval, true=> token stále platný
-        if (strtotime($emailVerificationExpiresAt) < time()) {
+        if (!$emailVerificationExpiresAt || strtotime($emailVerificationExpiresAt) < time()) {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Return the authoritative server-side resend state for one email address.
+     */
+    public function getVerificationResendState(string $email, string $clientIp): array
+    {
+        $email = strtolower(trim($email));
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return [
+                'exists' => false,
+                'verified' => false,
+                'remainingSeconds' => 0,
+                'canResend' => false,
+            ];
+        }
+
+        $cooldown = max(1, (int)($this->appConfig['email_verification']['resend_cooldown'] ?? 60));
+        $stmt = $this->db->prepare("
+            SELECT
+                is_email_verified,
+                CASE
+                    WHEN verification_email_sent_at IS NULL THEN 0
+                    ELSE GREATEST(0, :cooldown - TIMESTAMPDIFF(SECOND, verification_email_sent_at, NOW()))
+                END AS cooldown_remaining
+            FROM users
+            WHERE email = :email
+        ");
+        $stmt->execute([
+            'cooldown' => $cooldown,
+            'email' => $email,
+        ]);
+        $user = $stmt->fetch();
+
+        if (!$user) {
+            return [
+                'exists' => false,
+                'verified' => false,
+                'remainingSeconds' => 0,
+                'canResend' => false,
+            ];
+        }
+
+        $rateLimiter = new RateLimiter();
+        $rateLimitRemaining = $rateLimiter->getRemainingLockoutTime('resend_verification', $clientIp, $email);
+        $sessionKey = 'last_verification_sent_' . hash('sha256', $email);
+        $sessionLastSent = (int)($_SESSION[$sessionKey] ?? 0);
+        $sessionRemaining = $sessionLastSent > 0
+            ? max(0, $cooldown - (time() - $sessionLastSent))
+            : 0;
+        $remaining = max((int)$user['cooldown_remaining'], $rateLimitRemaining, $sessionRemaining);
+        $verified = (bool)$user['is_email_verified'];
+
+        return [
+            'exists' => true,
+            'verified' => $verified,
+            'remainingSeconds' => $remaining,
+            'canResend' => !$verified && $remaining === 0,
+        ];
+    }
+
+    /**
+     * Resend a verification email with database-backed cooldown and rate limiting.
+     */
+    public function resendVerificationEmail(string $email, string $clientIp): array
+    {
+        $email = strtolower(trim($email));
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return [
+                'success' => false,
+                'message' => 'The verification request is no longer available. Please sign in again.',
+                'remainingSeconds' => 0,
+            ];
+        }
+
+        $rateLimiter = new RateLimiter();
+        if (!$rateLimiter->check('resend_verification', $clientIp, $email)) {
+            $remaining = $rateLimiter->getRemainingLockoutTime('resend_verification', $clientIp, $email);
+            return [
+                'success' => false,
+                'message' => $remaining >= 60
+                    ? 'Too many requests. Please try again in ' . (int)ceil($remaining / 60) . ' minutes.'
+                    : "Please wait {$remaining} seconds before trying again.",
+                'remainingSeconds' => $remaining,
+            ];
+        }
+
+        $stmt = $this->db->prepare("
+            SELECT id, is_email_verified, first_name, last_name
+            FROM users
+            WHERE email = :email
+        ");
+        $stmt->execute(['email' => $email]);
+        $user = $stmt->fetch();
+
+        if (!$user) {
+            $rateLimiter->recordAttempt('resend_verification', $clientIp, $email);
+            return [
+                'success' => true,
+                'message' => 'If the account still needs verification, a new email has been sent.',
+                'remainingSeconds' => 0,
+            ];
+        }
+
+        if ((bool)$user['is_email_verified']) {
+            return [
+                'success' => false,
+                'message' => 'This email address is already verified. You can sign in now.',
+                'remainingSeconds' => 0,
+                'verified' => true,
+            ];
+        }
+
+        $state = $this->getVerificationResendState($email, $clientIp);
+        if ($state['remainingSeconds'] > 0) {
+            $remaining = (int)$state['remainingSeconds'];
+            return [
+                'success' => false,
+                'message' => "Please wait {$remaining} seconds before resending.",
+                'remainingSeconds' => $remaining,
+            ];
+        }
+
+        $cooldown = max(1, (int)($this->appConfig['email_verification']['resend_cooldown'] ?? 60));
+        $token = bin2hex(random_bytes(32));
+        $tokenExpires = date('Y-m-d H:i:s', time() + $this->appConfig['email_verification']['token_lifetime']);
+        $cooldownThreshold = date('Y-m-d H:i:s', time() - $cooldown);
+
+        $updateStmt = $this->db->prepare("
+            UPDATE users
+            SET email_verification_token = :token,
+                email_verification_expires_at = :token_expires,
+                verification_email_sent_at = NOW()
+            WHERE id = :id
+              AND is_email_verified = 0
+              AND (
+                  verification_email_sent_at IS NULL
+                  OR verification_email_sent_at <= :cooldown_threshold
+              )
+        ");
+        $updateStmt->execute([
+            'token' => $token,
+            'token_expires' => $tokenExpires,
+            'id' => $user['id'],
+            'cooldown_threshold' => $cooldownThreshold,
+        ]);
+
+        if ($updateStmt->rowCount() !== 1) {
+            $state = $this->getVerificationResendState($email, $clientIp);
+            $remaining = max(1, (int)$state['remainingSeconds']);
+            return [
+                'success' => false,
+                'message' => "Please wait {$remaining} seconds before resending.",
+                'remainingSeconds' => $remaining,
+            ];
+        }
+
+        $rateLimiter->recordAttempt('resend_verification', $clientIp, $email);
+        $_SESSION['last_verification_sent_' . hash('sha256', $email)] = time();
+
+        try {
+            $emailService = new Email();
+            $fullName = trim((string)$user['first_name'] . ' ' . (string)$user['last_name']);
+            $sent = $emailService->sendVerification($email, $fullName, $token);
+        } catch (Throwable $e) {
+            error_log('Verification resend failed: ' . $e->getMessage());
+            $sent = false;
+        }
+
+        if (!$sent) {
+            return [
+                'success' => false,
+                'message' => 'We could not send the email right now. Please try again when the countdown ends.',
+                'remainingSeconds' => $cooldown,
+            ];
+        }
+
+        return [
+            'success' => true,
+            'message' => 'A new verification email has been sent.',
+            'remainingSeconds' => $cooldown,
+        ];
     }
 
     /**
@@ -482,6 +632,27 @@ class User
         
         return true;
     }
+
+    /**
+     * Check whether a reset link can still be used without consuming it.
+     */
+    public function isPasswordResetTokenValid(string $token): bool
+    {
+        if (!$this->hasValidPasswordResetTokenFormat($token)) {
+            return false;
+        }
+
+        $stmt = $this->db->prepare("
+            SELECT 1
+            FROM users
+            WHERE password_reset_token = :token
+              AND password_reset_expires_at > NOW()
+            LIMIT 1
+        ");
+        $stmt->execute(['token' => $token]);
+
+        return (bool)$stmt->fetchColumn();
+    }
     
     /**
      * Reset hesla cez token z emailu
@@ -493,15 +664,20 @@ class User
      */
     public function resetPassword(string $token, string $newPassword): bool
     {
+        if (!$this->hasValidPasswordResetTokenFormat($token)) {
+            throw new Exception("Invalid or expired reset token.");
+        }
+
         $passwordErrors = PasswordPolicy::validate($newPassword);
         if ($passwordErrors) {
             throw new Exception(implode(' ', $passwordErrors));
         }
         
         $stmt = $this->db->prepare("
-            SELECT id, password_reset_expires_at
+            SELECT id
             FROM users
             WHERE password_reset_token = :token
+              AND password_reset_expires_at > NOW()
         ");
         
         $stmt->execute(['token' => $token]);
@@ -511,30 +687,55 @@ class User
             throw new Exception("Invalid or expired reset token.");
         }
         
-        // Kontrola expirácie
-        if (strtotime($user['password_reset_expires_at']) < time()) {
-            throw new Exception("Reset token has expired. Please request a new one.");
-        }
-        
         // Hash nového hesla
         $passwordHash = password_hash($newPassword, PASSWORD_ARGON2ID);
         
-        // Update hesla a vymaž token
-        $updateStmt = $this->db->prepare("
-            UPDATE users 
-            SET password_hash = :password_hash,
-                password_reset_token = NULL,
-                password_reset_expires_at = NULL,
-                updated_at = NOW()
-            WHERE id = :id
-        ");
-        
-        $updateStmt->execute([
-            'password_hash' => $passwordHash,
-            'id' => $user['id'],
-        ]);
+        $this->db->beginTransaction();
+
+        try {
+            // Consume the token in the same atomic update that changes the password.
+            $updateStmt = $this->db->prepare("
+                UPDATE users
+                SET password_hash = :password_hash,
+                    password_reset_token = NULL,
+                    password_reset_expires_at = NULL,
+                    updated_at = NOW()
+                WHERE id = :id
+                  AND password_reset_token = :token
+                  AND password_reset_expires_at > NOW()
+            ");
+
+            $updateStmt->execute([
+                'password_hash' => $passwordHash,
+                'id' => $user['id'],
+                'token' => $token,
+            ]);
+
+            if ($updateStmt->rowCount() !== 1) {
+                throw new UnexpectedValueException("Reset token was already consumed.");
+            }
+
+            (new Session())->destroyAllForUser((string)$user['id']);
+            $this->db->commit();
+        } catch (UnexpectedValueException $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            throw new Exception("Invalid or expired reset token.");
+        } catch (Throwable $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            error_log('Password reset failed: ' . $e->getMessage());
+            throw new Exception("We could not reset your password. Please request a new link.");
+        }
         
         return true;
+    }
+
+    private function hasValidPasswordResetTokenFormat(string $token): bool
+    {
+        return preg_match('/\A[a-f0-9]{64}\z/', $token) === 1;
     }
     
     /**

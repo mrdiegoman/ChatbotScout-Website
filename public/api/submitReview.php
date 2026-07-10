@@ -139,7 +139,7 @@ try {
         $adminEmails     = $adminEmailsStmt->fetchAll(PDO::FETCH_COLUMN);
 
         if (empty($adminEmails)) {
-            $appConfig   = require __DIR__ . '/../config/app.php';
+            $appConfig   = require __DIR__ . '/../../config/app.php';
             $adminEmails = [$appConfig['admin']['email'] ?? 'admin@chatbotscout.com'];
         }
 

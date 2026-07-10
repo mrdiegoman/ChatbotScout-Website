@@ -202,29 +202,6 @@ require '../inc/header.php';
 <link rel="stylesheet" href="css/admin_refresh.css?v=<?= filemtime(__DIR__ . '/css/admin_refresh.css') ?>">
 <link rel="stylesheet" href="css/admin_settings.css?v=<?= filemtime(__DIR__ . '/css/admin_settings.css') ?>">
 
-<style>
-.admin-submission-logo {
-    width: 2.4rem;
-    height: 2.4rem;
-    border-radius: 0.5rem;
-    object-fit: contain;
-    background: #f3f4f6;
-    flex-shrink: 0;
-}
-.admin-submission-logo--placeholder {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    border: 1.5px solid #e5e7eb;
-}
-.submission-status-active  { background: #D1FAE5; color: #065F46; }
-.submission-status-removed { background: #F3F4F6; color: #4B5563; }
-.submission-status-pending  { background: #FEF3C7; color: #92400E; }
-.submission-status-reviewed   { background: #D1FAE5; color: #065F46; }
-.submission-status-rejected { background: #FEE2E2; color: #991B1B; }
-</style>
-
 <div class="admin-wrapper">
 
     <div class="admin-header">
@@ -249,7 +226,7 @@ require '../inc/header.php';
                 <span class="admin-main-tab-count"><?= $msgCounts['new'] ?></span>
             <?php endif; ?>
             <span class="admin-refresh-btn" id="refreshMessagesBtn"
-                  onclick="event.stopPropagation(); refreshMessages(this)" title="Refresh messages">
+                  data-admin-action="refreshMessages" title="Refresh messages">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                      stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
@@ -264,7 +241,7 @@ require '../inc/header.php';
                 <span class="admin-main-tab-count"><?= $reviewCounts['pending'] ?></span>
             <?php endif; ?>
             <span class="admin-refresh-btn" id="refreshReviewsBtn"
-                  onclick="event.stopPropagation(); refreshReviews(this)" title="Refresh reviews">
+                  data-admin-action="refreshReviews" title="Refresh reviews">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                      stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
@@ -279,7 +256,7 @@ require '../inc/header.php';
                 <span class="admin-main-tab-count"><?= $subCounts['pending'] ?></span>
             <?php endif; ?>
             <span class="admin-refresh-btn" id="refreshSubmissionsBtn"
-                  onclick="event.stopPropagation(); refreshSubmissions(this)" title="Refresh submissions">
+                  data-admin-action="refreshSubmissions" title="Refresh submissions">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                      stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
@@ -325,7 +302,8 @@ require '../inc/header.php';
             <div class="admin-jump-to-oldest-bar">
                 <button id="messagesScrollOldestBtn"
                         class="admin-scroll-oldest-btn"
-                        onclick="scrollToOldest('messages')">
+                        data-admin-action="scrollToOldest"
+                        data-section="messages">
                     ↓ Jump to oldest
                 </button>
             </div>
@@ -383,33 +361,35 @@ require '../inc/header.php';
                                 <?php foreach (['new' => 'New', 'replied' => 'Replied', 'resolved' => 'Resolved', 'spam' => 'Spam'] as $s => $label): ?>
                                     <button class="admin-status-btn <?= $msg['status'] === $s ? 'active' : '' ?>"
                                             data-status="<?= $s ?>"
-                                            onclick="updateStatus('<?= $msgId ?>', '<?= $s ?>', this)">
+                                            data-admin-action="updateStatus"
+                                            data-id="<?= $msgId ?>">
                                         <?= $label ?>
                                     </button>
                                 <?php endforeach; ?>
                             </div>
                             <div class="admin-toggle-actions">
                                 <button class="admin-helpful-btn <?= $msg['helpful'] ? 'active' : '' ?>"
-                                        onclick="toggleHelpful('<?= $msgId ?>', this)">
+                                        data-admin-action="toggleHelpful"
+                                        data-id="<?= $msgId ?>">
                                     ⭐ Helpful
                                 </button>
-                                <button class="admin-toggle-btn" onclick="toggleSection(this, 'reply-<?= $msgId ?>')">✏️ Reply</button>
-                                <button class="admin-toggle-btn" onclick="toggleSection(this, 'notes-<?= $msgId ?>')">📝 Notes</button>
+                                <button class="admin-toggle-btn" data-admin-action="toggleSection" data-section="reply-<?= $msgId ?>">✏️ Reply</button>
+                                <button class="admin-toggle-btn" data-admin-action="toggleSection" data-section="notes-<?= $msgId ?>">📝 Notes</button>
                             </div>
                         </div>
 
-                        <div class="admin-reply-section" id="reply-<?= $msgId ?>" style="display:none;">
+                        <div class="admin-reply-section" id="reply-<?= $msgId ?>" hidden>
                             <label>Reply to <?= htmlspecialchars($msg['first_name']) ?>
                                 <span class="admin-reply-hint">(email will be sent to <?= htmlspecialchars($msg['email']) ?>)</span>
                             </label>
                             <textarea class="admin-textarea" placeholder="Write your reply here..."><?= htmlspecialchars($msg['response'] ?? '') ?></textarea>
-                            <button class="admin-save-btn" onclick="sendReply('<?= $msgId ?>', this)">Send Reply</button>
+                            <button class="admin-save-btn" data-admin-action="sendReply" data-id="<?= $msgId ?>">Send Reply</button>
                         </div>
 
-                        <div class="admin-notes-section" id="notes-<?= $msgId ?>" style="display:none;">
+                        <div class="admin-notes-section" id="notes-<?= $msgId ?>" hidden>
                             <label>Internal Notes <span class="admin-reply-hint">(not visible to user)</span></label>
                             <textarea class="admin-textarea" placeholder="Add internal notes here..."><?= htmlspecialchars($msg['internal_notes'] ?? '') ?></textarea>
-                            <button class="admin-save-btn" onclick="saveNotes('<?= $msgId ?>', this)">Save Notes</button>
+                            <button class="admin-save-btn" data-admin-action="saveNotes" data-id="<?= $msgId ?>">Save Notes</button>
                         </div>
 
                         <div class="admin-message-meta">
@@ -427,9 +407,9 @@ require '../inc/header.php';
                 <?php endforeach; ?>
             <?php endif; ?>
             <!-- MESSAGES LOAD MORE BAR -->
-            <div class="admin-load-more-bar" id="messagesLoadMoreBar" style="display:none;">
+            <div class="admin-load-more-bar" id="messagesLoadMoreBar" hidden>
                 <span class="admin-load-more-counter"></span>
-                <button class="admin-show-more-btn" onclick="loadMoreMessages(this)" style="display:none;">
+                <button class="admin-show-more-btn" data-admin-action="loadMoreMessages" hidden>
                     Show more
                 </button>
             </div>
@@ -470,7 +450,8 @@ require '../inc/header.php';
             <div class="admin-jump-to-oldest-bar">
                 <button id="reviewsScrollOldestBtn"
                         class="admin-scroll-oldest-btn"
-                        onclick="scrollToOldest('reviews')">
+                        data-admin-action="scrollToOldest"
+                        data-section="reviews">
                     ↓ Jump to oldest
                 </button>
             </div>
@@ -547,23 +528,28 @@ require '../inc/header.php';
                                 ] as $s => $label): ?>
                                     <button class="admin-status-btn review-status-action-btn <?= $review['status'] === $s ? 'active' : '' ?>"
                                             data-status="<?= $s ?>"
-                                            onclick="updateReviewStatus('<?= $reviewId ?>', '<?= $s ?>', this)">
+                                            data-admin-action="updateReviewStatus"
+                                            data-id="<?= $reviewId ?>">
                                         <?= $label ?>
                                     </button>
                                 <?php endforeach; ?>
                             </div>
                             <div class="admin-toggle-actions">
-                                <button class="admin-toggle-btn" onclick="toggleSection(this, 'review-notes-<?= $reviewId ?>')">
+                                <button class="admin-toggle-btn" data-admin-action="toggleSection" data-section="review-notes-<?= $reviewId ?>">
                                     📝 Notes
                                 </button>
                                 <?php if (!empty($review['is_review_blocked'])): ?>
                                     <button class="admin-block-btn admin-block-btn--blocked"
-                                            onclick="unblockUser('<?= $review['user_id'] ?>', 'review', this)">
+                                            data-admin-action="unblockUser"
+                                            data-user-id="<?= htmlspecialchars($review['user_id']) ?>"
+                                            data-block-type="review">
                                         🔓 Unblock Reviews
                                     </button>
                                 <?php else: ?>
                                     <button class="admin-block-btn"
-                                            onclick="blockUser('<?= $review['user_id'] ?>', 'review', this)">
+                                            data-admin-action="blockUser"
+                                            data-user-id="<?= htmlspecialchars($review['user_id']) ?>"
+                                            data-block-type="review">
                                         🚫 Block Reviews
                                     </button>
                                 <?php endif; ?>
@@ -571,11 +557,11 @@ require '../inc/header.php';
                         </div>
 
                         <!-- Moderation notes section -->
-                        <div class="admin-notes-section" id="review-notes-<?= $reviewId ?>" style="display:none;">
+                        <div class="admin-notes-section" id="review-notes-<?= $reviewId ?>" hidden>
                             <label>Moderation Notes <span class="admin-reply-hint">(internal only)</span></label>
                             <textarea class="admin-textarea"
                                       placeholder="e.g. Rejected — contains spam links..."><?= htmlspecialchars($review['moderation_notes'] ?? '') ?></textarea>
-                            <button class="admin-save-btn" onclick="saveReviewNotes('<?= $reviewId ?>', this)">Save Notes</button>
+                            <button class="admin-save-btn" data-admin-action="saveReviewNotes" data-id="<?= $reviewId ?>">Save Notes</button>
                         </div>
 
                         <!-- Moderated at -->
@@ -589,9 +575,9 @@ require '../inc/header.php';
                 <?php endforeach; ?>
             <?php endif; ?>
             <!-- REVIEWS LOAD MORE BAR -->
-            <div class="admin-load-more-bar" id="reviewsLoadMoreBar" style="display:none;">
+            <div class="admin-load-more-bar" id="reviewsLoadMoreBar" hidden>
                 <span class="admin-load-more-counter"></span>
-                <button class="admin-show-more-btn" onclick="loadMoreReviews(this)" style="display:none;">
+                <button class="admin-show-more-btn" data-admin-action="loadMoreReviews" hidden>
                     Show more
                 </button>
             </div>
@@ -605,7 +591,7 @@ require '../inc/header.php';
     <div class="admin-tab-pane <?= $activeTab === 'submissions' ? 'active' : '' ?>" id="submissions-tab">
 
         <div class="admin-submissions-toolbar">
-            <button type="button" class="admin-add-chatbot-btn" onclick="openAdminChatbotCreatePopup()">
+            <button type="button" class="admin-add-chatbot-btn" data-admin-action="openAdminChatbotCreatePopup">
                 Add chatbot
             </button>
         </div>
@@ -637,7 +623,7 @@ require '../inc/header.php';
             <div class="admin-jump-to-oldest-bar">
                 <button id="submissionsScrollOldestBtn"
                         class="admin-scroll-oldest-btn"
-                        onclick="scrollToOldestSubmissions()">
+                        data-admin-action="scrollToOldestSubmissions">
                     ↓ Jump to oldest
                 </button>
             </div>
@@ -738,48 +724,59 @@ require '../inc/header.php';
                             <div class="admin-status-actions">
                                 <button class="admin-status-btn submission-action-btn btn-accept <?= $sub['status'] === 'active'   ? 'active' : '' ?>"
                                         data-action="active"
-                                        onclick="acceptSubmission('<?= $subId ?>')">
+                                        data-admin-action="acceptSubmission"
+                                        data-id="<?= $subId ?>">
                                     ✅ Accept
                                 </button>
                                 <button class="admin-status-btn submission-action-btn btn-reviewed <?= $sub['status'] === 'reviewed' ? 'active' : '' ?>"
                                         data-action="reviewed"
-                                        onclick="reviewSubmission('<?= $subId ?>', this)">
+                                        data-admin-action="reviewSubmission"
+                                        data-id="<?= $subId ?>">
                                     👁 Reviewed
                                 </button>
                                 <button class="admin-status-btn submission-action-btn btn-reject <?= $sub['status'] === 'rejected' ? 'active' : '' ?>"
                                         data-action="rejected"
-                                        onclick="toggleSection(this, 'sub-reject-<?= $subId ?>')">
+                                        data-admin-action="toggleSection"
+                                        data-section="sub-reject-<?= $subId ?>">
                                     ❌ Reject
                                 </button>
                                 <button class="admin-status-btn submission-action-btn btn-remove <?= $sub['status'] === 'removed'  ? 'active' : '' ?>"
                                         data-action="removed"
-                                        onclick="removeSubmission('<?= $subId ?>', this)">
+                                        data-admin-action="removeSubmission"
+                                        data-id="<?= $subId ?>">
                                     🗑 Remove
                                 </button>
                             </div>
                             <div class="admin-toggle-actions">
                                 <button class="admin-toggle-btn admin-edit-listing-btn"
-                                        onclick="openSubmissionEditPopup('<?= $subId ?>')">
+                                        data-admin-action="openSubmissionEditPopup"
+                                        data-id="<?= $subId ?>">
                                     Edit Listing
                                 </button>
                                 <button class="admin-toggle-btn"
-                                        onclick="toggleSection(this, 'sub-notes-<?= $subId ?>')">
+                                        data-admin-action="toggleSection"
+                                        data-section="sub-notes-<?= $subId ?>">
                                     📝 Notes
                                 </button>
                                 <?php if ($subIsUnassigned): ?>
                                     <button class="admin-toggle-btn admin-assign-btn"
-                                            onclick="toggleSection(this, 'sub-assign-<?= $subId ?>')">
+                                            data-admin-action="toggleSection"
+                                            data-section="sub-assign-<?= $subId ?>">
                                         Assign account
                                     </button>
                                 <?php else: ?>
                                     <?php if (!empty($sub['is_submission_blocked'])): ?>
                                         <button class="admin-block-btn admin-block-btn--blocked"
-                                                onclick="unblockUser('<?= $sub['owner_user_id'] ?? '' ?>', 'submission', this)">
+                                                data-admin-action="unblockUser"
+                                                data-user-id="<?= htmlspecialchars($sub['owner_user_id'] ?? '') ?>"
+                                                data-block-type="submission">
                                             🔓 Unblock Submissions
                                         </button>
                                     <?php else: ?>
                                         <button class="admin-block-btn"
-                                                onclick="blockUser('<?= $sub['owner_user_id'] ?? '' ?>', 'submission', this)">
+                                                data-admin-action="blockUser"
+                                                data-user-id="<?= htmlspecialchars($sub['owner_user_id'] ?? '') ?>"
+                                                data-block-type="submission">
                                             🚫 Block Submissions
                                         </button>
                                     <?php endif; ?>
@@ -788,7 +785,7 @@ require '../inc/header.php';
                         </div>
 
                         <?php if ($subIsUnassigned): ?>
-                            <div class="admin-assign-section" id="sub-assign-<?= $subId ?>" style="display:none;">
+                            <div class="admin-assign-section" id="sub-assign-<?= $subId ?>" hidden>
                                 <label>Assign to existing account <span class="admin-reply-hint">(exact email search)</span></label>
                                 <div class="admin-assign-search-row">
                                     <input type="email"
@@ -798,7 +795,8 @@ require '../inc/header.php';
                                            maxlength="255">
                                     <button type="button"
                                             class="admin-save-btn admin-assign-search-btn"
-                                            onclick="searchAccountForChatbot('<?= $subId ?>', this)">
+                                            data-admin-action="searchAccountForChatbot"
+                                            data-id="<?= $subId ?>">
                                         Search
                                     </button>
                                 </div>
@@ -807,25 +805,27 @@ require '../inc/header.php';
                         <?php endif; ?>
 
                         <!-- Reject section -->
-                        <div class="admin-reply-section" id="sub-reject-<?= $subId ?>" style="display:none;">
+                        <div class="admin-reply-section" id="sub-reject-<?= $subId ?>" hidden>
                             <label>Rejection reason
                                 <span class="admin-reply-hint">(will be sent to user via email)</span>
                             </label>
                             <textarea class="admin-textarea"
                                       placeholder="e.g. The chatbot is not publicly accessible, the website appears to be inactive..."></textarea>
                             <button class="admin-save-btn admin-reject-btn"
-                                    onclick="rejectSubmission('<?= $subId ?>', this)">
+                                    data-admin-action="rejectSubmission"
+                                    data-id="<?= $subId ?>">
                                 Send Rejection
                             </button>
                         </div>
 
                         <!-- Admin notes section -->
-                        <div class="admin-notes-section" id="sub-notes-<?= $subId ?>" style="display:none;">
+                        <div class="admin-notes-section" id="sub-notes-<?= $subId ?>" hidden>
                             <label>Admin Notes <span class="admin-reply-hint">(internal only, not sent to user)</span></label>
                             <textarea class="admin-textarea"
                                       placeholder="e.g. Tested on 12.3, working fine. Missing pricing page..."><?= htmlspecialchars($sub['admin_notes'] ?? '') ?></textarea>
                             <button class="admin-save-btn"
-                                    onclick="saveSubmissionNotes('<?= $subId ?>', this)">
+                                    data-admin-action="saveSubmissionNotes"
+                                    data-id="<?= $subId ?>">
                                 Save Notes
                             </button>
                         </div>
@@ -835,9 +835,9 @@ require '../inc/header.php';
             <?php endif; ?>
 
             <!-- SUBMISSIONS LOAD MORE BAR -->
-            <div class="admin-load-more-bar" id="submissionsLoadMoreBar" style="display:none;">
+            <div class="admin-load-more-bar" id="submissionsLoadMoreBar" hidden>
                 <span class="admin-load-more-counter"></span>
-                <button class="admin-show-more-btn" onclick="loadMoreSubmissions(this)" style="display:none;">
+                <button class="admin-show-more-btn" data-admin-action="loadMoreSubmissions" hidden>
                     Show more
                 </button>
             </div>
@@ -851,11 +851,11 @@ require '../inc/header.php';
 
     <div class="admin-tab-pane <?= $activeTab === 'settings' ? 'active' : '' ?>" id="settings-tab">
 
-        <div class="admin-settings-loading" id="settingsLoading" style="display:none;">
+        <div class="admin-settings-loading" id="settingsLoading" hidden>
             <div class="admin-settings-spinner"></div>
         </div>
 
-        <div id="settingsContent" style="display:none;">
+        <div id="settingsContent" hidden>
 
             <div class="admin-settings-card">
                 <div class="admin-settings-card-header">
@@ -888,7 +888,7 @@ require '../inc/header.php';
                 </div>
             </div>
             
-            <div class="admin-settings-card" style="margin-top: 2.4rem;">
+            <div class="admin-settings-card admin-settings-card--spaced">
                 <div class="admin-settings-card-header">
                     <h2>No-Reply &amp; Notification Settings</h2>
                     <p>Used for <strong>automatic emails</strong> — verifications, password resets, new message alerts, review alerts, chatbot submissions.</p>
@@ -924,9 +924,9 @@ require '../inc/header.php';
                                 maxlength="254"
                                 placeholder="your@email.com"
                                 autocomplete="off">
-                            <button type="button" class="admin-notif-add-btn" onclick="addNotificationEmail()" title="Add email">+</button>
+                            <button type="button" class="admin-notif-add-btn" data-admin-action="addNotificationEmail" title="Add email">+</button>
                         </div>
-                        <button type="button" class="admin-notif-view-btn" onclick="openNotifEmailsPopup()">
+                        <button type="button" class="admin-notif-view-btn" data-admin-action="openNotifEmailsPopup">
                             View emails (<span id="notifEmailCount">0</span>)
                         </button>
                         <span class="admin-settings-hint">All listed emails receive alerts for new messages, reviews and submissions.</span>
@@ -935,7 +935,7 @@ require '../inc/header.php';
                     <div class="admin-settings-footer">
                         <span class="admin-settings-updated" id="settingsLastUpdated"></span>
                         <button class="admin-save-btn admin-settings-save-btn"
-                                onclick="saveAdminSettings(this)">
+                                data-admin-action="saveAdminSettings">
                             Save Settings
                         </button>
                     </div>
@@ -947,20 +947,21 @@ require '../inc/header.php';
 </div><!-- end admin-wrapper -->
 
 <!-- ── Notification Emails Popup ── -->
-<div class="sub-popup-overlay" id="notifEmailsPopup" style="display:none;">
+<div class="sub-popup-overlay" id="notifEmailsPopup" hidden>
     <div class="sub-popup-box">
         <div class="sub-popup-header">
             <h3>Notification Emails</h3>
-            <button type="button" class="modal-close sub-popup-close" onclick="closeNotifEmailsPopup()" aria-label="Close">&times;</button>
+            <button type="button" class="modal-close sub-popup-close" data-admin-action="closeNotifEmailsPopup" aria-label="Close">&times;</button>
         </div>
         <div class="sub-popup-body">
             <div id="notifEmailsList"></div>
-            <p class="admin-notif-empty-msg" id="notifEmailsEmpty" style="display:none;">No notification emails added yet.</p>
+            <p class="admin-notif-empty-msg" id="notifEmailsEmpty" hidden>No notification emails added yet.</p>
         </div>
     </div>
 </div>
 
 <script src="js/admin.js?v=<?= filemtime(__DIR__ . '/js/admin.js') ?>" defer></script>
 <script src="js/admin_refresh.js?v=<?= filemtime(__DIR__ . '/js/admin_refresh.js') ?>" defer></script>
+<script src="js/admin_events.js?v=<?= filemtime(__DIR__ . '/js/admin_events.js') ?>" defer></script>
 
 <?php require '../inc/footer.php'; ?>

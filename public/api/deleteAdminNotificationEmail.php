@@ -19,10 +19,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 validateCsrfToken();
 
-$data = json_decode(file_get_contents('php://input'), true) ?? [];
+$data = json_decode(file_get_contents('php://input'), true);
+$data = is_array($data) ? $data : [];
 $id   = trim($data['id'] ?? '');
 
-if (empty($id) || !preg_match('/^[0-9a-f\-]{36}$/i', $id)) {
+if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $id)) {
+    http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Invalid ID']);
     exit;
 }

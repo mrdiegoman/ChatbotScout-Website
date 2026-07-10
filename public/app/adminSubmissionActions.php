@@ -20,12 +20,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 validateCsrfToken();
 
-$input  = json_decode(file_get_contents('php://input'), true) ?? [];
+$input  = json_decode(file_get_contents('php://input'), true);
+$input  = is_array($input) ? $input : [];
 $action = $input['action'] ?? '';
 $id     = trim($input['id'] ?? '');
 
 $db        = Database::getInstance()->getConnection();
-$appConfig = require '../../config/app.php';
+$appConfig = require __DIR__ . '/../../config/app.php';
 
 // ── Helper: get pending count ──────────────────────────────────────────────────
 function getPendingCount(PDO $db): int {

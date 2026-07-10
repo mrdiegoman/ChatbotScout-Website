@@ -43,6 +43,75 @@ class Email
         return AdminAuth::loginUrl($this->config['base_url'] ?? '');
     }
 
+    private function e(string $value): string
+    {
+        return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+
+    private function nl2brHtml(string $value): string
+    {
+        return nl2br($this->e($value), false);
+    }
+
+    private function sanitizeHeaderText(string $value): string
+    {
+        $value = preg_replace('/[\r\n\x00-\x1F\x7F]+/', ' ', $value) ?? '';
+        return trim($value);
+    }
+
+    private function sanitizeEmailAddress(string $email): string
+    {
+        $email = $this->sanitizeHeaderText($email);
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new InvalidArgumentException('Invalid email address.');
+        }
+
+        return $email;
+    }
+
+    private function encodeHeaderValue(string $value): string
+    {
+        return '=?UTF-8?B?' . base64_encode($this->sanitizeHeaderText($value)) . '?=';
+    }
+
+    private function formatMailbox(string $email, string $name = ''): string
+    {
+        $email = $this->sanitizeEmailAddress($email);
+        $name  = $this->sanitizeHeaderText($name);
+
+        return $name !== ''
+            ? $this->encodeHeaderValue($name) . " <{$email}>"
+            : $email;
+    }
+
+    private function safeHref(string $url): string
+    {
+        $url = trim(preg_replace('/[\x00-\x1F\x7F]+/', '', $url) ?? '');
+
+        if ($url === '') {
+            return '#';
+        }
+
+        $scheme = parse_url($url, PHP_URL_SCHEME);
+        $isRelativePath = str_starts_with($url, '/') && !str_starts_with($url, '//');
+
+        if ($isRelativePath || in_array(strtolower((string)$scheme), ['http', 'https'], true)) {
+            return $this->e($url);
+        }
+
+        return '#';
+    }
+
+    private function safeMailtoHref(string $email): string
+    {
+        try {
+            return 'mailto:' . $this->e($this->sanitizeEmailAddress($email));
+        } catch (InvalidArgumentException $e) {
+            return '#';
+        }
+    }
+
     // ============================================
     // PUBLIC SEND METHODS
     // ============================================
@@ -347,9 +416,9 @@ class Email
     ): string {
         $boundary = 'boundary_' . bin2hex(random_bytes(8));
 
-        $from    = $fromName  ? "\"$fromName\" <$fromEmail>" : $fromEmail;
-        $to      = $toName    ? "\"$toName\" <$toEmail>"     : $toEmail;
-        $subject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
+        $from    = $this->formatMailbox($fromEmail, $fromName);
+        $to      = $this->formatMailbox($toEmail, $toName);
+        $subject = $this->encodeHeaderValue($subject);
 
         $message  = "MIME-Version: 1.0\r\n";
         $message .= "From: $from\r\n";
@@ -449,6 +518,9 @@ class Email
 
     private function getVerificationTemplate(string $name, string $link): string
     {
+        $name = $this->e($name);
+        $link = $this->safeHref($link);
+
         $content = <<<HTML
         <div class="header" style="background: linear-gradient(135deg, #2d1b69 0%, #1a3a6e 100%); padding: 32px 32px 24px;">
             <h1>Welcome to ChatbotScout! 🎉</h1>
@@ -468,6 +540,9 @@ class Email
 
     private function getPasswordResetTemplate(string $name, string $link): string
     {
+        $name = $this->e($name);
+        $link = $this->safeHref($link);
+
         $content = <<<HTML
         <div class="header">
             <h1>Password Reset Request</h1>
@@ -487,6 +562,9 @@ class Email
 
     private function getContactConfirmationTemplate(string $name, string $subject): string
     {
+        $name    = $this->e($name);
+        $subject = $this->e($subject);
+
         $content = <<<HTML
         <div class="header">
             <h1>We received your message ✓</h1>
@@ -505,7 +583,9 @@ class Email
 
     private function getAdminReplyTemplate(string $name, string $originalSubject, string $replyText): string
     {
-        $replyHtml = nl2br(htmlspecialchars($replyText));
+        $name            = $this->e($name);
+        $originalSubject = $this->e($originalSubject);
+        $replyHtml       = $this->nl2brHtml($replyText);
         $content   = <<<HTML
         <div class="header">
             <h1>Response to your inquiry</h1>
@@ -526,6 +606,11 @@ class Email
         string $chatbotName,
         string $websiteUrl
     ): string {
+        $name           = $this->e($name);
+        $chatbotName    = $this->e($chatbotName);
+        $websiteUrlText = $this->e($websiteUrl);
+        $websiteUrlHref = $this->safeHref($websiteUrl);
+
         $content = <<<HTML
         <div class="header">
             <h1>Partnership Request Received 🤝</h1>
@@ -538,7 +623,7 @@ class Email
                 <div class="label">Chatbot Name</div>
                 <div class="value">$chatbotName</div>
                 <div class="label" style="margin-top:12px;">Website</div>
-                <div class="value"><a href="$websiteUrl" style="color:#6B3FF6;">$websiteUrl</a></div>
+                <div class="value"><a href="$websiteUrlHref" style="color:#6B3FF6;">$websiteUrlText</a></div>
             </div>
             <div>
                 <strong>What happens next?</strong><br><br>
@@ -560,10 +645,16 @@ class Email
         string $chatbotId,
         string $companyName = ''
     ): string {
-        $accessNoteHtml = nl2br(htmlspecialchars($accessNote));
-        $companyDisplay = $companyName ? $companyName : '<em style="color:#9CA3AF;">Not provided</em>';
+        $userName       = $this->e($userName);
+        $userEmailText  = $this->e($userEmail);
+        $chatbotName    = $this->e($chatbotName);
+        $websiteUrlText = $this->e($websiteUrl);
+        $websiteUrlHref = $this->safeHref($websiteUrl);
+        $accessNoteHtml = $this->nl2brHtml($accessNote);
+        $chatbotId      = $this->e($chatbotId);
+        $companyDisplay = $companyName ? $this->e($companyName) : '<em style="color:#9CA3AF;">Not provided</em>';
 
-        $adminUrl     = $this->getOperationsAccessUrl();
+        $adminUrl     = $this->safeHref($this->getOperationsAccessUrl());
 
         $content        = <<<HTML
         <div class="header">
@@ -577,9 +668,9 @@ class Email
                 <div class="label" style="margin-top:12px;">Company</div>
                 <div class="value">$companyDisplay</div>
                 <div class="label" style="margin-top:12px;">Website</div>
-                <div class="value"><a href="$websiteUrl" style="color:#6B3FF6;">$websiteUrl</a></div>
+                <div class="value"><a href="$websiteUrlHref" style="color:#6B3FF6;">$websiteUrlText</a></div>
                 <div class="label" style="margin-top:12px;">Submitted By</div>
-                <div class="value">$userName ($userEmail)</div>
+                <div class="value">$userName ($userEmailText)</div>
                 <div class="label" style="margin-top:12px;">Chatbot ID</div>
                 <div class="value" style="font-size:13px;color:#6B7280;">$chatbotId</div>
             </div>
@@ -593,8 +684,11 @@ class Email
 
     private function getChatbotApprovedTemplate(string $name, string $chatbotName): string
     {
+        $name        = $this->e($name);
+        $chatbotName = $this->e($chatbotName);
+
         $content = <<<HTML
-        <div class="header" style="color">
+        <div class="header">
             <h1>Your Chatbot is Approved! 🎉</h1>
             <p>Welcome to the ChatbotScout affiliate program</p>
         </div>
@@ -612,7 +706,9 @@ class Email
 
     private function getChatbotRejectedTemplate(string $name, string $chatbotName, string $reason): string
     {
-        $reasonHtml = nl2br(htmlspecialchars($reason));
+        $name        = $this->e($name);
+        $chatbotName = $this->e($chatbotName);
+        $reasonHtml  = $this->nl2brHtml($reason);
         $content    = <<<HTML
         <div class="header">
             <h1>Update on Your Submission</h1>
@@ -641,6 +737,13 @@ class Email
         string $ctaUrl,
         string $unsubscribeUrl
     ): string {
+        $name           = $this->e($name);
+        $preheader      = $this->e($preheader);
+        $headline       = $this->e($headline);
+        $ctaText        = $this->e($ctaText);
+        $ctaUrl         = $this->safeHref($ctaUrl);
+        $unsubscribeUrl = $this->safeHref($unsubscribeUrl);
+
         $content = <<<HTML
         <!-- Preheader (neviditeľný náhľadový text v emailovom klientovi) -->
         <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;color:#fff;">
@@ -673,9 +776,11 @@ class Email
 
     private function getChatbotDelistedTemplate(string $name, string $chatbotName, string $reason = ''): string
     {
+        $name        = $this->e($name);
+        $chatbotName = $this->e($chatbotName);
         $reasonBlock = '';
         if (!empty(trim($reason))) {
-            $reasonHtml  = nl2br(htmlspecialchars($reason));
+            $reasonHtml  = $this->nl2brHtml($reason);
             $reasonBlock = <<<HTML
             <div class="info-box">
                 <div class="label">Reason</div>
@@ -707,11 +812,16 @@ class Email
         string $message,
         string $ipAddress = ''
     ): string {
-        $messageHtml  = nl2br(htmlspecialchars($message));
+        $fullName        = $this->e($fullName);
+        $senderEmailText = $this->e($senderEmail);
+        $senderMailto    = $this->safeMailtoHref($senderEmail);
+        $subject         = $this->e($subject);
+        $messageHtml     = $this->nl2brHtml($message);
+        $ipAddress       = $this->e($ipAddress);
         $ipBlock      = $ipAddress
             ? "<div class=\"label\" style=\"margin-top:12px;\">IP Address</div><div class=\"value\" style=\"font-size:13px;color:#6B7280;\">$ipAddress</div>"
             : '';
-        $adminUrl     = $this->getOperationsAccessUrl();
+        $adminUrl     = $this->safeHref($this->getOperationsAccessUrl());
  
         $content = <<<HTML
         <div class="header">
@@ -723,7 +833,7 @@ class Email
                 <div class="label">From</div>
                 <div class="value">$fullName</div>
                 <div class="label" style="margin-top:12px;">Email</div>
-                <div class="value"><a href="mailto:$senderEmail" style="color:#6B3FF6;">$senderEmail</a></div>
+                <div class="value"><a href="$senderMailto" style="color:#6B3FF6;">$senderEmailText</a></div>
                 <div class="label" style="margin-top:12px;">Subject</div>
                 <div class="value">$subject</div>
                 $ipBlock
@@ -746,9 +856,15 @@ class Email
         string $reviewId
     ): string {
         $reviewHtml = $reviewText !== ''
-            ? nl2br(htmlspecialchars($reviewText))
+            ? $this->nl2brHtml($reviewText)
             : '<em style="color:#9CA3AF;">Rating only — no written review.</em>';
-        $adminUrl     = $this->getOperationsAccessUrl();
+        $userName      = $this->e($userName);
+        $userEmailText = $this->e($userEmail);
+        $userMailto    = $this->safeMailtoHref($userEmail);
+        $chatbotName   = $this->e($chatbotName);
+        $stars         = $this->e($stars);
+        $reviewId      = $this->e($reviewId);
+        $adminUrl      = $this->safeHref($this->getOperationsAccessUrl());
  
         $content = <<<HTML
         <div class="header">
@@ -762,7 +878,7 @@ class Email
                 <div class="label" style="margin-top:12px;">Rating</div>
                 <div class="value" style="font-size:18px;letter-spacing:2px;">$stars <span style="font-size:13px;color:#6B7280;">($rating / 5)</span></div>
                 <div class="label" style="margin-top:12px;">Submitted By</div>
-                <div class="value">$userName (<a href="mailto:$userEmail" style="color:#6B3FF6;">$userEmail</a>)</div>
+                <div class="value">$userName (<a href="$userMailto" style="color:#6B3FF6;">$userEmailText</a>)</div>
                 <div class="label" style="margin-top:12px;">Review ID</div>
                 <div class="value" style="font-size:13px;color:#6B7280;">$reviewId</div>
             </div>

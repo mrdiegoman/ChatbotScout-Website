@@ -19,7 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 validateCsrfToken();
 
-$data  = json_decode(file_get_contents('php://input'), true) ?? [];
+$data  = json_decode(file_get_contents('php://input'), true);
+$data  = is_array($data) ? $data : [];
 $email = trim($data['email'] ?? '');
 
 if (empty($email)) {

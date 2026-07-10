@@ -15,6 +15,7 @@ require '../../inc/bootstrap.php';
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Method not allowed']);
     exit;
 }
@@ -28,10 +29,12 @@ if (!$isLoggedIn || empty($user['id'])) {
 validateCsrfToken();
 
 $data      = json_decode(file_get_contents('php://input'), true);
+$data      = is_array($data) ? $data : [];
 $chatbotId = trim($data['chatbot_id'] ?? '');
 
-if (empty($chatbotId)) {
-    echo json_encode(['success' => false, 'message' => 'Missing chatbot_id']);
+if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $chatbotId)) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Invalid chatbot_id']);
     exit;
 }
 

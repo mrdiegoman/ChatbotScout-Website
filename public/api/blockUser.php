@@ -28,18 +28,24 @@ header('Content-Type: application/json');
 requireRole('admin');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Method not allowed']);
     exit;
 }
 
 validateCsrfToken();
 
-$data    = json_decode(file_get_contents('php://input'), true) ?? [];
+$data    = json_decode(file_get_contents('php://input'), true);
+$data    = is_array($data) ? $data : [];
 $userId  = trim($data['user_id'] ?? '');
 $type    = trim($data['type']    ?? '');
 $unblock = !empty($data['unblock']);
 
-if (empty($userId) || !in_array($type, ['review', 'submission'], true)) {
+if (
+    !preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $userId)
+    || !in_array($type, ['review', 'submission'], true)
+) {
+    http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Invalid parameters']);
     exit;
 }

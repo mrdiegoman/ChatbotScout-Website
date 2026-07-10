@@ -1313,10 +1313,23 @@ body.page-favouritesShowcase .footer-main-bottom {
 }
 
 /* Filters Overlay */
+.favourites-filters-modal-overlay[hidden],
+.favourites-page-main-content-topbar-group-filters-button-count[hidden],
+.favourites-advanced-filters-modal-body-row-group-label[hidden],
+.favourites-advanced-filters-modal-body-features-container[hidden],
+.favourites-showcase-loading[hidden],
+.favourites-showcase-empty[hidden],
+.favourites-showcase-bottom-bar[hidden],
+.favourites-showcase-move-up-btn[hidden],
+.chatbot-rating-modal-error[hidden],
+.chatbot-rating-modal-success[hidden] {
+    display: none !important;
+}
+
 .favourites-filters-modal-overlay {
     position: fixed;
     inset: 0;
-    display: none;
+    display: flex;
     background: var(--color-black-a60); 
     z-index: 1000;
     justify-content: center;
@@ -1511,10 +1524,6 @@ body.page-favouritesShowcase .footer-main-bottom {
     align-items: center;
 }
 
-.favourites-advanced-filters-modal-body-features-container{
-    display: none;
-}
-
 .favourites-filters-modal-body-features-single{
     display: flex;
     align-items: center;
@@ -1619,9 +1628,6 @@ body.page-favouritesShowcase .footer-main-bottom {
 /* Hidden wrapper pre show more */
 .integrations-hidden-wrapper {
     display: none;
-}
-.integrations-hidden-wrapper[style*="contents"] {
-    display: contents;
 }
 
 .favourites-advanced-filters-modal-body-row-group-label{
@@ -1850,7 +1856,7 @@ body.page-favouritesShowcase .footer-main-bottom {
 
 /* ---- Loading spinner ---- */
 .favourites-showcase-loading {
-    display: none;
+    display: flex;
     justify-content: center;
     align-items: center;
     padding: 4rem 0;
@@ -1882,6 +1888,23 @@ body.page-favouritesShowcase .footer-main-bottom {
 .favourites-showcase-empty a {
     color: var(--color-blue-4f2ef7);
     text-decoration: underline;
+}
+
+.favourites-page-main-content-chatbots-grid-view.is-search-loading,
+.favourites-page-main-content-chatbots-list-view.is-search-loading {
+    opacity: 0.35;
+    transition: opacity 0.15s ease;
+}
+
+.favourites-page-main-content-chatbots-grid-view-item.is-removing,
+.favourites-page-main-content-chatbots-list-view-item-containter.is-removing {
+    opacity: 0;
+    transform: scale(0.96);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+#sortArrow.is-reversed {
+    transform: scaleY(-1);
 }
 
 /* ---- Bottom bar ---- */

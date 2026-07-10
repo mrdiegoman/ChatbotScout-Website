@@ -102,7 +102,7 @@
      that block JS cookie access (e.g. Brave Shields) are handled correctly.
      ============================================ -->
 <?php if (empty($_COOKIE['cookie_consent_v2']) && empty($_COOKIE['cookie_consent'])): ?>
-<div id="cookie-banner" role="dialog" aria-label="Cookie consent" aria-live="polite" style="display:none">
+<div id="cookie-banner" role="dialog" aria-label="Cookie consent" aria-live="polite" hidden>
     <div class="cookie-banner-inner">
         <div class="cookie-banner-text">
             <span class="cookie-banner-icon">🍪</span>
@@ -127,7 +127,7 @@
 <!-- ============================================
      COOKIE PREFERENCES MODAL
      ============================================ -->
-<div id="cookie-modal-overlay" role="dialog" aria-modal="true" aria-label="Cookie preferences">
+<div id="cookie-modal-overlay" role="dialog" aria-modal="true" aria-label="Cookie preferences" hidden>
     <div id="cookie-modal">
 
         <!-- Header -->

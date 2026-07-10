@@ -10,6 +10,9 @@ $contactSuccess  = $_SESSION['contact_success']   ?? null;
 $contactError    = $_SESSION['contact_error']      ?? null;
 $contactErrors   = $_SESSION['contact_errors']     ?? [];
 $oldInput        = $_SESSION['contact_old_input']  ?? [];
+$contactFirstError = is_array($contactErrors) && !empty($contactErrors)
+    ? (string)$contactErrors[0]
+    : '';
 
 unset(
     $_SESSION['contact_success'],
@@ -41,7 +44,11 @@ function old(string $key, array $old): string {
         </div>
     </section>
 
-    <main class="cs-main cs-contact-main">
+    <main class="cs-main cs-contact-main"
+          data-contact-flash
+          data-contact-success="<?= htmlspecialchars((string)($contactSuccess ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+          data-contact-error="<?= htmlspecialchars((string)($contactError ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+          data-contact-first-error="<?= htmlspecialchars($contactFirstError, ENT_QUOTES, 'UTF-8') ?>">
         <section class="cs-card cs-contact-form-card" aria-labelledby="contact-form-title">
             <div class="cs-text-stack">
                 <h2 id="contact-form-title">Get in touch</h2>
@@ -168,13 +175,6 @@ function old(string $key, array $old): string {
         </section>
     </main>
 </div>
-
-<!-- Pass PHP flash messages to JS -->
-<script nonce="<?= $cspNonce ?>">
-    window._contactSuccess = <?= json_encode($contactSuccess) ?>;
-    window._contactError   = <?= json_encode($contactError) ?>;
-    window._contactErrors  = <?= json_encode($contactErrors) ?>;
-</script>
 
 <script src="js/contact.js?v=<?= filemtime(__DIR__ . '/js/contact.js') ?>" defer></script>
 

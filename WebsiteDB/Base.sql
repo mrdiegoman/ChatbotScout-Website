@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `is_email_verified` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Email verified?, e.g., TRUE, FALSE',
   `email_verification_token` VARCHAR(255) NULL COMMENT 'Verification token, e.g., "a3f5d8c9e2b1f4a7d6c3e8b5a2f9d1c4", "7b9e3f2a8d5c1e4b6f0a9c3d7e2b8f5a"',
   `email_verification_expires_at` TIMESTAMP NULL COMMENT 'Token expiration, e.g., "2025-01-30 14:30:00", "2025-02-01 10:00:00"',
+  `verification_email_sent_at` TIMESTAMP NULL COMMENT 'Last verification email send time used for server-side resend cooldown',
 
   -- Password Reset
   `password_reset_token` VARCHAR(255) NULL COMMENT 'Reset token, e.g., "r3s3t-t0k3n-2025-abc123def456", "pwd_reset_9f8e7d6c5b4a3f2e1d0c"',

@@ -11,6 +11,7 @@ require '../../inc/bootstrap.php';
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Method not allowed']);
     exit;
 }
@@ -23,14 +24,6 @@ $cookieName = $appConfig['visitor']['cookie_name'];
 
 // Vymaž HttpOnly visitor_id cookie. Historické analytické záznamy v DB nemažeme
 // automaticky; revocation zastaví ďalšie identifikované tracking requesty.
-setcookie($cookieName, '', [
-    'expires'  => time() - 3600,
-    'path'     => '/',
-    'secure'   => (bool)$appConfig['visitor']['cookie_secure'],
-    'httponly' => true,
-    'samesite' => 'Lax',
-]);
-
-unset($_COOKIE[$cookieName]);
+expireAppCookie($cookieName, '/', true, (bool)$appConfig['visitor']['cookie_secure'], 'Lax');
 
 echo json_encode(['success' => true]);

@@ -7,6 +7,10 @@
  */
 
 return [
+    // Reverse proxies allowed to provide CF-Connecting-IP / X-Forwarded-For.
+    // In production behind Cloudflare/load balancer, set exact proxy CIDRs.
+    'trusted_proxy_cidrs' => ['127.0.0.1/32', '::1/128'],
+
     // Session settings
     'session' => [
         'lifetime'             => 24 * 60 * 60,
@@ -15,6 +19,7 @@ return [
         'cookie_path'          => '/',
         'cookie_secure'        => false, // true v produkcii (HTTPS)
         'cookie_httponly'      => true,
+        'cookie_samesite'      => 'Lax',
     ],
 
     // Visitor tracking
@@ -26,7 +31,8 @@ return [
 
     // Email verification
     'email_verification' => [
-        'token_lifetime' => 24 * 60 * 60,
+        'token_lifetime'  => 24 * 60 * 60,
+        'resend_cooldown' => 60,
     ],
 
     // Password reset

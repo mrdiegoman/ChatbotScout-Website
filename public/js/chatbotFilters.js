@@ -118,13 +118,13 @@ function restoreDraftFromApplied() {
 
 function openModal() {
     restoreDraftFromApplied();
-    overlay.style.display = 'flex';
+    overlay.hidden = false;
     lockScroll();
 }
 
 function closeModal(discardDraft = true) {
     if (discardDraft) restoreDraftFromApplied();
-    overlay.style.display = 'none';
+    overlay.hidden = true;
     unlockScroll();
 }
 
@@ -164,7 +164,7 @@ if (overlay) {
 }
 
 document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && overlay?.style.display === 'flex') closeModal();
+    if (event.key === 'Escape' && overlay && !overlay.hidden) closeModal();
 });
 
 if (applyFiltersBtn) {

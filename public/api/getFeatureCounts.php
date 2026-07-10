@@ -24,11 +24,13 @@ require '../../inc/bootstrap.php';
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
     echo json_encode(['success' => false, 'message' => 'Method not allowed']);
     exit;
 }
 
 $data = json_decode(file_get_contents('php://input'), true);
+$data = is_array($data) ? $data : [];
 
 // ============================================
 // PARSE INPUTS
@@ -43,17 +45,19 @@ $favoritesEnd   = (isset($data['favoritesEnd'])   && $data['favoritesEnd']   !==
 $priceStart  = (isset($data['priceStart'])  && $data['priceStart']  !== '') ? (float)$data['priceStart']  : null;
 $priceEnd    = (isset($data['priceEnd'])    && $data['priceEnd']    !== '') ? (float)$data['priceEnd']    : null;
 
-// Sanitize activeFeatureIds — must be non-empty strings (UUIDs)
+$uuidPattern = '/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i';
+
+// Sanitize activeFeatureIds
 $activeIds   = array_values(array_filter(
     (array)($data['activeFeatureIds'] ?? []),
-    fn($id) => is_string($id) && $id !== ''
+    fn($id) => is_string($id) && preg_match($uuidPattern, $id)
 ));
 $activeCount = count($activeIds);
 
 // Sanitize activeIntegrationIds
 $activeIntIds = array_values(array_filter(
     (array)($data['activeIntegrationIds'] ?? []),
-    fn($id) => is_string($id) && preg_match('/^[0-9a-f\-]{36}$/i', $id)
+    fn($id) => is_string($id) && preg_match($uuidPattern, $id)
 ));
 // activePricingModels
 $activePricingModels = array_values(array_filter(
@@ -69,11 +73,21 @@ $activeCurrencies = array_values(array_filter(
     fn($c) => in_array($c, $allowedCurrencyCodes, true)
 ));
 
-// isFavourites — restrict counts to current user's favourites only
-$isFavourites = !empty($data['isFavourites']) && $isLoggedIn && !empty($user['id']);
+$requestedFavourites = !empty($data['isFavourites']);
+$isFavourites = $requestedFavourites && $isLoggedIn && !empty($user['id']);
 
 try {
     $db = Database::getInstance()->getConnection();
+
+    if ($requestedFavourites && !$isFavourites) {
+        echo json_encode([
+            'success' => true,
+            'counts' => [],
+            'total' => 0,
+            'free_trial_count' => 0,
+        ]);
+        exit;
+    }
 
     // ============================================
     // BUILD BASE WHERE for inner subquery

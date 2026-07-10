@@ -24,8 +24,8 @@ class Database
         try {
             $this->connection = new PDO($dsn, $config['username'], $config['password'], $config['options']);
         } catch (PDOException $e) {
-            // V produkcii by si mal logovať chyby, nie ich zobrazovať
-            die("Database connection failed: " . $e->getMessage());
+            error_log('Database connection failed: ' . $e->getMessage());
+            throw new RuntimeException('Database connection failed.', 0, $e);
         }
     }
     

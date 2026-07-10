@@ -2,11 +2,13 @@
 /**
  * Marketing Email Sender Script
  *
- * TEST MODE:  $testMode = true  → pošle email len na $testEmail
- * LIVE MODE:  $testMode = false → pošle všetkým userom s marketing_emails = 1
+ * Default TEST mode sends email only to MARKETING_TEST_EMAIL or --email=...
+ * LIVE mode sends to all verified users with marketing_emails = 1.
  *
- * Spustenie: https://yourdomain.com/scripts/sendMarketingEmail.php?secret=YOUR_SECRET
- * alebo cez CLI: php scripts/sendMarketingEmail.php
+ * Usage:
+ *   php scripts/sendMarketingEmail.php
+ *   php scripts/sendMarketingEmail.php --email=test@example.com
+ *   php scripts/sendMarketingEmail.php --live --confirm-live-send
  */
 
 define('BOOTSTRAP_LOADED', true);
@@ -18,37 +20,80 @@ require __DIR__ . '/../classes/Email.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
 $dotenv->load();
 
-session_start();
+function log_line(string $msg): void {
+    echo $msg . PHP_EOL;
+    flush();
+}
 
-// ============================================
-// OCHRANA — secret key (zmeň si na vlastný!)
-// ============================================
+function cli_option_value(array $args, string $name): ?string {
+    foreach ($args as $index => $arg) {
+        if (str_starts_with($arg, $name . '=')) {
+            return substr($arg, strlen($name) + 1);
+        }
 
-$secret = $_ENV['MARKETING_SECRET'] ?? '';
-
-$isCli  = PHP_SAPI === 'cli';
-$isWeb  = !$isCli;
-
-if ($isWeb) {
-    if (($_GET['secret'] ?? '') !== $secret) {
-        http_response_code(403);
-        die('403 Forbidden');
+        if ($arg === $name && isset($args[$index + 1])) {
+            return $args[$index + 1];
+        }
     }
-    header('Content-Type: text/plain; charset=utf-8');
+
+    return null;
+}
+
+function mask_email_for_log(string $email): string {
+    if (!str_contains($email, '@')) {
+        return '[invalid email]';
+    }
+
+    [$local, $domain] = explode('@', $email, 2);
+    $prefix = substr($local, 0, min(2, strlen($local)));
+
+    return $prefix . '***@' . $domain;
+}
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit('Not found');
+}
+
+$args = array_slice($argv ?? [], 1);
+
+if (in_array('--help', $args, true)) {
+    log_line('Usage:');
+    log_line('  php scripts/sendMarketingEmail.php');
+    log_line('  php scripts/sendMarketingEmail.php --email=test@example.com');
+    log_line('  php scripts/sendMarketingEmail.php --live --confirm-live-send');
+    exit;
+}
+
+$liveMode = in_array('--live', $args, true);
+
+if ($liveMode && !in_array('--confirm-live-send', $args, true)) {
+    log_line('[ABORTED] Live send requires --confirm-live-send.');
+    exit(1);
 }
 
 // ============================================
 // KONFIGURÁCIA — uprav pred odoslaním
 // ============================================
 
-$testMode  = false;                          // true = len testEmail, false = všetci
-$testEmail = 'chatbotscoutsupport@gmail.com';       // tvoj email na testovanie
+$testMode  = !$liveMode;
+$testEmail = cli_option_value($args, '--email') ?? ($_ENV['MARKETING_TEST_EMAIL'] ?? 'chatbotscoutsupport@gmail.com');
+
+if ($testMode && !filter_var($testEmail, FILTER_VALIDATE_EMAIL)) {
+    log_line('[ERROR] Invalid test email.');
+    exit(1);
+}
+
+$baseUrl = rtrim((string)($_ENV['APP_BASE_URL'] ?? ''), '/');
+if ($baseUrl === '') {
+    $baseUrl = 'https://chatbotscout.com';
+}
 
 $subject   = 'Nové chatboty na ChatbotScout! 🚀';
 $preheader = 'Pozri čo je nové tento mesiac na ChatbotScout';
 $headline  = 'Novinky na ChatbotScout';
 $ctaText   = 'Pozrieť chatboty';
-$ctaUrl    = 'https://chatbotscout.com/chatbotShowcase.php';
+$ctaUrl    = $baseUrl . '/chatbots';
 
 // HTML obsah emailu — uprav podľa potreby
 $bodyHtml  = <<<HTML
@@ -70,13 +115,8 @@ HTML;
 // MAIN
 // ============================================
 
-function log_line(string $msg): void {
-    echo $msg . "\n";
-    flush();
-}
-
 log_line('=== ChatbotScout Marketing Email Sender ===');
-log_line('Mode: ' . ($testMode ? 'TEST (only ' . $testEmail . ')' : 'LIVE (all subscribers)'));
+log_line('Mode: ' . ($testMode ? 'TEST (only ' . mask_email_for_log($testEmail) . ')' : 'LIVE (all subscribers)'));
 log_line('');
 
 try {
@@ -117,7 +157,6 @@ try {
     $emailService = new Email();
     $sent         = 0;
     $failed       = 0;
-    $skipped      = 0;
 
     foreach ($users as $user) {
 
@@ -127,7 +166,7 @@ try {
             $db->prepare("UPDATE users SET unsubscribe_token = :token WHERE id = :id")
                ->execute([':token' => $token, ':id' => $user['id']]);
             $user['unsubscribe_token'] = $token;
-            log_line('[TOKEN GENERATED] ' . $user['email']);
+            log_line('[TOKEN GENERATED] ' . mask_email_for_log($user['email']));
         }
 
         $name = trim($user['first_name'] . ' ' . $user['last_name']) ?: 'there';
@@ -145,10 +184,10 @@ try {
         );
 
         if ($result) {
-            log_line('[OK]     ' . $user['email']);
+            log_line('[OK]     ' . mask_email_for_log($user['email']));
             $sent++;
         } else {
-            log_line('[FAILED] ' . $user['email']);
+            log_line('[FAILED] ' . mask_email_for_log($user['email']));
             $failed++;
         }
 

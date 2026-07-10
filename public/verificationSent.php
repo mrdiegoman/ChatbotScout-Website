@@ -1,66 +1,114 @@
 <?php
-// Získanie emailu z URL parametra alebo session
-$userEmail = isset($_GET['email']) ? htmlspecialchars($_GET['email']) :
-             (isset($_SESSION['user_email']) ? htmlspecialchars($_SESSION['user_email']) : 'your.email@example.com');
+require '../inc/bootstrap.php';
+
+$rawEmail = $_SESSION['pending_verification_email'] ?? '';
+$email = is_string($rawEmail) ? strtolower(trim($rawEmail)) : '';
+$hasPendingEmail = filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+$clientIp = ClientIpResolver::current();
+$userService = new User();
+$expectsJson = str_contains(strtolower($_SERVER['HTTP_ACCEPT'] ?? ''), 'application/json');
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    validateCsrfToken($expectsJson ? '' : 'verification-sent');
+
+    $result = $hasPendingEmail
+        ? $userService->resendVerificationEmail($email, $clientIp)
+        : [
+            'success' => false,
+            'message' => 'The verification request is no longer available. Please sign in again.',
+            'remainingSeconds' => 0,
+        ];
+
+    if ($expectsJson) {
+        header('Content-Type: application/json');
+        if (!$result['success'] && !empty($result['remainingSeconds'])) {
+            http_response_code(429);
+        }
+        echo json_encode($result);
+        exit;
+    }
+
+    $_SESSION['verification_resend_notice'] = [
+        'type' => $result['success'] ? 'success' : 'error',
+        'message' => $result['message'],
+    ];
+    header('Location: verification-sent', true, 303);
+    exit;
+}
+
+$resendState = $hasPendingEmail
+    ? $userService->getVerificationResendState($email, $clientIp)
+    : [
+        'exists' => false,
+        'verified' => false,
+        'remainingSeconds' => 0,
+        'canResend' => false,
+    ];
+$remainingSeconds = max(0, (int)$resendState['remainingSeconds']);
+$cooldownUntil = time() + $remainingSeconds;
+$notice = $_SESSION['verification_resend_notice'] ?? null;
+unset($_SESSION['verification_resend_notice']);
+
+require '../inc/header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="sk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify Your Email</title>
-    <link rel="stylesheet" href="css/verificationSent.css?v=<?= filemtime(__DIR__ . '/css/verificationSent.css') ?>">
-</head>
-<body>
-    <div class="container">
-        <div class="icon-wrapper">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+<main class="verification-sent-page">
+    <section class="verification-panel" aria-labelledby="verification-title">
+        <div class="verification-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="20" height="16" x="2" y="4" rx="2"/>
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
             </svg>
         </div>
 
-        <h1>Check your email</h1>
-        
-        <p class="email-sent">
-            Verification email has already been sent successfully to:
-        </p>
+        <h1 id="verification-title">Check your email</h1>
 
-        <div class="email-address">
-            <?php echo $userEmail; ?>
-        </div>
+        <?php if ($hasPendingEmail): ?>
+            <p class="verification-lead">
+                We sent a verification link to
+                <strong><?php echo htmlspecialchars($email, ENT_QUOTES, 'UTF-8'); ?></strong>
+            </p>
+            <p class="verification-copy">Can't find it? Check your spam folder.</p>
+        <?php else: ?>
+            <p class="verification-lead">This verification request has expired. Sign in again to continue.</p>
+        <?php endif; ?>
 
-        <div class="instructions">
-            <h3>📋 What to do next?</h3>
-            <ol>
-                <li>Open your email inbox</li>
-                <li>Find the email from us (check spam too)</li>
-                <li>Click the verification link</li>
-                <li>Return and log in to your account</li>
-            </ol>
-        </div>
+        <?php if (is_array($notice) && !empty($notice['message'])): ?>
+            <div class="verification-notice verification-notice--<?php echo $notice['type'] === 'success' ? 'success' : 'error'; ?>" role="status">
+                <?php echo htmlspecialchars($notice['message'], ENT_QUOTES, 'UTF-8'); ?>
+            </div>
+        <?php endif; ?>
 
-        <div class="resend-section">
-            <p>Didn't get the email?</p>
-        </div>
+        <form method="POST"
+              action="verification-sent"
+              class="verification-resend-form"
+              data-server-now="<?php echo time(); ?>"
+              data-cooldown-until="<?php echo $cooldownUntil; ?>"
+              data-resend-available="<?php echo ($hasPendingEmail && !$resendState['verified']) ? 'true' : 'false'; ?>">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+            <button type="submit"
+                    class="verification-primary-action btn-resend<?php echo $remainingSeconds > 0 ? ' countdown-active' : ''; ?>"
+                    data-default-label="Resend verification email"
+                    aria-describedby="verification-resend-status"
+                    <?php echo (!$hasPendingEmail || $resendState['verified']) ? 'disabled' : ''; ?>>
+                <?php echo $remainingSeconds > 0
+                    ? 'Resend in ' . $remainingSeconds . 's'
+                    : 'Resend verification email'; ?>
+            </button>
+            <p id="verification-resend-status" class="verification-resend-status" aria-live="polite"><?php
+                echo $resendState['verified'] ? 'This email address is already verified.' : '';
+            ?></p>
+            <noscript>
+                <p class="verification-noscript">Refresh the page when the countdown ends.</p>
+            </noscript>
+        </form>
 
-        <button class="btn-resend" 
-                onclick="resendEmail()" 
-                data-email="<?php echo htmlspecialchars($userEmail); ?>">
-            Resend Verification Email
-        </button>
+        <a href="login" class="verification-back-link">Back to sign in</a>
+    </section>
+</main>
 
-        <div class="divider"></div>
+<script src="js/resendEmail.js?v=<?= filemtime(__DIR__ . '/js/resendEmail.js') ?>" defer></script>
 
-        <a href="./" class="btn-home">Back to Home Page</a>
-
-        <div class="divider"></div>
-
-        <p class="spam-notice">
-            💡 Tip: If you don't see the email, check your spam or promo folder.
-        </p>
-    </div>
-
-    <script src="js/resendEmail.js?v=<?= filemtime(__DIR__ . '/js/resendEmail.js') ?>" defer></script>
-</body>
-</html>
+<?php
+require '../inc/footer.php';
+?>

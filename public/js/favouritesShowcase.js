@@ -61,6 +61,16 @@
     const filterResultsCount = document.getElementById('filterResultsCount');
     const freeTrialFilter = document.getElementById('freeTrialFilter');
 
+    function defaultSortDirection(sort) {
+        return sort === 'alphabetical' || sort === 'price' ? 'asc' : 'desc';
+    }
+
+    function setSortDirection(direction) {
+        state.sortDirection = direction;
+        const isReversed = direction !== defaultSortDirection(state.currentSort);
+        sortArrow?.classList.toggle('is-reversed', isReversed);
+    }
+
     // Rating modal
     const ratingOverlay      = document.getElementById('ratingModalOverlay');
     const ratingModalTitle   = document.getElementById('ratingModalTitle');
@@ -152,13 +162,21 @@
         })).catch(() => {});
     }
 
+    function setHidden(element, hidden) {
+        if (element) element.hidden = hidden;
+    }
+
+    function setSearchLoading(on) {
+        [gridView, listView].forEach(container => {
+            if (container) container.classList.toggle('is-search-loading', on && container === currentContainer());
+        });
+    }
+
     function setLoading(on, isSearch = false) {
         if (isSearch) {
-            const container = currentContainer();
-            container.style.opacity = on ? '0.35' : '1';
-            container.style.transition = 'opacity 0.15s ease';
+            setSearchLoading(on);
         } else {
-            loadingEl.style.display = on ? 'flex' : 'none';
+            setHidden(loadingEl, !on);
         }
         state.isLoading = on;
     }
@@ -461,14 +479,14 @@
         const container = currentContainer();
         container.innerHTML = '';
 
-        if (chatbots.length === 0 && !append) {
+        if (chatbots.length === 0) {
             emptyState.innerHTML = state.searchQuery
                 ? `<p>There are no chatbots with the name "<strong>${escapeHtml(state.searchQuery)}</strong>".</p>`
                 : `<p>You have no favourites yet.</p>`;
-            emptyState.style.display = 'block';
+            setHidden(emptyState, false);
             return;
         }
-        emptyState.style.display = 'none';
+        setHidden(emptyState, true);
 
         const html = chatbots.map(c =>
             state.currentView === 'grid' ?
@@ -506,15 +524,13 @@
         .then(data => {
             if (data.success && !data.is_favourite) {
                 if (card) {
-                    card.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
-                    card.style.opacity = '0';
-                    card.style.transform = 'scale(0.96)';
+                    card.classList.add('is-removing');
                     setTimeout(() => {
                         card.remove();
                         const container = currentContainer();
                         if (container.children.length === 0) {
-                            emptyState.style.display = 'block';
-                            bottomBar.style.display = 'none';
+                            setHidden(emptyState, false);
+                            setHidden(bottomBar, true);
                         }
                     }, 250);
                 }
@@ -577,9 +593,9 @@ function openRatingModal(chatbotId, chatbotName) {
     ratingModalTitle.textContent = `Rate: ${chatbotName}`;
     ratingTextInput.value = '';
     ratingModalError.textContent = '';
-    ratingModalError.style.display = 'none';
+    setHidden(ratingModalError, true);
     ratingModalSuccess.textContent = '';
-    ratingModalSuccess.style.display = 'none';
+    setHidden(ratingModalSuccess, true);
 
     // Zablokuj submit kým sa neoverí či user už dal review
     ratingSubmitBtn.disabled = true;
@@ -596,7 +612,7 @@ function openRatingModal(chatbotId, chatbotName) {
         .then(data => {
             if (data.success && data.has_reviewed) {
                 ratingModalError.textContent = 'You have already submitted a review for this chatbot.';
-                ratingModalError.style.display = 'block';
+                setHidden(ratingModalError, false);
                 ratingSubmitBtn.disabled = true;
                 setRatingSubmitText('Already Reviewed');
             } else {
@@ -649,13 +665,13 @@ function openRatingModal(chatbotId, chatbotName) {
 
     ratingSubmitBtn.addEventListener('click', () => {
         ratingModalError.textContent = '';
-        ratingModalError.style.display = 'none';
+        setHidden(ratingModalError, true);
         ratingModalSuccess.textContent = '';
-        ratingModalSuccess.style.display = 'none';
+        setHidden(ratingModalSuccess, true);
 
         if (state.ratingValue === 0) {
             ratingModalError.textContent = 'Please select a star rating.';
-            ratingModalError.style.display = 'block';
+            setHidden(ratingModalError, false);
             return;
         }
         ratingSubmitBtn.disabled = true;
@@ -677,14 +693,14 @@ function openRatingModal(chatbotId, chatbotName) {
                 showNotification('Review submitted.', 'success');
             } else {
                 ratingModalError.textContent = data.message || 'Something went wrong.';
-                ratingModalError.style.display = 'block';
+                setHidden(ratingModalError, false);
                 ratingSubmitBtn.disabled = false;
                 setRatingSubmitText('Submit Review');
             }
         })
         .catch(() => {
             ratingModalError.textContent = 'Server error. Please try again.';
-            ratingModalError.style.display = 'block';
+            setHidden(ratingModalError, false);
             ratingSubmitBtn.disabled = false;
             setRatingSubmitText('Submit Review');
         });
@@ -790,7 +806,7 @@ function openRatingModal(chatbotId, chatbotName) {
             })
             .catch(err => {
                 console.error('Failed to load favourites:', err);
-                emptyState.style.display = 'block';
+                setHidden(emptyState, false);
             })
             .finally(() => setLoading(false, isSearch));
     }
@@ -815,10 +831,10 @@ function openRatingModal(chatbotId, chatbotName) {
         paginationEl.innerHTML = '';
 
         if (totalPages <= 1) {
-            bottomBar.style.display = 'none';
+            setHidden(bottomBar, true);
             return;
         }
-        bottomBar.style.display = 'flex';
+        setHidden(bottomBar, false);
 
         const goToPage = (p) => {
             state.currentPage = p;
@@ -896,6 +912,7 @@ function openRatingModal(chatbotId, chatbotName) {
 
             if (value !== state.currentSort) {
                 state.currentSort = value;
+                setSortDirection(defaultSortDirection(value));
                 state.currentPage = 1;
                 loadFavourites();
             }
@@ -916,8 +933,7 @@ function openRatingModal(chatbotId, chatbotName) {
 
     if (sortArrow) {
         sortArrow.addEventListener('click', () => {
-            state.sortDirection = state.sortDirection === 'desc' ? 'asc' : 'desc';
-            sortArrow.style.transform = state.sortDirection === 'asc' ? 'scaleY(-1)' : 'scaleY(1)';
+            setSortDirection(state.sortDirection === 'desc' ? 'asc' : 'desc');
             state.currentPage = 1;
             loadFavourites();
         });
@@ -980,13 +996,13 @@ function openRatingModal(chatbotId, chatbotName) {
 
     function openFavouriteFiltersModal() {
         restoreFavouriteDraftFromApplied();
-        filtersOverlay.style.display = 'flex';
+        setHidden(filtersOverlay, false);
         lockScroll();
     }
 
     function closeFavouriteFiltersModal(discardDraft = true) {
         if (discardDraft) restoreFavouriteDraftFromApplied();
-        filtersOverlay.style.display = 'none';
+        setHidden(filtersOverlay, true);
         unlockScroll();
     }
 
@@ -1031,7 +1047,7 @@ function openRatingModal(chatbotId, chatbotName) {
     }
 
     document.addEventListener('keydown', event => {
-        if (event.key === 'Escape' && filtersOverlay?.style.display === 'flex') {
+        if (event.key === 'Escape' && filtersOverlay && !filtersOverlay.hidden) {
             closeFavouriteFiltersModal();
         }
     });
@@ -1042,7 +1058,7 @@ function openRatingModal(chatbotId, chatbotName) {
 
     if (moveUpBtn) {
         window.addEventListener('scroll', () => {
-            moveUpBtn.style.display = window.scrollY > 300 ? 'flex' : 'none';
+            setHidden(moveUpBtn, window.scrollY <= 300);
         });
         moveUpBtn.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });

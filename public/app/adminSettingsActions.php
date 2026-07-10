@@ -56,7 +56,8 @@ if ($method === 'GET') {
 
 if ($method === 'POST') {
     validateCsrfToken();
-    $data = json_decode(file_get_contents('php://input'), true) ?? [];
+    $data = json_decode(file_get_contents('php://input'), true);
+    $data = is_array($data) ? $data : [];
 
     $replyEmail   = trim($data['reply_from_email'] ?? '');
     $replyName    = trim($data['reply_from_name']  ?? '');
@@ -124,4 +125,5 @@ if ($method === 'POST') {
     exit;
 }
 
+http_response_code(405);
 echo json_encode(['success' => false, 'message' => 'Method not allowed']);

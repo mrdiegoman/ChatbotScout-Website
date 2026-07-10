@@ -220,13 +220,13 @@
     function showBanner() {
         var banner = document.getElementById('cookie-banner');
         if (!banner) return;
-        banner.style.display = 'block';
+        banner.hidden = false;
     }
 
     function hideBanner() {
         var banner = document.getElementById('cookie-banner');
         if (!banner) return;
-        banner.style.display = 'none';
+        banner.hidden = true;
     }
 
     // ============================================
@@ -261,7 +261,7 @@
             if (dateEl2) dateEl2.textContent = '';
         }
 
-        overlay.style.display = 'flex';
+        overlay.hidden = false;
         requestAnimationFrame(function () {
             requestAnimationFrame(function () {
                 overlay.classList.add('cookie-modal--visible');
@@ -278,7 +278,7 @@
         overlay.classList.remove('cookie-modal--visible');
         document.body.classList.remove('cookie-modal-open');
         setTimeout(function () {
-            overlay.style.display = 'none';
+            overlay.hidden = true;
         }, 280);
     }
 
@@ -362,11 +362,21 @@
         var btnModalReject = document.getElementById('cookie-modal-reject-all');
         var btnModalSave = document.getElementById('cookie-modal-save');
         var btnModalClose = document.getElementById('cookie-modal-close');
+        var modalOverlay = document.getElementById('cookie-modal-overlay');
 
         if (btnModalAccept) btnModalAccept.addEventListener('click', acceptAll);
         if (btnModalReject) btnModalReject.addEventListener('click', rejectAll);
         if (btnModalSave) btnModalSave.addEventListener('click', savePreferences);
         if (btnModalClose) btnModalClose.addEventListener('click', hideModal);
+        if (modalOverlay) {
+            modalOverlay.addEventListener('click', function (event) {
+                if (event.target === modalOverlay) hideModal();
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && !modalOverlay.hidden) hideModal();
+            });
+        }
 
         ['statistics', 'preferences', 'marketing'].forEach(function (cat) {
             var toggle = document.getElementById('cookie-toggle-' + cat);

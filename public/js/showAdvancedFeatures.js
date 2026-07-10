@@ -3,14 +3,13 @@ const advancedContainer = document.getElementById("advancedFeaturesContainer");
 
 if (toggleLabel && advancedContainer) {
     toggleLabel.addEventListener("click", () => {
-        const isHidden =
-            getComputedStyle(advancedContainer).display === "none";
+        const isHidden = advancedContainer.hidden;
 
         if (isHidden) {
-            advancedContainer.style.display = "flex";
+            advancedContainer.hidden = false;
             toggleLabel.classList.add("active");
         } else {
-            advancedContainer.style.display = "none";
+            advancedContainer.hidden = true;
             toggleLabel.classList.remove("active");
         }
     });

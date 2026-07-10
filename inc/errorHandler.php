@@ -40,7 +40,7 @@ function logError(string $type, string $message, string $file = '', int $line = 
     }
 
     $url       = sanitizeUrlForLog($_SERVER['REQUEST_URI'] ?? 'CLI');
-    $ip        = $_SERVER['REMOTE_ADDR'] ?? '-';
+    $ip        = class_exists('ClientIpResolver', false) ? ClientIpResolver::current() : ($_SERVER['REMOTE_ADDR'] ?? '-');
     $timestamp = date('Y-m-d H:i:s');
     $method    = $_SERVER['REQUEST_METHOD'] ?? '-';
 

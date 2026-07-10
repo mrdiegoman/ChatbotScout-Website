@@ -81,7 +81,6 @@
         // Hidden wrapper
         const hiddenWrapper = document.createElement('div');
         hiddenWrapper.className    = 'integrations-hidden-wrapper';
-        hiddenWrapper.style.display = 'none';
         hidden.forEach(i => hiddenWrapper.appendChild(buildSpan(i)));
         container.appendChild(hiddenWrapper);
 
@@ -97,18 +96,25 @@
             expanded = !expanded;
 
             if (expanded) {
-                hiddenWrapper.style.display = 'contents';
+                hiddenWrapper.classList.add('is-expanded');
                 showMoreBtn.textContent     = 'Show less';
                 showMoreBtn.classList.add('features-show-more-btn--open');
             } else {
                 const hasActiveHidden = hiddenWrapper.querySelector(`.${spanClass}.active`);
                 if (hasActiveHidden) return;
 
-                hiddenWrapper.style.display = 'none';
+                hiddenWrapper.classList.remove('is-expanded');
                 showMoreBtn.textContent     = `+${hidden.length}`;
                 showMoreBtn.classList.remove('features-show-more-btn--open');
             }
         });
+    }
+
+    function emptyOption(text) {
+        const empty = document.createElement('span');
+        empty.className = 'filters-empty-option';
+        empty.textContent = text;
+        return empty;
     }
 
     // ============================================
@@ -192,8 +198,7 @@
         .then(res => res.json())
         .then(data => {
             if (!data.success || !data.integrations.length) {
-                intContainer.innerHTML =
-                    '<span style="font-size:1.2rem;color:var(--grey-color)">No integrations available.</span>';
+                intContainer.replaceChildren(emptyOption('No integrations available.'));
                 return;
             }
 

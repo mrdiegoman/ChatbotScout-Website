@@ -1,13 +1,15 @@
 <?php
 header('Content-Type: application/xml; charset=UTF-8');
 
-$scheme = 'http';
-if (
-    (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-    || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
-) {
-    $scheme = 'https';
-}
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../classes/ClientIpResolver.php';
+
+Dotenv\Dotenv::createImmutable(__DIR__ . '/../')->safeLoad();
+
+$forwardedProto = strtolower(trim(explode(',', (string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''))[0]));
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || ($forwardedProto === 'https' && ClientIpResolver::isTrustedProxyRequest());
+$scheme = $isHttps ? 'https' : 'http';
 
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $baseUrl = $scheme . '://' . $host;

@@ -1,155 +1,100 @@
-/**
- * Resend Verification Email with 60-second countdown timer
- * 
- * Features:
- * - LocalStorage persistent countdown (survives page refresh)
- * - Backend timestamp validation
- * - Visual countdown in button
- */
-
-// ============================================
-// INITIALIZATION
-// ============================================
-
 document.addEventListener('DOMContentLoaded', () => {
-    const resendButton = document.querySelector('.btn-resend');
-    
-    if (resendButton) {
-        const email = resendButton.dataset.email;
-        
-        // Check if there's an existing countdown
-        checkExistingCountdown(resendButton, email);
+    const form = document.querySelector('.verification-resend-form');
+    const button = form?.querySelector('.btn-resend');
+    const status = document.getElementById('verification-resend-status');
+
+    if (!form || !button || !status) return;
+
+    const defaultLabel = button.dataset.defaultLabel || 'Resend verification email';
+    const serverNow = Number(form.dataset.serverNow) || Math.floor(Date.now() / 1000);
+    const serverOffsetMs = (serverNow * 1000) - Date.now();
+    let cooldownUntil = Number(form.dataset.cooldownUntil) || 0;
+    let resendAvailable = form.dataset.resendAvailable === 'true';
+    let countdownInterval = null;
+
+    function serverTimeSeconds() {
+        return Math.floor((Date.now() + serverOffsetMs) / 1000);
     }
-});
 
-// ============================================
-// CHECK EXISTING COUNTDOWN (from LocalStorage)
-// ============================================
+    function remainingSeconds() {
+        return Math.max(0, Math.ceil(cooldownUntil - serverTimeSeconds()));
+    }
 
-function checkExistingCountdown(button, email) {
-    const storageKey = `resend_timer_${email}`;
-    const lastSentTime = localStorage.getItem(storageKey);
-    
-    if (lastSentTime) {
-        const elapsedSeconds = Math.floor((Date.now() - parseInt(lastSentTime)) / 1000);
-        const remainingSeconds = 60 - elapsedSeconds;
-        
-        if (remainingSeconds > 0) {
-            // Countdown still active
-            startCountdown(button, email, remainingSeconds);
-        } else {
-            // Countdown expired, clean up
-            localStorage.removeItem(storageKey);
-            enableButton(button);
+    function renderCountdown() {
+        const remaining = remainingSeconds();
+
+        if (remaining > 0) {
+            button.disabled = true;
+            button.textContent = `Resend in ${remaining}s`;
+            button.classList.add('countdown-active');
+            return;
         }
-    } else {
-        // No countdown, button enabled
-        enableButton(button);
+
+        button.disabled = !resendAvailable;
+        button.textContent = defaultLabel;
+        button.classList.remove('countdown-active');
+        if (resendAvailable) status.textContent = '';
+
+        if (countdownInterval !== null) {
+            window.clearInterval(countdownInterval);
+            countdownInterval = null;
+        }
     }
-}
 
-// ============================================
-// RESEND EMAIL FUNCTION
-// ============================================
+    function startCountdown(seconds) {
+        cooldownUntil = serverTimeSeconds() + Math.max(0, Number(seconds) || 0);
+        renderCountdown();
 
-async function resendEmail() {
-    const button = document.querySelector('.btn-resend');
-    const email = button.dataset.email;
-    
-    if (button.disabled) return; // Prevent spam clicking
-    
-    // Disable button immediately
-    button.disabled = true;
-    button.textContent = 'Sending...';
-    
-    try {
-        const response = await fetch('app/profileActions.php?action=resend_verification', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            // ✅ Success - start countdown
-            showNotification('Verification email sent successfully!', 'success');
-            
-            // Save timestamp to LocalStorage
-            const storageKey = `resend_timer_${email}`;
-            localStorage.setItem(storageKey, Date.now().toString());
-            
-            // Start 60-second countdown
-            startCountdown(button, email, 60);
-            
-        } else {
-            // ❌ Error from backend
-            showNotification(result.message || 'Failed to send email', 'error');
-            
-            // Check if it's a timer error (backend returned remainingSeconds)
-            if (result.remainingSeconds) {
-                // Backend says we need to wait - start countdown with remaining time
-                const storageKey = `resend_timer_${email}`;
-                const backtrackTime = Date.now() - ((60 - result.remainingSeconds) * 1000);
-                localStorage.setItem(storageKey, backtrackTime.toString());
-                startCountdown(button, email, result.remainingSeconds);
+        if (remainingSeconds() > 0 && countdownInterval === null) {
+            countdownInterval = window.setInterval(renderCountdown, 1000);
+        }
+    }
+
+    if (remainingSeconds() > 0) {
+        startCountdown(remainingSeconds());
+    } else {
+        renderCountdown();
+    }
+
+    form.addEventListener('submit', async (event) => {
+        if (!window.fetch || button.disabled) return;
+
+        event.preventDefault();
+        button.disabled = true;
+        button.textContent = 'Sending...';
+        status.textContent = '';
+
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: new FormData(form),
+            });
+            const result = await response.json();
+            const remaining = Math.max(0, Number(result.remainingSeconds) || 0);
+
+            if (result.verified) resendAvailable = false;
+
+            if (remaining > 0) {
+                status.textContent = '';
+                startCountdown(remaining);
             } else {
-                // Other error - re-enable button
-                enableButton(button);
+                renderCountdown();
+                status.textContent = result.message || '';
+            }
+
+            if (typeof window.showNotification === 'function') {
+                window.showNotification(
+                    result.message || (result.success ? 'Verification email sent.' : 'Unable to resend the email.'),
+                    result.success ? 'success' : 'error'
+                );
+            }
+        } catch (error) {
+            renderCountdown();
+            status.textContent = 'A network error occurred. Please try again.';
+            if (typeof window.showNotification === 'function') {
+                window.showNotification('A network error occurred. Please try again.', 'error');
             }
         }
-        
-    } catch (error) {
-        console.error('Resend error:', error);
-        showNotification('Network error. Please try again.', 'error');
-        enableButton(button);
-    }
-}
-
-// ============================================
-// COUNTDOWN TIMER
-// ============================================
-
-function startCountdown(button, email, seconds) {
-    let remaining = seconds;
-    
-    // Update button immediately
-    updateButtonCountdown(button, remaining);
-    
-    // Create interval
-    const interval = setInterval(() => {
-        remaining--;
-        
-        if (remaining > 0) {
-            updateButtonCountdown(button, remaining);
-        } else {
-            // Countdown finished
-            clearInterval(interval);
-            
-            // Clean up LocalStorage
-            const storageKey = `resend_timer_${email}`;
-            localStorage.removeItem(storageKey);
-            
-            // Re-enable button
-            enableButton(button);
-            
-            showNotification('You can now resend the email', 'info');
-        }
-    }, 1000);
-}
-
-// ============================================
-// BUTTON STATE MANAGEMENT
-// ============================================
-
-function updateButtonCountdown(button, seconds) {
-    button.disabled = true;
-    button.textContent = `Resend in ${seconds}s`;
-    button.classList.add('countdown-active');
-}
-
-function enableButton(button) {
-    button.disabled = false;
-    button.textContent = 'Resend Verification Email';
-    button.classList.remove('countdown-active');
-}
+    });
+});

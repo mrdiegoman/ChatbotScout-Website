@@ -2,6 +2,10 @@
    PROFILE PAGE
    ============================================ */
 
+[hidden] {
+    display: none !important;
+}
+
 :root {
     --profile-primary: var(--color-slate-2d3142);
     --profile-secondary: var(--color-blue-4b5563);
@@ -72,6 +76,10 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     height: fit-content;
+}
+
+.profile-tabs.is-dragging {
+    cursor: grabbing;
 }
 
 .profile-tabs::-webkit-scrollbar {
@@ -460,6 +468,19 @@
 .sub-next-billing {
     font-size: 1.4rem;
     color: var(--color-blue-6c757d);
+}
+
+.profile-status-icon {
+    font-size: 1.8rem;
+}
+
+.sub-next-billing--warning {
+    color: var(--color-orange-9a3412);
+    background: var(--color-yellow-fef3c7);
+    padding: 0.8rem;
+    border-radius: 0.6rem;
+    margin-top: 0.8rem;
+    font-size: 1.3rem;
 }
 
 .sub-next-billing strong {
@@ -1322,6 +1343,10 @@
     opacity: 0.72;
 }
 
+#marketing-emails-toggle:disabled + .toggle-slider {
+    cursor: default;
+}
+
 .toggle-switch input:checked:disabled + .toggle-slider {
     background-color: var(--color-green-86d68a);
 }
@@ -1443,6 +1468,27 @@
 .modal-actions {
     display: flex;
     flex-direction: column;
+    gap: 1.2rem;
+}
+
+.modal-actions--end {
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+.confirm-modal__content {
+    max-width: 520px;
+}
+
+.confirm-modal__message {
+    color: var(--profile-text);
+    font-size: 1.5rem;
+    margin: 0 0 2.4rem;
+}
+
+.confirm-modal__actions {
+    flex-direction: row;
+    justify-content: flex-end;
     gap: 1.2rem;
 }
 

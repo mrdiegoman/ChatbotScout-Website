@@ -63,7 +63,8 @@ function buildMessageCard(msg) {
         const label  = s.charAt(0).toUpperCase() + s.slice(1);
         const active = msg.status === s ? ' active' : '';
         return `<button class="admin-status-btn${active}" data-status="${s}"
-                    onclick="updateStatus('${id}', '${s}', this)">${label}</button>`;
+                    data-admin-action="updateStatus"
+                    data-id="${id}">${label}</button>`;
     }).join('');
 
     const helpfulActive = isHelpful ? ' active' : '';
@@ -99,24 +100,24 @@ function buildMessageCard(msg) {
         <div class="admin-message-actions">
             <div class="admin-status-actions">${statusBtns}</div>
             <div class="admin-toggle-actions">
-                <button class="admin-helpful-btn${helpfulActive}" onclick="toggleHelpful('${id}', this)">⭐ Helpful</button>
-                <button class="admin-toggle-btn" onclick="toggleSection(this, 'reply-${id}')">✏️ Reply</button>
-                <button class="admin-toggle-btn" onclick="toggleSection(this, 'notes-${id}')">📝 Notes</button>
+                <button class="admin-helpful-btn${helpfulActive}" data-admin-action="toggleHelpful" data-id="${id}">⭐ Helpful</button>
+                <button class="admin-toggle-btn" data-admin-action="toggleSection" data-section="reply-${id}">✏️ Reply</button>
+                <button class="admin-toggle-btn" data-admin-action="toggleSection" data-section="notes-${id}">📝 Notes</button>
             </div>
         </div>
 
-        <div class="admin-reply-section" id="reply-${id}" style="display:none;">
+        <div class="admin-reply-section" id="reply-${id}" hidden>
             <label>Reply to ${escHtml(msg.first_name)}
                 <span class="admin-reply-hint">(email will be sent to ${email})</span>
             </label>
             <textarea class="admin-textarea" placeholder="Write your reply here...">${escHtml(msg.response || '')}</textarea>
-            <button class="admin-save-btn" onclick="sendReply('${id}', this)">Send Reply</button>
+            <button class="admin-save-btn" data-admin-action="sendReply" data-id="${id}">Send Reply</button>
         </div>
 
-        <div class="admin-notes-section" id="notes-${id}" style="display:none;">
+        <div class="admin-notes-section" id="notes-${id}" hidden>
             <label>Internal Notes <span class="admin-reply-hint">(not visible to user)</span></label>
             <textarea class="admin-textarea" placeholder="Add internal notes here...">${escHtml(msg.internal_notes || '')}</textarea>
-            <button class="admin-save-btn" onclick="saveNotes('${id}', this)">Save Notes</button>
+            <button class="admin-save-btn" data-admin-action="saveNotes" data-id="${id}">Save Notes</button>
         </div>
 
         ${hasMeta ? `<div class="admin-message-meta">${ipBlock}${respBlock}${resolvedBlock}</div>` : ''}
@@ -149,7 +150,8 @@ function buildReviewCard(review) {
     const statusBtns = Object.entries(reviewStatusBtns).map(([s, label]) => {
         const active = review.status === s ? ' active' : '';
         return `<button class="admin-status-btn review-status-action-btn${active}" data-status="${s}"
-                    onclick="updateReviewStatus('${id}', '${s}', this)">${label}</button>`;
+                    data-admin-action="updateReviewStatus"
+                    data-id="${id}">${label}</button>`;
     }).join('');
  
     const moderatedBlock = review.moderated_at_formatted
@@ -160,11 +162,15 @@ function buildReviewCard(review) {
  
     const blockBtn = isBlocked
         ? `<button class="admin-block-btn admin-block-btn--blocked"
-                   onclick="unblockUser('${userId}', 'review', this)">
+                   data-admin-action="unblockUser"
+                   data-user-id="${userId}"
+                   data-block-type="review">
                🔓 Unblock Reviews
            </button>`
         : `<button class="admin-block-btn"
-                   onclick="blockUser('${userId}', 'review', this)">
+                   data-admin-action="blockUser"
+                   data-user-id="${userId}"
+                   data-block-type="review">
                🚫 Block Reviews
            </button>`;
  
@@ -198,16 +204,16 @@ function buildReviewCard(review) {
         <div class="admin-message-actions">
             <div class="admin-status-actions">${statusBtns}</div>
             <div class="admin-toggle-actions">
-                <button class="admin-toggle-btn" onclick="toggleSection(this, 'review-notes-${id}')">📝 Notes</button>
+                <button class="admin-toggle-btn" data-admin-action="toggleSection" data-section="review-notes-${id}">📝 Notes</button>
                 ${blockBtn}
             </div>
         </div>
  
-        <div class="admin-notes-section" id="review-notes-${id}" style="display:none;">
+        <div class="admin-notes-section" id="review-notes-${id}" hidden>
             <label>Moderation Notes <span class="admin-reply-hint">(internal only)</span></label>
             <textarea class="admin-textarea"
                       placeholder="e.g. Rejected — contains spam links...">${escHtml(review.moderation_notes || '')}</textarea>
-            <button class="admin-save-btn" onclick="saveReviewNotes('${id}', this)">Save Notes</button>
+            <button class="admin-save-btn" data-admin-action="saveReviewNotes" data-id="${id}">Save Notes</button>
         </div>
  
         ${moderatedBlock}
@@ -246,22 +252,26 @@ function buildSubmissionCard(sub) {
     const actionButtons = `
         <button class="admin-status-btn submission-action-btn ${status === 'active'   ? 'active btn-accept'   : 'btn-accept'}"
                 data-action="active"
-                onclick="acceptSubmission('${id}')">
+                data-admin-action="acceptSubmission"
+                data-id="${id}">
             ✅ Accept
         </button>
         <button class="admin-status-btn submission-action-btn ${status === 'reviewed' ? 'active btn-reviewed' : 'btn-reviewed'}"
                 data-action="reviewed"
-                onclick="reviewSubmission('${id}', this)">
+                data-admin-action="reviewSubmission"
+                data-id="${id}">
             👁 Reviewed
         </button>
         <button class="admin-status-btn submission-action-btn ${status === 'rejected' ? 'active btn-reject'   : 'btn-reject'}"
                 data-action="rejected"
-                onclick="toggleSection(this, 'sub-reject-${id}')">
+                data-admin-action="toggleSection"
+                data-section="sub-reject-${id}">
             ❌ Reject
         </button>
         <button class="admin-status-btn submission-action-btn ${status === 'removed'  ? 'active btn-remove'   : 'btn-remove'}"
                 data-action="removed"
-                onclick="removeSubmission('${id}', this)">
+                data-admin-action="removeSubmission"
+                data-id="${id}">
             🗑 Remove
         </button>`;
  
@@ -269,19 +279,23 @@ function buildSubmissionCard(sub) {
     const ownerId   = escHtml(sub.owner_user_id || '');
  
     const ownerActionBtn = isUnassigned
-        ? `<button class="admin-toggle-btn admin-assign-btn" onclick="toggleSection(this, 'sub-assign-${id}')">Assign account</button>`
+        ? `<button class="admin-toggle-btn admin-assign-btn" data-admin-action="toggleSection" data-section="sub-assign-${id}">Assign account</button>`
         : (isBlocked
             ? `<button class="admin-block-btn admin-block-btn--blocked"
-                       onclick="unblockUser('${ownerId}', 'submission', this)">
+                       data-admin-action="unblockUser"
+                       data-user-id="${ownerId}"
+                       data-block-type="submission">
                    🔓 Unblock Submissions
                </button>`
             : `<button class="admin-block-btn"
-                       onclick="blockUser('${ownerId}', 'submission', this)">
+                       data-admin-action="blockUser"
+                       data-user-id="${ownerId}"
+                       data-block-type="submission">
                    🚫 Block Submissions
                </button>`);
 
     const assignSection = isUnassigned
-        ? `<div class="admin-assign-section" id="sub-assign-${id}" style="display:none;">
+        ? `<div class="admin-assign-section" id="sub-assign-${id}" hidden>
                 <label>Assign to existing account <span class="admin-reply-hint">(exact email search)</span></label>
                 <div class="admin-assign-search-row">
                     <input type="email"
@@ -291,7 +305,8 @@ function buildSubmissionCard(sub) {
                            maxlength="255">
                     <button type="button"
                             class="admin-save-btn admin-assign-search-btn"
-                            onclick="searchAccountForChatbot('${id}', this)">
+                            data-admin-action="searchAccountForChatbot"
+                            data-id="${id}">
                         Search
                     </button>
                 </div>
@@ -328,8 +343,8 @@ function buildSubmissionCard(sub) {
         <div class="admin-message-actions">
             <div class="admin-status-actions">${actionButtons}</div>
             <div class="admin-toggle-actions">
-                <button class="admin-toggle-btn admin-edit-listing-btn" onclick="openSubmissionEditPopup('${id}')">Edit Listing</button>
-                <button class="admin-toggle-btn" onclick="toggleSection(this, 'sub-notes-${id}')">📝 Notes</button>
+                <button class="admin-toggle-btn admin-edit-listing-btn" data-admin-action="openSubmissionEditPopup" data-id="${id}">Edit Listing</button>
+                <button class="admin-toggle-btn" data-admin-action="toggleSection" data-section="sub-notes-${id}">📝 Notes</button>
                 ${ownerActionBtn}
             </div>
         </div>
@@ -337,21 +352,21 @@ function buildSubmissionCard(sub) {
         ${assignSection}
  
         <!-- Reject section -->
-        <div class="admin-reply-section" id="sub-reject-${id}" style="display:none;">
+        <div class="admin-reply-section" id="sub-reject-${id}" hidden>
             <label>Rejection reason
                 <span class="admin-reply-hint">(will be sent to user via email)</span>
             </label>
             <textarea class="admin-textarea"
                       placeholder="e.g. Does not meet our listing requirements..."></textarea>
-            <button class="admin-save-btn" onclick="rejectSubmission('${id}', this)">📨 Send & Reject</button>
+            <button class="admin-save-btn" data-admin-action="rejectSubmission" data-id="${id}">📨 Send & Reject</button>
         </div>
  
         <!-- Notes section -->
-        <div class="admin-notes-section" id="sub-notes-${id}" style="display:none;">
+        <div class="admin-notes-section" id="sub-notes-${id}" hidden>
             <label>Admin Notes <span class="admin-reply-hint">(internal only)</span></label>
             <textarea class="admin-textarea"
                       placeholder="Add internal notes here...">${escHtml(sub.admin_notes || '')}</textarea>
-            <button class="admin-save-btn" onclick="saveSubmissionNotes('${id}', this)">Save Notes</button>
+            <button class="admin-save-btn" data-admin-action="saveSubmissionNotes" data-id="${id}">Save Notes</button>
         </div>
     </div>`;
 }
@@ -377,10 +392,10 @@ function updateLoadMoreBar(section) {
     const container     = document.querySelector(containerSel);
     const cardCount     = container ? container.querySelectorAll('.admin-message-card').length : 0;
 
-    bar.style.display = cardCount > 0 ? 'flex' : 'none';
+    bar.hidden = cardCount <= 0;
 
     if (showMoreBtn) {
-        showMoreBtn.style.display = state.hasMore ? 'inline-flex' : 'none';
+        showMoreBtn.hidden = !state.hasMore;
     }
 
     if (counterEl) {
@@ -1048,14 +1063,14 @@ function showBlockConfirmPopup(title, message) {
             <div class="sub-popup-box sub-popup-box--warning">
                 <div class="sub-popup-header">
                     <h3>${title}</h3>
-                    <button type="button" class="modal-close sub-popup-close" onclick="resolveBlockPopup(false)" aria-label="Close">&times;</button>
+                    <button type="button" class="modal-close sub-popup-close" data-admin-action="resolveBlockPopup" data-confirmed="false" aria-label="Close">&times;</button>
                 </div>
                 <div class="sub-popup-body">
                     <p>${message}</p>
                 </div>
                 <div class="sub-popup-footer">
-                    <button class="admin-cancel-btn" onclick="resolveBlockPopup(false)">Cancel</button>
-                    <button class="admin-confirm-change-btn" onclick="resolveBlockPopup(true)">Confirm</button>
+                    <button class="admin-cancel-btn" data-admin-action="resolveBlockPopup" data-confirmed="false">Cancel</button>
+                    <button class="admin-confirm-change-btn" data-admin-action="resolveBlockPopup" data-confirmed="true">Confirm</button>
                 </div>
             </div>`;
  
@@ -1086,20 +1101,20 @@ function updateAllBlockButtons(userId, type, isNowBlocked) {
         : '#submissions-tab .admin-block-btn';
  
     document.querySelectorAll(selector).forEach(btn => {
-        // Zisti userId z onclick atributu
-        const onclickAttr = btn.getAttribute('onclick') || '';
-        if (!onclickAttr.includes(userId)) return;
+        if (btn.dataset.userId !== userId) return;
  
         if (isNowBlocked) {
             btn.disabled    = false;
             btn.className   = 'admin-block-btn admin-block-btn--blocked';
             btn.textContent = `🔓 Unblock ${label}`;
-            btn.onclick     = function() { unblockUser(userId, type, this); };
+            btn.dataset.adminAction = 'unblockUser';
+            btn.dataset.blockType = type;
         } else {
             btn.disabled    = false;
             btn.className   = 'admin-block-btn';
             btn.textContent = `🚫 Block ${label}`;
-            btn.onclick     = function() { blockUser(userId, type, this); };
+            btn.dataset.adminAction = 'blockUser';
+            btn.dataset.blockType = type;
         }
     });
 }

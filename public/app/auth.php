@@ -35,14 +35,14 @@ function login(array $userData, bool $rememberMe = false): void
         ? time() + $appConfig['session']['remember_me_lifetime']
         : 0; // Session cookie (vymaže sa po zatvorení browsera)
     
-    setcookie(
+    setAppCookie(
         $appConfig['session']['cookie_name'],
         $sessionData['token'],
         $cookieLifetime,
         $appConfig['session']['cookie_path'],
-        '',
-        $appConfig['session']['cookie_secure'],
-        $appConfig['session']['cookie_httponly']
+        (bool)$appConfig['session']['cookie_httponly'],
+        (bool)$appConfig['session']['cookie_secure'],
+        $appConfig['session']['cookie_samesite'] ?? 'Lax'
     );
     
     // GDPR: Konverzia visitor → user je povolená len s aktuálnym Statistics súhlasom.
@@ -70,7 +70,13 @@ function logout(): void
         $sessionManager->destroy($sessionToken);
         
         // Vymaž cookie
-        setcookie($appConfig['session']['cookie_name'], '', time() - 3600, '/');
+        expireAppCookie(
+            $appConfig['session']['cookie_name'],
+            $appConfig['session']['cookie_path'],
+            (bool)$appConfig['session']['cookie_httponly'],
+            (bool)$appConfig['session']['cookie_secure'],
+            $appConfig['session']['cookie_samesite'] ?? 'Lax'
+        );
     }
     
     // Vyčisti PHP session
@@ -78,9 +84,13 @@ function logout(): void
     
     if (ini_get("session.use_cookies")) {
         $params = session_get_cookie_params();
-        setcookie(session_name(), '', time() - 42000,
-            $params["path"], $params["domain"],
-            $params["secure"], $params["httponly"]
+        expireAppCookie(
+            session_name(),
+            $params['path'] ?? '/',
+            (bool)($params['httponly'] ?? true),
+            (bool)($params['secure'] ?? appIsHttpsRequest()),
+            $params['samesite'] ?? 'Lax',
+            $params['domain'] ?? ''
         );
     }
     

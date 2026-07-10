@@ -3,7 +3,7 @@
  * Contact Form Actions Handler
  *
  * Handles contact form submission:
- * - Rate limiting (5 messages per IP)
+ * - Rate limiting per IP
  * - Server-side validation
  * - DB insert into contact_messages
  * - PRG redirect with session flash message
@@ -32,10 +32,10 @@ $lastName  = trim($_POST['last_name']  ?? '');
 $email     = trim($_POST['email']      ?? '');
 $subject   = trim($_POST['subject']    ?? '');
 $message   = trim($_POST['message']    ?? '');
-$ipAddress = $_SERVER['REMOTE_ADDR']   ?? null;
+$ipAddress = ClientIpResolver::current();
 
 // ============================================
-// RATE LIMITING — 5 messages per IP
+// RATE LIMITING
 // ============================================
 
 $rateLimiter = new RateLimiter();
@@ -101,7 +101,7 @@ if (empty($message) || strlen($message) < 10) {
 }
 
 if (!empty($errors)) {
-    $rateLimiter->recordFailedAttempt('contact_form', $ipAddress);
+    $rateLimiter->recordAttempt('contact_form', $ipAddress);
     $_SESSION['contact_errors']   = $errors;
     $_SESSION['contact_old_input'] = compact('firstName', 'lastName', 'email', 'subject', 'message');
     header('Location: ' . $contactUrl);
@@ -196,7 +196,7 @@ try {
     // SUCCESS
     // ============================================
 
-    $rateLimiter->recordFailedAttempt('contact_form', $ipAddress);
+    $rateLimiter->recordAttempt('contact_form', $ipAddress);
     $_SESSION['contact_success'] = "Your message has been sent! We'll get back to you within a few business days.";
     header('Location: ' . $contactUrl);
     exit;

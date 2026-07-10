@@ -32,7 +32,8 @@ if (!empty($user['is_submission_blocked'])) {
     exit;
 }
 
-$input = json_decode(file_get_contents('php://input'), true) ?? [];
+$input = json_decode(file_get_contents('php://input'), true);
+$input = is_array($input) ? $input : [];
 
 // ── Input ────────────────────────────────────────────────────────────────────
 $contactName  = trim($input['contact_name']  ?? '');
@@ -138,7 +139,7 @@ try {
     $adminEmails     = $adminEmailsStmt->fetchAll(PDO::FETCH_COLUMN);
 
     if (empty($adminEmails)) {
-        $appConfig   = require '../../config/app.php';
+        $appConfig   = require __DIR__ . '/../../config/app.php';
         $adminEmails = [$appConfig['admin']['email'] ?? 'admin@chatbotscout.com'];
     }
 

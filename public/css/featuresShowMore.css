@@ -4,7 +4,17 @@
    ============================================ */
 
 .features-hidden-wrapper {
+    display: none;
+}
+
+.features-hidden-wrapper.is-expanded,
+.integrations-hidden-wrapper.is-expanded {
     display: contents; /* keď visible, nenaruší flex/wrap layout */
+}
+
+.filters-empty-option {
+    font-size: 1.2rem;
+    color: var(--grey-color, var(--color-blue-6b7280));
 }
 
 .features-show-more-btn {

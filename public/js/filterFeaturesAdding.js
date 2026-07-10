@@ -105,7 +105,7 @@
                 count > 0 ? `Open filters, ${count} active` : 'Open filters'
             );
         }
-        if (filtersCountBadge) filtersCountBadge.style.display = count > 0 ? 'flex' : 'none';
+        if (filtersCountBadge) filtersCountBadge.hidden = count <= 0;
         if (filtersCountNum)   filtersCountNum.textContent = count;
 
     }
@@ -223,7 +223,6 @@
                 const name  = span.dataset.featureName;
                 const count = counts[fid] ?? 0;
                 setStableChipText(span, `${name} (${count})`);
-                // span.style.display = count === 0 && !span.classList.contains('active') ? 'none' : '';
             });
 
             const freeTrialButton = document.getElementById('freeTrialFilter');
@@ -299,7 +298,6 @@
         // Wrapper pre schované features
         const hiddenWrapper = document.createElement('div');
         hiddenWrapper.className = 'features-hidden-wrapper';
-        hiddenWrapper.style.display = 'none';
         hidden.forEach(f => hiddenWrapper.appendChild(buildSpan(f)));
         container.appendChild(hiddenWrapper);
 
@@ -315,7 +313,7 @@
             expanded = !expanded;
 
             if (expanded) {
-                hiddenWrapper.style.display = 'contents';
+                hiddenWrapper.classList.add('is-expanded');
                 showMoreBtn.textContent     = 'Show less';
                 showMoreBtn.classList.add('features-show-more-btn--open');
             } else {
@@ -325,11 +323,18 @@
                     // Ostatok schovaných features ostane viditeľný
                     return;
                 }
-                hiddenWrapper.style.display = 'none';
+                hiddenWrapper.classList.remove('is-expanded');
                 showMoreBtn.textContent     = `+${hidden.length}`;
                 showMoreBtn.classList.remove('features-show-more-btn--open');
             }
         });
+    }
+
+    function emptyOption(text) {
+        const empty = document.createElement('span');
+        empty.className = 'filters-empty-option';
+        empty.textContent = text;
+        return empty;
     }
 
     // ============================================
@@ -340,8 +345,7 @@
         basicContainer.innerHTML = '';
 
         if (basic.length === 0) {
-            basicContainer.innerHTML =
-                '<span style="font-size:1.2rem;color:var(--grey-color)">No features available.</span>';
+            basicContainer.replaceChildren(emptyOption('No features available.'));
         } else {
             renderWithLimit(basicContainer, basic);
         }
@@ -349,9 +353,9 @@
         if (advancedContainer) {
             advancedContainer.innerHTML = '';
             if (advanced.length === 0) {
-                if (advancedToggle) advancedToggle.style.display = 'none';
+                if (advancedToggle) advancedToggle.hidden = true;
             } else {
-                if (advancedToggle) advancedToggle.style.display = '';
+                if (advancedToggle) advancedToggle.hidden = false;
                 renderWithLimit(advancedContainer, advanced);
             }
         }

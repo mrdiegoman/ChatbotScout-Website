@@ -420,7 +420,7 @@ require '../inc/header.php';
                                 <input type="file" 
                                        id="avatar-upload" 
                                        accept="image/jpeg,image/png,image/webp"
-                                       style="display: none;">
+                                       hidden>
                             </div>
                         </div>
                         <p class="avatar-hint">Max 400x400px, 5MB</p>
@@ -444,7 +444,7 @@ require '../inc/header.php';
                                     </svg>
                                 </button>
                             </div>
-                            <div class="field-edit" style="display: none;">
+                            <div class="field-edit" hidden>
                                 <div class="name-inputs">
                                     <input type="text" 
                                            id="first-name-input" 
@@ -472,7 +472,7 @@ require '../inc/header.php';
                                 <input type="hidden" id="email-full" value="<?php echo htmlspecialchars($user['email'], ENT_QUOTES, 'UTF-8'); ?>">
                                 <button type="button" id="email-toggle" aria-label="Show email">
                                     <svg id="email-icon-show" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                    <svg id="email-icon-hide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                    <svg id="email-icon-hide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                                 </button>
                                 <?php if ($user['is_email_verified']): ?>
                                     <span class="verified-badge">
@@ -491,7 +491,7 @@ require '../inc/header.php';
                         </div>
 
                         <!-- Change Password Form (hidden) -->
-                        <div id="password-form" style="display: none;">
+                        <div id="password-form" hidden>
                             <div class="password-fields">
                                 
                                 <!-- Current Password -->
@@ -686,7 +686,7 @@ require '../inc/header.php';
                     <div class="profile-card subscription-card <?php echo $subStatusClass; ?>">
                         <div class="subscription-header">
                             <?php if ($subStatusIcon): ?>
-                                <span style="font-size:18px"><?php echo $subStatusIcon; ?></span>
+                                <span class="profile-status-icon"><?php echo $subStatusIcon; ?></span>
                             <?php else: ?>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="20 6 9 17 4 12"/>
@@ -702,7 +702,7 @@ require '../inc/header.php';
                                 / <?php echo strtolower($subscription['billing_period']); ?>
                             </div>
                             <?php if ($subscription['status'] === 'past_due'): ?>
-                                <div class="sub-next-billing" style="color:#b45309;background:#fef3c7;padding:8px;border-radius:6px;margin-top:8px;font-size:13px;">
+                                <div class="sub-next-billing sub-next-billing--warning">
                                     ⚠️ Last payment failed — please update your payment method.
                                 </div>
                             <?php elseif ($subscription['status'] === 'pending'): ?>
@@ -967,17 +967,17 @@ require '../inc/header.php';
             <div class="tab-pane <?php echo $activeTab === 'reviews' ? 'active' : ''; ?>"
                  id="reviews-tab">
 
-                <div class="pr-loading" id="myReviewsLoading">
+                <div class="pr-loading" id="myReviewsLoading" hidden>
                     <div class="pr-loading-spinner"></div>
                 </div>
 
-                <div class="pr-empty" id="myReviewsEmpty">
+                <div class="pr-empty" id="myReviewsEmpty" hidden>
                     <p>You haven't written any reviews yet.<br>
                     <a href="chatbots">Browse chatbots</a> and share your experience!</p>
                 </div>
 
                 <div class="pr-cards" id="myReviewsContainer"></div>
-                <div class="pr-load-more-wrap">
+                <div class="pr-load-more-wrap" hidden>
                     <button type="button" class="pr-load-more" id="myReviewsLoadMore" hidden>Load more reviews</button>
                 </div>
 
@@ -1009,8 +1009,8 @@ require '../inc/header.php';
                 <label for="editReviewTextInput">Your review</label>
                 <textarea id="editReviewTextInput" maxlength="5000" rows="5" wrap="soft" placeholder="Share your experience..."></textarea>
             </div>
-            <p class="pr-modal-error"   id="editReviewError"></p>
-            <p class="pr-modal-success" id="editReviewSuccess"></p>
+            <p class="pr-modal-error"   id="editReviewError" hidden></p>
+            <p class="pr-modal-success" id="editReviewSuccess" hidden></p>
         </div>
         <div class="pr-modal-footer">
             <button class="pr-modal-cancel-btn" id="editReviewCancelBtn">Cancel</button>
@@ -1037,7 +1037,7 @@ require '../inc/header.php';
 </div>
 
 <!-- Manage Subscription Modal -->
-<div id="manage-subscription-modal" class="modal" style="display: none;">
+<div id="manage-subscription-modal" class="modal" hidden>
     <div class="modal-content">
         <div class="modal-header">
             <h2>Your Subscription</h2>
@@ -1082,7 +1082,7 @@ require '../inc/header.php';
                 <button class="modal-action-btn" id="update-payment-btn">
                     Update Payment Method
                 </button>
-                <button class="modal-action-btn" id="renew-subscription-btn" style="display: none;">
+                <button class="modal-action-btn" id="renew-subscription-btn" hidden>
                     Renew Promotion
                 </button>
                 <button class="modal-action-btn" id="view-invoice-btn">
@@ -1135,7 +1135,7 @@ require '../inc/header.php';
 </div>
 
 <!-- Cancel Subscription Modal -->
-<div id="cancel-subscription-modal" class="modal" style="display: none;">
+<div id="cancel-subscription-modal" class="modal" hidden>
     <div class="modal-content">
         <div class="modal-header">
             <h2>Cancel Subscription?</h2>
@@ -1168,7 +1168,7 @@ require '../inc/header.php';
                     </label>
                 </div>
 
-                <div class="modal-actions" style="flex-direction:row; justify-content:flex-end;">
+                <div class="modal-actions modal-actions--end">
                     <button class="cancel-btn" id="keep-plan-btn">Keep Plan</button>
                     <button class="danger-btn" id="confirm-cancel-btn">Cancel Subscription</button>
                 </div>
@@ -1186,7 +1186,7 @@ require '../inc/header.php';
 </div>
 
 <!-- Delete Account Modal -->
-<div id="delete-account-modal" class="modal" style="display: none;">
+<div id="delete-account-modal" class="modal" hidden>
     <div class="modal-content delete-account-modal__content">
         <div class="modal-header delete-account-modal__header">
             <div>
@@ -1236,16 +1236,16 @@ require '../inc/header.php';
 </div>
 
 <!-- Custom Confirm Modal -->
-<div id="confirm-modal" class="modal" style="display:none;">
-    <div class="modal-content" style="max-width:520px;">
+<div id="confirm-modal" class="modal" hidden>
+    <div class="modal-content confirm-modal__content">
         <div class="modal-header">
             <h2 id="confirm-modal-title">Are you sure?</h2>
             <button type="button" class="modal-close" id="confirm-modal-close" aria-label="Close">&times;</button>
         </div>
         <div class="modal-body">
-            <p id="confirm-modal-message" style="color:var(--profile-text);font-size:15px;margin:0 0 24px 0;"></p>
+            <p id="confirm-modal-message" class="confirm-modal__message"></p>
             <div id="confirm-modal-extra"></div>
-            <div class="modal-actions" style="flex-direction:row;justify-content:flex-end;gap:12px;">
+            <div class="modal-actions confirm-modal__actions">
                 <button class="cancel-btn" id="confirm-modal-cancel">Go Back</button>
                 <button class="danger-btn" id="confirm-modal-confirm">Yes, Cancel</button>
             </div>

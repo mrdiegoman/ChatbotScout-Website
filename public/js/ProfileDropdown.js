@@ -37,9 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const emailText   = document.getElementById('dropdown-email-text');
     const emailToggle = document.getElementById('dropdown-email-toggle');
     const emailFull   = document.getElementById('dropdown-email-full');
-    const iconShow    = document.getElementById('dropdown-email-icon-show');
-    const iconHide    = document.getElementById('dropdown-email-icon-hide');
-
     if (!emailText || !emailToggle || !emailFull) return;
 
     const full = emailFull.value;
@@ -51,13 +48,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let visible = false;
-    emailText.textContent = maskEmail(full);
+
+    function renderEmailVisibility() {
+        emailText.textContent = visible ? full : maskEmail(full);
+        emailToggle.setAttribute('aria-pressed', String(visible));
+        emailToggle.setAttribute('aria-label', visible ? 'Hide email' : 'Show email');
+    }
+
+    renderEmailVisibility();
 
     emailToggle.addEventListener('click', (e) => {
         e.stopPropagation();
         visible = !visible;
-        emailText.textContent = visible ? full : maskEmail(full);
-        iconShow.style.display = visible ? 'none'  : '';
-        iconHide.style.display = visible ? ''      : 'none';
+        renderEmailVisibility();
     });
 });

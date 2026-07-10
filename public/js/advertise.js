@@ -40,9 +40,21 @@ const subscriptionsBtn = $('modalSubscriptionsBtn');
 const confirmBtn      = $('modalConfirmBtn');
 const confirmText     = $('modalConfirmText');
 const confirmLoader   = $('modalConfirmLoader');
+const advertiseConfig = $('advertiseConfig');
 
-const YEARLY_DISCOUNT_PERCENTAGE = toNumber(window.advData?.yearlyDiscountPercentage, 20);
-const BUNDLE_DISCOUNT_PERCENTAGE = toNumber(window.advData?.bundleDiscountPercentage, 10);
+const advConfig = {
+    isLoggedIn: advertiseConfig?.dataset.isLoggedIn === 'true',
+    loginUrl: advertiseConfig?.dataset.loginUrl || 'login',
+    yearlyDiscountPercentage: advertiseConfig?.dataset.yearlyDiscountPercentage,
+    bundleDiscountPercentage: advertiseConfig?.dataset.bundleDiscountPercentage,
+};
+
+const YEARLY_DISCOUNT_PERCENTAGE = toNumber(advConfig.yearlyDiscountPercentage, 20);
+const BUNDLE_DISCOUNT_PERCENTAGE = toNumber(advConfig.bundleDiscountPercentage, 10);
+
+function setHidden(element, hidden) {
+    if (element) element.hidden = hidden;
+}
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -70,8 +82,8 @@ async function loadPlans() {
             state.plans[key][plan.billing_period_type] = plan;
         });
 
-        plansLoading.style.display = 'none';
-        plansGrid.style.display    = 'grid';
+        setHidden(plansLoading, true);
+        setHidden(plansGrid, false);
 
         updatePriceDisplay();
 
@@ -107,7 +119,7 @@ async function loadChatbots() {
 
         if (!state.hasListing) {
             // Show warning, disable buttons
-            noListingWarn.style.display = 'block';
+            setHidden(noListingWarn, false);
             ['btn-Homepage', 'btn-Chatbots_Page', 'btn-bundle'].forEach(id => {
                 const btn = $(id);
                 if (btn) {
@@ -124,7 +136,7 @@ async function loadChatbots() {
         state.hasListing = false;
         state.chatbotsLoaded = true;
         state.chatbotSelectRendered = false;
-        if (modalOverlay?.classList.contains('open')) {
+        if (modalOverlay && !modalOverlay.hidden) {
             modalError.textContent = 'Could not load your chatbots. Please try again.';
         }
         return false;
@@ -177,8 +189,8 @@ function updatePriceDisplay() {
 
         if (!plan) {
             if (priceEl)    priceEl.textContent    = '—';
-            if (yearlyInfo) yearlyInfo.style.display = 'none';
-            if (totalBtn)   totalBtn.style.display   = 'none';
+            setHidden(yearlyInfo, true);
+            setHidden(totalBtn, true);
             return;
         }
 
@@ -193,11 +205,11 @@ function updatePriceDisplay() {
                 const monthlyPrice = toNumber(monthlyPlan.price);
                 originalEl.textContent  = '$' + monthlyPrice.toFixed(2) + '/mo';
                 savingPctEl.textContent = '-' + formatDiscount(pct) + '%';
-                yearlyInfo.style.display = 'flex';
+                setHidden(yearlyInfo, false);
             }
 
             if (totalBtn) {
-                totalBtn.style.display        = 'inline-block';
+                setHidden(totalBtn, false);
                 totalBtn.dataset.showingTotal = 'false';
                 totalBtn.textContent          = 'Show total (12 months)';
             }
@@ -210,12 +222,12 @@ function updatePriceDisplay() {
                 if (pct > 0) {
                     originalEl.textContent  = '$' + toNumber(plan.price).toFixed(2) + '/mo';
                     savingPctEl.textContent = '-' + formatDiscount(pct) + '%';
-                    yearlyInfo.style.display = 'flex';
+                    setHidden(yearlyInfo, false);
                 } else {
-                    yearlyInfo.style.display = 'none';
+                    setHidden(yearlyInfo, true);
                 }
             }
-            if (totalBtn)   totalBtn.style.display   = 'none';
+            setHidden(totalBtn, true);
         }
     }
 
@@ -240,33 +252,33 @@ function updatePriceDisplay() {
                 const monthlyTotal = toNumber(heroM.price) + toNumber(catM.price);
                 $('original-bundle').textContent   = '$' + monthlyTotal.toFixed(2) + '/mo';
                 $('saving-pct-bundle').textContent = '-' + formatDiscount(pct) + '%';
-                $('yearly-info-bundle').style.display = 'flex';
+                setHidden($('yearly-info-bundle'), false);
             }
 
-            $('total-btn-bundle').style.display        = 'inline-block';
+            setHidden($('total-btn-bundle'), false);
             $('total-btn-bundle').dataset.showingTotal = 'false';
             $('total-btn-bundle').textContent          = 'Show total (12 months)';
-            $('savings-bundle').style.display          = 'none';
+            setHidden($('savings-bundle'), true);
 
         } else {
             $('price-bundle').textContent  = bundleMonthlyPrice(hero, cat, period).toFixed(2);
             $('period-bundle').textContent = '/mo';
-            $('yearly-info-bundle').style.display = 'none';
-            $('total-btn-bundle').style.display   = 'none';
+            setHidden($('yearly-info-bundle'), true);
+            setHidden($('total-btn-bundle'), true);
 
             const savings = bundleDiscount(period);
             if (savings > 0) {
-                $('savings-bundle').style.display = 'block';
+                setHidden($('savings-bundle'), false);
                 $('savings-amount').textContent   = formatDiscount(savings);
             } else {
-                $('savings-bundle').style.display = 'none';
+                setHidden($('savings-bundle'), true);
             }
         }
     } else {
         $('price-bundle').textContent         = '—';
-        $('savings-bundle').style.display     = 'none';
-        $('yearly-info-bundle').style.display = 'none';
-        $('total-btn-bundle').style.display   = 'none';
+        setHidden($('savings-bundle'), true);
+        setHidden($('yearly-info-bundle'), true);
+        setHidden($('total-btn-bundle'), true);
     }
 }
 
@@ -294,7 +306,7 @@ function showYearlyTotalsForAllCards() {
         const periodEl = $('period-' + slot);
         const btn      = $('total-btn-' + slot);
 
-        if (total === null || !priceEl || !periodEl || !btn || btn.style.display === 'none') {
+        if (total === null || !priceEl || !periodEl || !btn || btn.hidden) {
             return;
         }
 
@@ -576,8 +588,8 @@ async function selectInitialChatbot() {
 }
 
 async function openModal(slot) {
-    if (!window.advData?.isLoggedIn) {
-        window.location.href = window.advData.loginUrl + '?redirect=advertise';
+    if (!advConfig.isLoggedIn) {
+        window.location.href = advConfig.loginUrl + '?redirect=advertise';
         return;
     }
 
@@ -607,10 +619,11 @@ async function openModal(slot) {
     // Update summary
     updateSummary();
 
+    setHidden(modalOverlay, false);
     modalOverlay.classList.add('open');
     lockScroll();
 
-    if (window.advData?.isLoggedIn && !state.chatbotsLoaded) {
+    if (advConfig.isLoggedIn && !state.chatbotsLoaded) {
         chatbotSelectTrigger.disabled = true;
         setChatbotSelectTriggerText('Loading chatbots...');
         await loadChatbots();
@@ -624,6 +637,7 @@ async function openModal(slot) {
 
 function closeModal() {
     modalOverlay.classList.remove('open');
+    setHidden(modalOverlay, true);
     unlockScroll();
     state.selectedSlot   = null;
     state.selectedPlanId = null;
@@ -641,7 +655,7 @@ function populateChatbotSelect() {
 
     chatbotSelect.innerHTML = '';
 
-    if (!state.chatbotsLoaded && window.advData?.isLoggedIn) {
+    if (!state.chatbotsLoaded && advConfig.isLoggedIn) {
         const opt = document.createElement('option');
         opt.value = '';
         opt.textContent = 'Loading chatbots...';
@@ -1120,8 +1134,8 @@ async function handleConfirm() {
         return;
     }
 
-    confirmText.style.display   = 'none';
-    confirmLoader.style.display = 'inline';
+    setHidden(confirmText, true);
+    setHidden(confirmLoader, false);
     setConfirmDisabled(true);
 
     try {
@@ -1131,6 +1145,7 @@ async function handleConfirm() {
             if (!result.success) throw new Error(result.message || 'Failed to validate bundle upgrade');
 
             const upgradeBillingPeriod = state.pendingUpgrade.billingPeriod || state.selectedPeriod;
+            setHidden(document.getElementById('stripeRedirectOverlay'), false);
             document.getElementById('stripeRedirectOverlay').classList.add('active');
             window.location.href = 'checkout?chatbot_id=' + result.chatbot_id
                                 + '&promotion_id=' + result.promotion_id
@@ -1145,6 +1160,7 @@ async function handleConfirm() {
             if (!result2.success) throw new Error(result2.message || 'Failed to create Chatbots Page promotion');
 
             // Redirect to checkout with chatbot_id + promotion_ids
+            setHidden(document.getElementById('stripeRedirectOverlay'), false);
             document.getElementById('stripeRedirectOverlay').classList.add('active');
             window.location.href = 'checkout?chatbot_id=' + result1.chatbot_id
                                 + '&promotion_id='  + result1.promotion_id
@@ -1155,6 +1171,7 @@ async function handleConfirm() {
 
             if (!result.success) throw new Error(result.message || 'Failed to create promotion');
 
+            setHidden(document.getElementById('stripeRedirectOverlay'), false);
             document.getElementById('stripeRedirectOverlay').classList.add('active');
             window.location.href = 'checkout?chatbot_id=' + result.chatbot_id
                                 + '&promotion_id=' + result.promotion_id
@@ -1166,8 +1183,8 @@ async function handleConfirm() {
         const activeBlockMessage = getActivePromotionBlockMessage();
 
         modalError.textContent      = message;
-        confirmText.style.display   = 'inline';
-        confirmLoader.style.display = 'none';
+        setHidden(confirmText, false);
+        setHidden(confirmLoader, true);
 
         if (activeBlockMessage || /already|active promotion|currently active/i.test(message)) {
             blockConfirm(activeBlockMessage || message);

@@ -15,9 +15,13 @@ $error = $_SESSION['reset_errors'] ?? null;
 // ✅ Vymaž zo session (single-use)
 unset($_SESSION['reset_errors']);
 
+$userService = new User();
+$tokenIsValid = $_SERVER['REQUEST_METHOD'] === 'POST'
+    || $userService->isPasswordResetTokenValid($token);
+
 // Handle password reset form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    validateCsrfToken('resetPassword.php?token=' . urlencode($_GET['token'] ?? ''));
+    validateCsrfToken('reset-password?token=' . urlencode($_GET['token'] ?? ''));
     $newPassword = $_POST['password'] ?? '';
     $confirmPassword = $_POST['confirm_password'] ?? '';
     
@@ -47,7 +51,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
     } else {
         try {
-            $userService = new User();
             $userService->resetPassword($token, $newPassword);
             
             // ✅ Úspešný reset - ulož success do session a presmeruj
@@ -69,19 +72,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 require '../inc/header.php';
 ?>
 
-<div class="auth-page-wrapper">
-    <div class="auth-container">
-        <!-- Logo and Brand -->
-        <div class="auth-header">
-            <img src="img/ChatbotScout_logo.png" alt="ChatbotScout Logo">
-            <h1>ChatbotScout</h1>
-        </div>
-        
-        <!-- Page Title -->
-        <h2 class="auth-title">Reset Password</h2>
+<?php if (!$tokenIsValid): ?>
+    <main class="verification-sent-page">
+        <section class="verification-panel" aria-labelledby="reset-result-title">
+            <div class="verification-icon verification-icon--error" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <path d="M18 6 6 18M6 6l12 12"/>
+                </svg>
+            </div>
+            <h1 id="reset-result-title">Reset link unavailable</h1>
+            <p class="verification-lead">
+                <?php echo htmlspecialchars($error ?: 'This password reset link is invalid, expired, or has already been used.', ENT_QUOTES, 'UTF-8'); ?>
+            </p>
+            <a href="forgot-password" class="verification-primary-action">Request a new link</a>
+            <a href="login" class="verification-back-link">Back to sign in</a>
+        </section>
+    </main>
+<?php else: ?>
+    <div class="auth-page-wrapper">
+        <div class="auth-container">
+            <!-- Logo and Brand -->
+            <div class="auth-header">
+                <img src="img/ChatbotScout_logo.png" alt="ChatbotScout Logo">
+                <h1>ChatbotScout</h1>
+            </div>
+
+            <!-- Page Title -->
+            <h2 class="auth-title">Reset Password</h2>
         
         <!-- Instructions -->
-        <p style="text-align: center; color: #5f6368; margin-bottom: 25px; font-size: 14px;">
+        <p class="auth-instruction">
             Enter your new password below.
         </p>
         
@@ -91,7 +111,7 @@ require '../inc/header.php';
         <?php endif; ?>
         
         <!-- Reset Password Form -->
-        <form method="POST" action="reset-password?token=<?php echo htmlspecialchars($token); ?>" class="auth-form">
+        <form method="POST" action="reset-password?token=<?php echo htmlspecialchars($token, ENT_QUOTES, 'UTF-8'); ?>" class="auth-form">
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
             <!-- New Password Field -->
             <div class="form-group">
@@ -142,8 +162,9 @@ require '../inc/header.php';
         <div class="auth-footer">
             <a href="login">Back to Sign In</a>
         </div>
+        </div>
     </div>
-</div>
+<?php endif; ?>
 
 <!-- Password Toggle Script -->
 <script src="js/passwordToggle.js?v=<?= filemtime(__DIR__ . '/js/passwordToggle.js') ?>"></script>

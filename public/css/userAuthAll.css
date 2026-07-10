@@ -234,53 +234,7 @@ body {
     color: var(--color-blue-5f6368);
     font-size: 1.2rem;
     line-height: 1.5;
-    margin-top: 1rem;
-}
-
-.password-requirements__title {
-    margin: 0;
-}
-
-.password-requirements ul {
-    list-style: none;
-    margin: 0.6rem 0 0;
-    padding: 0;
-}
-
-.password-requirements li {
-    align-items: center;
-    display: flex;
-    gap: 0.7rem;
-    margin-top: 0.35rem;
-    transition: color 0.2s ease;
-}
-
-.password-requirements__icon {
-    align-items: center;
-    border: 0.1rem solid var(--color-blue-9ca3af);
-    border-radius: 50%;
-    display: inline-flex;
-    flex: 0 0 1.4rem;
-    height: 1.4rem;
-    justify-content: center;
-    width: 1.4rem;
-}
-
-.password-requirements li.is-met {
-    color: var(--color-green-137333);
-}
-
-.password-requirements li.is-met .password-requirements__icon {
-    background: var(--color-green-137333);
-    border-color: var(--color-green-137333);
-    color: var(--color-white);
-}
-
-.password-requirements li.is-met .password-requirements__icon::before {
-    content: '✓';
-    font-size: 1rem;
-    font-weight: 700;
-    line-height: 1;
+    margin-top: 0.8rem;
 }
 
 /* Custom Checkbox Styling */
@@ -444,6 +398,99 @@ body {
     background-color: var(--color-red-fee2e2);
     color: var(--color-red-721c24);
     border: 0.1rem solid var(--color-red-fecdd3);
+}
+
+.message--with-icon {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.message__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    min-width: 2.2rem;
+    background: var(--color-green-00e53a);
+    border-radius: 50%;
+}
+
+.auth-instruction,
+.auth-state__copy {
+    text-align: center;
+    color: var(--color-blue-5f6368);
+}
+
+.auth-instruction {
+    margin-bottom: 2.5rem;
+    font-size: 1.4rem;
+}
+
+.auth-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.auth-state__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.auth-state__icon--success {
+    width: 8rem;
+    height: 8rem;
+    background: var(--color-green-00e53a);
+    border-radius: 50%;
+}
+
+.auth-state__icon--error {
+    font-size: 6.4rem;
+}
+
+.auth-title--success {
+    color: var(--color-green-00e53a);
+}
+
+.auth-title--error {
+    color: var(--color-red-ef233c);
+}
+
+.auth-state__copy {
+    margin: 2rem 0;
+    font-size: 1.6rem;
+}
+
+.auth-state__copy--small {
+    font-size: 1.4rem;
+}
+
+.submit-btn--link {
+    display: inline-block;
+    text-decoration: none;
+    margin-top: 2rem;
+}
+
+.message--spaced {
+    margin: 2rem 0;
+}
+
+.auth-state__actions {
+    margin-top: 3rem;
+}
+
+.auth-state__link {
+    color: var(--color-blue-2196f3);
+    text-decoration: none;
+    font-family: outfit-semibold, sans-serif;
+}
+
+.auth-state__separator {
+    margin: 0 1rem;
+    color: var(--color-gray-cccccc);
 }
 
 /* ✅ NOVÉ: Error message pod inputom */

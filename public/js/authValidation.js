@@ -80,13 +80,7 @@ function initSignUpValidation(form) {
     if (passwordInput) {
         passwordInput.addEventListener('blur', () => validatePasswordStrength(passwordInput));
         passwordInput.addEventListener('input', () => {
-            updatePasswordChecklist(passwordInput);
             clearPasswordServerError(passwordInput);
-
-            // Po prvej neúspešnej validácii aktualizuj stav aj počas písania.
-            if (passwordInput.classList.contains('error')) {
-                validatePasswordStrength(passwordInput);
-            }
         });
     }
     
@@ -160,7 +154,6 @@ function validateRequiredPassword(input) {
 function validatePasswordStrength(input) {
     const value = input.value;
     const errors = getPasswordValidationErrors(value);
-    updatePasswordChecklist(input);
 
     if (value === '') {
         showError(input, 'Password is required.');
@@ -168,7 +161,7 @@ function validatePasswordStrength(input) {
     }
 
     if (errors.length) {
-        showError(input, 'Please meet all password requirements below.');
+        showError(input, 'Password does not meet the requirements listed below.');
         return false;
     }
 
@@ -186,21 +179,6 @@ function getPasswordValidationErrors(value) {
     if (!/[^\p{L}\p{N}\s]/u.test(value)) errors.push('special');
 
     return errors;
-}
-
-function updatePasswordChecklist(input) {
-    const checklist = document.getElementById('password-requirements');
-    if (!checklist) return;
-
-    const unmetRules = new Set(getPasswordValidationErrors(input.value));
-    checklist.querySelectorAll('[data-password-rule]').forEach((item) => {
-        const rule = item.dataset.passwordRule;
-        const isMet = !unmetRules.has(rule);
-        const label = item.textContent.trim();
-
-        item.classList.toggle('is-met', isMet);
-        item.setAttribute('aria-label', `${isMet ? 'Met' : 'Not met'}: ${label}`);
-    });
 }
 
 function clearPasswordServerError(input) {

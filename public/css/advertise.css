@@ -21,6 +21,10 @@
     --adv-shadow-lg:    0 12px 40px var(--color-blue-6b3ff6-a18);
 }
 
+[hidden] {
+    display: none !important;
+}
+
 /* ── Reset helpers ────────────────────────────────────────── */
 .adv-container {
     max-width: 1100px;
@@ -643,20 +647,23 @@
     width: 100%;
 }
 
+.adv-preview__card-desc--short {
+    width: 60%;
+}
+
 /* ── MODAL ────────────────────────────────────────────────── */
 .adv-modal-overlay {
     position: fixed;
     inset: 0;
     background: var(--color-slate-111827-a58);
     z-index: 9000;
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
     padding: 2rem;
 }
 
 .adv-modal-overlay.open {
-    display: flex;
     animation: fadeIn 0.2s ease;
 }
 
@@ -1210,13 +1217,12 @@
     background: var(--color-black-a75);
     backdrop-filter: blur(6px);
     z-index: 99999;
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .adv-redirect-overlay.active {
-    display: flex;
     animation: fadeIn 0.2s ease;
 }
 

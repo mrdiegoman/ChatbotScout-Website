@@ -18,6 +18,7 @@
     const overlay = document.createElement('div');
     overlay.id        = 'platformsPopupOverlay';
     overlay.className = 'platforms-popup-overlay';
+    overlay.hidden    = true;
     overlay.innerHTML = `
         <div class="platforms-popup" role="dialog" aria-modal="true" aria-label="Platforms">
             <div class="platforms-popup-header">
@@ -72,7 +73,7 @@
         lockPageScroll();
 
         // Zobraz overlay, popup je centrovaný cez CSS
-        overlay.style.display = 'flex';
+        overlay.hidden = false;
 
         // Animácia
         requestAnimationFrame(() => popup.classList.add('platforms-popup--open'));
@@ -85,7 +86,7 @@
     function closePopup() {
         popup.classList.remove('platforms-popup--open');
         setTimeout(() => {
-            overlay.style.display = 'none';
+            overlay.hidden = true;
         }, 180);
 
         // Obnov scroll stránky

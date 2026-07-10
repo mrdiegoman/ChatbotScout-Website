@@ -8,7 +8,14 @@ require '../../inc/bootstrap.php';
 
 header('Content-Type: application/json');
 
-$input = json_decode(file_get_contents('php://input'), true) ?? [];
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+    exit;
+}
+
+$input = json_decode(file_get_contents('php://input'), true);
+$input = is_array($input) ? $input : [];
 
 $ratingStart       = isset($input['ratingStart'])  && $input['ratingStart']  !== '' ? (float)$input['ratingStart']  : null;
 $ratingEnd         = isset($input['ratingEnd'])    && $input['ratingEnd']    !== '' ? (float)$input['ratingEnd']    : null;
@@ -18,20 +25,37 @@ $favoritesStart    = isset($input['favoritesStart']) && $input['favoritesStart']
 $favoritesEnd      = isset($input['favoritesEnd'])   && $input['favoritesEnd']   !== '' ? (int)$input['favoritesEnd']   : null;
 $priceStart        = isset($input['priceStart'])   && $input['priceStart']   !== '' ? (float)$input['priceStart']  : null;
 $priceEnd          = isset($input['priceEnd'])     && $input['priceEnd']     !== '' ? (float)$input['priceEnd']    : null;
-$isFavourites      = !empty($input['isFavourites']);
-$activeFeatureIds  = array_values(array_filter((array)($input['activeFeatureIds']  ?? []), fn($id) => is_string($id) && preg_match('/^[0-9a-f\-]{36}$/i', $id)));
-$activeIntIds      = array_values(array_filter((array)($input['activeIntegrationIds'] ?? []), fn($id) => is_string($id) && preg_match('/^[0-9a-f\-]{36}$/i', $id)));
+$requestedFavourites = !empty($input['isFavourites']);
+$isFavourites      = $requestedFavourites && $isLoggedIn && !empty($user['id']);
+$uuidPattern = '/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i';
+$activeFeatureIds  = array_values(array_filter((array)($input['activeFeatureIds']  ?? []), fn($id) => is_string($id) && preg_match($uuidPattern, $id)));
+$activeIntIds      = array_values(array_filter((array)($input['activeIntegrationIds'] ?? []), fn($id) => is_string($id) && preg_match($uuidPattern, $id)));
 $activePricingModels = array_values(array_filter((array)($input['activePricingModels'] ?? []), fn($m) => in_array($m, ['free','freemium','recurring','one-time','usage-based','custom'], true)));
 $hasFreeTrial = filter_var($input['hasFreeTrial'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
 $allowedCurrencies = ['USD', 'EUR', 'GBP'];
 
+if ($requestedFavourites && !$isFavourites) {
+    echo json_encode([
+        'success' => true,
+        'counts'  => array_fill_keys($allowedCurrencies, 0),
+        'total'   => 0,
+    ]);
+    exit;
+}
+
 try {
     $db = Database::getInstance()->getConnection();
 
-    $innerFrom = '`chatbots` c';
+    $innerFrom = $isFavourites
+        ? '`chatbots` c JOIN `favorites` fav_inner ON fav_inner.chatbot_id = c.id AND fav_inner.user_id = :fav_user_id'
+        : '`chatbots` c';
     $where     = ["c.status = 'active'", "c.deleted_at IS NULL"];
     $params    = [];
+
+    if ($isFavourites) {
+        $params[':fav_user_id'] = $user['id'];
+    }
 
     if ($ratingStart    !== null) { $where[] = 'c.rating_average  >= :ratingStart';    $params[':ratingStart']    = $ratingStart;    }
     if ($ratingEnd      !== null) { $where[] = 'c.rating_average  <= :ratingEnd';      $params[':ratingEnd']      = $ratingEnd;      }

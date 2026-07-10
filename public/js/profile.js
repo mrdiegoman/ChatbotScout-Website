@@ -4,6 +4,10 @@
  * Handles tab switching, inline editing, modals, AJAX requests
  */
 
+function setHidden(element, hidden) {
+    if (element) element.hidden = hidden;
+}
+
 // ============================================
 // TAB SWITCHING
 // ============================================
@@ -72,8 +76,8 @@ if (refreshPromotionsBtn) {
     emailToggle.addEventListener('click', () => {
         visible = !visible;
         emailDisplay.textContent    = visible ? full : maskEmail(full);
-        iconShow.style.display = visible ? 'none' : '';
-        iconHide.style.display = visible ? ''     : 'none';
+        setHidden(iconShow, visible);
+        setHidden(iconHide, !visible);
     });
 })();
 
@@ -190,8 +194,8 @@ capitalizeInput(lastNameInput);
 // Edit button - zobraz form
 if (editNameBtn) {
     editNameBtn.addEventListener('click', () => {
-        nameField.querySelector('.field-display').style.display = 'none';
-        nameField.querySelector('.field-edit').style.display = 'block';
+        setHidden(nameField.querySelector('.field-display'), true);
+        setHidden(nameField.querySelector('.field-edit'), false);
         document.getElementById('first-name-input').focus();
     });
 }
@@ -199,8 +203,8 @@ if (editNameBtn) {
 // Cancel button - skry form
 if (cancelNameBtn) {
     cancelNameBtn.addEventListener('click', () => {
-        nameField.querySelector('.field-display').style.display = 'flex';
-        nameField.querySelector('.field-edit').style.display = 'none';
+        setHidden(nameField.querySelector('.field-display'), false);
+        setHidden(nameField.querySelector('.field-edit'), true);
     });
 }
 
@@ -240,8 +244,8 @@ if (saveNameBtn) {
                 const capitalizedLast = result.lastName || lastName;
                 
                 document.getElementById('name-display').textContent = `${capitalizedFirst} ${capitalizedLast}`;
-                nameField.querySelector('.field-display').style.display = 'flex';
-                nameField.querySelector('.field-edit').style.display = 'none';
+                setHidden(nameField.querySelector('.field-display'), false);
+                setHidden(nameField.querySelector('.field-edit'), true);
                 showNotification('Name updated successfully!', 'success');
             } else {
                 showNotification(result.message || 'Update failed', 'error');
@@ -264,16 +268,16 @@ const passwordForm = document.getElementById('password-form');
 
 if (changePasswordBtn) {
     changePasswordBtn.addEventListener('click', () => {
-        changePasswordBtn.style.display = 'none';
-        passwordForm.style.display = 'block';
+        setHidden(changePasswordBtn, true);
+        setHidden(passwordForm, false);
         document.getElementById('current-password').focus();
     });
 }
 
 if (cancelPasswordBtn) {
     cancelPasswordBtn.addEventListener('click', () => {
-        changePasswordBtn.style.display = 'block';
-        passwordForm.style.display = 'none';
+        setHidden(changePasswordBtn, false);
+        setHidden(passwordForm, true);
         // Clear inputs
         document.getElementById('current-password').value = '';
         document.getElementById('new-password').value = '';
@@ -320,8 +324,8 @@ if (savePasswordBtn) {
             const result = await response.json();
             
             if (result.success) {
-                changePasswordBtn.style.display = 'block';
-                passwordForm.style.display = 'none';
+                setHidden(changePasswordBtn, false);
+                setHidden(passwordForm, true);
                 // Clear inputs
                 document.getElementById('current-password').value = '';
                 document.getElementById('new-password').value = '';
@@ -342,7 +346,6 @@ if (savePasswordBtn) {
 // ============================================
 
 const marketingToggle = document.getElementById('marketing-emails-toggle');
-const marketingToggleLockMs = 1200;
 let marketingToggleLocked = false;
 
 if (marketingToggle) {
@@ -382,10 +385,8 @@ if (marketingToggle) {
             showNotification('Update failed. Please try again.', 'error');
             console.error('Update error:', error);
         } finally {
-            setTimeout(() => {
-                e.target.disabled = false;
-                marketingToggleLocked = false;
-            }, marketingToggleLockMs);
+            e.target.disabled = false;
+            marketingToggleLocked = false;
         }
     });
 }
@@ -410,11 +411,11 @@ function showConfirm(title, message, options = {}) {
         cancelBtn.textContent = options.cancelText || 'Go Back';
         confirmBtn.textContent = options.confirmText || 'Yes, Cancel';
         confirmBtn.disabled = false;
-        modal.style.display = 'flex';
+        setHidden(modal, false);
         lockScroll();
 
         function cleanup(result) {
-            modal.style.display = 'none';
+            setHidden(modal, true);
             unlockScroll();
             confirmBtn.removeEventListener('click', onConfirm);
             cancelBtn.removeEventListener('click', onCancel);
@@ -801,7 +802,7 @@ initPaymentStatusTooltips();
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
-        modal.style.display = 'flex';
+        setHidden(modal, false);
         lockScroll();
     }
 }
@@ -813,7 +814,7 @@ function closeModal(modalId) {
         if (modal.classList.contains('is-processing')) {
             return;
         }
-        modal.style.display = 'none';
+        setHidden(modal, true);
         unlockScroll();
     }
 }
@@ -1130,7 +1131,7 @@ document.querySelectorAll('.manage-subscription-btn').forEach(btn => {
 
         const renewBtn = document.getElementById('renew-subscription-btn');
         if (renewBtn) {
-            renewBtn.style.display = selectedSubscription.cancelAtPeriodEnd ? '' : 'none';
+            renewBtn.hidden = !selectedSubscription.cancelAtPeriodEnd;
             renewBtn.disabled = !selectedSubscription.cancelAtPeriodEnd;
         }
 
@@ -1370,7 +1371,7 @@ function showCancelFeedbackForm(title, message) {
 
         const reasonSelect = document.getElementById('confirm-cancel-reason');
         const reasonOther = document.getElementById('confirm-cancel-reason-other');
-        reasonOther.style.display = 'none';
+        setHidden(reasonOther, true);
 
         function updateSubmitState() {
             if (reasonSelect.value === 'other') {
@@ -1383,7 +1384,7 @@ function showCancelFeedbackForm(title, message) {
 
         function onReasonChange() {
             const showOther = reasonSelect.value === 'other';
-            reasonOther.style.display = showOther ? 'block' : 'none';
+            setHidden(reasonOther, !showOther);
             if (showOther) {
                 reasonOther.focus();
             } else {
@@ -1400,7 +1401,7 @@ function showCancelFeedbackForm(title, message) {
         }
 
         function cleanup(result) {
-            modal.style.display = 'none';
+            setHidden(modal, true);
             unlockScroll();
             titleEl.textContent = 'Are you sure?';
             msgEl.textContent = '';
@@ -1431,7 +1432,7 @@ function showCancelFeedbackForm(title, message) {
         confirmBtn.addEventListener('click', onConfirm);
         cancelBtn.addEventListener('click', onCancel);
         closeBtn?.addEventListener('click', onCancel);
-        modal.style.display = 'flex';
+        setHidden(modal, false);
         lockScroll();
         reasonSelect.focus();
     });
@@ -1546,12 +1547,12 @@ if (confirmDeleteBtn) {
         hasDragged = false;
         startX     = e.pageX - tabs.offsetLeft;
         scrollLeft = tabs.scrollLeft;
-        tabs.style.cursor = 'grabbing';
+        tabs.classList.add('is-dragging');
     });
 
     document.addEventListener('mouseup', () => {
         isDown = false;
-        tabs.style.cursor = '';
+        tabs.classList.remove('is-dragging');
     });
 
     document.addEventListener('mousemove', (e) => {

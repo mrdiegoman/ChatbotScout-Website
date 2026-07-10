@@ -54,7 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         } else {
             // ✅ Úspešná registrácia → redirect
-            header('Location: verification-sent?email=' . urlencode($userData['email']));
+            $_SESSION['pending_verification_email'] = $userData['email'];
+            header('Location: verification-sent');
             exit;
         }
         
@@ -216,29 +217,9 @@ require '../inc/header.php';
                     </small>
                 <?php endif; ?>
                 <div class="password-requirements" id="password-requirements">
-                    <p class="password-requirements__title">Your password must contain:</p>
-                    <ul>
-                        <li data-password-rule="length" aria-label="Not met: At least 8 characters">
-                            <span class="password-requirements__icon" aria-hidden="true"></span>
-                            <span>At least 8 characters</span>
-                        </li>
-                        <li data-password-rule="uppercase" aria-label="Not met: An uppercase letter">
-                            <span class="password-requirements__icon" aria-hidden="true"></span>
-                            <span>An uppercase letter</span>
-                        </li>
-                        <li data-password-rule="lowercase" aria-label="Not met: A lowercase letter">
-                            <span class="password-requirements__icon" aria-hidden="true"></span>
-                            <span>A lowercase letter</span>
-                        </li>
-                        <li data-password-rule="number" aria-label="Not met: A number">
-                            <span class="password-requirements__icon" aria-hidden="true"></span>
-                            <span>A number</span>
-                        </li>
-                        <li data-password-rule="special" aria-label="Not met: A special character">
-                            <span class="password-requirements__icon" aria-hidden="true"></span>
-                            <span>A special character (for example !, @, or #)</span>
-                        </li>
-                    </ul>
+                    Your password must contain at least 8 characters, an uppercase letter, 
+                    a lowercase letter, a number, and a special character (for example !, 
+                    @, or #).
                 </div>
             </div>
             

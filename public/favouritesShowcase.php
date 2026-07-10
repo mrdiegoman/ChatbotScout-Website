@@ -69,7 +69,7 @@ require '../inc/header.php';
                                 <path fill="#232127" d="M96 128C83.1 128 71.4 135.8 66.4 147.8C61.4 159.8 64.2 173.5 73.4 182.6L256 365.3L256 480C256 488.5 259.4 496.6 265.4 502.6L329.4 566.6C338.6 575.8 352.3 578.5 364.3 573.5C376.3 568.5 384 556.9 384 544L384 365.3L566.6 182.7C575.8 173.5 578.5 159.8 573.5 147.8C568.5 135.8 556.9 128 544 128L96 128z"/>
                             </svg>
                             <p>Filters</p>
-                            <div class="favourites-page-main-content-topbar-group-filters-button-count" id="filtersCount" style="display:none;">
+                            <div class="favourites-page-main-content-topbar-group-filters-button-count" id="filtersCount" hidden>
                                 <p id="filtersCountNum">0</p>
                             </div>
                         </button>
@@ -152,23 +152,23 @@ require '../inc/header.php';
             <!-- CHATBOT ITEMS -->
             <div class="favourites-page-main-content-chatbots">
 
-                <div class="favourites-showcase-loading" id="favouritesLoading">
+                <div class="favourites-showcase-loading" id="favouritesLoading" hidden>
                     <div class="favourites-showcase-loading-spinner"></div>
                 </div>
 
                 <div class="favourites-page-main-content-chatbots-grid-view active" id="gridView"></div>
                 <div class="favourites-page-main-content-chatbots-list-view" id="listView"></div>
 
-                <div class="favourites-showcase-empty" id="favouritesEmpty" style="display:none;">
+                <div class="favourites-showcase-empty" id="favouritesEmpty" hidden>
                     <p>You have no favourites yet. <a href="chatbots">Browse chatbots</a></p>
                 </div>
 
             </div>
 
             <!-- BOTTOM BAR -->
-            <div class="favourites-showcase-bottom-bar" id="bottomBar" style="display:none;">
+            <div class="favourites-showcase-bottom-bar" id="bottomBar" hidden>
                 <nav class="favourites-showcase-pagination" id="paginationContainer" aria-label="Favourites pages"></nav>
-                <button class="favourites-showcase-move-up-btn" id="moveUpBtn" aria-label="Move to top">
+                <button class="favourites-showcase-move-up-btn" id="moveUpBtn" aria-label="Move to top" hidden>
                     Move Up
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -184,7 +184,7 @@ require '../inc/header.php';
 <?php require '../inc/footer.php'; ?>
 
 <!-- FILTERS MODAL -->
-<div class="favourites-filters-modal-overlay" id="filtersModalOverlay">
+<div class="favourites-filters-modal-overlay" id="filtersModalOverlay" hidden>
     <div class="favourites-filters-modal-content">
         <div class="favourites-filters-modal-header">
             <h2>Filter favorite chatbots by</h2>
@@ -263,7 +263,7 @@ require '../inc/header.php';
                         <path d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
                     </svg>
                 </span>
-                <div class="favourites-advanced-filters-modal-body-features-container" id="advancedFeaturesContainer">
+                <div class="favourites-advanced-filters-modal-body-features-container" id="advancedFeaturesContainer" hidden>
                     <!-- Dynamicky plnené cez filterFeaturesAdding.js -->
                 </div>
             </div>
@@ -337,8 +337,8 @@ require '../inc/header.php';
                 <label for="ratingTextInput">Your review</label>
                 <textarea id="ratingTextInput" maxlength="5000" rows="4" wrap="soft" placeholder="Share your experience with this chatbot..."></textarea>
             </div>
-            <p class="chatbot-rating-modal-error" id="ratingModalError"></p>
-            <p class="chatbot-rating-modal-success" id="ratingModalSuccess"></p>
+            <p class="chatbot-rating-modal-error" id="ratingModalError" hidden></p>
+            <p class="chatbot-rating-modal-success" id="ratingModalSuccess" hidden></p>
         </div>
         <div class="chatbot-rating-modal-footer">
             <button class="chatbot-rating-modal-cancel-btn" id="ratingModalCancelBtn">Cancel</button>

@@ -65,7 +65,7 @@ class Visitor
     private function create(array $visitContext = [], ?string $fingerprint = null): string
     {
         $visitorId   = $this->generateUuid();
-        $ipAddress   = $_SERVER['REMOTE_ADDR'] ?? null;
+        $ipAddress   = ClientIpResolver::currentOrNull();
         $userAgent   = $_SERVER['HTTP_USER_AGENT'] ?? null;
         $referrer    = $this->cleanContextValue($visitContext['referrer_url'] ?? null, 1000)
             ?? ($_SERVER['HTTP_REFERER'] ?? null);

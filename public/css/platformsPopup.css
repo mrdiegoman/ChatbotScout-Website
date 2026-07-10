@@ -3,8 +3,12 @@
    Zdieľané pre chatbotShowcase aj favouritesShowcase
    ============================================ */
 
+.platforms-popup-overlay[hidden] {
+    display: none !important;
+}
+
 .platforms-popup-overlay {
-    display: none;
+    display: flex;
     position: fixed;
     inset: 0;
     z-index: 9000;

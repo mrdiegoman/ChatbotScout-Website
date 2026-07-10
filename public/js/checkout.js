@@ -3,14 +3,14 @@
  * Stripe Elements payment form logic.
  */
 
-const {
-    chatbotId,
-    promotionId,
-    promotionId2,
-    billingPeriod,
-    upgradeFromSubscriptionId,
-    stripePubKey
-} = window.checkoutData;
+const checkoutConfig = document.getElementById('checkoutConfig');
+const checkoutDataset = checkoutConfig?.dataset || {};
+const chatbotId = checkoutDataset.chatbotId || '';
+const promotionId = checkoutDataset.promotionId || '';
+const promotionId2 = checkoutDataset.promotionId2 || null;
+const billingPeriod = checkoutDataset.billingPeriod || '';
+const upgradeFromSubscriptionId = checkoutDataset.upgradeFromSubscriptionId || null;
+const stripePubKey = checkoutDataset.stripePubKey || '';
 
 const stripe = Stripe(stripePubKey);
 const isUpgradeCheckout = Boolean(upgradeFromSubscriptionId);
@@ -47,6 +47,32 @@ const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || 
 
 payBtn.disabled = true;
 
+function setHidden(element, hidden) {
+    if (element) element.hidden = hidden;
+}
+
+function setStripeLoadingMessage(message, variant = '') {
+    if (!stripeLoading) return;
+
+    const text = document.createElement('p');
+    text.className = 'checkout-payment__loading-text';
+    if (variant === 'success') {
+        text.classList.add('checkout-payment__loading-text--success');
+    }
+    text.textContent = message;
+
+    stripeLoading.replaceChildren(text);
+    setHidden(stripeLoading, false);
+}
+
+function hideStripeLoading() {
+    setHidden(stripeLoading, true);
+}
+
+function setPaymentElementVisible(visible) {
+    setHidden(paymentEl, !visible);
+}
+
 async function init() {
     if (isUpgradeCheckout) {
         await initUpgradePreview();
@@ -67,8 +93,7 @@ if (businessCustomerAck) {
         }
 
         initialPaymentIntentStarted = true;
-        stripeLoading.innerHTML = '<p style="color:#6b7280;font-size:14px;">Loading payment form...</p>';
-        stripeLoading.style.display = 'block';
+        setStripeLoadingMessage('Loading payment form...');
         await initPaymentIntent();
     });
 }
@@ -79,19 +104,19 @@ async function initUpgradePreview() {
 
         if (!data.success) {
             showError(data.message || 'Failed to calculate upgrade price.');
-            stripeLoading.style.display = 'none';
+            hideStripeLoading();
             syncPayButton();
             return;
         }
 
         updateAmount(data);
         renderPaymentMethod(data.payment_method || null);
-        stripeLoading.style.display = 'none';
-        paymentEl.style.display = 'none';
+        hideStripeLoading();
+        setPaymentElementVisible(false);
         syncPayButton();
     } catch (e) {
         showError('Something went wrong. Please refresh and try again.');
-        stripeLoading.style.display = 'none';
+        hideStripeLoading();
         syncPayButton();
         console.error(e);
     }
@@ -103,7 +128,7 @@ async function initPaymentIntent() {
 
         if (!data.success) {
             showError(data.message || 'Failed to initialize payment.');
-            stripeLoading.style.display = 'none';
+            hideStripeLoading();
             syncPayButton();
             return;
         }
@@ -119,14 +144,14 @@ async function initPaymentIntent() {
         clientSecret = data.client_secret;
         if (!clientSecret) {
             showError('Payment form is not available for this invoice. Please refresh and try again.');
-            stripeLoading.style.display = 'none';
+            hideStripeLoading();
             syncPayButton();
             return;
         }
 
         if (savedPaymentMethodForCheckout) {
-            stripeLoading.style.display = 'none';
-            paymentEl.style.display = 'none';
+            hideStripeLoading();
+            setPaymentElementVisible(false);
             paymentFormReady = false;
             syncPayButton();
             return;
@@ -135,7 +160,7 @@ async function initPaymentIntent() {
         mountPaymentElement();
     } catch (e) {
         showError('Something went wrong. Please refresh and try again.');
-        stripeLoading.style.display = 'none';
+        hideStripeLoading();
         syncPayButton();
         console.error(e);
     }
@@ -218,14 +243,13 @@ async function startUpgradePayment() {
 
         upgradePaymentCreated = true;
         if (savedPaymentMethodForCheckout) {
-            stripeLoading.style.display = 'none';
-            paymentEl.style.display = 'none';
+            hideStripeLoading();
+            setPaymentElementVisible(false);
             setLoading(false);
             return;
         }
 
-        stripeLoading.innerHTML = '<p style="color:#6b7280;font-size:14px;">Loading payment form...</p>';
-        stripeLoading.style.display = 'block';
+        setStripeLoadingMessage('Loading payment form...');
         mountPaymentElement();
         setLoading(false);
     } catch (e) {
@@ -326,8 +350,8 @@ function mountPaymentElement() {
             return;
         }
 
-        stripeLoading.style.display = 'none';
-        paymentEl.style.display = 'block';
+        hideStripeLoading();
+        setPaymentElementVisible(true);
         paymentFormReady = true;
         syncPayButton();
     });
@@ -439,11 +463,10 @@ function unmountPaymentElement() {
 function setLoading(loading) {
     isProcessing = loading;
     if (expressCheckoutWrapper) {
-        expressCheckoutWrapper.style.pointerEvents = loading ? 'none' : '';
-        expressCheckoutWrapper.style.opacity = loading ? '0.55' : '';
+        expressCheckoutWrapper.classList.toggle('is-loading', loading);
     }
-    payBtnText.style.display = loading ? 'none' : 'inline';
-    payBtnLoader.style.display = loading ? 'inline' : 'none';
+    setHidden(payBtnText, loading);
+    setHidden(payBtnLoader, !loading);
     syncPayButton();
 }
 
@@ -470,9 +493,8 @@ function hasBusinessAcknowledgement() {
 }
 
 function showBusinessConfirmationPrompt() {
-    stripeLoading.innerHTML = '<p style="color:#6b7280;font-size:14px;">Confirm the business purchase statement to load the secure payment form.</p>';
-    stripeLoading.style.display = 'block';
-    paymentEl.style.display = 'none';
+    setStripeLoadingMessage('Confirm the business purchase statement to load the secure payment form.');
+    setPaymentElementVisible(false);
 }
 
 function updateAmount(data) {
@@ -491,16 +513,15 @@ function handleAlreadyPaidCheckout(data) {
     clearError();
     paymentFormReady = false;
     isProcessing = false;
-    stripeLoading.innerHTML = '<p style="color:#16a34a;font-size:14px;">Payment confirmed. Redirecting...</p>';
-    stripeLoading.style.display = 'block';
-    paymentEl.style.display = 'none';
+    setStripeLoadingMessage('Payment confirmed. Redirecting...', 'success');
+    setPaymentElementVisible(false);
     isUsingDifferentPaymentMethod = false;
     if (useSavedPaymentMethodBtn) {
         useSavedPaymentMethodBtn.hidden = true;
     }
     payBtn.disabled = true;
-    payBtnText.style.display = 'inline';
-    payBtnLoader.style.display = 'none';
+    setHidden(payBtnText, false);
+    setHidden(payBtnLoader, true);
     payBtnText.textContent = 'Payment confirmed';
 
     const redirectUrl = data.redirect_url || profileSubscriptionsUrl();
@@ -552,9 +573,8 @@ function showDifferentPaymentMethodForm() {
     paymentFormReady = false;
     savedPaymentMethod.hidden = true;
     missingPaymentMethod.hidden = true;
-    stripeLoading.innerHTML = '<p style="color:#6b7280;font-size:14px;">Loading payment options...</p>';
-    stripeLoading.style.display = 'block';
-    paymentEl.style.display = 'none';
+    setStripeLoadingMessage('Loading payment options...');
+    setPaymentElementVisible(false);
     mountPaymentElement();
 }
 
@@ -570,8 +590,8 @@ function restoreSavedPaymentMethod() {
     savedPaymentMethodForCheckout = availableSavedPaymentMethod;
     missingPaymentMethod.hidden = true;
     savedPaymentMethod.hidden = false;
-    stripeLoading.style.display = 'none';
-    paymentEl.style.display = 'none';
+    hideStripeLoading();
+    setPaymentElementVisible(false);
     syncPayButton();
 }
 
@@ -657,12 +677,12 @@ function profileSubscriptionsUrl() {
 
 function showError(msg) {
     errorDiv.textContent = msg;
-    errorDiv.style.display = 'block';
+    setHidden(errorDiv, false);
 }
 
 function clearError() {
     errorDiv.textContent = '';
-    errorDiv.style.display = 'none';
+    setHidden(errorDiv, true);
 }
 
 function formatMoney(amount, currency) {

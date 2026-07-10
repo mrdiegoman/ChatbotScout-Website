@@ -326,7 +326,7 @@ require '../inc/header.php';
                                 <img
                                     src="<?= htmlspecialchars($logoUrl, ENT_QUOTES, 'UTF-8') ?>"
                                     alt="<?= htmlspecialchars($bot['name'], ENT_QUOTES, 'UTF-8') ?>"
-                                    onerror="this.onerror=null;this.src='img/ChatbotScout_logo.png';"
+                                    data-fallback-src="img/ChatbotScout_logo.png"
                                 >
                             <?php else: ?>
                                 <i class="fa-solid fa-robot"></i>
@@ -610,13 +610,7 @@ require '../inc/header.php';
 </section>
 
 <?php
-$baseScheme = 'http';
-if (
-    (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-    || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
-) {
-    $baseScheme = 'https';
-}
+$baseScheme = appIsHttpsRequest() ? 'https' : 'http';
 $baseUrl = $baseScheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
 
 $itemListElements = [];
@@ -700,11 +694,11 @@ $itemListSchema = [
 ];
 ?>
 
-<script type="application/ld+json"><?php echo json_encode($webSiteSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script>
-<script type="application/ld+json"><?php echo json_encode($organizationSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script>
-<script type="application/ld+json"><?php echo json_encode($faqSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script>
+<script type="application/ld+json" nonce="<?= $cspNonce ?>"><?php echo json_encode($webSiteSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script>
+<script type="application/ld+json" nonce="<?= $cspNonce ?>"><?php echo json_encode($organizationSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script>
+<script type="application/ld+json" nonce="<?= $cspNonce ?>"><?php echo json_encode($faqSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script>
 <?php if (!empty($itemListElements)): ?>
-<script type="application/ld+json"><?php echo json_encode($itemListSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script>
+<script type="application/ld+json" nonce="<?= $cspNonce ?>"><?php echo json_encode($itemListSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script>
 <?php endif; ?>
 
 

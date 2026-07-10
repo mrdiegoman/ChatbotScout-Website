@@ -119,24 +119,7 @@ class AuditLog
      */
     private static function getIpAddress(): ?string
     {
-        $headers = [
-            'HTTP_CF_CONNECTING_IP', // Cloudflare
-            'HTTP_X_FORWARDED_FOR',  // Proxy / load balancer
-            'HTTP_X_REAL_IP',
-            'REMOTE_ADDR',
-        ];
-
-        foreach ($headers as $header) {
-            if (!empty($_SERVER[$header])) {
-                // HTTP_X_FORWARDED_FOR môže obsahovať viac IP oddelených čiarkou
-                $ip = trim(explode(',', $_SERVER[$header])[0]);
-                if (filter_var($ip, FILTER_VALIDATE_IP)) {
-                    return mb_substr($ip, 0, 45);
-                }
-            }
-        }
-
-        return null;
+        return ClientIpResolver::currentOrNull();
     }
 
     /**

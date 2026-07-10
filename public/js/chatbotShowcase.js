@@ -29,6 +29,7 @@
     };
 
     const LOGIN_URL = 'login.php?redirect=chatbotShowcase.php';
+    const isUserLoggedIn = document.querySelector('.chatbot-page-wrapper')?.dataset.userLoggedIn === 'true';
 
     // ============================================
     // DOM REFERENCES
@@ -63,6 +64,16 @@
     const ratingCloseBtn     = document.getElementById('ratingModalCloseBtn');
 
     const starLabels = ['', 'Poor', 'Fair', 'Good', 'Very good', 'Excellent'];
+
+    function defaultSortDirection(sort) {
+        return sort === 'alphabetical' || sort === 'price' ? 'asc' : 'desc';
+    }
+
+    function setSortDirection(direction) {
+        state.sortDirection = direction;
+        const isReversed = direction !== defaultSortDirection(state.currentSort);
+        sortArrow?.classList.toggle('is-reversed', isReversed);
+    }
 
     // ============================================
     // HELPERS
@@ -138,13 +149,21 @@
         })).catch(() => {});
     }
 
+    function setHidden(element, hidden) {
+        if (element) element.hidden = hidden;
+    }
+
+    function setSearchLoading(on) {
+        [gridView, listView].forEach(container => {
+            if (container) container.classList.toggle('is-search-loading', on && container === currentContainer());
+        });
+    }
+
     function setLoading(on, isSearch = false) {
         if (isSearch) {
-            const container = currentContainer();
-            container.style.opacity = on ? '0.35' : '1';
-            container.style.transition = 'opacity 0.15s ease';
+            setSearchLoading(on);
         } else {
-            loadingEl.style.display = on ? 'flex' : 'none';
+            setHidden(loadingEl, !on);
         }
         state.isLoading = on;
     }
@@ -205,9 +224,9 @@
             </div>`;
     }
 
-    function pricingLabel(chatbot) { 
-        // console.log('chatbot.pricing: ' + chatbot.pricing);
-        return chatbot.pricing || 'Contact'; }
+    function pricingLabel(chatbot) {
+        return chatbot.pricing || 'Contact';
+    }
 
     function buildTags(tags) {
         if (!tags || tags.length === 0) return '';
@@ -472,10 +491,10 @@
             emptyState.innerHTML = state.searchQuery
                 ? `<p>There are no chatbots with the name "<strong>${escapeHtml(state.searchQuery)}</strong>".</p>`
                 : `<p>No chatbots found.</p>`;
-            emptyState.style.display = 'block';
+            setHidden(emptyState, false);
             return;
         }
-        emptyState.style.display = 'none';
+        setHidden(emptyState, true);
 
         const html = chatbots.map(c =>
             state.currentView === 'grid' ? buildGridItem(c) : buildListItem(c)
@@ -501,10 +520,10 @@
         paginationEl.innerHTML = '';
 
         if (totalPages <= 1) {
-            bottomBar.style.display = 'none';
+            setHidden(bottomBar, true);
             return;
         }
-        bottomBar.style.display = 'flex';
+        setHidden(bottomBar, false);
 
         const goToPage = (p) => {
             state.currentPage = p;
@@ -545,9 +564,9 @@
 
     function updateShowMore() {
         if (isMobileView()) {
-            showMoreWrapper.style.display = state.currentPage < state.totalPages ? 'flex' : 'none';
+            setHidden(showMoreWrapper, state.currentPage >= state.totalPages);
         } else {
-            showMoreWrapper.style.display = 'none';
+            setHidden(showMoreWrapper, true);
         }
     }
 
@@ -600,13 +619,13 @@
                     renderPagination(data.totalPages, data.currentPage);
                 } else {
                     paginationEl.innerHTML = '';
-                    bottomBar.style.display = data.totalPages > 1 ? 'flex' : 'none';
+                    setHidden(bottomBar, data.totalPages <= 1);
                 }
                 updateShowMore();
             })
             .catch(err => {
                 console.error('Failed to load chatbots:', err);
-                emptyState.style.display = 'block';
+                setHidden(emptyState, false);
             })
             .finally(() => setLoading(false, isSearch));
     }
@@ -622,14 +641,10 @@
     // ============================================
 
     document.addEventListener('click', (e) => {
-        // console.log('e.target:', e.target);
-        // console.log('e.target class:', e.target.className);
-        
         const link = e.target.closest('.chatbot-page-main-content-chatbots-grid-view-item-btns-container-go-to-website, .chatbot-page-main-content-chatbots-list-view-item-btns-container-go-to-website');
         if (!link) return;
 
         const chatbotId = link.dataset.chatbotId;
-        // console.log('chatbotId:', chatbotId);
         if (!chatbotId) return;
 
         recordChatbotVisit(chatbotId);
@@ -645,7 +660,7 @@
         if (!btn) return;
 
         // Neprihlásený → redirect
-        if (!CHATBOT_USER_LOGGED_IN) {
+        if (!isUserLoggedIn) {
             window.location.href = LOGIN_URL;
             return;
         }
@@ -711,7 +726,7 @@
         if (!trigger) return;
 
         // Neprihlásený → redirect (nie chyba v modali)
-        if (!CHATBOT_USER_LOGGED_IN) {
+        if (!isUserLoggedIn) {
             window.location.href = LOGIN_URL;
             return;
         }
@@ -745,9 +760,9 @@
         ratingModalTitle.textContent = `Rate: ${chatbotName}`;
         ratingTextInput.value = '';
         ratingModalError.textContent = '';
-        ratingModalError.style.display = 'none';
+        setHidden(ratingModalError, true);
         ratingModalSuccess.textContent = '';
-        ratingModalSuccess.style.display = 'none';
+        setHidden(ratingModalSuccess, true);
 
         // Zablokuj submit kým sa neoverí či user už dal review
         ratingSubmitBtn.disabled = true;
@@ -764,7 +779,7 @@
             .then(data => {
                 if (data.success && data.has_reviewed) {
                     ratingModalError.textContent = 'You have already submitted a review for this chatbot.';
-                    ratingModalError.style.display = 'block';
+                    setHidden(ratingModalError, false);
                     ratingSubmitBtn.disabled = true;
                     setRatingSubmitText('Already Reviewed');
                 } else {
@@ -817,13 +832,13 @@
 
     ratingSubmitBtn.addEventListener('click', () => {
         ratingModalError.textContent = '';
-        ratingModalError.style.display = 'none';
+        setHidden(ratingModalError, true);
         ratingModalSuccess.textContent = '';
-        ratingModalSuccess.style.display = 'none';
+        setHidden(ratingModalSuccess, true);
 
         if (state.ratingValue === 0) {
             ratingModalError.textContent = 'Please select a star rating.';
-            ratingModalError.style.display = 'block';
+            setHidden(ratingModalError, false);
             return;
         }
         ratingSubmitBtn.disabled = true;
@@ -845,14 +860,14 @@
                 showNotification('Review submitted.', 'success');
             } else {
                 ratingModalError.textContent = data.message || 'Something went wrong.';
-                ratingModalError.style.display = 'block';
+                setHidden(ratingModalError, false);
                 ratingSubmitBtn.disabled = false;
                 setRatingSubmitText('Submit Review');
             }
         })
         .catch(() => {
             ratingModalError.textContent = 'Server error. Please try again.';
-            ratingModalError.style.display = 'block';
+            setHidden(ratingModalError, false);
             ratingSubmitBtn.disabled = false;
             setRatingSubmitText('Submit Review');
         });
@@ -898,6 +913,7 @@
 
             if (value !== state.currentSort) {
                 state.currentSort = value;
+                setSortDirection(defaultSortDirection(value));
                 state.currentPage = 1;
                 loadChatbots(false);
             }
@@ -922,8 +938,7 @@
 
     if (sortArrow) {
         sortArrow.addEventListener('click', () => {
-            state.sortDirection = state.sortDirection === 'desc' ? 'asc' : 'desc';
-            sortArrow.style.transform = state.sortDirection === 'asc' ? 'scaleY(-1)' : 'scaleY(1)';
+            setSortDirection(state.sortDirection === 'desc' ? 'asc' : 'desc');
             state.currentPage = 1;
             loadChatbots(false);
         });

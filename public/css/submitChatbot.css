@@ -16,6 +16,10 @@
     --sc-shadow:        0 4px 24px var(--color-black-a10);
 }
 
+[hidden] {
+    display: none !important;
+}
+
 /* ── Layout ───────────────────────────────────────────────── */
 .sc-page {
     display: flex;
@@ -373,6 +377,10 @@
     font-size: 0.95rem;
     color: var(--color-blue-6b7280);
     margin-top: -0.4rem;
+}
+
+.sc-char-count__value--warning {
+    color: var(--color-red-ef233c);
 }
 
 /* Error message */

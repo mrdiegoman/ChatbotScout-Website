@@ -4,7 +4,7 @@
 
 /* Loading spinner */
 .pr-loading {
-    display: none;
+    display: flex;
     justify-content: center;
     align-items: center;
     padding: 5rem 0;
@@ -25,7 +25,7 @@
 
 /* Empty state */
 .pr-empty {
-    display: none;
+    display: block;
     text-align: center;
     padding: 5rem 2rem;
     color: var(--color-blue-9ca3af);
@@ -61,6 +61,12 @@
     box-shadow: 0 4px 20px var(--color-black-a10);
 }
 
+.pr-card.is-removing {
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
 .pr-load-more-wrap {
     display: flex;
     justify-content: center;
@@ -70,7 +76,7 @@
 }
 
 .pr-load-more-wrap[hidden] {
-    display: none;
+    display: none !important;
 }
 
 .pr-load-more {
@@ -458,11 +464,18 @@
 
 .pr-modal-error,
 .pr-modal-success {
-    display: none;
+    display: block;
     font-size: 1.35rem;
     padding: 0.6rem 1rem;
     border-radius: 0.5rem;
     margin-top: -0.5rem;
+}
+
+.pr-loading[hidden],
+.pr-empty[hidden],
+.pr-modal-error[hidden],
+.pr-modal-success[hidden] {
+    display: none !important;
 }
 
 .pr-modal-error   { background: var(--color-gray-fef2f2); color: var(--color-red-dc2626); }

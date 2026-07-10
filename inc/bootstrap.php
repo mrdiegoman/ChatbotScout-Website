@@ -6,6 +6,7 @@
  */
 
 define('BOOTSTRAP_LOADED', true);
+require_once __DIR__ . '/../classes/ClientIpResolver.php';
 require __DIR__ . '/errorHandler.php';
 require_once __DIR__ . '/promotionPricing.php';
 require_once __DIR__ . '/currencyRates.php';
@@ -49,6 +50,62 @@ function localProfilePictureUrl(?string $url): ?string {
     return $url;
 }
 
+function appIsHttpsRequest(): bool {
+    $forwardedProto = strtolower(trim(explode(',', (string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''))[0]));
+
+    return (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || ($forwardedProto === 'https' && ClientIpResolver::isTrustedProxyRequest());
+}
+
+function appCookieOptions(
+    int $expires = 0,
+    string $path = '/',
+    bool $httpOnly = true,
+    ?bool $secure = null,
+    string $sameSite = 'Lax',
+    string $domain = ''
+): array {
+    $options = [
+        'expires'  => $expires,
+        'path'     => $path,
+        'secure'   => $secure ?? appIsHttpsRequest(),
+        'httponly' => $httpOnly,
+        'samesite' => $sameSite,
+    ];
+
+    if ($domain !== '') {
+        $options['domain'] = $domain;
+    }
+
+    return $options;
+}
+
+function setAppCookie(
+    string $name,
+    string $value,
+    int $expires = 0,
+    string $path = '/',
+    bool $httpOnly = true,
+    ?bool $secure = null,
+    string $sameSite = 'Lax',
+    string $domain = ''
+): void {
+    setcookie($name, $value, appCookieOptions($expires, $path, $httpOnly, $secure, $sameSite, $domain));
+    $_COOKIE[$name] = $value;
+}
+
+function expireAppCookie(
+    string $name,
+    string $path = '/',
+    bool $httpOnly = true,
+    ?bool $secure = null,
+    string $sameSite = 'Lax',
+    string $domain = ''
+): void {
+    setcookie($name, '', appCookieOptions(time() - 3600, $path, $httpOnly, $secure, $sameSite, $domain));
+    unset($_COOKIE[$name]);
+}
+
 /**
  * Validácia CSRF tokenu.
  * Kontroluje X-CSRF-Token header (fetch) alebo csrf_token POST pole (HTML formy).
@@ -79,11 +136,7 @@ function validateCsrfToken(string $redirectOnFail = ''): void {
 // CSP nonce — unikátny pre každý request
 $cspNonce = bin2hex(random_bytes(16));
 
-// Admin page has many inline onclick handlers — use unsafe-inline instead of nonce
-$isAdminPage  = str_contains($_SERVER['PHP_SELF'] ?? '', 'admin.php');
-$cspScriptSrc = $isAdminPage
-    ? "script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com; "
-    : "script-src 'self' 'nonce-{$cspNonce}' https://js.stripe.com https://www.googletagmanager.com; ";
+$cspScriptSrc = "script-src 'self' 'nonce-{$cspNonce}' https://js.stripe.com https://www.googletagmanager.com; ";
 
 header('X-Frame-Options: SAMEORIGIN');
 header('X-Content-Type-Options: nosniff');
@@ -106,6 +159,10 @@ header(
 );
 
 // Štart PHP session
+$sessionCookieOptions = appCookieOptions();
+unset($sessionCookieOptions['expires']);
+$sessionCookieOptions['lifetime'] = 0;
+session_set_cookie_params($sessionCookieOptions);
 session_start();
 
 // CSRF token — generuj raz za session
@@ -149,8 +206,13 @@ if (isset($_COOKIE[$appConfig['session']['cookie_name']])) {
 
     } else {
         // Session expirovala alebo je neplatná - vymaž cookie
-        setcookie($appConfig['session']['cookie_name'], '', time() - 3600, '/');
-        unset($_COOKIE[$appConfig['session']['cookie_name']]);
+        expireAppCookie(
+            $appConfig['session']['cookie_name'],
+            $appConfig['session']['cookie_path'],
+            (bool)$appConfig['session']['cookie_httponly'],
+            (bool)$appConfig['session']['cookie_secure'],
+            $appConfig['session']['cookie_samesite'] ?? 'Lax'
+        );
     }
 }
 

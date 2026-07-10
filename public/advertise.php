@@ -95,7 +95,7 @@ require 'app/auth.php';
         </div>
 
         <!-- Plans grid -->
-        <div class="adv-plans__grid" id="plansGrid" style="display:none;">
+        <div class="adv-plans__grid" id="plansGrid" hidden>
 
             <!-- Homepage Hero Card -->
             <div class="adv-plan-card" id="card-Homepage">
@@ -111,11 +111,11 @@ require 'app/auth.php';
                         <span class="adv-plan-card__amount" id="price-Homepage">—</span>
                         <span class="adv-plan-card__period" id="period-Homepage">/mo</span>
                     </div>
-                    <div class="adv-plan-card__yearly-info" id="yearly-info-Homepage" style="display:none;">
+                    <div class="adv-plan-card__yearly-info" id="yearly-info-Homepage" hidden>
                         <span class="adv-plan-card__original" id="original-Homepage"></span>
                         <span class="adv-plan-card__saving-pct" id="saving-pct-Homepage"></span>
                     </div>
-                    <button class="adv-plan-card__total-btn" id="total-btn-Homepage" style="display:none;" data-showing-total="false">
+                    <button class="adv-plan-card__total-btn" id="total-btn-Homepage" hidden data-showing-total="false">
                         Show total (12 months)
                     </button>
                 </div>
@@ -143,11 +143,11 @@ require 'app/auth.php';
                         <span class="adv-plan-card__amount" id="price-Chatbots_Page">—</span>
                         <span class="adv-plan-card__period" id="period-Chatbots_Page">/mo</span>
                     </div>
-                    <div class="adv-plan-card__yearly-info" id="yearly-info-Chatbots_Page" style="display:none;">
+                    <div class="adv-plan-card__yearly-info" id="yearly-info-Chatbots_Page" hidden>
                         <span class="adv-plan-card__original" id="original-Chatbots_Page"></span>
                         <span class="adv-plan-card__saving-pct" id="saving-pct-Chatbots_Page"></span>
                     </div>
-                    <button class="adv-plan-card__total-btn" id="total-btn-Chatbots_Page" style="display:none;" data-showing-total="false">
+                    <button class="adv-plan-card__total-btn" id="total-btn-Chatbots_Page" hidden data-showing-total="false">
                         Show total (12 months)
                     </button>
                 </div>
@@ -176,14 +176,14 @@ require 'app/auth.php';
                         <span class="adv-plan-card__amount" id="price-bundle">—</span>
                         <span class="adv-plan-card__period" id="period-bundle">/mo</span>
                     </div>
-                    <div class="adv-plan-card__savings" id="savings-bundle" style="display:none;">
+                    <div class="adv-plan-card__savings" id="savings-bundle" hidden>
                         Bundle discount <span id="savings-amount">0</span>%
                     </div>
-                    <div class="adv-plan-card__yearly-info" id="yearly-info-bundle" style="display:none;">
+                    <div class="adv-plan-card__yearly-info" id="yearly-info-bundle" hidden>
                         <span class="adv-plan-card__original" id="original-bundle"></span>
                         <span class="adv-plan-card__saving-pct" id="saving-pct-bundle"></span>
                     </div>
-                    <button class="adv-plan-card__total-btn" id="total-btn-bundle" style="display:none;" data-showing-total="false">
+                    <button class="adv-plan-card__total-btn" id="total-btn-bundle" hidden data-showing-total="false">
                         Show total (12 months)
                     </button>
                 </div>
@@ -201,7 +201,7 @@ require 'app/auth.php';
         </div>
 
         <!-- No listing warning -->
-        <div class="adv-no-listing" id="noListingWarning" style="display:none;">
+        <div class="adv-no-listing" id="noListingWarning" hidden>
             <div class="adv-no-listing__icon">🔒</div>
             <h3>Active Listing Required</h3>
             <p>You need an active listing subscription before you can purchase a promotion. Submit your chatbot first and get it listed on ChatbotScout.</p>
@@ -250,7 +250,7 @@ require 'app/auth.php';
                             <div class="adv-preview__card-info">
                                 <div class="adv-preview__card-name"></div>
                                 <div class="adv-preview__card-desc"></div>
-                                <div class="adv-preview__card-desc" style="width:60%"></div>
+                                <div class="adv-preview__card-desc adv-preview__card-desc--short"></div>
                             </div>
                         </div>
                     </div>
@@ -264,7 +264,7 @@ require 'app/auth.php';
 <!-- ═══════════════════════════════════════════════════════════
      MODAL: Get Promotion
 ════════════════════════════════════════════════════════════ -->
-<div class="adv-modal-overlay" id="promotionModalOverlay">
+<div class="adv-modal-overlay" id="promotionModalOverlay" hidden>
     <div class="adv-modal" id="promotionModal">
         <button type="button" class="modal-close adv-modal__close" id="modalCloseBtn" aria-label="Close">&times;</button>
 
@@ -341,26 +341,23 @@ require 'app/auth.php';
             <button class="adv-modal__cancel" id="modalCancelBtn">Cancel</button>
             <button class="adv-modal__confirm" id="modalConfirmBtn">
                 <span id="modalConfirmText">Continue to Payment</span>
-                <span id="modalConfirmLoader" style="display:none;">Processing...</span>
+                <span id="modalConfirmLoader" hidden>Processing...</span>
             </button>
         </div>
     </div>
 </div>
 
-<!-- Hidden: pass PHP data to JS -->
-<script nonce="<?= $cspNonce ?>">
-    window.advData = {
-        isLoggedIn: <?php echo $isLoggedIn ? 'true' : 'false'; ?>,
-        loginUrl: 'login',
-        yearlyDiscountPercentage: <?php echo json_encode(promotionYearlyDiscountPercentage()); ?>,
-        bundleDiscountPercentage: <?php echo json_encode(promotionBundleDiscountPercentage()); ?>
-    };
-</script>
+<div id="advertiseConfig"
+     hidden
+     data-is-logged-in="<?= $isLoggedIn ? 'true' : 'false' ?>"
+     data-login-url="login"
+     data-yearly-discount-percentage="<?= htmlspecialchars((string)promotionYearlyDiscountPercentage(), ENT_QUOTES, 'UTF-8') ?>"
+     data-bundle-discount-percentage="<?= htmlspecialchars((string)promotionBundleDiscountPercentage(), ENT_QUOTES, 'UTF-8') ?>"></div>
 
 <!-- ═══════════════════════════════════════════════════════════
      REDIRECT OVERLAY (shown while navigating to Stripe checkout)
 ════════════════════════════════════════════════════════════ -->
-<div class="adv-redirect-overlay" id="stripeRedirectOverlay">
+<div class="adv-redirect-overlay" id="stripeRedirectOverlay" hidden>
     <div class="adv-redirect-overlay__box">
         <div class="adv-redirect-overlay__spinner"></div>
         <p class="adv-redirect-overlay__title">Redirecting to secure checkout</p>

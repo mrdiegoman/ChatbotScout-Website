@@ -6,8 +6,17 @@
  * NIKDY necommituj .env do gitu!
  */
 
+require_once __DIR__ . '/../classes/ClientIpResolver.php';
+
+$trustedProxyEnv = $_ENV['TRUSTED_PROXY_CIDRS'] ?? getenv('TRUSTED_PROXY_CIDRS') ?: '127.0.0.1/32,::1/128';
+$trustedProxyCidrs = array_values(array_filter(array_map(
+    'trim',
+    explode(',', (string)$trustedProxyEnv)
+)));
+
+$forwardedProto = strtolower(trim(explode(',', (string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''))[0]));
 $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-    || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+    || ($forwardedProto === 'https' && ClientIpResolver::isTrustedProxyRequest());
 
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $scheme = $isHttps ? 'https' : 'http';
@@ -32,6 +41,9 @@ if ($googleRedirectUri === '') {
 }
 
 return [
+    // Reverse proxies allowed to provide CF-Connecting-IP / X-Forwarded-For.
+    'trusted_proxy_cidrs' => $trustedProxyCidrs,
+
     // Session settings
     'session' => [
         'lifetime'             => 24 * 60 * 60,
@@ -40,6 +52,7 @@ return [
         'cookie_path'          => '/',
         'cookie_secure'        => $isHttps,
         'cookie_httponly'      => true,
+        'cookie_samesite'      => 'Lax',
     ],
 
     // Visitor tracking
@@ -51,7 +64,8 @@ return [
 
     // Email verification
     'email_verification' => [
-        'token_lifetime' => 24 * 60 * 60,
+        'token_lifetime'  => 24 * 60 * 60,
+        'resend_cooldown' => 60,
     ],
 
     // Password reset
@@ -117,6 +131,11 @@ return [
             'max_attempts' => 10,
             'window'       => 60 * 60,
             'lockout'      => 60 * 60,
+        ],
+        'chatbot_click' => [
+            'max_attempts' => 120,
+            'window'       => 15 * 60,
+            'lockout'      => 15 * 60,
         ],
     ],
 

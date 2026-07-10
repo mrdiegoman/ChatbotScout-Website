@@ -2,7 +2,7 @@
 /**
  * RateLimiter Class (Redis + Database Fallback)
  * 
- * Ochrana proti brute-force útokom
+ * Ochrana proti brute-force a spam requestom.
  * Primárne používa Redis (rýchle), fallback na MySQL ak Redis zlyháva
  */
 
@@ -78,17 +78,16 @@ class RateLimiter
      * 
      * @param string $action Typ akcie (login, registration, password_reset, resend_verification)
      * @param string $ipAddress IP adresa
-     * @param string|null $email Email adresa (voliteľné) // 🆕 ZMENA: pridaný parameter
+     * @param string|null $email Email adresa (voliteľné)
      * @return bool TRUE ak môže pokračovať, FALSE ak je zablokovaný
      */
-    public function check(string $action, string $ipAddress, ?string $email = null): bool // 🆕 ZMENA: pridaný parameter $email
+    public function check(string $action, string $ipAddress, ?string $email = null): bool
     {
         // Kontrola IP blokácie
         if ($this->isBlocked($action, $ipAddress)) {
             return false;
         }
 
-        // 🆕 ZMENA: Ak je zadaný email, skontroluj aj email blokáciu
         if ($email !== null && $this->isBlockedByEmail($action, $email)) {
             return false;
         }
@@ -112,7 +111,6 @@ class RateLimiter
         return $this->isBlockedDB($action, $ipAddress);
     }
 
-    // 🆕 ZMENA: Nová metóda - kontrola blokacie podla emailu
     /**
      * Kontrola či je email zablokovaný
      * 
@@ -155,7 +153,6 @@ class RateLimiter
         }
     }
 
-    // 🆕 ZMENA: Nová metóda - Redis kontrola blokacie podla emailu
     /**
      * Redis: Kontrola blokácie podľa emailu
      */
@@ -216,7 +213,6 @@ class RateLimiter
         return true;
     }
 
-    // 🆕 ZMENA: Nová metóda - DB kontrola blokacie podla emailu
     /**
      * Database: Kontrola blokácie podľa emailu
      */
@@ -252,41 +248,50 @@ class RateLimiter
     }
     
     /**
-     * Zaznamenanie neúspešného pokusu
-     * 
+     * Zaznamenanie pokusu pre rate limit.
+     *
+     * Pouziva sa aj pre uspesne requesty, ktore maju byt limitovane
+     * (napr. password reset alebo resend verification).
+     *
      * @param string $action
      * @param string $ipAddress
-     * @param string|null $email Email adresa (voliteľné) // 🆕 ZMENA: pridaný parameter
-     * @return int Zostávajúci čas lockoutu v sekundách
+     * @param string|null $email Email adresa (volitelne)
+     * @return int Zostavajuci cas lockoutu v sekundach
      */
-    public function recordFailedAttempt(string $action, string $ipAddress, ?string $email = null): int // 🆕 ZMENA: pridaný parameter $email
+    public function recordAttempt(string $action, string $ipAddress, ?string $email = null): int
     {
         // Zaznamenaj pokus pre IP
         $remainingIp = 0;
         if ($this->useRedis && $this->redis) {
-            $remainingIp = $this->recordFailedAttemptRedis($action, $ipAddress);
+            $remainingIp = $this->recordAttemptRedis($action, $ipAddress);
         } else {
-            $remainingIp = $this->recordFailedAttemptDB($action, $ipAddress);
+            $remainingIp = $this->recordAttemptDB($action, $ipAddress);
         }
 
-        // 🆕 ZMENA: Zaznamenaj pokus aj pre email (ak je zadaný)
         $remainingEmail = 0;
         if ($email !== null) {
             if ($this->useRedis && $this->redis) {
-                $remainingEmail = $this->recordFailedAttemptByEmailRedis($action, $email);
+                $remainingEmail = $this->recordEmailAttemptRedis($action, $email);
             } else {
-                $remainingEmail = $this->recordFailedAttemptByEmailDB($action, $email);
+                $remainingEmail = $this->recordEmailAttemptDB($action, $email);
             }
         }
 
-        // 🆕 ZMENA: Vrát väčší z dvoch zostávajúcich časov
         return max($remainingIp, $remainingEmail);
+    }
+
+    /**
+     * Backwards-compatible alias pre existujuce flows, ktore zapisuju iba neuspesne pokusy.
+     */
+    public function recordFailedAttempt(string $action, string $ipAddress, ?string $email = null): int
+    {
+        return $this->recordAttempt($action, $ipAddress, $email);
     }
     
     /**
-     * Redis: Zaznamenanie failed attempt podľa IP
+     * Redis: Zaznamenanie pokusu podľa IP
      */
-    private function recordFailedAttemptRedis(string $action, string $ipAddress): int
+    private function recordAttemptRedis(string $action, string $ipAddress): int
     {
         try {
             $config = $this->config['rate_limit'][$action];
@@ -316,17 +321,15 @@ class RateLimiter
             return 0;
             
         } catch (Exception $e) {
-            error_log("Redis recordFailedAttempt error: " . $e->getMessage());
-            $this->recordFailedAttemptDB($action, $ipAddress);
-            return 0;
+            error_log("Redis recordAttempt error: " . $e->getMessage());
+            return $this->recordAttemptDB($action, $ipAddress);
         }
     }
 
-    // 🆕 ZMENA: Nová metóda - Redis zaznamenanie failed attempt podla emailu
     /**
-     * Redis: Zaznamenanie failed attempt podľa emailu
+     * Redis: Zaznamenanie pokusu podľa emailu
      */
-    private function recordFailedAttemptByEmailRedis(string $action, string $email): int
+    private function recordEmailAttemptRedis(string $action, string $email): int
     {
         try {
             $config = $this->config['rate_limit'][$action];
@@ -350,16 +353,15 @@ class RateLimiter
             return 0;
 
         } catch (Exception $e) {
-            error_log("Redis recordFailedAttemptByEmail error: " . $e->getMessage());
-            $this->recordFailedAttemptByEmailDB($action, $email);
-            return 0;
+            error_log("Redis recordEmailAttempt error: " . $e->getMessage());
+            return $this->recordEmailAttemptDB($action, $email);
         }
     }
     
     /**
-     * Database: Zaznamenanie failed attempt podľa IP
+     * Database: Zaznamenanie pokusu podľa IP
      */
-    private function recordFailedAttemptDB(string $action, string $ipAddress): int
+    private function recordAttemptDB(string $action, string $ipAddress): int
     {
         $config = $this->config['rate_limit'][$action];
         
@@ -399,7 +401,7 @@ class RateLimiter
         if (time() - $firstAttempt > $timeWindow) {
             // Časové okno vypršalo - resetuj counter
             $this->reset($action, $ipAddress);
-            $this->recordFailedAttempt($action, $ipAddress);
+            $this->recordAttempt($action, $ipAddress);
             return 0;
         }
         
@@ -436,11 +438,10 @@ class RateLimiter
         return 0;
     }
 
-    // 🆕 ZMENA: Nová metóda - DB zaznamenanie failed attempt podla emailu
     /**
-     * Database: Zaznamenanie failed attempt podľa emailu
+     * Database: Zaznamenanie pokusu podľa emailu
      */
-    private function recordFailedAttemptByEmailDB(string $action, string $email): int
+    private function recordEmailAttemptDB(string $action, string $email): int
     {
         $config = $this->config['rate_limit'][$action];
 
@@ -479,7 +480,7 @@ class RateLimiter
 
         if (time() - $firstAttempt > $emailWindow) {
             $this->resetByEmail($action, $email);
-            $this->recordFailedAttemptByEmailDB($action, $email);
+            $this->recordEmailAttemptDB($action, $email);
             return 0;
         }
 
@@ -512,13 +513,13 @@ class RateLimiter
     }
     
     /**
-     * Reset rate limitera podľa IP (po úspešnom logine/registrácii)
+     * Reset rate limitera podľa IP.
      * 
      * @param string $action
      * @param string $ipAddress
-     * @param string|null $email // 🆕 ZMENA: pridaný parameter
+     * @param string|null $email
      */
-    public function reset(string $action, string $ipAddress, ?string $email = null): void // 🆕 ZMENA: pridaný parameter $email
+    public function reset(string $action, string $ipAddress, ?string $email = null): void
     {
         if ($this->useRedis && $this->redis) {
             $this->resetRedis($action, $ipAddress);
@@ -527,13 +528,11 @@ class RateLimiter
         // Vždy vymaž aj z DB (pre istotu)
         $this->resetDB($action, $ipAddress);
 
-        // 🆕 ZMENA: Reset aj emailového limitu
         if ($email !== null) {
             $this->resetByEmail($action, $email);
         }
     }
 
-    // 🆕 ZMENA: Nová metóda - reset rate limitera podla emailu
     /**
      * Reset rate limitera podľa emailu
      */
@@ -563,7 +562,6 @@ class RateLimiter
         }
     }
 
-    // 🆕 ZMENA: Nová metóda - Redis reset podla emailu
     /**
      * Redis: Reset podľa emailu
      */
@@ -572,7 +570,6 @@ class RateLimiter
         try {
             $countKey = $this->getRedisEmailKey($action, $email, 'count');
             $lockKey  = $this->getRedisEmailKey($action, $email, 'locked');
-            error_log("Resetting Redis keys for email: $email, countKey: $countKey, lockKey: $lockKey");
             $this->redis->del($countKey);
             $this->redis->del($lockKey);
 
@@ -599,7 +596,6 @@ class RateLimiter
         ]);
     }
 
-    // 🆕 ZMENA: Nová metóda - DB reset podla emailu
     /**
      * Database: Reset podľa emailu
      */
@@ -634,10 +630,10 @@ class RateLimiter
      * 
      * @param string $action
      * @param string $ipAddress
-     * @param string|null $email // 🆕 ZMENA: pridaný parameter
+     * @param string|null $email
      * @return int Sekundy do odomknutia (0 ak nie je zablokovaný)
      */
-    public function getRemainingLockoutTime(string $action, string $ipAddress, ?string $email = null): int // 🆕 ZMENA: pridaný parameter $email
+    public function getRemainingLockoutTime(string $action, string $ipAddress, ?string $email = null): int
     {
         $remainingIp = 0;
         if ($this->useRedis && $this->redis) {
@@ -646,17 +642,14 @@ class RateLimiter
             $remainingIp = $this->getRemainingLockoutTimeDB($action, $ipAddress);
         }
 
-        // 🆕 ZMENA: Získaj aj zostávajúci čas pre email
         $remainingEmail = 0;
         if ($email !== null) {
             $remainingEmail = $this->getRemainingLockoutTimeByEmail($action, $email);
         }
 
-        // 🆕 ZMENA: Vrát väčší z dvoch časov
         return max($remainingIp, $remainingEmail);
     }
 
-    // 🆕 ZMENA: Nová metóda - zostávajúci čas lockoutu pre email
     /**
      * Získanie zostávajúceho času lockoutu pre email
      */
@@ -691,7 +684,6 @@ class RateLimiter
         }
     }
 
-    // 🆕 ZMENA: Nová metóda - Redis zostávajúci čas pre email
     /**
      * Redis: Zostávajúci čas lockoutu podľa emailu
      */
@@ -741,7 +733,6 @@ class RateLimiter
         return max(0, $remaining);
     }
 
-    // 🆕 ZMENA: Nová metóda - DB zostávajúci čas pre email
     /**
      * Database: Zostávajúci čas lockoutu podľa emailu
      */
@@ -777,7 +768,6 @@ class RateLimiter
         return $this->redisConfig['prefix'] . 'ratelimit:' . $action . ':' . $ipAddress . ':' . $suffix;
     }
 
-    // 🆕 ZMENA: Nová metóda - generovanie Redis key pre email
     /**
      * Generovanie Redis key pre email
      */

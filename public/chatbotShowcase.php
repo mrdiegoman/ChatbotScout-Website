@@ -9,12 +9,7 @@ $initialSearchValue = htmlspecialchars($initialSearchQuery, ENT_QUOTES, 'UTF-8')
 require '../inc/header.php';
 ?>
 
-<!-- PHP premenné pre JS -->
-<script nonce="<?= $cspNonce ?>">
-    const CHATBOT_USER_LOGGED_IN = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
-</script>
-
-<div class="chatbot-page-wrapper">
+<div class="chatbot-page-wrapper" data-user-logged-in="<?= $isLoggedIn ? 'true' : 'false' ?>">
     <main class="chatbot-page-main">
         <aside class="chatbot-page-main-banner">
             <div class="chatbot-page-main-banner-content">
@@ -75,7 +70,7 @@ require '../inc/header.php';
                                     d="M96 128C83.1 128 71.4 135.8 66.4 147.8C61.4 159.8 64.2 173.5 73.4 182.6L256 365.3L256 480C256 488.5 259.4 496.6 265.4 502.6L329.4 566.6C338.6 575.8 352.3 578.5 364.3 573.5C376.3 568.5 384 556.9 384 544L384 365.3L566.6 182.7C575.8 173.5 578.5 159.8 573.5 147.8C568.5 135.8 556.9 128 544 128L96 128z" />
                             </svg>
                             <p>Filters</p>
-                            <div class="chatbot-page-main-content-topbar-group-filters-button-count" id="filtersCount" style="display:none;">
+                            <div class="chatbot-page-main-content-topbar-group-filters-button-count" id="filtersCount" hidden>
                                 <p id="filtersCountNum">0</p>
                             </div>
                         </button>
@@ -170,7 +165,7 @@ require '../inc/header.php';
             <!-- CHATBOT ITEMS CONTAINER -->
             <div class="chatbot-page-main-content-chatbots">
 
-                <div class="chatbot-showcase-loading" id="chatbotsLoading">
+                <div class="chatbot-showcase-loading" id="chatbotsLoading" hidden>
                     <div class="chatbot-showcase-loading-spinner"></div>
                 </div>
 
@@ -182,19 +177,19 @@ require '../inc/header.php';
                     <!-- Dynamically filled by chatbotShowcase.js -->
                 </div>
 
-                <div class="chatbot-showcase-empty" id="chatbotsEmpty" style="display:none;">
+                <div class="chatbot-showcase-empty" id="chatbotsEmpty" hidden>
                     <p>No chatbots found.</p>
                 </div>
 
             </div>
 
             <!-- SHOW MORE (mobile only) -->
-            <div class="chatbot-showcase-show-more-wrapper" id="showMoreWrapper" style="display:none;">
+            <div class="chatbot-showcase-show-more-wrapper" id="showMoreWrapper" hidden>
                 <button class="chatbot-showcase-show-more-btn" id="showMoreBtn">Show More</button>
             </div>
 
             <!-- BOTTOM BAR: pagination + move up -->
-            <div class="chatbot-showcase-bottom-bar" id="bottomBar" style="display:none;">
+            <div class="chatbot-showcase-bottom-bar" id="bottomBar" hidden>
                 <nav class="chatbot-showcase-pagination" id="paginationContainer" aria-label="Chatbot pages"></nav>
                 <button class="chatbot-showcase-move-up-btn" id="moveUpBtn" aria-label="Move to top">
                     Move Up
@@ -212,7 +207,7 @@ require '../inc/header.php';
 <?php require '../inc/footer.php'; ?>
 
 <!-- FILTERS MODAL -->
-<div class="chatbot-filters-modal-overlay" id="filtersModalOverlay">
+<div class="chatbot-filters-modal-overlay" id="filtersModalOverlay" hidden>
     <div class="chatbot-filters-modal-content">
         <div class="chatbot-filters-modal-header">
             <h2>Filter chatbots by</h2>
@@ -294,10 +289,8 @@ require '../inc/header.php';
                         <path d="M300.3 440.8C312.9 451 331.4 450.3 343.1 438.6L471.1 310.6C480.3 301.4 483 287.7 478 275.7C473 263.7 461.4 256 448.5 256L192.5 256C179.6 256 167.9 263.8 162.9 275.8C157.9 287.8 160.7 301.5 169.9 310.6L297.9 438.6L300.3 440.8z"/>
                     </svg>
                 </span>
-                <div class="chatbot-advanced-filters-modal-body-features-container" id="advancedFeaturesContainer">
-                    <div class="chatbot-advanced-filters-modal-body-features-container" id="advancedFeaturesContainer">
-                        <!-- Dynamicky plnené cez filterFeaturesAdding.js -->
-                    </div>
+                <div class="chatbot-advanced-filters-modal-body-features-container" id="advancedFeaturesContainer" hidden>
+                    <!-- Dynamicky plnené cez filterFeaturesAdding.js -->
                     <!-- <span class="chatbot-filters-modal-body-features-ending"> +8</span> -->
                 </div>
             </div>
@@ -373,8 +366,8 @@ require '../inc/header.php';
                 <label for="ratingTextInput">Your review</label>
                 <textarea id="ratingTextInput" maxlength="5000" rows="4" wrap="soft" placeholder="Share your experience with this chatbot..."></textarea>
             </div>
-            <p class="chatbot-rating-modal-error" id="ratingModalError"></p>
-            <p class="chatbot-rating-modal-success" id="ratingModalSuccess"></p>
+            <p class="chatbot-rating-modal-error" id="ratingModalError" hidden></p>
+            <p class="chatbot-rating-modal-success" id="ratingModalSuccess" hidden></p>
         </div>
         <div class="chatbot-rating-modal-footer">
             <button class="chatbot-rating-modal-cancel-btn" id="ratingModalCancelBtn">Cancel</button>

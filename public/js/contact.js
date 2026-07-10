@@ -3,17 +3,21 @@
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    const flash = document.querySelector('[data-contact-flash]');
+    const contactSuccess = flash?.dataset.contactSuccess || '';
+    const contactError = flash?.dataset.contactError || '';
+    const contactFirstError = flash?.dataset.contactFirstError || '';
 
-    if (window._contactSuccess) {
-        showNotification(window._contactSuccess, 'success');
+    if (contactSuccess) {
+        showNotification(contactSuccess, 'success');
     }
 
-    if (window._contactError) {
-        showNotification(window._contactError, 'error');
+    if (contactError) {
+        showNotification(contactError, 'error');
     }
 
-    if (window._contactErrors && window._contactErrors.length > 0) {
-        showNotification(window._contactErrors[0], 'error');
+    if (contactFirstError) {
+        showNotification(contactFirstError, 'error');
     }
 
     // ============================================

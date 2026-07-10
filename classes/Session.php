@@ -29,7 +29,7 @@ class Session
         $sessionToken = bin2hex(random_bytes(32));
         
         // IP adresa a User-Agent
-        $ipAddress = $_SERVER['REMOTE_ADDR'] ?? null;
+        $ipAddress = ClientIpResolver::currentOrNull();
         $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
         
         // Device type detection
@@ -93,7 +93,9 @@ class Session
                 u.profile_picture_url,
                 u.is_email_verified,
                 u.status,
-                u.marketing_emails
+                u.marketing_emails,
+                u.is_review_blocked,
+                u.is_submission_blocked
             FROM user_sessions s
             JOIN users u ON s.user_id = u.id
             WHERE s.session_token = :token
@@ -151,6 +153,8 @@ class Session
             'is_email_verified'   => (bool)$data['is_email_verified'],
             'status'              => $data['status'],
             'marketing_emails'    => (bool)$data['marketing_emails'],
+            'is_review_blocked'   => (bool)$data['is_review_blocked'],
+            'is_submission_blocked' => (bool)$data['is_submission_blocked'],
         ];
     }
     
@@ -164,6 +168,16 @@ class Session
     {
         $stmt = $this->db->prepare("DELETE FROM user_sessions WHERE session_token = :token");
         return $stmt->execute(['token' => $sessionToken]);
+    }
+
+    /**
+     * Revoke every active session after a security-sensitive account change.
+     */
+    public function destroyAllForUser(string $userId): int
+    {
+        $stmt = $this->db->prepare("DELETE FROM user_sessions WHERE user_id = :user_id");
+        $stmt->execute(['user_id' => $userId]);
+        return $stmt->rowCount();
     }
     
     /**

@@ -333,19 +333,7 @@ class AdminAuth
 
     private static function clientIp(): string
     {
-        $candidates = [
-            $_SERVER['HTTP_CF_CONNECTING_IP'] ?? '',
-            $_SERVER['REMOTE_ADDR'] ?? '',
-        ];
-
-        foreach ($candidates as $candidate) {
-            $candidate = trim((string)$candidate);
-            if (filter_var($candidate, FILTER_VALIDATE_IP)) {
-                return $candidate;
-            }
-        }
-
-        return 'unknown';
+        return ClientIpResolver::current();
     }
 
     private static function rateLimitAllows(RateLimiter $rateLimiter, string $ipBucket, string $userBucket): bool

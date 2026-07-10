@@ -63,6 +63,33 @@
 
     let pendingDeleteId = null;
 
+    function setHidden(element, hidden) {
+        if (element) element.hidden = hidden;
+    }
+
+    function clearEditFeedback() {
+        if (editErrorEl) {
+            editErrorEl.textContent = '';
+            setHidden(editErrorEl, true);
+        }
+        if (editSuccessEl) {
+            editSuccessEl.textContent = '';
+            setHidden(editSuccessEl, true);
+        }
+    }
+
+    function showEditError(message) {
+        if (!editErrorEl) return;
+        editErrorEl.textContent = message;
+        setHidden(editErrorEl, false);
+    }
+
+    function showEditSuccess(message) {
+        if (!editSuccessEl) return;
+        editSuccessEl.textContent = message;
+        setHidden(editSuccessEl, false);
+    }
+
     // ============================================
     // LOAD REVIEWS
     // ============================================
@@ -75,9 +102,9 @@
             reviewState.total = 0;
             reviewState.hasMore = false;
             reviewsContainer.innerHTML = '';
-            if (reviewsEmpty) reviewsEmpty.style.display = 'none';
-            if (reviewsLoadMore) reviewsLoadMore.hidden = true;
-            if (reviewsLoadMoreWrap) reviewsLoadMoreWrap.hidden = true;
+            setHidden(reviewsEmpty, true);
+            setHidden(reviewsLoadMore, true);
+            setHidden(reviewsLoadMoreWrap, true);
         }
 
         reviewState.loading = true;
@@ -121,9 +148,7 @@
     }
 
     function setLoading(state) {
-        if (reviewsLoading) {
-            reviewsLoading.style.display = state && reviewState.offset === 0 ? 'flex' : 'none';
-        }
+        setHidden(reviewsLoading, !(state && reviewState.offset === 0));
 
         if (reviewsLoadMore) {
             reviewsLoadMore.disabled = state;
@@ -132,17 +157,17 @@
     }
 
     function showEmpty() {
-        if (reviewsEmpty)     reviewsEmpty.style.display     = 'block';
-        if (reviewsContainer) reviewsContainer.innerHTML     = '';
-        if (reviewsLoadMore)  reviewsLoadMore.hidden         = true;
-        if (reviewsLoadMoreWrap) reviewsLoadMoreWrap.hidden  = true;
+        setHidden(reviewsEmpty, false);
+        if (reviewsContainer) reviewsContainer.innerHTML = '';
+        setHidden(reviewsLoadMore, true);
+        setHidden(reviewsLoadMoreWrap, true);
     }
 
     function updateLoadMore() {
         if (!reviewsLoadMore) return;
         const shouldShow = reviewState.hasMore && reviewState.offset > 0;
-        reviewsLoadMore.hidden = !shouldShow;
-        if (reviewsLoadMoreWrap) reviewsLoadMoreWrap.hidden = !shouldShow;
+        setHidden(reviewsLoadMore, !shouldShow);
+        setHidden(reviewsLoadMoreWrap, !shouldShow);
         if (!reviewState.loading) reviewsLoadMore.textContent = 'Load more reviews';
     }
 
@@ -151,7 +176,7 @@
     // ============================================
 
     function appendReviews(reviews) {
-        if (reviewsEmpty) reviewsEmpty.style.display = 'none';
+        setHidden(reviewsEmpty, true);
         if (!reviews.length) return;
         reviewsContainer.insertAdjacentHTML('beforeend', reviews.map(buildReviewCard).join(''));
     }
@@ -213,7 +238,7 @@
                 <div class="pr-card-header-left">
                     <a class="pr-chatbot-name" href="${chatbotReviewsUrl}">
                         <span class="pr-chatbot-logo" aria-hidden="true">
-                            <img src="${chatbotLogo}" alt="" loading="lazy" onerror="this.onerror=null;this.src='img/ChatbotScout_logo.png';">
+                            <img src="${chatbotLogo}" alt="" loading="lazy" data-fallback-src="img/ChatbotScout_logo.png">
                         </span>
                         <span class="pr-chatbot-name-text">${chatbotName}</span>
                     </a>
@@ -279,9 +304,7 @@
         editModalTitle.textContent = `Edit review — ${chatbotName}`;
         editTextInput.value        = textEl  ? textEl.innerText : '';
 
-        // Reset error/success
-        if (editErrorEl)   { editErrorEl.textContent   = ''; editErrorEl.style.display   = 'none'; }
-        if (editSuccessEl) { editSuccessEl.textContent = ''; editSuccessEl.style.display = 'none'; }
+        clearEditFeedback();
         if (editSubmitBtn) { editSubmitBtn.disabled = false; editSubmitBtn.textContent = 'Save Changes'; }
 
         // Nastav hviezdy
@@ -317,7 +340,7 @@
         if (!editStarsPicker) return;
         editStarsPicker.querySelectorAll('.pr-modal-star').forEach(s => {
             const v = parseInt(s.dataset.value);
-            s.style.color = v <= value ? '#f59e0b' : '#d1d5db';
+            s.classList.toggle('active', v <= value);
         });
         if (editStarsLabel) {
             editStarsLabel.textContent = starLabels[value] || 'Select a rating';
@@ -329,11 +352,10 @@
         editSubmitBtn.addEventListener('click', async () => {
             if (!editingReviewId) return;
 
-            if (editErrorEl) { editErrorEl.textContent = ''; editErrorEl.style.display = 'none'; }
+            clearEditFeedback();
 
             if (!currentRating) {
-                editErrorEl.textContent   = 'Please select a rating.';
-                editErrorEl.style.display = 'block';
+                showEditError('Please select a rating.');
                 return;
             }
             editSubmitBtn.disabled    = true;
@@ -353,8 +375,7 @@
                 const data = await res.json();
 
                 if (data.success) {
-                    editSuccessEl.textContent   = data.message;
-                    editSuccessEl.style.display = 'block';
+                    showEditSuccess(data.message);
                     editSubmitBtn.textContent   = 'Saved!';
 
                     updateCardAfterEdit(editingReviewId, {
@@ -365,14 +386,12 @@
 
                     setTimeout(closeEditModal, 1500);
                 } else {
-                    editErrorEl.textContent   = data.message || 'Something went wrong.';
-                    editErrorEl.style.display = 'block';
+                    showEditError(data.message || 'Something went wrong.');
                     editSubmitBtn.disabled    = false;
                     editSubmitBtn.textContent = 'Save Changes';
                 }
             } catch (err) {
-                editErrorEl.textContent   = 'Something went wrong.';
-                editErrorEl.style.display = 'block';
+                showEditError('Something went wrong.');
                 editSubmitBtn.disabled    = false;
                 editSubmitBtn.textContent = 'Save Changes';
             }
@@ -464,9 +483,7 @@
                     showNotification('Review deleted.', 'success');
 
                     if (card) {
-                        card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                        card.style.opacity    = '0';
-                        card.style.transform  = 'translateY(-8px)';
+                        card.classList.add('is-removing');
                         setTimeout(() => {
                             card.remove();
                             reviewState.offset = Math.max(0, reviewState.offset - 1);

@@ -68,7 +68,7 @@ require '../inc/header.php';
         </section>
     <?php else: ?>
         <?php
-            $averagePercent = max(0, min(100, ($ratingAverage / 5) * 100));
+            $averageRatingStep = number_format(round($ratingAverage * 10) / 10, 1, '.', '');
             $reviewLabel = $reviewCount === 1 ? 'review' : 'reviews';
         ?>
         <section class="reviews-chatbot-summary" aria-labelledby="chatbot-reviews-title">
@@ -89,9 +89,9 @@ require '../inc/header.php';
                     <span>out of 5</span>
                 </div>
                 <div>
-                    <div class="reviews-star-meter" role="img" aria-label="<?= $reviewCount > 0 ? number_format($ratingAverage, 1) . ' out of 5 stars' : 'No ratings yet' ?>">
+                    <div class="reviews-star-meter" data-rating="<?= $averageRatingStep ?>" role="img" aria-label="<?= $reviewCount > 0 ? number_format($ratingAverage, 1) . ' out of 5 stars' : 'No ratings yet' ?>">
                         <span class="reviews-star-meter__empty" aria-hidden="true">★★★★★</span>
-                        <span class="reviews-star-meter__filled" aria-hidden="true" style="width: <?= number_format($averagePercent, 2, '.', '') ?>%">★★★★★</span>
+                        <span class="reviews-star-meter__filled" aria-hidden="true">★★★★★</span>
                     </div>
                     <p class="reviews-count-summary"><?= number_format($reviewCount) ?> <?= $reviewLabel ?></p>
                 </div>
@@ -117,7 +117,7 @@ require '../inc/header.php';
                             aria-label="Show <?= $rating ?> star reviews (<?= $count ?>)">
                         <span class="reviews-breakdown-rating"><?= $rating ?> <span aria-hidden="true">★</span></span>
                         <span class="reviews-breakdown-track" aria-hidden="true">
-                            <span class="reviews-breakdown-fill" style="width: <?= number_format($percentage, 2, '.', '') ?>%"></span>
+                            <progress class="reviews-breakdown-progress" value="<?= number_format($percentage, 2, '.', '') ?>" max="100"></progress>
                         </span>
                         <span class="reviews-breakdown-count"><?= number_format($count) ?></span>
                     </button>

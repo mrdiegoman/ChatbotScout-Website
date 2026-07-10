@@ -7,6 +7,10 @@ document.addEventListener('DOMContentLoaded', () => {
     setupFormSubmit();
 });
 
+function setHidden(element, hidden) {
+    if (element) element.hidden = hidden;
+}
+
 // ── Character counter ────────────────────────────────────────────────────────
 function setupCharCounter() {
     const textarea = document.getElementById('message');
@@ -15,11 +19,7 @@ function setupCharCounter() {
 
     textarea.addEventListener('input', () => {
         counter.textContent = textarea.value.length;
-        if (textarea.value.length > 1800) {
-            counter.style.color = '#EF233C';
-        } else {
-            counter.style.color = '';
-        }
+        counter.classList.toggle('sc-char-count__value--warning', textarea.value.length > 1800);
     });
 }
 
@@ -124,8 +124,8 @@ function setupFormSubmit() {
         const submitLoader = document.getElementById('scSubmitLoader');
 
         submitBtn.disabled         = true;
-        submitText.style.display   = 'none';
-        submitLoader.style.display = 'inline';
+        setHidden(submitText, true);
+        setHidden(submitLoader, false);
 
         try {
             const payload = {
@@ -146,23 +146,23 @@ function setupFormSubmit() {
             const data = await res.json();
 
             if (data.success) {
-                document.getElementById('scForm').style.display    = 'none';
-                document.getElementById('scSuccess').style.display = 'block';
+                setHidden(document.getElementById('scForm'), true);
+                setHidden(document.getElementById('scSuccess'), false);
                 document.getElementById('scSuccess').scrollIntoView({ behavior: 'smooth' });
             } else {
                 document.getElementById('scGlobalError').textContent =
                     data.message || 'Something went wrong. Please try again.';
                 submitBtn.disabled         = false;
-                submitText.style.display   = 'inline';
-                submitLoader.style.display = 'none';
+                setHidden(submitText, false);
+                setHidden(submitLoader, true);
             }
 
         } catch (err) {
             document.getElementById('scGlobalError').textContent =
                 'Network error. Please check your connection and try again.';
             submitBtn.disabled         = false;
-            submitText.style.display   = 'inline';
-            submitLoader.style.display = 'none';
+            setHidden(submitText, false);
+            setHidden(submitLoader, true);
         }
     });
 }

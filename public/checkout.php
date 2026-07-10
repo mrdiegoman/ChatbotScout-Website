@@ -306,7 +306,7 @@ $upgradeNote = $isUpgradeCancelsAtPeriodEnd
             </div>
 
             <div id="stripe-loading">
-                <p style="color:#6b7280;font-size:14px;"><?php echo $isBundleUpgrade ? 'Calculating upgrade amount...' : 'Loading payment form...'; ?></p>
+                <p class="checkout-payment__loading-text"><?php echo $isBundleUpgrade ? 'Calculating upgrade amount...' : 'Loading payment form...'; ?></p>
             </div>
             <button id="use-saved-payment-method-btn" class="checkout-payment__back-to-saved" type="button" hidden>
                 &larr; Use saved payment method
@@ -315,9 +315,9 @@ $upgradeNote = $isUpgradeCancelsAtPeriodEnd
                 <div id="express-checkout-element"></div>
                 <div class="checkout-payment__express-divider" aria-hidden="true"><span>or use another payment method</span></div>
             </div>
-            <div id="payment-element" style="display:none;"></div>
+            <div id="payment-element" hidden></div>
 
-            <div id="checkoutError" class="checkout-payment__error" style="display:none;"></div>
+            <div id="checkoutError" class="checkout-payment__error" hidden></div>
 
             <div class="checkbox-container checkout-payment__business-confirm">
                 <div class="checkbox-group">
@@ -338,25 +338,21 @@ $upgradeNote = $isUpgradeCancelsAtPeriodEnd
 
             <button id="payBtn" class="checkout-payment__btn">
                 <span id="payBtnText"><?php echo $isBundleUpgrade ? 'Continue to secure payment' : 'Pay ' . $orderDetails['currency_symbol'] . number_format($totalPrice, 2); ?></span>
-                <span id="payBtnLoader" style="display:none;">Processing...</span>
+                <span id="payBtnLoader" hidden>Processing...</span>
             </button>
 
         </div>
     </div>
 </div>
 
-<!-- PHP premenné pre checkout.js -->
-<script nonce="<?= $cspNonce ?>">
-window.checkoutData = {
-    chatbotId:     <?php echo json_encode($chatbotId); ?>,
-    promotionId:   <?php echo json_encode($promotionId); ?>,
-    promotionId2:  <?php echo json_encode($promotionId2 ?: null); ?>,
-    billingPeriod: <?php echo json_encode($billingPeriod); ?>,
-    upgradeFromSubscriptionId: <?php echo json_encode($upgradeFromSubscriptionId ?: null); ?>,
-    isUpgrade: <?php echo json_encode($isBundleUpgrade); ?>,
-    stripePubKey:  <?php echo json_encode($publishableKey); ?>,
-};
-</script>
+<div id="checkoutConfig"
+     hidden
+     data-chatbot-id="<?php echo htmlspecialchars($chatbotId, ENT_QUOTES, 'UTF-8'); ?>"
+     data-promotion-id="<?php echo htmlspecialchars($promotionId, ENT_QUOTES, 'UTF-8'); ?>"
+     data-promotion-id-2="<?php echo htmlspecialchars($promotionId2 ?: '', ENT_QUOTES, 'UTF-8'); ?>"
+     data-billing-period="<?php echo htmlspecialchars($billingPeriod, ENT_QUOTES, 'UTF-8'); ?>"
+     data-upgrade-from-subscription-id="<?php echo htmlspecialchars($upgradeFromSubscriptionId ?: '', ENT_QUOTES, 'UTF-8'); ?>"
+     data-stripe-pub-key="<?php echo htmlspecialchars($publishableKey, ENT_QUOTES, 'UTF-8'); ?>"></div>
 
 <script src="https://js.stripe.com/v3/"></script>
 <script src="js/checkout.js?v=<?= filemtime(__DIR__ . '/js/checkout.js') ?>"></script>

@@ -30,7 +30,8 @@ $offset = ($page - 1) * $limit;
 $allowedSorts = ['popularity', 'price', 'alphabetical', 'rating', 'number-of-ratings'];
 if (!in_array($sort, $allowedSorts)) $sort = 'popularity';
 
-$direction = ($_GET['direction'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
+$defaultDirection = in_array($sort, ['alphabetical', 'price'], true) ? 'asc' : 'desc';
+$direction = ($_GET['direction'] ?? $defaultDirection) === 'asc' ? 'asc' : 'desc';
 
 // ============================================
 // INPUT VALIDATION — filters
@@ -45,17 +46,19 @@ $favoritesEnd   = (isset($_GET['favoritesEnd'])   && $_GET['favoritesEnd']   !==
 $priceStart  = (isset($_GET['priceStart'])  && $_GET['priceStart']  !== '') ? (float)$_GET['priceStart']  : null;
 $priceEnd    = (isset($_GET['priceEnd'])    && $_GET['priceEnd']    !== '') ? (float)$_GET['priceEnd']    : null;
 
+$uuidPattern = '/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i';
+
 // features[] — pole UUID
 $featureIds  = array_values(array_filter(
     (array)($_GET['features'] ?? []),
-    fn($id) => is_string($id) && preg_match('/^[0-9a-f\-]{36}$/i', $id)
+    fn($id) => is_string($id) && preg_match($uuidPattern, $id)
 ));
 $featureCount = count($featureIds);
 
 // integrations[] — OR logika, pole UUID
 $integrationIds = array_values(array_filter(
     (array)($_GET['integrations'] ?? []),
-    fn($id) => is_string($id) && preg_match('/^[0-9a-f\-]{36}$/i', $id)
+    fn($id) => is_string($id) && preg_match($uuidPattern, $id)
 ));
 $integrationCount = count($integrationIds);
 
@@ -94,7 +97,7 @@ $activePromotionExistsSql = "
 
 $orderBy = match($sort) {
     'popularity'        => "(c.rating_average * LOG(c.click_count + 1)) $dir, c.click_count $dir, c.rating_count $dir, c.rating_average $dir",
-    'alphabetical'      => "c.name " . ($direction === 'asc' ? 'DESC' : 'ASC'),
+    'alphabetical'      => "c.name $dir",
     'rating'            => "c.rating_average $dir, c.rating_count $dir",
     'number-of-ratings' => "c.rating_count $dir, c.rating_average $dir",
     'price'             => "ISNULL(c.starting_price_eur) ASC, c.starting_price_eur $dir, c.starting_price $dir",
