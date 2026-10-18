@@ -25,6 +25,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 validateCsrfToken($contactUrl);
 
+if (!Turnstile::verify((string)($_POST['cf-turnstile-response'] ?? ''))) {
+    $_SESSION['contact_error'] = 'Human verification failed. Please try again.';
+    header('Location: ' . $contactUrl);
+    exit;
+}
+
 $db = Database::getInstance()->getConnection();
 
 $firstName = trim($_POST['first_name'] ?? '');

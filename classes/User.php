@@ -270,6 +270,10 @@ class User
 
         if (!empty($errors)) {
             $remaining = $rateLimiter->recordFailedAttempt('login', $clientIp, $email);
+            AuditLog::log('user', mb_substr(hash('sha256', mb_strtolower($email)), 0, 36), 'login_failed', null, [
+                'reason' => 'invalid_credentials',
+                'account_known' => false,
+            ]);
             if ($remaining >= 60) {
                 $minutes = ceil($remaining / 60);
                 throw new Exception("Too many login attempts. Please try again in {$minutes} minutes.");
@@ -306,6 +310,10 @@ class User
         // Overenie hesla
         if (!password_verify($password, $user['password_hash'])) {
             $remaining = $rateLimiter->recordFailedAttempt('login', $clientIp, $email);
+            AuditLog::log('user', (string)$user['id'], 'login_failed', null, [
+                'reason' => 'invalid_credentials',
+                'account_known' => true,
+            ]);
             if ($remaining >= 60) {
                 $minutes = ceil($remaining / 60);
                 throw new Exception("Too many login attempts. Please try again in {$minutes} minutes.");
@@ -330,10 +338,12 @@ class User
         
         // Kontrola statusu účtu
         if ($user['status'] === 'suspended') {
+            AuditLog::log('user', (string)$user['id'], 'login_failed', null, ['reason' => 'suspended']);
             throw new Exception("Your account has been suspended. Please contact support.");
         }
         
         if ($user['status'] === 'disabled') {
+            AuditLog::log('user', (string)$user['id'], 'login_failed', null, ['reason' => 'disabled']);
             throw new Exception("Your account has been disabled.");
         }
         
@@ -343,6 +353,15 @@ class User
        // Update last login
         $updateStmt = $this->db->prepare("UPDATE users SET last_login_at = NOW() WHERE id = :id");
         $updateStmt->execute(['id' => $user['id']]);
+
+        AuditLog::log(
+            'user',
+            (string)$user['id'],
+            'email_verified',
+            ['is_email_verified' => false, 'status' => 'pending_verification'],
+            ['is_email_verified' => true, 'status' => 'active'],
+            (string)$user['id']
+        );
 
         // Audit log
         AuditLog::log('user', $user['id'], 'login', null, null, $user['id']);
@@ -629,6 +648,15 @@ class User
         $emailService = new Email();
         $fullName = $user['first_name'] . ' ' . $user['last_name'];
         $emailService->sendPasswordReset($user['email'], $fullName, $resetToken);
+
+        AuditLog::log(
+            'user',
+            (string)$user['id'],
+            'password_reset_requested',
+            null,
+            ['delivery' => 'email'],
+            (string)$user['id']
+        );
         
         return true;
     }
@@ -717,6 +745,15 @@ class User
 
             (new Session())->destroyAllForUser((string)$user['id']);
             $this->db->commit();
+
+            AuditLog::log(
+                'user',
+                (string)$user['id'],
+                'password_reset_completed',
+                null,
+                ['sessions_revoked' => true],
+                (string)$user['id']
+            );
         } catch (UnexpectedValueException $e) {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();

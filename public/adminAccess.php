@@ -31,9 +31,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $result = AdminAuth::authenticate($username, $password, $totpCode);
 
     if (!empty($result['success'])) {
+        $admin = AdminAuth::current();
+        $auditId = (string)($admin['audit_user_id'] ?? hash('sha256', mb_strtolower($username)));
+        AuditLog::log('admin', mb_substr($auditId, 0, 36), 'login');
         header('Location: admin');
         exit;
     }
+
+    AuditLog::log(
+        'admin',
+        mb_substr(hash('sha256', mb_strtolower($username)), 0, 36),
+        'login_failed',
+        null,
+        ['username_hash' => hash('sha256', mb_strtolower($username))]
+    );
 
     $_SESSION['admin_login_error'] = $result['message'] ?? 'Unable to sign in.';
     $_SESSION['admin_login_input'] = ['username' => $username];

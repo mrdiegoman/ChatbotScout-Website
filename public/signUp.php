@@ -28,6 +28,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $errors = [];
 
+    if (!Turnstile::verify((string)($_POST['cf-turnstile-response'] ?? ''))) {
+        $_SESSION['signup_errors'] = ['system' => ['Human verification failed. Please try again.']];
+        $_SESSION['signup_input'] = [
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'email' => $email,
+            'terms_accepted' => $termsAccepted,
+            'marketing_emails' => $marketingEmails,
+        ];
+        header('Location: sign-up');
+        exit;
+    }
+
     try {
         // Inicializácia User triedy
         $userService = new User();
@@ -260,6 +273,9 @@ require '../inc/header.php';
             
             <!-- Submit Button -->
             <button type="submit" class="submit-btn">Create Account</button>
+            <?php if (Turnstile::isConfigured()): ?>
+                <div class="cf-turnstile" data-sitekey="<?= htmlspecialchars(Turnstile::siteKey(), ENT_QUOTES, 'UTF-8') ?>"></div>
+            <?php endif; ?>
         </form>
         
         <!-- Footer - Link to Sign In -->
@@ -273,6 +289,9 @@ require '../inc/header.php';
 <script src="js/passwordToggle.js?v=<?= filemtime(__DIR__ . '/js/passwordToggle.js') ?>"></script>
 <!--  Live Validation Script -->
 <script src="js/authValidation.js?v=<?= filemtime(__DIR__ . '/js/authValidation.js') ?>"></script>
+<?php if (Turnstile::isConfigured()): ?>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>"></script>
+<?php endif; ?>
 
 <?php
 require '../inc/footer.php';

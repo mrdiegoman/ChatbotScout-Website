@@ -11,6 +11,21 @@
  */
 class AuditLog
 {
+    private const ALLOWED_ACTIONS = [
+        'created', 'updated', 'deleted', 'approved', 'rejected', 'suspended',
+        'restored', 'login', 'logout', 'login_failed', 'password_changed',
+        'password_reset_requested', 'password_reset_completed', 'email_verified',
+        'blocked', 'unblocked', 'cancelled', 'renewed', 'reply_sent',
+        'notes_updated', 'anonymized',
+    ];
+
+    private const SENSITIVE_KEYS = [
+        'password', 'password_hash', 'token', 'access_token', 'refresh_token',
+        'reset_token', 'password_reset_token', 'email_verification_token',
+        'csrf_token', 'client_secret', 'secret', 'totp_code', 'totp_secret',
+        'authorization', 'cookie', 'session_id',
+    ];
+
     /**
      * Zapíše záznam do audit_log tabuľky.
      *
@@ -30,6 +45,10 @@ class AuditLog
         ?string $userId = null
     ): void {
         try {
+            if (!in_array($action, self::ALLOWED_ACTIONS, true)) {
+                throw new InvalidArgumentException('Unsupported audit action: ' . $action);
+            }
+
             $db = Database::getInstance()->getConnection();
 
             // User ID zo session ak nie je explicitne zadané
@@ -56,8 +75,11 @@ class AuditLog
                              : null;
             $requestMethod = $_SERVER['REQUEST_METHOD'] ?? null;
             $requestUrl    = isset($_SERVER['REQUEST_URI'])
-                             ? mb_substr($_SERVER['REQUEST_URI'], 0, 1000)
+                             ? self::sanitizeRequestUrl((string)$_SERVER['REQUEST_URI'])
                              : null;
+
+            $oldValues = self::redactSensitiveValues($oldValues);
+            $newValues = self::redactSensitiveValues($newValues);
 
             $id = self::generateUuid();
 
@@ -120,6 +142,42 @@ class AuditLog
     private static function getIpAddress(): ?string
     {
         return ClientIpResolver::currentOrNull();
+    }
+
+    private static function redactSensitiveValues(?array $values): ?array
+    {
+        if ($values === null) {
+            return null;
+        }
+
+        foreach ($values as $key => $value) {
+            if (in_array(mb_strtolower((string)$key), self::SENSITIVE_KEYS, true)) {
+                $values[$key] = '[REDACTED]';
+            } elseif (is_array($value)) {
+                $values[$key] = self::redactSensitiveValues($value);
+            }
+        }
+
+        return $values;
+    }
+
+    private static function sanitizeRequestUrl(string $requestUrl): string
+    {
+        $parts = parse_url($requestUrl);
+        if ($parts === false || empty($parts['query'])) {
+            return mb_substr($requestUrl, 0, 1000);
+        }
+
+        parse_str($parts['query'], $query);
+        foreach ($query as $key => $value) {
+            if (in_array(mb_strtolower((string)$key), self::SENSITIVE_KEYS, true)) {
+                $query[$key] = '[REDACTED]';
+            }
+        }
+
+        $path = $parts['path'] ?? '';
+        $sanitized = $path . ($query ? '?' . http_build_query($query) : '');
+        return mb_substr($sanitized, 0, 1000);
     }
 
     /**

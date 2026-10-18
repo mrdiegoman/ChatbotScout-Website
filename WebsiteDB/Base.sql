@@ -786,7 +786,7 @@ CREATE TABLE IF NOT EXISTS `audit_log` (
   -- Entity Information
   `entity_type` VARCHAR(50) NOT NULL COMMENT 'Entity type, e.g., "chatbot", "user", "payment", "review", "subscription"',
   `entity_id` VARCHAR(36) NOT NULL COMMENT 'Entity UUID, e.g., "850e8400-e29b-41d4-a716-446655440003", "550e8400-e29b-41d4-a716-446655440000"',
-  `action` ENUM('created', 'updated', 'deleted', 'approved', 'rejected', 'suspended', 'restored', 'login', 'logout') NOT NULL COMMENT 'Action performed, e.g., "created", "updated", "approved"',
+  `action` VARCHAR(50) NOT NULL COMMENT 'Validated action name, e.g., "created", "password_changed", "login_failed"',
 
   -- Change Details
   `old_values` JSON NULL COMMENT 'Previous values, e.g., {"status": "pending", "is_verified": false}, {"price": 29.99, "discount": 0}',

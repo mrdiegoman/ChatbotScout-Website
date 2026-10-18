@@ -35,6 +35,12 @@ if (!empty($user['is_submission_blocked'])) {
 $input = json_decode(file_get_contents('php://input'), true);
 $input = is_array($input) ? $input : [];
 
+if (!Turnstile::verify((string)($input['turnstile_token'] ?? ''))) {
+    http_response_code(422);
+    echo json_encode(['success' => false, 'message' => 'Human verification failed. Please try again.']);
+    exit;
+}
+
 // ── Input ────────────────────────────────────────────────────────────────────
 $contactName  = trim($input['contact_name']  ?? '');
 $companyName  = trim($input['company_name']  ?? '');
@@ -166,6 +172,12 @@ try {
             $fromName
         );
     }
+
+    AuditLog::log('chatbot', $chatbotId, 'created', null, [
+        'owner_user_id' => $user['id'],
+        'name' => $chatbotName,
+        'status' => 'pending',
+    ]);
 
     echo json_encode([
         'success'    => true,

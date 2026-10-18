@@ -136,7 +136,7 @@ function validateCsrfToken(string $redirectOnFail = ''): void {
 // CSP nonce — unikátny pre každý request
 $cspNonce = bin2hex(random_bytes(16));
 
-$cspScriptSrc = "script-src 'self' 'nonce-{$cspNonce}' https://js.stripe.com https://www.googletagmanager.com; ";
+$cspScriptSrc = "script-src 'self' 'nonce-{$cspNonce}' https://js.stripe.com https://www.googletagmanager.com https://challenges.cloudflare.com; ";
 
 header('X-Frame-Options: SAMEORIGIN');
 header('X-Content-Type-Options: nosniff');
@@ -151,8 +151,8 @@ header(
     "font-src 'self' data:; " .
     // Stripe uses these endpoints for Payment Element telemetry, wallet checks and
     // authentication/3DS return frames. Keep the allowlist limited to Stripe hosts.
-    "connect-src 'self' https://api.stripe.com https://js.stripe.com https://m.stripe.network https://r.stripe.com https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com; " .
-    "frame-src https://js.stripe.com https://hooks.stripe.com; " .
+    "connect-src 'self' https://api.stripe.com https://js.stripe.com https://m.stripe.network https://r.stripe.com https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://challenges.cloudflare.com; " .
+    "frame-src https://js.stripe.com https://hooks.stripe.com https://challenges.cloudflare.com; " .
     "frame-ancestors 'none'; " .
     "base-uri 'self'; " .
     "object-src 'none'"

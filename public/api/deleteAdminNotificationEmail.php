@@ -31,6 +31,9 @@ if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0
 
 try {
     $db   = Database::getInstance()->getConnection();
+    $lookup = $db->prepare("SELECT email FROM admin_notification_emails WHERE id = :id");
+    $lookup->execute([':id' => $id]);
+    $existingEmail = $lookup->fetchColumn();
     $stmt = $db->prepare("DELETE FROM admin_notification_emails WHERE id = :id");
     $stmt->execute([':id' => $id]);
 
@@ -38,6 +41,11 @@ try {
         echo json_encode(['success' => false, 'message' => 'Email not found']);
         exit;
     }
+
+    AuditLog::log('admin_notification_email', $id, 'deleted',
+        ['email' => $existingEmail ?: null],
+        null
+    );
 
     echo json_encode(['success' => true]);
 

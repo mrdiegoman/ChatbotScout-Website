@@ -22,6 +22,13 @@ unset($_SESSION['forgot_input']);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     validateCsrfToken('forgotPassword.php');
     $email = strtolower(trim($_POST['email'] ?? ''));
+
+    if (!Turnstile::verify((string)($_POST['cf-turnstile-response'] ?? ''))) {
+        $_SESSION['forgot_errors'] = 'Human verification failed. Please try again.';
+        $_SESSION['forgot_input'] = ['email' => $email];
+        header('Location: forgot-password');
+        exit;
+    }
     
     // ✅ Rate limiting check
     $rateLimiter = new RateLimiter();
@@ -142,7 +149,13 @@ require '../inc/header.php';
             
             <!-- Submit Button -->
             <button type="submit" class="submit-btn">Send reset link</button>
+            <?php if (Turnstile::isConfigured()): ?>
+                <div class="cf-turnstile" data-sitekey="<?= htmlspecialchars(Turnstile::siteKey(), ENT_QUOTES, 'UTF-8') ?>"></div>
+            <?php endif; ?>
         </form>
+        <?php if (Turnstile::isConfigured()): ?>
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>"></script>
+        <?php endif; ?>
         
         <!-- Footer - Back to login -->
         <div class="auth-footer">

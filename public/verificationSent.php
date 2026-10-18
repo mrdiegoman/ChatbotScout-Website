@@ -11,6 +11,25 @@ $expectsJson = str_contains(strtolower($_SERVER['HTTP_ACCEPT'] ?? ''), 'applicat
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     validateCsrfToken($expectsJson ? '' : 'verification-sent');
 
+    if (!Turnstile::verify((string)($_POST['cf-turnstile-response'] ?? ''))) {
+        $result = [
+            'success' => false,
+            'message' => 'Human verification failed. Please try again.',
+            'remainingSeconds' => 0,
+        ];
+
+        if ($expectsJson) {
+            http_response_code(422);
+            header('Content-Type: application/json');
+            echo json_encode($result);
+            exit;
+        }
+
+        $_SESSION['verification_resend_notice'] = ['type' => 'error', 'message' => $result['message']];
+        header('Location: verification-sent', true, 303);
+        exit;
+    }
+
     $result = $hasPendingEmail
         ? $userService->resendVerificationEmail($email, $clientIp)
         : [
@@ -86,6 +105,9 @@ require '../inc/header.php';
               data-cooldown-until="<?php echo $cooldownUntil; ?>"
               data-resend-available="<?php echo ($hasPendingEmail && !$resendState['verified']) ? 'true' : 'false'; ?>">
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+            <?php if (Turnstile::isConfigured()): ?>
+                <div class="cf-turnstile" data-sitekey="<?= htmlspecialchars(Turnstile::siteKey(), ENT_QUOTES, 'UTF-8') ?>"></div>
+            <?php endif; ?>
             <button type="submit"
                     class="verification-primary-action btn-resend<?php echo $remainingSeconds > 0 ? ' countdown-active' : ''; ?>"
                     data-default-label="Resend verification email"
@@ -108,6 +130,9 @@ require '../inc/header.php';
 </main>
 
 <script src="js/resendEmail.js?v=<?= filemtime(__DIR__ . '/js/resendEmail.js') ?>" defer></script>
+<?php if (Turnstile::isConfigured()): ?>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>"></script>
+<?php endif; ?>
 
 <?php
 require '../inc/footer.php';

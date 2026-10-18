@@ -212,6 +212,9 @@ if (!$isLoggedIn) {
 
                 <p class="sc-global-error" id="scGlobalError"></p>
 
+                <?php if (Turnstile::isConfigured()): ?>
+                    <div class="cf-turnstile" data-sitekey="<?= htmlspecialchars(Turnstile::siteKey(), ENT_QUOTES, 'UTF-8') ?>"></div>
+                <?php endif; ?>
             </form>
 
         </div>
@@ -221,5 +224,8 @@ if (!$isLoggedIn) {
 
 <?php require '../inc/footer.php'; ?>
 <script src="js/submitChatbot.js?v=<?= filemtime(__DIR__ . '/js/submitChatbot.js') ?>"></script>
+<?php if (Turnstile::isConfigured()): ?>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>"></script>
+<?php endif; ?>
 </body>
 </html>

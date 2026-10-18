@@ -101,6 +101,11 @@ if ($action === 'save_notes') {
         $stmt = $db->prepare("UPDATE reviews SET moderation_notes = :notes WHERE id = :id");
         $stmt->execute(['notes' => $notes ?: null, 'id' => $id]);
 
+        AuditLog::log('review', $id, 'notes_updated', null, [
+            'has_moderation_notes' => $notes !== '',
+            'notes_length' => mb_strlen($notes),
+        ]);
+
         echo json_encode(['success' => true, 'message' => 'Notes saved']);
 
     } catch (PDOException $e) {

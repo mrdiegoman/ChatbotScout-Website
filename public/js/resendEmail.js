@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: new FormData(form),
             });
             const result = await response.json();
+            if (window.turnstile) window.turnstile.reset();
             const remaining = Math.max(0, Number(result.remainingSeconds) || 0);
 
             if (result.verified) resendAvailable = false;

@@ -135,6 +135,7 @@ function setupFormSubmit() {
                 name:          document.getElementById('chatbotName').value.trim(),
                 website_url:   document.getElementById('websiteUrl').value.trim(),
                 message:       document.getElementById('message').value.trim(),
+                turnstile_token: form.querySelector('[name="cf-turnstile-response"]')?.value || '',
             };
 
             const res  = await fetch('api/submitChatbot.php', {
@@ -155,6 +156,7 @@ function setupFormSubmit() {
                 submitBtn.disabled         = false;
                 setHidden(submitText, false);
                 setHidden(submitLoader, true);
+                if (window.turnstile) window.turnstile.reset();
             }
 
         } catch (err) {
@@ -163,6 +165,7 @@ function setupFormSubmit() {
             submitBtn.disabled         = false;
             setHidden(submitText, false);
             setHidden(submitLoader, true);
+            if (window.turnstile) window.turnstile.reset();
         }
     });
 }

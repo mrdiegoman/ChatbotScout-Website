@@ -164,6 +164,9 @@ function old(string $key, array $old): string {
 
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
                 <button type="submit" class="cs-button contact-page-main-section-2-submit-btn">Send Message</button>
+                <?php if (Turnstile::isConfigured()): ?>
+                    <div class="cf-turnstile" data-sitekey="<?= htmlspecialchars(Turnstile::siteKey(), ENT_QUOTES, 'UTF-8') ?>"></div>
+                <?php endif; ?>
             </form>
         </section>
         <section class="cs-card cs-card--soft cs-contact-privacy-note" aria-label="Contact privacy note">
@@ -177,5 +180,8 @@ function old(string $key, array $old): string {
 </div>
 
 <script src="js/contact.js?v=<?= filemtime(__DIR__ . '/js/contact.js') ?>" defer></script>
+<?php if (Turnstile::isConfigured()): ?>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>"></script>
+<?php endif; ?>
 
 <?php require '../inc/footer.php'; ?>

@@ -51,6 +51,8 @@ try {
     $stmt = $db->prepare("INSERT INTO admin_notification_emails (id, email) VALUES (:id, :email)");
     $stmt->execute([':id' => $id, ':email' => $email]);
 
+    AuditLog::log('admin_notification_email', $id, 'created', null, ['email' => $email]);
+
     echo json_encode([
         'success' => true,
         'email'   => ['id' => $id, 'email' => $email],

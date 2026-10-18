@@ -6,6 +6,8 @@ requireRole('admin');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['admin_action'] ?? '') === 'logout') {
     validateCsrfToken('admin');
+    $auditId = (string)($adminUser['audit_user_id'] ?? hash('sha256', (string)($adminUser['username'] ?? 'admin')));
+    AuditLog::log('admin', mb_substr($auditId, 0, 36), 'logout');
     AdminAuth::logout();
     header('Location: ' . AdminAuth::loginUrl());
     exit;

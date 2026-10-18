@@ -190,6 +190,10 @@ if ($action === 'save_notes') {
     try {
         $stmt = $db->prepare("UPDATE contact_messages SET internal_notes = :notes WHERE id = :id");
         $stmt->execute(['notes' => $notes ?: null, 'id' => $id]);
+        AuditLog::log('contact_message', $id, 'notes_updated', null, [
+            'has_internal_notes' => $notes !== '',
+            'notes_length' => mb_strlen($notes),
+        ]);
         echo json_encode(['success' => true, 'message' => 'Notes saved']);
 
     } catch (PDOException $e) {
@@ -218,6 +222,11 @@ if ($action === 'toggle_helpful') {
 
         $stmt = $db->prepare("UPDATE contact_messages SET helpful = :helpful WHERE id = :id");
         $stmt->execute(['helpful' => $newValue, 'id' => $id]);
+
+        AuditLog::log('contact_message', $id, 'reply_sent',
+            ['helpful' => (bool)$row['helpful']],
+            ['helpful' => (bool)$newValue]
+        );
 
         echo json_encode(['success' => true, 'helpful' => (bool)$newValue]);
 

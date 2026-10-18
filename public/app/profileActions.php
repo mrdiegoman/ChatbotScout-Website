@@ -982,10 +982,7 @@ if ($action === 'change_password') {
     $stmt = $db->prepare("UPDATE users SET password_hash = :hash WHERE id = :id");
     $stmt->execute(['hash' => $newHash, 'id' => $user['id']]);
 
-    AuditLog::log('user', $user['id'], 'updated',
-        ['password' => '***'],
-        ['password' => '***']
-    );
+    AuditLog::log('user', $user['id'], 'password_changed');
 
     echo json_encode(['success' => true]);
     exit;

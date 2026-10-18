@@ -1081,6 +1081,11 @@ switch ($action) {
             UPDATE chatbots SET admin_notes = :notes WHERE id = :id
         ")->execute(['notes' => $notes ?: null, 'id' => $id]);
 
+        AuditLog::log('chatbot', $id, 'notes_updated', null, [
+            'has_admin_notes' => $notes !== '',
+            'notes_length' => mb_strlen($notes),
+        ]);
+
         echo json_encode(['success' => true, 'message' => 'Notes saved.']);
         break;
 

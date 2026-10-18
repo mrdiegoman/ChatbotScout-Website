@@ -101,7 +101,7 @@ try {
 
     $db->commit();
 
-    AuditLog::log('user', $userId, 'updated',
+    AuditLog::log('user', $userId, $unblock ? 'unblocked' : 'blocked',
         [$flag => $unblock],
         [$flag => !$unblock]
     );
